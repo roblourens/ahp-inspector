@@ -46,7 +46,11 @@ export function TimelineList({
   const v = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: (i) => ITEM_HEIGHT[getItemKindKey(items[i] ?? { kind: "row" })] ?? 28,
+    estimateSize: (i) => {
+      const item = items[i];
+      if (!item) return 28;
+      return ITEM_HEIGHT[getItemKindKey(item)] ?? 28;
+    },
     overscan: 12,
   });
 

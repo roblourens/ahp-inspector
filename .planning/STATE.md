@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-05-07T18:38:21.136Z"
+stopped_at: Completed 03-05-PLAN.md
+last_updated: "2026-05-07T18:54:43.743Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 17
-  completed_plans: 15
-  percent: 88
+  completed_plans: 16
+  percent: 94
 ---
 
 # State: AHP Log Viewer
@@ -23,13 +23,13 @@ progress:
 ## Current Position
 
 Phase: 03 (detail-search-and-filtering) — EXECUTING
-Plan: 3 of 7
+Plan: 5 of 7
 
 - **Milestone:** v1
 - **Phase:** 3 — detail-search-and-filtering
-- **Plan:** 03-04 complete; detail panel UI — fetchEvent LRU, AhpFieldStrip, PrettyJsonView, CopyMenu, resize handle
+- **Plan:** 03-05 complete; wave-3 final assembly — search client, useSearch, GroupHeaderRow, GapBannerRow, StickyGroupBar, polymorphic TimelineList, AppShell Phase 3 layout, keyboard shortcuts, EventRow auth glyph
 - **Status:** Executing Phase 03
-- **Progress:** [█████████░] 88%
+- **Progress:** [█████████░] 94%
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Plan: 3 of 7
 | Phase 03 P02 | 5min | 2 tasks | 5 files |
 | Phase 03 P03 | 15min | 2 tasks | 14 files |
 | Phase 03 P04 | 15min | 3 tasks | 17 files |
+| Phase 03 P05 | 14min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,11 @@ Plan: 3 of 7
 - Plan 03-03: biome `useSemanticElements` rule requires `<input type="radio">+<label>` over `<button role="radio">`; plan prescribed the button pattern but the semantic HTML version is equivalent for a11y.
 - Plan 03-04: fetchEvent uses conditional init object for AbortSignal (exactOptionalPropertyTypes: fetch signal must be AbortSignal|null, not undefined)
 - Plan 03-04: AhpFieldStrip uses conditional spread pattern for optional props — required by exactOptionalPropertyTypes; PrettyJsonView casts data as object for react-json-view-lite
+- Plan 03-05: search-client.ts uses conditional spread for AbortSignal — RequestInit.signal is AbortSignal|null (not |undefined); exactOptionalPropertyTypes enforcement
+- Plan 03-05: SearchInput accepts ref as plain prop (React 19 — no forwardRef needed); FilterBar passes searchInputRef via conditional spread
+- Plan 03-05: TimelineList.onSelect wraps store selectIdx in lambda to adapt (number|null)→void to number→void
+- Plan 03-05: highlightMatches uses React mark elements with CSS token colors — never interpret searchQuery as HTML (XSS-safe per T-03-05-03)
+- Plan 03-05: StickyGroupBar returns null when topGroup is null — no DOM overhead when grouping is off
 
 ### Open TODOs
 
@@ -98,9 +104,9 @@ Plan: 3 of 7
 
 ## Session Continuity
 
-**Last session:** 2026-05-07T18:38:21.134Z
+**Last session:** 2026-05-07T18:54:43.740Z
 **Next action:** `/gsd-plan-phase 3`
-**Stopped at:** Completed 03-04-PLAN.md
+**Stopped at:** Completed 03-05-PLAN.md
 
 ---
 *State initialized: 2026-05-06*

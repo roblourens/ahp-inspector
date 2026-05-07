@@ -76,7 +76,7 @@ Plans:
 - [x] 03-04-PLAN.md — Wave 2b: Detail panel UI — DetailPanel, AhpFieldStrip, PrettyJsonView, CopyMenu (parallel)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 03-05-PLAN.md — Wave 3: Search client + grouping + App assembly (AppShell wiring, TimelineList polymorphic)
+- [x] 03-05-PLAN.md — Wave 3: Search client + grouping + App assembly (AppShell wiring, TimelineList polymorphic)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 03-06-PLAN.md — Wave 4: Phase 3 gate test + browser UAT + USER_GUIDE update
@@ -117,7 +117,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Core Foundations | 3/3 | Complete    | 2026-05-07 |
 | 2. Vertical Slice — CLI, Server, Timeline | 7/7 | Complete | 2026-05-07 |
-| 3. Detail, Search, and Filtering | 5/7 | In Progress|  |
+| 3. Detail, Search, and Filtering | 6/7 | In Progress|  |
 | 4. Live Tail, Discovery, and Persistence | 0/0 | Not started | - |
 | 5. Themes, Polish, and Verification | 0/0 | Not started | - |
 
