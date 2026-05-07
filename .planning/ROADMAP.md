@@ -45,8 +45,8 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
   4. Visual encoding makes direction, event kind, success vs error, action taxonomy, and latency severity readable at a glance, and unmatched / orphaned / failed / malformed events stand out.
   5. Empty, loading, no-results, parse-error, and disconnected states render with informative content instead of blank screens.
 **Plans**: 7 plans
-- [ ] 02-00-PLAN.md — Wave 0: boundary/security guardrails, @ahp-viewer/ui skeleton + jsdom, vendored fonts, EventRow projection contract
-- [ ] 02-01-PLAN.md — AppState + Projector + SSE routes + CSP/Host-guard middleware
+- [x] 02-00-PLAN.md — Wave 0: boundary/security guardrails, @ahp-viewer/ui skeleton + jsdom, vendored fonts, EventRow projection contract
+- [x] 02-01-PLAN.md — AppState + Projector + SSE routes + CSP/Host-guard middleware
 - [ ] 02-02-PLAN.md — UI foundations: tokens / fonts / global CSS / Zustand store / app shell chrome / TimelineRegion stub / hex-literal guard
 - [ ] 02-03-PLAN.md — Timeline cells: DirectionGlyph / KindTag / ActionDot / StatusCell / LatencyCell / PayloadPreview (+ tests)
 - [ ] 02-04-PLAN.md — Wave 2: Five screen-level states + EventRow / ParseErrorRow / TimelineList virtualization + TimelineRegion (replaces 02-02 stub) + App.tsx state routing
