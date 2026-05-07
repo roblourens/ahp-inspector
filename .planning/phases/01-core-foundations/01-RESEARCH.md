@@ -662,25 +662,26 @@ The CLI MUST run end-to-end (`pnpm exec ahp-viewer ./test/fixtures/tiny.jsonl`) 
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does VS Code currently emit JSONL anywhere, or is the human-readable sample the only available source?**
    - Known: sample is human-readable.
    - Unclear: whether a JSONL emit toggle already exists in VS Code.
-   - Recommendation: Phase 1 designs against the canonical `AhpEvent` envelope drawn from AHP types directly. The legacy adapter is the bridge until JSONL emission lands. No external dependency on VS Code's emit timeline.
+   - RESOLVED: Phase 1 designs against the canonical `AhpEvent` envelope drawn from AHP types directly. The legacy adapter is the bridge until JSONL emission lands. No external dependency on VS Code's emit timeline.
 
 2. **Should `sessionId`/`turnId` be lifted at the wire level (envelope) or extracted from `raw.params` by the Normalizer?**
    - Known: extracting from `raw.params` is always possible.
    - Unclear: whether VS Code's eventual JSONL will lift them.
-   - Recommendation: Normalizer extracts; if VS Code later lifts them to the envelope, the Normalizer prefers envelope and falls back to params extraction. Either works; only the Normalizer changes.
+   - RESOLVED: Normalizer extracts from `raw.params`; if VS Code later lifts these fields to the envelope, the Normalizer prefers envelope values and falls back to params extraction. Either shape only changes the Normalizer.
 
 3. **Tool-call id extraction — is `toolCallId` a stable field across all action types, or does it live under `params.action.toolCallId` only for `session/toolCall*` actions?**
-   - Likely the latter, given the AHP `IToolCallActionBase` interface. The extractor table must enumerate.
+   - RESOLVED: Treat tool call IDs as action-specific. The extractor uses `params.toolCallId ?? params.toolCall?.id ?? params.action?.toolCallId`, and Phase 2 can expand the action-type enumeration table if UI grouping needs finer taxonomy.
 
 4. **Phase 1 server scope** — see Assumption A7. Planner must lock.
+   - RESOLVED: Adopt Assumption A7. Phase 1 ships a minimal Hono health server bound to `127.0.0.1` with `GET /health` returning `{ status: 'ok' }`; UI rendering remains Phase 2.
 
 5. **Are there enough distinct legacy headers in the sample to round-trip every JSON-RPC kind via the legacy adapter, or does the legacy adapter only cover a subset?**
-   - Inspection found: `>>`, `<<`, `!!`, `**` for dispatch, listSessions, authenticate, rootState.onDidChange, onDidAction, onDidNotification. That covers request, response, error-response, action, notification — likely sufficient. Verify during implementation.
+   - RESOLVED: Synthetic legacy fixtures cover `>>`, `<<`, `!!`, and `**` markers for request, response, error-response, action, protocol notification, and log/root-state entries. Implementation must not depend on the real sample log payloads.
 
 ---
 
