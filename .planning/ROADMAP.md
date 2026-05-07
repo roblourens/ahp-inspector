@@ -68,7 +68,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 Plans:
 **Wave 1**
 - [x] 03-00-PLAN.md — Wave 0: Foundation (security allowlist, EventRow extension, Phase 3 tokens, test scaffold)
-- [ ] 03-01-PLAN.md — Wave 1a: Detail + Search backend endpoints (GET /api/log/event/:idx + GET /api/log/search)
+- [x] 03-01-PLAN.md — Wave 1a: Detail + Search backend endpoints (GET /api/log/event/:idx + GET /api/log/search)
 - [ ] 03-02-PLAN.md — Wave 1b: Store extensions, FilterState, selectors, performance gate (parallel)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -117,7 +117,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Core Foundations | 3/3 | Complete    | 2026-05-07 |
 | 2. Vertical Slice — CLI, Server, Timeline | 7/7 | Complete | 2026-05-07 |
-| 3. Detail, Search, and Filtering | 1/7 | In Progress|  |
+| 3. Detail, Search, and Filtering | 2/7 | In Progress|  |
 | 4. Live Tail, Discovery, and Persistence | 0/0 | Not started | - |
 | 5. Themes, Polish, and Verification | 0/0 | Not started | - |
 

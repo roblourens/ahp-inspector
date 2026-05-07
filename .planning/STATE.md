@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-00-PLAN.md
-last_updated: "2026-05-07T17:55:14.592Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-05-07T18:05:32.293Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 17
-  completed_plans: 11
-  percent: 65
+  completed_plans: 12
+  percent: 71
 ---
 
 # State: AHP Log Viewer
@@ -29,7 +29,7 @@ Plan: 2 of 7
 - **Phase:** 2 — Vertical Slice — CLI, Server, Timeline
 - **Plan:** 02-06 complete; verification report passed
 - **Status:** Executing Phase 03
-- **Progress:** [███████░░░] 65%
+- **Progress:** [███████░░░] 71%
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Plan: 2 of 7
 | Phase 02 P05 | 6min | 2 tasks | 9 files |
 | Phase 02 P06 | 14min | 2 tasks | 9 files |
 | Phase 03 P00 | 15min | 2 tasks | 11 files |
+| Phase 03 P01 | 6 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Plan: 2 of 7
 - Plan 02-06: vertical-slice test treats request/response correlation as collapsed-into-snapshot for the file-read flow (CLI ingests entire fixture before SSE client connects); separate `append`+`patch` cycle is covered by `test/sse-integration.test.ts` (Plan 02-01) using a fake host.
 - Plan 03-00: `EventRowExtras` uses optional parameter with `DEFAULT_EXTRAS` default — avoids breaking callers that don't need extras; extras computation lives in `AppState.buildRow` (server) to respect boundary.test.ts portable-package restrictions.
 - Plan 03-00: `lastSeenServerSeq Map<string|null, number>` in `AppState` tracks per-session serverSeq for gap detection; `eventAt(idx)` added to `AppState` interface as the hook Plan 03-01 uses for the raw event detail API endpoint.
+- Plan 03-01: `SearchIndex.scan` uses `String.prototype.includes` (no regex from user input) with query capped at 256 chars and result count capped at 5000 — mitigates T-03-01-01 (ReDoS) and T-03-01-02 (unbounded result DoS).
+- Plan 03-01: `correlatorDataFor(idx)` added to `AppState` interface — exposes correlator metadata (pairIdx, latencyMs, status) to route handlers without leaking the private `Correlator` object; keeps detail-routes.ts a thin HTTP adapter.
 
 ### Open TODOs
 
@@ -86,9 +89,9 @@ Plan: 2 of 7
 
 ## Session Continuity
 
-**Last session:** 2026-05-07T17:55:14.587Z
+**Last session:** 2026-05-07T18:05:32.291Z
 **Next action:** `/gsd-plan-phase 3`
-**Stopped at:** Completed 03-00-PLAN.md
+**Stopped at:** Completed 03-01-PLAN.md
 
 ---
 *State initialized: 2026-05-06*

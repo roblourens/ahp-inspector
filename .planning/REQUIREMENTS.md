@@ -45,13 +45,13 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 ### Event Detail
 
 - [x] **DETAIL-01**: User can expand or select an event to inspect details without breaking timeline virtualization.
-- [ ] **DETAIL-02**: Detail view shows normalized summary fields, correlation metadata, and the full raw JSON payload.
+- [x] **DETAIL-02**: Detail view shows normalized summary fields, correlation metadata, and the full raw JSON payload.
 - [ ] **DETAIL-03**: Detail view supports folded pretty JSON, raw JSON text, syntax highlighting, truncation for huge payloads, and copy actions.
-- [ ] **DETAIL-04**: Detail view highlights AHP-specific fields such as session, turn, tool call, action type, serverSeq, origin, request id, error code, and notification type when present.
+- [x] **DETAIL-04**: Detail view highlights AHP-specific fields such as session, turn, tool call, action type, serverSeq, origin, request id, error code, and notification type when present.
 
 ### Search and Filtering
 
-- [ ] **SEARCH-01**: User can run fast free-text search across method, action type, IDs, session, turn, error text, and payload text.
+- [x] **SEARCH-01**: User can run fast free-text search across method, action type, IDs, session, turn, error text, and payload text.
 - [ ] **SEARCH-02**: User can filter by direction, event kind, method, action type, session, turn, status/error state, and time range.
 - [ ] **SEARCH-03**: Search and filters update the visible timeline without blocking typing or live tailing.
 - [ ] **SEARCH-04**: User can clear filters quickly and see active filters at a glance.
@@ -137,10 +137,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TIME-05 | Phase 3 | Pending |
 | TIME-06 | Phase 2 | Complete |
 | DETAIL-01 | Phase 3 | Complete |
-| DETAIL-02 | Phase 3 | Pending |
+| DETAIL-02 | Phase 3 | Complete |
 | DETAIL-03 | Phase 3 | Pending |
-| DETAIL-04 | Phase 3 | Pending |
-| SEARCH-01 | Phase 3 | Pending |
+| DETAIL-04 | Phase 3 | Complete |
+| SEARCH-01 | Phase 3 | Complete |
 | SEARCH-02 | Phase 3 | Pending |
 | SEARCH-03 | Phase 3 | Pending |
 | SEARCH-04 | Phase 3 | Pending |
