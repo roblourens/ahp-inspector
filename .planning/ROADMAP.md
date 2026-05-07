@@ -12,7 +12,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 
 - [x] **Phase 1: Core Foundations** - Project scaffolding, canonical event model, JSONL + sample parsers, EventStore, host adapter boundary (completed 2026-05-07)
 - [x] **Phase 2: Vertical Slice — CLI, Server, Timeline** - Open a JSONL file from the CLI and render an information-dense virtualized timeline in the browser (completed 2026-05-07)
-- [ ] **Phase 3: Detail, Search, and Filtering** - Inspect events deeply, search and filter responsively, group by session/turn
+- [x] **Phase 3: Detail, Search, and Filtering** - Inspect events deeply, search and filter responsively, group by session/turn (completed 2026-05-07)
 - [ ] **Phase 4: Live Tail, Discovery, and Persistence** - Auto-discover VS Code logs, watch growing files, pause/resume, persist filter state per log
 - [ ] **Phase 5: Themes, Polish, and Verification** - Light/dark/hacker themes via design tokens, responsive layout, full UI + E2E test coverage
 
@@ -79,7 +79,7 @@ Plans:
 - [x] 03-05-PLAN.md — Wave 3: Search client + grouping + App assembly (AppShell wiring, TimelineList polymorphic)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 03-06-PLAN.md — Wave 4: Phase 3 gate test + browser UAT + USER_GUIDE update
+- [x] 03-06-PLAN.md — Wave 4: Phase 3 gate test + browser UAT + USER_GUIDE update
 
 **Cross-cutting constraints:**
 - No raw #hex literals in any component file
@@ -117,7 +117,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Core Foundations | 3/3 | Complete    | 2026-05-07 |
 | 2. Vertical Slice — CLI, Server, Timeline | 7/7 | Complete | 2026-05-07 |
-| 3. Detail, Search, and Filtering | 6/7 | In Progress|  |
+| 3. Detail, Search, and Filtering | 7/7 | Complete   | 2026-05-07 |
 | 4. Live Tail, Discovery, and Persistence | 0/0 | Not started | - |
 | 5. Themes, Polish, and Verification | 0/0 | Not started | - |
 
