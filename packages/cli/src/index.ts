@@ -46,14 +46,19 @@ const VERSION = loadVersion();
  * skip the static UI mount and the API still works.
  */
 function locateUiDist(): string | undefined {
-  const candidates = [
-    // tsx: packages/cli/src/index.ts → packages/ui/dist
-    resolvePath(__dirname, "..", "..", "ui", "dist"),
-    // tsup output: packages/cli/dist/index.js → packages/ui/dist
-    resolvePath(__dirname, "..", "..", "..", "ui", "dist"),
-    // Hoisted monorepo root: packages/cli/dist → <root>/packages/ui/dist
-    resolvePath(__dirname, "..", "..", "..", "packages", "ui", "dist"),
-  ];
+  const cliPackageDir = resolvePath(__dirname, "..");
+  const workspacePackagesDir = resolvePath(cliPackageDir, "..");
+  const workspaceRootDir = resolvePath(workspacePackagesDir, "..");
+  const candidates = Array.from(
+    new Set([
+      // Workspace sibling: packages/cli/{src,dist} → packages/ui/dist
+      resolvePath(workspacePackagesDir, "ui", "dist"),
+      // Packaged CLI layout if the UI bundle is embedded with the CLI.
+      resolvePath(cliPackageDir, "ui", "dist"),
+      // Monorepo root fallback when launched from a relocated package dir.
+      resolvePath(workspaceRootDir, "packages", "ui", "dist"),
+    ]),
+  );
   for (const c of candidates) {
     try {
       if (existsSync(join(c, "index.html"))) return c;
