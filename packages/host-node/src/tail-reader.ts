@@ -14,6 +14,7 @@ export class TailReader {
   #lastOffset = 0;
   #watcher: FSWatcher | null = null;
   #disposed = false;
+  #readInFlight = false;
 
   constructor(path: string) {
     this.#path = path;
@@ -69,7 +70,11 @@ export class TailReader {
     });
     this.#watcher = watcher;
     watcher.on("change", () => {
-      void this.#readTail(onChunk);
+      if (this.#readInFlight) return; // coalesce — a read is already in progress
+      this.#readInFlight = true;
+      void this.#readTail(onChunk).finally(() => {
+        this.#readInFlight = false;
+      });
     });
     return () => this.dispose();
   }
@@ -99,7 +104,10 @@ export class TailReader {
         this.#lastOffset = nextSize;
         resolve();
       });
-      stream.on("error", () => resolve());
+      stream.on("error", (err) => {
+        console.warn("[TailReader] read error during tail:", (err as Error).message);
+        resolve(); // still resolve to keep the chain going, but log the gap
+      });
     });
   }
 
