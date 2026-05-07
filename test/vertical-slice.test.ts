@@ -108,7 +108,6 @@ function openSse(opts: { port: number; path: string }): Promise<SseClient> {
         const collect = (durationMs: number): Promise<Frame[]> =>
           new Promise<Frame[]>((res2) => {
             const collected: Frame[] = [];
-            const timer = setTimeout(() => res2(collected), durationMs);
             const drain = (): void => {
               while (buf.length > 0) {
                 const f = buf.shift();
@@ -123,9 +122,10 @@ function openSse(opts: { port: number; path: string }): Promise<SseClient> {
                 res2(collected);
               }
             }, 25);
-            // Stop interval when timer fires.
-            void timer;
-            void tick;
+            const timer = setTimeout(() => {
+              clearInterval(tick);
+              res2(collected);
+            }, durationMs);
           });
         resolveOuter({ close, next, collect });
       },
