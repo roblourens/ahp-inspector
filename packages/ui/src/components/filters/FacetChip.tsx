@@ -1,5 +1,5 @@
-import type { JSX } from "react";
 import { ChevronDown } from "lucide-react";
+import type { JSX } from "react";
 
 interface FacetChipProps {
   label: string;
@@ -42,8 +42,7 @@ export function FacetChip({
         flexShrink: 0,
       }}
       onFocus={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.outline =
-          "2px solid var(--color-accent)";
+        (e.currentTarget as HTMLButtonElement).style.outline = "2px solid var(--color-accent)";
         (e.currentTarget as HTMLButtonElement).style.outlineOffset = "2px";
       }}
       onBlur={(e) => {

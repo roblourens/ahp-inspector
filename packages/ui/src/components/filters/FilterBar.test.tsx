@@ -2,16 +2,17 @@
  * Tests for FilterBar, ActiveFilterChips, NoResultsState, SearchingIndicator, SearchTruncatedBanner.
  * Environment: jsdom (packages/ui/vitest.config.ts)
  */
+
+import type { EventRow } from "@ahp-viewer/core";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EMPTY_FILTERS } from "../../state/filters.js";
 import { useAppStore } from "../../state/store.js";
-import type { EventRow } from "@ahp-viewer/core";
-import { ActiveFilterChips } from "./ActiveFilterChips.js";
-import { FilterBar } from "./FilterBar.js";
 import { NoResultsState } from "../states/NoResultsState.js";
 import { SearchingIndicator } from "../states/SearchingIndicator.js";
 import { SearchTruncatedBanner } from "../states/SearchTruncatedBanner.js";
+import { ActiveFilterChips } from "./ActiveFilterChips.js";
+import { FilterBar } from "./FilterBar.js";
 
 function makeRow(overrides: Partial<EventRow> = {}): EventRow {
   return {
@@ -145,7 +146,7 @@ describe("ActiveFilterChips", () => {
     const longQuery = "a".repeat(50);
     useAppStore.setState({ searchQuery: longQuery });
     render(<ActiveFilterChips />);
-    expect(screen.getByText("a".repeat(40) + "…")).toBeTruthy();
+    expect(screen.getByText(`${"a".repeat(40)}…`)).toBeTruthy();
   });
 
   it("dismissing a direction chip calls patchFilter('direction', [])", () => {

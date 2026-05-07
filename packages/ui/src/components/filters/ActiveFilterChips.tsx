@@ -1,18 +1,8 @@
-import type { JSX } from "react";
 import { Search } from "lucide-react";
+import type { JSX } from "react";
 import { isFiltersEmpty } from "../../state/filters.js";
 import { useAppStore } from "../../state/store.js";
 import { ActiveChip } from "./ActiveChip.js";
-
-const FACET_LABELS: Record<string, string> = {
-  direction: "Dir",
-  kind: "Kind",
-  method: "Method",
-  actionType: "Action",
-  session: "Session",
-  turn: "Turn",
-  status: "Status",
-};
 
 export function ActiveFilterChips(): JSX.Element | null {
   const filters = useAppStore((s) => s.filters);
@@ -29,7 +19,7 @@ export function ActiveFilterChips(): JSX.Element | null {
 
   // Search chip first
   if (hasSearch) {
-    const label = searchQuery.length > 40 ? searchQuery.slice(0, 40) + "…" : searchQuery;
+    const label = searchQuery.length > 40 ? `${searchQuery.slice(0, 40)}…` : searchQuery;
     chips.push(
       <span
         key="search"
@@ -78,7 +68,10 @@ export function ActiveFilterChips(): JSX.Element | null {
           label={`${prefix}: ${val}`}
           ariaLabel={`Remove filter ${prefix}: ${val}`}
           onDismiss={() => {
-            patchFilter(key as Parameters<typeof patchFilter>[0], (vals.filter((v) => v !== val)) as never);
+            patchFilter(
+              key as Parameters<typeof patchFilter>[0],
+              vals.filter((v) => v !== val) as never,
+            );
           }}
         />,
       );
@@ -123,7 +116,15 @@ export function ActiveFilterChips(): JSX.Element | null {
         overflow: "hidden",
       }}
     >
-      <div style={{ display: "flex", gap: "var(--space-2)", flex: 1, overflow: "hidden", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "var(--space-2)",
+          flex: 1,
+          overflow: "hidden",
+          alignItems: "center",
+        }}
+      >
         {chips}
       </div>
       <button

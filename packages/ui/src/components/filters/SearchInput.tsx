@@ -1,5 +1,5 @@
-import type { JSX } from "react";
 import { Search, X } from "lucide-react";
+import type { JSX } from "react";
 
 interface SearchInputProps {
   value: string;
@@ -53,8 +53,7 @@ export function SearchInput({ value, onChange, onClear }: SearchInputProps): JSX
           outline: "none",
         }}
         onFocus={(e) => {
-          (e.target as HTMLInputElement).style.outline =
-            "2px solid var(--color-accent)";
+          (e.target as HTMLInputElement).style.outline = "2px solid var(--color-accent)";
           (e.target as HTMLInputElement).style.outlineOffset = "-2px";
         }}
         onBlur={(e) => {
@@ -79,8 +78,7 @@ export function SearchInput({ value, onChange, onClear }: SearchInputProps): JSX
             borderRadius: 3,
           }}
           onFocus={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.outline =
-              "2px solid var(--color-accent)";
+            (e.currentTarget as HTMLButtonElement).style.outline = "2px solid var(--color-accent)";
           }}
           onBlur={(e) => {
             (e.currentTarget as HTMLButtonElement).style.outline = "none";

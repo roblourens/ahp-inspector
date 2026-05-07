@@ -1,6 +1,6 @@
+import { ChevronDown } from "lucide-react";
 import type { JSX } from "react";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
 import type { GroupingMode } from "../../state/store.js";
 
 interface GroupToggleChipProps {
@@ -63,62 +63,40 @@ function GroupTogglePopover({ value, onChange, onClose }: GroupTogglePopoverProp
       }}
     >
       {MODES.map(({ mode, label }) => (
-        <button
+        <label
           key={mode}
-          type="button"
-          role="radio"
-          aria-checked={value === mode}
-          onClick={() => handleSelect(mode)}
           style={{
             display: "flex",
             alignItems: "center",
             gap: "var(--space-2)",
             padding: "var(--space-1) var(--space-3)",
             background: value === mode ? "var(--color-chip-bg-active)" : "none",
-            border: "none",
             cursor: "pointer",
             color: "var(--color-text)",
             fontFamily: "var(--font-sans)",
             fontSize: "var(--text-ui-muted-size)",
-            textAlign: "left",
-            outline: "none",
             width: "100%",
           }}
-          onFocus={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.outline = "2px solid var(--color-accent)";
-          }}
-          onBlur={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.outline = "none";
-          }}
         >
-          <span
+          <input
+            type="radio"
+            name="group-mode"
+            value={mode}
+            checked={value === mode}
+            onChange={() => handleSelect(mode)}
             style={{
-              width: 14,
-              height: 14,
-              borderRadius: "50%",
-              border: value === mode
-                ? "2px solid var(--color-accent)"
-                : "2px solid var(--color-border-strong)",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
+              accentColor: "var(--color-accent)",
+              outline: "none",
             }}
-          >
-            {value === mode && (
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "var(--color-accent)",
-                  display: "block",
-                }}
-              />
-            )}
-          </span>
+            onFocus={(e) => {
+              (e.currentTarget as HTMLInputElement).style.outline = "2px solid var(--color-accent)";
+            }}
+            onBlur={(e) => {
+              (e.currentTarget as HTMLInputElement).style.outline = "none";
+            }}
+          />
           {label}
-        </button>
+        </label>
       ))}
     </div>
   );

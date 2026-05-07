@@ -200,9 +200,7 @@ export function FilterBar(): JSX.Element {
           <FacetPopover
             options={mapToOptions(facetCounts.status)}
             selected={filters.status}
-            onChange={(vals) =>
-              patchFilter("status", vals as import("@ahp-viewer/core").Status[])
-            }
+            onChange={(vals) => patchFilter("status", vals as import("@ahp-viewer/core").Status[])}
             onClose={close}
           />
         )}
@@ -212,9 +210,7 @@ export function FilterBar(): JSX.Element {
       <div style={{ position: "relative", flexShrink: 0 }}>
         <FacetChip
           label="Time"
-          activeCount={
-            (filters.timeFrom !== null ? 1 : 0) + (filters.timeTo !== null ? 1 : 0)
-          }
+          activeCount={(filters.timeFrom !== null ? 1 : 0) + (filters.timeTo !== null ? 1 : 0)}
           isOpen={openPopover === "time"}
           isDisabled={false}
           onClick={() => togglePopover("time")}

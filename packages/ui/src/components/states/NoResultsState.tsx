@@ -9,10 +9,7 @@ interface NoResultsStateProps {
   errorMessage?: string;
 }
 
-const COPY: Record<
-  NoResultsKind,
-  { heading: string; body: string; action: string }
-> = {
+const COPY: Record<NoResultsKind, { heading: string; body: string; action: string }> = {
   filters: {
     heading: "No events match your filters",
     body: "Try removing a filter or expanding the time range.",

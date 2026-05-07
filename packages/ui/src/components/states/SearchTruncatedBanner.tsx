@@ -1,5 +1,5 @@
-import type { JSX } from "react";
 import { AlertTriangle } from "lucide-react";
+import type { JSX } from "react";
 
 interface SearchTruncatedBannerProps {
   shown: number;

@@ -22,7 +22,12 @@ function datetimeLocalToTs(s: string): number | null {
   return Number.isNaN(ms) ? null : ms;
 }
 
-export function TimeRangePopover({ from, to, onApply, onClose }: TimeRangePopoverProps): JSX.Element {
+export function TimeRangePopover({
+  from,
+  to,
+  onApply,
+  onClose,
+}: TimeRangePopoverProps): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
   const [fromVal, setFromVal] = useState(tsToDatetimeLocal(from));
   const [toVal, setToVal] = useState(tsToDatetimeLocal(to));
