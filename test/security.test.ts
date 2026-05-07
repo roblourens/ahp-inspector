@@ -17,6 +17,7 @@ const ALLOW = new Set<string>([
   // Runtime deps
   "commander",
   "chokidar",
+  "agent-host-protocol",
   // Workspace packages
   "@ahp-viewer/shared",
   "@ahp-viewer/parser",
