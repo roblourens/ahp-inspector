@@ -6,5 +6,5 @@
 // future plans can refactor projection into a standalone class without
 // breaking import sites.
 
+export type { AppState, AppStateOptions, Listener, LogMeta, SsePayload } from "./app-state.js";
 export { createAppState as Projector } from "./app-state.js";
-export type { AppState, AppStateOptions, LogMeta, SsePayload, Listener } from "./app-state.js";

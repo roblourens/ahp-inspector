@@ -88,8 +88,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   const correlator = new Correlator(store);
   const splitter = new LineSplitter();
   const decoder = new TextDecoder("utf-8");
-  const inferDir: (raw: unknown) => Direction =
-    opts.directionInference ?? (() => "c2s");
+  const inferDir: (raw: unknown) => Direction = opts.directionInference ?? (() => "c2s");
 
   const handlePath = handle.path ?? handle.id;
   const meta: LogMeta = {

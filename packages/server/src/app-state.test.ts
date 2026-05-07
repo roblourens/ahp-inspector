@@ -1,13 +1,8 @@
 // AppState integration test — drives ingestion through a fake HostAdapter
 // and verifies snapshot/append/patch/unmatched semantics + basename meta.
 
+import type { Disposable, HostAdapter, LogCandidate, LogHandle } from "@ahp-viewer/shared";
 import { afterEach, describe, expect, it } from "vitest";
-import type {
-  Disposable,
-  HostAdapter,
-  LogCandidate,
-  LogHandle,
-} from "@ahp-viewer/shared";
 import { type AppState, createAppState, type SsePayload } from "./app-state.js";
 
 interface FakeLogHandle extends LogHandle {
@@ -28,7 +23,11 @@ function makeFakeHost(path: string): FakeHost {
     openLog: async (_p: string): Promise<LogHandle> => handle,
     watchLog: (_h: LogHandle, onChunk: (b: Uint8Array) => void): Disposable => {
       sink = onChunk;
-      return { dispose: () => { sink = null; } };
+      return {
+        dispose: () => {
+          sink = null;
+        },
+      };
     },
     close: async (_h: LogHandle) => {},
     push(text: string): void {

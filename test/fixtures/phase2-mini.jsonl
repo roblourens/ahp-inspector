@@ -1,0 +1,5 @@
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"clientName":"vscode"}}
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{}}}
+{"jsonrpc":"2.0","id":2,"method":"orphan/example","params":{"sessionId":"sess-aaaaaaaa"}}
+{not valid json
+{"jsonrpc":"2.0","method":"action","params":{"sessionId":"sess-aaaaaaaa","turnId":"turn-bbbbbb","serverSeq":1,"action":{"type":"text","text":"hi"}}}
