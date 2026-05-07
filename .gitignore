@@ -1,8 +1,14 @@
 node_modules
 dist
 .turbo
+.vite
 coverage
 *.log
+.env
+.env.*
+.playwright-cli
+playwright-report
+test-results
 # Defensive: keep raw VS Code AHP capture logs out of the repo.
 ~/agenthost.*.log
 agenthost.*.log
