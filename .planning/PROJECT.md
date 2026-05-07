@@ -19,14 +19,14 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 - ✓ CLI-to-local-server-to-browser vertical slice opens JSONL logs and streams rows over SSE — Phase 2
 - ✓ Information-dense virtualized timeline renders 50,000-event logs with direction, kind, status, session/turn, IDs, latency, and payload preview visible — Phase 2
 - ✓ Empty, no-server, disconnected, and parse-error states are implemented, tested, and verified in browser UAT — Phase 2
+- ✓ Expandable event details show AHP fields, correlation metadata, pretty/raw JSON, copy actions, truncation handling, auth banners, and privacy copy — Phase 3
+- ✓ Search and filtering slice the timeline by payload text, direction, kind, method, action type, session, turn, status, and time range without blocking large-log interaction — Phase 3
+- ✓ Session/turn grouping, serverSeq gap banners, auth-failure markers, and keyboard navigation are implemented, tested, and browser-verified — Phase 3
 
 ### Active
 
 - [ ] Discover likely VS Code / Copilot AHP log files automatically and support manual file selection.
 - [ ] Parse and watch real JSONL AHP log files emitted by VS Code, while using current human-readable logs as shape guidance during development.
-- [ ] Add expandable event details, formatted raw JSON, and responsive search/filtering across timeline rows.
-- [ ] Provide fast search and filtering across methods, action types, sessions, turns, status/error state, direction, time range, and payload text.
-- [ ] Let users expand an individual event to inspect formatted details and raw JSON.
 - [ ] Keep the UI responsive on large and actively growing logs through incremental parsing, virtualization, and efficient indexing.
 - [ ] Provide polished light, dark, and hacker themes with a distinctive, attractive visual style.
 - [ ] Preserve a clean boundary between log ingestion/parsing, analysis state, and UI so the standalone app can later be hosted inside a VS Code extension.
@@ -65,6 +65,7 @@ The primary user is a developer debugging or exploring VS Code-to-agent-host beh
 | Support auto-discovery plus manual open | Auto-discovery reduces friction, manual open handles unknown log locations and samples | — Pending |
 | Include light, dark, and hacker themes in v1 | Visual polish and theme variety are part of the product vision, not optional decoration | — Pending |
 | Use TypeScript workspace contracts for Phase 1 | Keeps parser/core/event contracts portable and extension-ready before UI work begins | ✓ Good |
+| Use lazy server endpoints for detail and payload search | SSE rows carry compact projections, so raw payload detail/search stays server-side and bounded | ✓ Good |
 
 ## Evolution
 
@@ -84,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-07 after Phase 2 completion*
+*Last updated: 2026-05-07 after Phase 3 completion*
