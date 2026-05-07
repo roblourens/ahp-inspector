@@ -11,16 +11,21 @@ export interface ParseErrorDetail {
 /**
  * Build a canonical AhpEvent representing a parse failure.
  *
- * Defensive: caps `rawText` at {@link MAX_RAW_TEXT_BYTES} so adversarial
- * megabyte-sized lines cannot bloat memory or downstream logs (T-02-03).
+ * Defensive: caps `rawText` at {@link MAX_RAW_TEXT_BYTES} (byte-accurate) so
+ * adversarial megabyte-sized lines cannot bloat memory or downstream logs (T-02-03).
  */
 export function makeParseErrorEvent(
   meta: NormalizeMeta,
   reason: string,
   rawText: string,
 ): AhpEvent {
+  // Encode to UTF-8 bytes to correctly honour the byte budget for non-ASCII input.
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(rawText);
   const capped =
-    rawText.length > MAX_RAW_TEXT_BYTES ? rawText.slice(0, MAX_RAW_TEXT_BYTES) : rawText;
+    bytes.length > MAX_RAW_TEXT_BYTES
+      ? new TextDecoder().decode(bytes.slice(0, MAX_RAW_TEXT_BYTES))
+      : rawText;
   return {
     seq: meta.seq,
     ts: meta.ts,
