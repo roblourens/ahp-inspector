@@ -7,3 +7,33 @@
 - Do not apply GSD workflows unless the user explicitly asks for them.
 - After completing any `gsd-*` command (or any deliverable it triggers: feature, bug fix, tests, docs, etc.), ALWAYS: (1) offer the user the next step by prompting via `ask_user`; repeat this feedback loop until the user explicitly indicates they are done.
 <!-- /GSD Configuration -->
+
+# Project Context
+
+This repository is AHP Log Viewer: a local-first developer GUI for discovering, watching, searching, and understanding JSONL logs of Agent Host Protocol traffic. The core value is to make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
+
+The first milestone builds a standalone local web app launched from the CLI. Keep architecture compatible with a future VS Code extension/webview by preserving a host adapter boundary between file discovery/watching/reading and the portable browser UI.
+
+# Protocol Reference
+
+Use `../agent-host-protocol` as the source of truth for AHP concepts, method names, action/notification types, and schemas. Do not invent protocol definitions when the sibling repository contains the canonical TypeScript types or generated JSON schemas.
+
+# Current Plan
+
+Planning artifacts live in `.planning/`:
+
+- `.planning/PROJECT.md` — project context and core decisions
+- `.planning/REQUIREMENTS.md` — 41 mapped v1 requirements
+- `.planning/ROADMAP.md` — 5-phase roadmap
+- `.planning/STATE.md` — current phase state
+- `.planning/research/` — stack, features, architecture, pitfalls, and summary research
+
+Current focus: Phase 1 — Core Foundations. The next GSD step is `/gsd-plan-phase 1`.
+
+# Engineering Constraints
+
+- Build standalone first; defer VS Code extension packaging until after v1.
+- Target real JSONL logs as the canonical format; the existing human-readable sample log is only a legacy fixture adapter.
+- Keep core parser, event model, EventStore, correlator, and search/filter projections portable TypeScript with no direct Node or DOM dependencies.
+- Enforce local-only privacy: no telemetry, no CDN assets, and no outbound network dependencies for viewing logs.
+- Make virtualization, incremental parsing, and JSON-RPC-safe request/response correlation foundational, not later optimizations.
