@@ -1,6 +1,6 @@
 ---
 phase: 02-vertical-slice-cli-server-timeline
-reviewed: 2025-01-31T00:00:00Z
+reviewed: 2026-05-07T16:30:00Z
 depth: standard
 files_reviewed: 28
 files_reviewed_list:
@@ -34,122 +34,47 @@ files_reviewed_list:
   - test/vertical-slice.test.ts
 findings:
   critical: 0
-  warning: 2
-  info: 3
-  total: 5
-status: issues_found
+  warning: 0
+  info: 0
+  total: 0
+status: clean
 ---
 
-# Phase 02: Code Review Report
+# Phase 02: Code Review Report (Re-review)
 
-**Reviewed:** 2025-01-31  
+**Reviewed:** 2026-05-07  
 **Depth:** standard  
 **Files Reviewed:** 28  
-**Status:** issues_found
+**Status:** clean
 
 ## Summary
 
-The Phase 2 vertical-slice is structurally sound. Security mitigations (host-guard, CSP, loopback binding, basename-only meta) are correctly implemented and tested. The SSE lifecycle — snapshot chunking, append/patch fan-out, heartbeat, subscriber cleanup on abort — has no listener leaks. Direction inference, row projection, and the Zustand store mutations are all correct. No critical bugs or meaningful security bypasses were found.
+Re-review after code-review-fix iteration 1. All five previously reported findings (WR-01, WR-02, IN-01, IN-02, IN-03) are confirmed resolved. No new issues were identified.
 
-Two warnings were identified: a dead-code duplicate in the UI-discovery path (causing a broken fallback for non-standard layouts) and a lingering `setInterval` in a test helper. Three low-signal info items round out the findings.
+### Previous findings — verification
 
----
+| ID | Title | Status |
+|----|-------|--------|
+| WR-01 | `locateUiDist()` duplicate/broken candidates | ✅ Fixed |
+| WR-02 | `collect()` dangling `setInterval` | ✅ Fixed |
+| IN-01 | Host-guard port regex permits > 65535 | ✅ Fixed |
+| IN-02 | Dead `toKill` variable in cli-launch.test.ts | ✅ Fixed |
+| IN-03 | `byteOffset` LF-only assumption | ✅ Fixed |
 
-## Warnings
+**WR-01** — `locateUiDist()` now computes `cliPackageDir`, `workspacePackagesDir`, and `workspaceRootDir` from `__dirname`, builds three logically distinct candidates (workspace sibling, packaged CLI embed, monorepo root fallback), deduplicates them via `new Set(...)`, and emits a `process.stderr.write` warning when no `index.html` is found. The dead duplicate and broken third path are gone.
 
-### WR-01: `locateUiDist()` — first two candidates are identical; third resolves to a non-existent path
+**WR-02** — `collect()` in `test/vertical-slice.test.ts` now declares `tick` before `timer` (eliminating the temporal dead zone in the interval's early-exit branch) and calls `clearInterval(tick)` inside the `setTimeout` callback so the polling interval is always cancelled when the duration expires. The dead `void timer; void tick;` no-op comments are removed.
 
-**File:** `packages/cli/src/index.ts:49-56`
+**IN-01** — `ALLOWED_HOST_RE` in `packages/server/src/host-guard.ts` now uses the precise alternation `6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4}` instead of `\d{1,5}`, correctly restricting ports to 0–65535.
 
-**Issue:** The comment claims the second candidate handles the tsup-built binary path, but `resolvePath(__dirname, "..", "..", "ui", "dist")` evaluates to the same absolute path whether `__dirname` points to `packages/cli/src` (tsx) or `packages/cli/dist` (tsup), because the `..` traversal lands at `packages/` in both cases. The third candidate (`resolvePath(__dirname, "..", "ui", "dist")`) resolves to `packages/cli/ui/dist`, which does not exist. So the function tries the correct path twice and then a broken fallback — any genuine "hoisted layout" scenario fails silently and the CLI launches without serving the UI, with no warning to the user.
+**IN-02** — The `toKill` declaration, its `afterEach` reset, and the `void toKill` no-op are removed from `cli-launch.test.ts`. Process cleanup is now done correctly via `lastChild` (assigned on every `spawnCliRaw` call and killed in `afterEach`).
 
-```typescript
-// Current (broken)
-const candidates = [
-  resolvePath(__dirname, "..", "..", "ui", "dist"),  // tsx: packages/ui/dist ✓
-  resolvePath(__dirname, "..", "..", "ui", "dist"),  // tsup: identical ← dead duplicate
-  resolvePath(__dirname, "..", "ui", "dist"),        // resolves to packages/cli/ui/dist ← wrong
-];
+**IN-03** — `byteOffset` accounting in `packages/server/src/app-state.ts` now detects CRLF per chunk (`text.includes("\r\n")`) and uses `newlineSize` (1 or 2) in the accumulation `byteOffset += byteLength + newlineSize`. The fix is correct for the common case of consistent line endings within a file.
 
-// Fix: correct the tsup path (one extra ".." from dist/) and provide a
-// genuine hoisted-node_modules fallback
-const candidates = [
-  // tsx: packages/cli/src → packages/ui/dist
-  resolvePath(__dirname, "..", "..", "ui", "dist"),
-  // tsup: packages/cli/dist → packages/ui/dist
-  resolvePath(__dirname, "..", "..", "..", "ui", "dist"),
-  // hoisted monorepo root: packages/cli/dist → <root>/packages/ui/dist
-  resolvePath(__dirname, "..", "..", "..", "packages", "ui", "dist"),
-];
-```
-
-If no candidate matches, emit a `process.stderr.write` warning so the user knows the UI will not be served (rather than silently running API-only).
+All reviewed files meet quality standards.
 
 ---
 
-### WR-02: `collect()` helper leaves a dangling `setInterval` after the timeout fires
-
-**File:** `test/vertical-slice.test.ts:108-129`
-
-**Issue:** `collect()` creates two timers: a `setTimeout` that resolves the promise after `durationMs`, and a `setInterval` (`tick`) that polls every 25 ms. The comment at line 126–128 (`// Stop interval when timer fires. void timer; void tick;`) is incorrect — `void` expressions are no-ops and do not cancel either timer. When the `setTimeout` fires and calls `res2(collected)`, `tick` is **not** cleared. It continues running every 25 ms for the remainder of the test process, calling `drain()` which silently moves items from the shared `buf` array into the now-resolved `collected` array. Any subsequent call to `next()` on the same `SseClient` may find `buf` already drained by the lingering tick, causing a spurious `SSE next() timeout` failure.
-
-`collect()` is not called in the current test suite, so there is no active flakiness — but the bug will surface the moment `collect()` is exercised.
-
-```typescript
-// Fix: clear tick inside the timer callback
-const timer = setTimeout(() => {
-  clearInterval(tick);   // ← add this
-  res2(collected);
-}, durationMs);
-const tick = setInterval(() => {
-  drain();
-  if (collected.length >= 200) {
-    clearInterval(tick);
-    clearTimeout(timer);
-    res2(collected);
-  }
-}, 25);
-```
-
----
-
-## Info
-
-### IN-01: Host-guard port regex permits invalid port numbers (> 65535)
-
-**File:** `packages/server/src/host-guard.ts:7`
-
-**Issue:** The allowed-host regex `\d{1,5}` matches any 1–5 digit port, allowing values up to 99999. A `Host` header such as `127.0.0.1:70000` passes the guard even though 70000 is not a valid TCP port. The practical security impact is negligible — the server's OS socket only accepts connections on its actual bound port — but the guard's intent is precision.
-
-```typescript
-// Fix: constrain to 0–65535
-const ALLOWED_HOST_RE =
-  /^(?:127\.0\.0\.1|localhost)(?::(?:6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4}))?$/i;
-// Or simpler: validate the numeric value after the colon separately.
-```
-
----
-
-### IN-02: `toKill` variable in `cli-launch.test.ts` is declared but never used
-
-**File:** `packages/cli/src/cli-launch.test.ts:9`
-
-**Issue:** `let toKill: NodeJS.Process | null = null;` is declared at the describe-block scope, reset to `null` in `afterEach`, and only ever referenced via `void toKill` (line 69) — a no-op expression. It is never assigned a real value. The variable is dead code that misleads readers into thinking a process is being tracked.
-
-**Fix:** Remove the `toKill` declaration and the `void toKill` statement.
-
----
-
-### IN-03: `byteOffset` accounting assumes LF-only line endings
-
-**File:** `packages/server/src/app-state.ts:183`
-
-**Issue:** `byteOffset += byteLength + 1` adds exactly 1 byte for the consumed newline, assuming LF (`\n`). On Windows, JSONL files written with CRLF (`\r\n`) line endings would result in `byteOffset` undercounting by 1 byte per line (the `\r` is consumed by the splitter but not counted). Since `byteOffset` is used only as metadata stored in `EventRow.byteOffset` (not for file-seek operations), the practical effect is cosmetic. However, it is worth noting for completeness as the AHP log files may originate from Windows tooling.
-
-**Fix:** If byte-accurate offset tracking is ever needed, use the splitter's reported byte counts, or add an option to account for CRLF.
-
----
-
-_Reviewed: 2025-01-31_  
+_Reviewed: 2026-05-07_  
 _Reviewer: gsd-code-reviewer_  
 _Depth: standard_
