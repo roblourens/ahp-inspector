@@ -64,7 +64,15 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
   3. User can run free-text search across method, action type, IDs, session, turn, error text, and payload text, and combine it with filters for direction, kind, method, action type, session, turn, status, and time range.
   4. Search and filter changes update the visible timeline without blocking typing, with active filters visible at a glance and a clear-all action.
   5. User can toggle session/turn grouping to read traffic as a story; server sequence gaps and authentication failures are surfaced when present.
-**Plans**: TBD
+**Plans**: 7 plans
+Plans:
+- [ ] 03-00-PLAN.md — Wave 0: Foundation (security allowlist, EventRow extension, Phase 3 tokens, test scaffold)
+- [ ] 03-01-PLAN.md — Wave 1a: Detail + Search backend endpoints (GET /api/log/event/:idx + GET /api/log/search)
+- [ ] 03-02-PLAN.md — Wave 1b: Store extensions, FilterState, selectors, performance gate (parallel)
+- [ ] 03-03-PLAN.md — Wave 2a: Filter bar UI — FacetChips, GroupToggle, ActiveChips, NoResultsState
+- [ ] 03-04-PLAN.md — Wave 2b: Detail panel UI — DetailPanel, AhpFieldStrip, PrettyJsonView, CopyMenu (parallel)
+- [ ] 03-05-PLAN.md — Wave 3: Search client + grouping + App assembly (AppShell wiring, TimelineList polymorphic)
+- [ ] 03-06-PLAN.md — Wave 4: Phase 3 gate test + browser UAT + USER_GUIDE update
 **UI hint**: yes
 
 ### Phase 4: Live Tail, Discovery, and Persistence
