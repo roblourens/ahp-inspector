@@ -31,20 +31,20 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 - [x] **EVENT-03**: Request and response pairs are correlated using a bidirectional JSON-RPC-safe key that preserves session, direction, id value, and id type.
 - [x] **EVENT-04**: Correlated request rows show response status and latency when the matching response arrives.
 - [x] **EVENT-05**: Unmatched, orphaned, failed, and malformed events are visually distinguishable.
-- [ ] **EVENT-06**: Server sequence gaps and authentication failures can be detected and surfaced when present in the event stream.
+- [x] **EVENT-06**: Server sequence gaps and authentication failures can be detected and surfaced when present in the event stream.
 
 ### Timeline UI
 
 - [x] **TIME-01**: User sees a virtualized, information-dense timeline that remains responsive on large logs.
 - [x] **TIME-02**: Each timeline row displays the most important scan fields: timestamp, direction, kind, method/action type, status, latency, session, turn, relevant IDs, and a short payload preview.
 - [x] **TIME-03**: Timeline rows use clear visual encoding for direction, event kind, success/error state, action taxonomy, and latency severity.
-- [ ] **TIME-04**: User can select rows with mouse or keyboard and keep context while navigating through results.
+- [x] **TIME-04**: User can select rows with mouse or keyboard and keep context while navigating through results.
 - [ ] **TIME-05**: User can toggle session/turn grouping to understand AHP traffic as a story instead of only a flat stream.
 - [x] **TIME-06**: User sees useful empty, loading, no-results, parse-error, and disconnected states.
 
 ### Event Detail
 
-- [ ] **DETAIL-01**: User can expand or select an event to inspect details without breaking timeline virtualization.
+- [x] **DETAIL-01**: User can expand or select an event to inspect details without breaking timeline virtualization.
 - [ ] **DETAIL-02**: Detail view shows normalized summary fields, correlation metadata, and the full raw JSON payload.
 - [ ] **DETAIL-03**: Detail view supports folded pretty JSON, raw JSON text, syntax highlighting, truncation for huge payloads, and copy actions.
 - [ ] **DETAIL-04**: Detail view highlights AHP-specific fields such as session, turn, tool call, action type, serverSeq, origin, request id, error code, and notification type when present.
@@ -129,14 +129,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EVENT-03 | Phase 1 | Complete |
 | EVENT-04 | Phase 2 | Complete |
 | EVENT-05 | Phase 2 | Complete |
-| EVENT-06 | Phase 3 | Pending |
+| EVENT-06 | Phase 3 | Complete |
 | TIME-01 | Phase 2 | Complete |
 | TIME-02 | Phase 2 | Complete |
 | TIME-03 | Phase 2 | Complete |
-| TIME-04 | Phase 3 | Pending |
+| TIME-04 | Phase 3 | Complete |
 | TIME-05 | Phase 3 | Pending |
 | TIME-06 | Phase 2 | Complete |
-| DETAIL-01 | Phase 3 | Pending |
+| DETAIL-01 | Phase 3 | Complete |
 | DETAIL-02 | Phase 3 | Pending |
 | DETAIL-03 | Phase 3 | Pending |
 | DETAIL-04 | Phase 3 | Pending |

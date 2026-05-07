@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 02 complete; ready to plan Phase 03
-last_updated: "2026-05-07T17:46:26.986Z"
+stopped_at: Completed 03-00-PLAN.md
+last_updated: "2026-05-07T17:55:14.592Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 17
-  completed_plans: 10
-  percent: 59
+  completed_plans: 11
+  percent: 65
 ---
 
 # State: AHP Log Viewer
@@ -23,13 +23,13 @@ progress:
 ## Current Position
 
 Phase: 03 (detail-search-and-filtering) — EXECUTING
-Plan: 1 of 7
+Plan: 2 of 7
 
 - **Milestone:** v1
 - **Phase:** 2 — Vertical Slice — CLI, Server, Timeline
 - **Plan:** 02-06 complete; verification report passed
 - **Status:** Executing Phase 03
-- **Progress:** [██████████] 100%
+- **Progress:** [███████░░░] 65%
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Plan: 1 of 7
 | Phase 02 P04 | 10min | 3 tasks | 16 files |
 | Phase 02 P05 | 6min | 2 tasks | 9 files |
 | Phase 02 P06 | 14min | 2 tasks | 9 files |
+| Phase 03 P00 | 15min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Plan: 1 of 7
 - Plan 02-06: App.tsx probes `/api/log/meta` once on mount before opening the stream — separates 'no server' (HTTP probe failure) from 'disconnected' (SSE drop), matching ServerNotRunningState semantics from Plan 02-04. `window.__ahpStream` holds the active ConnectionHandle for DisconnectedBanner reconnect.
 - Plan 02-06: `registerStaticUi` mounts on absolute distDir under the existing `app.use("*", cspMiddleware)` registration, so static responses inherit CSP/nosniff/no-referrer (T-02-06-03). CLI auto-discovers `packages/ui/dist` via `locateUiDist()`.
 - Plan 02-06: vertical-slice test treats request/response correlation as collapsed-into-snapshot for the file-read flow (CLI ingests entire fixture before SSE client connects); separate `append`+`patch` cycle is covered by `test/sse-integration.test.ts` (Plan 02-01) using a fake host.
+- Plan 03-00: `EventRowExtras` uses optional parameter with `DEFAULT_EXTRAS` default — avoids breaking callers that don't need extras; extras computation lives in `AppState.buildRow` (server) to respect boundary.test.ts portable-package restrictions.
+- Plan 03-00: `lastSeenServerSeq Map<string|null, number>` in `AppState` tracks per-session serverSeq for gap detection; `eventAt(idx)` added to `AppState` interface as the hook Plan 03-01 uses for the raw event detail API endpoint.
 
 ### Open TODOs
 
@@ -83,9 +86,9 @@ Plan: 1 of 7
 
 ## Session Continuity
 
-**Last session:** 2026-05-07T16:35:00Z
+**Last session:** 2026-05-07T17:55:14.587Z
 **Next action:** `/gsd-plan-phase 3`
-**Stopped at:** Phase 02 complete; ready to plan Phase 03
+**Stopped at:** Completed 03-00-PLAN.md
 
 ---
 *State initialized: 2026-05-06*
