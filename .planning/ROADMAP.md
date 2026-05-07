@@ -11,7 +11,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 ## Phases
 
 - [x] **Phase 1: Core Foundations** - Project scaffolding, canonical event model, JSONL + sample parsers, EventStore, host adapter boundary (completed 2026-05-07)
-- [ ] **Phase 2: Vertical Slice — CLI, Server, Timeline** - Open a JSONL file from the CLI and render an information-dense virtualized timeline in the browser
+- [x] **Phase 2: Vertical Slice — CLI, Server, Timeline** - Open a JSONL file from the CLI and render an information-dense virtualized timeline in the browser (completed 2026-05-07)
 - [ ] **Phase 3: Detail, Search, and Filtering** - Inspect events deeply, search and filter responsively, group by session/turn
 - [ ] **Phase 4: Live Tail, Discovery, and Persistence** - Auto-discover VS Code logs, watch growing files, pause/resume, persist filter state per log
 - [ ] **Phase 5: Themes, Polish, and Verification** - Light/dark/hacker themes via design tokens, responsive layout, full UI + E2E test coverage
@@ -51,7 +51,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 - [x] 02-03-PLAN.md — Timeline cells: DirectionGlyph / KindTag / ActionDot / StatusCell / LatencyCell / PayloadPreview (+ tests)
 - [x] 02-04-PLAN.md — Wave 2: Five screen-level states + EventRow / ParseErrorRow / TimelineList virtualization + TimelineRegion (replaces 02-02 stub) + App.tsx state routing
 - [x] 02-05-PLAN.md — Wave 2: CLI launch path, browser open, error copy, --port validation, structural direction inference
-- [ ] 02-06-PLAN.md — Wave 3: SSE client wiring + static-UI mount + vertical-slice gate test
+- [x] 02-06-PLAN.md — Wave 3: SSE client wiring + static-UI mount + vertical-slice gate test
 **UI hint**: yes
 
 ### Phase 3: Detail, Search, and Filtering

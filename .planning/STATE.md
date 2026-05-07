@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-05-07T15:27:13.655Z"
+stopped_at: Completed 02-06-PLAN.md
+last_updated: "2026-05-07T15:41:23Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 ---
 
 # State: AHP Log Viewer
@@ -22,14 +22,14 @@ progress:
 
 ## Current Position
 
-Phase: 02 (vertical-slice-cli-server-timeline) — EXECUTING
-Plan: 6 of 7
+Phase: 02 (vertical-slice-cli-server-timeline) — COMPLETE
+Plan: 7 of 7
 
 - **Milestone:** v1
 - **Phase:** 2 — Vertical Slice — CLI, Server, Timeline
-- **Plan:** 02-05 complete; 02-06 next
-- **Status:** Executing Phase 02
-- **Progress:** [█████████░] 90%
+- **Plan:** 02-06 complete; phase ready for verification
+- **Status:** Phase 02 complete
+- **Progress:** [██████████] 100%
 
 ## Performance Metrics
 
@@ -37,12 +37,13 @@ Plan: 6 of 7
 |--------|-------|
 | Phases complete | 1 / 5 |
 | v1 requirements mapped | 41 / 41 |
-| v1 requirements validated | 10 / 41 |
+| v1 requirements validated | 18 / 41 |
 | Phase 02 P01 | 30min | 2 tasks | 12 files |
 | Phase 02 P02 | 10min | 2 tasks | 17 files |
 | Phase 02 P03 | 13min | 2 tasks | 12 files |
 | Phase 02 P04 | 10min | 3 tasks | 16 files |
 | Phase 02 P05 | 6min | 2 tasks | 9 files |
+| Phase 02 P06 | 14min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -66,10 +67,15 @@ Plan: 6 of 7
 - Plan 02-05: `classifyDirection` assumes client-side capture — request `{id, method}` → c2s; response (`result`/`error`) and server-originated `method === "action"|"notification"` → s2c. A future flag will inject an inverted inference for server-side logs.
 - Plan 02-05: deleted Phase-1 `cli.smoke.test.ts` (depended on removed `--no-server` flag); `cli-launch.test.ts` is its strict superset and asserts UI-SPEC §10 verbatim copy + 127.0.0.1-only binding via `not.toMatch(/0\.0\.0\.0/)` and `/localhost/`.
 - Plan 02-05: dropped plan-prescribed `serverHandle.sayGoodbye()` call — method does not exist on `LogServerHandle`; CLI shutdown disposes `appState` then `serverHandle.close()` only. SSE 'bye' broadcast is a route-layer concern Plan 02-06 will exercise via the EventSource client.
+- Plan 02-06: SSE client buffers snapshot chunks locally and only commits to the store on `snapshot-end` (single setRows). Mid-snapshot store is empty by design — avoids virtualized rerender thrash on large baselines.
+- Plan 02-06: graceful `bye` flips connection to 'disconnected' and explicitly closes the EventSource; transient `onerror` keeps state at 'connecting' so the browser's built-in retry loop is not poisoned (T-02-06-02).
+- Plan 02-06: App.tsx probes `/api/log/meta` once on mount before opening the stream — separates 'no server' (HTTP probe failure) from 'disconnected' (SSE drop), matching ServerNotRunningState semantics from Plan 02-04. `window.__ahpStream` holds the active ConnectionHandle for DisconnectedBanner reconnect.
+- Plan 02-06: `registerStaticUi` mounts on absolute distDir under the existing `app.use("*", cspMiddleware)` registration, so static responses inherit CSP/nosniff/no-referrer (T-02-06-03). CLI auto-discovers `packages/ui/dist` via `locateUiDist()`.
+- Plan 02-06: vertical-slice test treats request/response correlation as collapsed-into-snapshot for the file-read flow (CLI ingests entire fixture before SSE client connects); separate `append`+`patch` cycle is covered by `test/sse-integration.test.ts` (Plan 02-01) using a fake host.
 
 ### Open TODOs
 
-- Execute Phase 2.
+- Run `/gsd-verify-work` for Phase 02 (lint debt remediation may surface).
 
 ### Blockers
 
@@ -77,9 +83,9 @@ Plan: 6 of 7
 
 ## Session Continuity
 
-**Last session:** 2026-05-07T15:26:44.410Z
-**Next action:** Execute Plan 02-06 (`/gsd-execute-phase 2`)
-**Stopped at:** Completed 02-05-PLAN.md
+**Last session:** 2026-05-07T15:41:23Z
+**Next action:** `/gsd-verify-work` for Phase 02 → then `/gsd-plan-phase 3`
+**Stopped at:** Completed 02-06-PLAN.md
 
 ---
 *State initialized: 2026-05-06*
