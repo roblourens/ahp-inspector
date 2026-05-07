@@ -4,7 +4,8 @@
 
 import type { MiddlewareHandler } from "hono";
 
-const ALLOWED_HOST_RE = /^(?:127\.0\.0\.1|localhost)(?::\d{1,5})?$/i;
+const ALLOWED_HOST_RE =
+  /^(?:127\.0\.0\.1|localhost)(?::(?:6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4}))?$/i;
 
 export const hostGuardMiddleware: MiddlewareHandler = async (c, next) => {
   const host = c.req.header("host") ?? "";
