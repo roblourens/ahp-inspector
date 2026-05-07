@@ -12,7 +12,8 @@
   --row-height: 28px;
 
   /* Typography */
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans:
+    "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --text-row-size: 13px;
   --text-row-line: 20px;
@@ -24,49 +25,49 @@
   --weight-semibold: 600;
 
   /* Surface / chrome */
-  --color-bg: #0E1116;
-  --color-surface: #161A21;
-  --color-surface-raised: #1C2129;
-  --color-border: #262C36;
-  --color-border-strong: #39414E;
-  --color-accent: #7AA2F7;
-  --color-accent-foreground: #0E1116;
+  --color-bg: #0e1116;
+  --color-surface: #161a21;
+  --color-surface-raised: #1c2129;
+  --color-border: #262c36;
+  --color-border-strong: #39414e;
+  --color-accent: #7aa2f7;
+  --color-accent-foreground: #0e1116;
 
   /* Text */
-  --color-text: #E6E9EF;
-  --color-text-muted: #A4ADBE;
-  --color-text-subtle: #6B7385;
-  --color-text-disabled: #4B5263;
+  --color-text: #e6e9ef;
+  --color-text-muted: #a4adbe;
+  --color-text-subtle: #6b7385;
+  --color-text-disabled: #4b5263;
 
   /* Semantic */
-  --color-success: #7DCFA4;
-  --color-warning: #E0AF68;
-  --color-destructive: #F7768E;
-  --color-info: #7DCFFF;
+  --color-success: #7dcfa4;
+  --color-warning: #e0af68;
+  --color-destructive: #f7768e;
+  --color-info: #7dcfff;
 
   /* Direction */
-  --dir-c2s: #7AA2F7;
-  --dir-s2c: #BB9AF7;
-  --dir-internal: #A4ADBE;
+  --dir-c2s: #7aa2f7;
+  --dir-s2c: #bb9af7;
+  --dir-internal: #a4adbe;
 
   /* Kind */
-  --kind-request: #7AA2F7;
-  --kind-response: #7DCFA4;
-  --kind-notification: #E0AF68;
-  --kind-action: #BB9AF7;
-  --kind-error: #F7768E;
-  --kind-parse-error: #F7768E;
+  --kind-request: #7aa2f7;
+  --kind-response: #7dcfa4;
+  --kind-notification: #e0af68;
+  --kind-action: #bb9af7;
+  --kind-error: #f7768e;
+  --kind-parse-error: #f7768e;
 
   /* Action taxonomy */
-  --action-text: #7DCFA4;
-  --action-tool-call: #7AA2F7;
-  --action-tool-result: #9ECE6A;
-  --action-status: #A4ADBE;
-  --action-unknown: #6B7385;
+  --action-text: #7dcfa4;
+  --action-tool-call: #7aa2f7;
+  --action-tool-result: #9ece6a;
+  --action-status: #a4adbe;
+  --action-unknown: #6b7385;
 
   /* Latency */
-  --latency-fast: #3A4A3F;
-  --latency-normal: #3A4252;
-  --latency-slow: #5A4A2E;
-  --latency-critical: #5A2E36;
+  --latency-fast: #3a4a3f;
+  --latency-normal: #3a4252;
+  --latency-slow: #5a4a2e;
+  --latency-critical: #5a2e36;
 }

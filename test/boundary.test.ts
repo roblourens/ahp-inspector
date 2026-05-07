@@ -4,11 +4,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const PORTABLE_ROOTS = [
-  "packages/shared/src",
-  "packages/parser/src",
-  "packages/core/src",
-];
+const PORTABLE_ROOTS = ["packages/shared/src", "packages/parser/src", "packages/core/src"];
 
 // Browser UI package — React/Vite are allowed here, but Node, host adapters,
 // the Hono server, and the legacy parser sub-entry are not.
@@ -87,7 +83,8 @@ describe("import boundary (portable packages)", () => {
         const offenders: string[] = [];
         // biome-ignore lint/suspicious/noAssignInExpressions: regex iteration
         for (let m: RegExpExecArray | null; (m = IMPORT_RE.exec(body)); ) {
-          const spec = m[1]!;
+          const spec = m[1];
+          if (!spec) continue;
           const hit = isForbidden(spec, FORBIDDEN_PATTERNS);
           if (hit) offenders.push(`"${spec}" (matched ${hit})`);
         }
@@ -115,7 +112,8 @@ describe("import boundary (browser UI)", () => {
         const offenders: string[] = [];
         // biome-ignore lint/suspicious/noAssignInExpressions: regex iteration
         for (let m: RegExpExecArray | null; (m = IMPORT_RE.exec(body)); ) {
-          const spec = m[1]!;
+          const spec = m[1];
+          if (!spec) continue;
           const hit = isForbidden(spec, UI_FORBIDDEN_PATTERNS);
           if (hit) offenders.push(`"${spec}" (matched ${hit})`);
         }

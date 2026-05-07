@@ -1,8 +1,8 @@
-import type { JSX } from "react";
 // NOTE: lucide-react@1.14.0 does not export `FileJson`; using `FileBraces`
 // (JSON-style braces icon) is the closest semantic match. Tracked in SUMMARY
 // as a Rule 3 deviation.
 import { FileBraces } from "lucide-react";
+import type { JSX } from "react";
 
 interface SourceStripProps {
   filename: string | null;

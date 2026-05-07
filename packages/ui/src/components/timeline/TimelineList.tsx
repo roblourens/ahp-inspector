@@ -1,7 +1,9 @@
-import type { JSX, CSSProperties } from "react";
-import { useRef } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+// biome-ignore-all lint/a11y/useSemanticElements: virtualized grid uses divs so rows can be absolutely positioned.
+
 import type { EventRow as EventRowData } from "@ahp-viewer/core";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import type { CSSProperties, JSX } from "react";
+import { useRef } from "react";
 import { EventRow } from "./EventRow.js";
 import { ParseErrorRow } from "./ParseErrorRow.js";
 
@@ -30,7 +32,8 @@ export function TimelineList({ rows, selectedIdx, onSelect }: TimelineListProps)
     >
       <div style={{ height: v.getTotalSize(), position: "relative" }}>
         {v.getVirtualItems().map((vi) => {
-          const row = rows[vi.index]!;
+          const row = rows[vi.index];
+          if (!row) return null;
           const isSelected = row.idx === selectedIdx;
           const style: CSSProperties = {
             position: "absolute",

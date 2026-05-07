@@ -1,5 +1,5 @@
-import type { JSX } from "react";
 import { Loader2 } from "lucide-react";
+import type { JSX } from "react";
 
 export function LoadingState({ filename }: { filename: string }): JSX.Element {
   return (

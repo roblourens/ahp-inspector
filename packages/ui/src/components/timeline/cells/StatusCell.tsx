@@ -1,5 +1,5 @@
-import type { JSX } from "react";
 import type { Status } from "@ahp-viewer/core";
+import type { JSX } from "react";
 
 interface Spec {
   text: string;
@@ -38,11 +38,7 @@ export function StatusCell({ status }: { status: Status }): JSX.Element {
     );
   }
   return (
-    <span
-      data-testid="status-cell"
-      data-status={status}
-      style={{ color: s.color }}
-    >
+    <span data-testid="status-cell" data-status={status} style={{ color: s.color }}>
       {s.text}
     </span>
   );

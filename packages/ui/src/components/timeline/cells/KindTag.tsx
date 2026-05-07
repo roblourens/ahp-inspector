@@ -1,5 +1,5 @@
-import type { JSX } from "react";
 import type { KindTag as KindTagValue } from "@ahp-viewer/core";
+import type { JSX } from "react";
 
 const VAR: Record<KindTagValue, string> = {
   REQ: "--kind-request",

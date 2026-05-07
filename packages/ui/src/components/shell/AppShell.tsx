@@ -12,7 +12,7 @@ export function AppShell(): JSX.Element {
   const connection = useAppStore((s) => s.connection);
   const selectedIdx = useAppStore((s) => s.selectedIdx);
   const rows = useAppStore((s) => s.rows);
-  const selectedEvent = selectedIdx != null ? rows[selectedIdx] ?? null : null;
+  const selectedEvent = selectedIdx != null ? (rows[selectedIdx] ?? null) : null;
   return (
     <div
       data-testid="app-shell"

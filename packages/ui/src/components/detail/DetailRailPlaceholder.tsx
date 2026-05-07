@@ -1,5 +1,5 @@
-import type { JSX } from "react";
 import type { EventRow } from "@ahp-viewer/core";
+import type { JSX } from "react";
 
 interface DetailRailPlaceholderProps {
   selectedEvent?: EventRow | null;

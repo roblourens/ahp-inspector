@@ -14,9 +14,9 @@ describe("classifyDirection (JSON-RPC structural inference)", () => {
   });
 
   it("classifies an error response {id, error} as s2c", () => {
-    expect(classifyDirection({ jsonrpc: "2.0", id: 1, error: { code: -32600, message: "x" } })).toBe(
-      "s2c",
-    );
+    expect(
+      classifyDirection({ jsonrpc: "2.0", id: 1, error: { code: -32600, message: "x" } }),
+    ).toBe("s2c");
   });
 
   it("classifies a server-originated action notification as s2c", () => {

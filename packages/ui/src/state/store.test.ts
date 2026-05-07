@@ -1,6 +1,6 @@
-import { describe, expect, it, beforeEach } from "vitest";
-import { useAppStore } from "./store.js";
 import type { EventRow } from "@ahp-viewer/core";
+import { beforeEach, describe, expect, it } from "vitest";
+import { useAppStore } from "./store.js";
 
 function row(idx: number, sessionId: string | null = null): EventRow {
   return {
@@ -59,7 +59,8 @@ describe("useAppStore", () => {
     const s = useAppStore.getState();
     s.setRows([row(0), row(1)]);
     s.applyPatch([{ idx: 1, status: "ok", latencyMs: 12, latencyBand: "fast" }]);
-    const r = useAppStore.getState().rows[1]!;
+    const r = useAppStore.getState().rows[1];
+    if (!r) throw new Error("expected patched row");
     expect(r.status).toBe("ok");
     expect(r.latencyMs).toBe(12);
     expect(r.latencyBand).toBe("fast");

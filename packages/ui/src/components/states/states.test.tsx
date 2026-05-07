@@ -1,9 +1,9 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { LoadingState } from "./LoadingState.js";
-import { EmptyState } from "./EmptyState.js";
-import { NoResultsBanner } from "./NoResultsBanner.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { DisconnectedBanner } from "./DisconnectedBanner.js";
+import { EmptyState } from "./EmptyState.js";
+import { LoadingState } from "./LoadingState.js";
+import { NoResultsBanner } from "./NoResultsBanner.js";
 import { ServerNotRunningState } from "./ServerNotRunningState.js";
 
 afterEach(() => cleanup());

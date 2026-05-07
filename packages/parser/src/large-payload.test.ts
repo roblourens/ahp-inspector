@@ -14,7 +14,8 @@ describe("large payload streaming (VERIFY-01 / T-02-01)", () => {
     const t0 = performance.now();
     const lines = [...splitter.push(line), ...splitter.flush()];
     expect(lines).toHaveLength(1);
-    const text = lines[0]!;
+    const text = lines[0];
+    if (!text) throw new Error("expected one split line");
     const parsed = parseLine(text, 0, Buffer.byteLength(text, "utf8"));
     expect(parsed.error).toBeUndefined();
     const meta: NormalizeMeta = {

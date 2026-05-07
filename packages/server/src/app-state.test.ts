@@ -74,8 +74,10 @@ describe("createAppState", () => {
     expect(appends.length).toBe(2);
     const snap = state.snapshot();
     expect(snap.rows.length).toBe(2);
-    expect(snap.rows[0]!.kind).toBe("request");
-    expect(snap.rows[0]!.status).toBe("pending");
+    const firstRow = snap.rows[0];
+    if (!firstRow) throw new Error("expected first row");
+    expect(firstRow.kind).toBe("request");
+    expect(firstRow.status).toBe("pending");
   });
 
   it("emits a patch when a late response pairs with an earlier request", async () => {
@@ -101,14 +103,16 @@ describe("createAppState", () => {
 
     const patches = events.filter((e) => e.kind === "patch");
     expect(patches.length).toBeGreaterThanOrEqual(1);
-    const last = patches.at(-1)!;
+    const last = patches.at(-1);
+    if (!last) throw new Error("expected patch payload");
     if (last.kind !== "patch") throw new Error("expected patch");
     expect(last.updates.length).toBeGreaterThanOrEqual(1);
-    const upd = last.updates.find((u) => u.idx === 0)!;
-    expect(upd).toBeDefined();
+    const upd = last.updates.find((u) => u.idx === 0);
+    if (!upd) throw new Error("expected patch update for row 0");
     expect(upd.status).toBe("ok");
     expect(upd.latencyMs).not.toBeNull();
-    expect(upd.latencyMs!).toBeGreaterThanOrEqual(0);
+    if (upd.latencyMs === null) throw new Error("expected latency");
+    expect(upd.latencyMs).toBeGreaterThanOrEqual(0);
   });
 
   it("flips a pending request to 'unmatched' on flush after the timeout", async () => {
@@ -123,7 +127,9 @@ describe("createAppState", () => {
     state.subscribe((p) => events.push(p));
 
     host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 99, method: "noReply", params: {} })}\n`);
-    expect(state.snapshot().rows[0]!.status).toBe("pending");
+    const pendingRow = state.snapshot().rows[0];
+    if (!pendingRow) throw new Error("expected pending row");
+    expect(pendingRow.status).toBe("pending");
 
     await new Promise((r) => setTimeout(r, 10));
     // Drive flush manually since flushIntervalMs is 0.
@@ -131,10 +137,15 @@ describe("createAppState", () => {
 
     const patches = events.filter((e) => e.kind === "patch");
     expect(patches.length).toBeGreaterThanOrEqual(1);
-    const last = patches.at(-1)!;
+    const last = patches.at(-1);
+    if (!last) throw new Error("expected unmatched patch");
     if (last.kind !== "patch") throw new Error("expected patch");
-    expect(last.updates.find((u) => u.idx === 0)!.status).toBe("unmatched");
-    expect(state.snapshot().rows[0]!.status).toBe("unmatched");
+    const update = last.updates.find((u) => u.idx === 0);
+    if (!update) throw new Error("expected unmatched update");
+    expect(update.status).toBe("unmatched");
+    const unmatchedRow = state.snapshot().rows[0];
+    if (!unmatchedRow) throw new Error("expected unmatched row");
+    expect(unmatchedRow.status).toBe("unmatched");
   });
 
   it("dispose() is idempotent and stops the watcher", async () => {

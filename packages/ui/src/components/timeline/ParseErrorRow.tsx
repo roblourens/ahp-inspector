@@ -1,5 +1,8 @@
-import type { JSX, CSSProperties } from "react";
+// biome-ignore-all lint/a11y/useSemanticElements: virtualized grid rows/cells use divs per ARIA grid pattern and absolute positioning.
+// biome-ignore-all lint/a11y/useFocusableInteractive: grid keyboard focus is managed at the row level; individual cells are not tab stops.
+
 import type { EventRow as EventRowData } from "@ahp-viewer/core";
+import type { CSSProperties, JSX } from "react";
 
 export function ParseErrorRow({
   row,
@@ -18,6 +21,13 @@ export function ParseErrorRow({
       aria-rowindex={row.idx + 1}
       aria-selected={isSelected}
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      tabIndex={isSelected ? 0 : -1}
       data-testid={`parse-error-${row.idx}`}
       style={{
         display: "grid",

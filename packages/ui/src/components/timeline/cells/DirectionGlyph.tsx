@@ -1,5 +1,5 @@
-import type { JSX } from "react";
 import type { Direction } from "@ahp-viewer/shared";
+import type { JSX } from "react";
 
 // Plan 02-03 deviation (Rule 3): the canonical `Direction` from
 // @ahp-viewer/shared is "c2s" | "s2c". The plan called for an "unknown"
@@ -18,11 +18,7 @@ const COLOR: Record<DirectionInput, string> = {
   unknown: "var(--color-text-muted)",
 };
 
-export function DirectionGlyph({
-  direction,
-}: {
-  direction: DirectionInput;
-}): JSX.Element {
+export function DirectionGlyph({ direction }: { direction: DirectionInput }): JSX.Element {
   return (
     <span
       data-testid="dir-glyph"

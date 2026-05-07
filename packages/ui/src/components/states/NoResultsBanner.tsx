@@ -1,12 +1,6 @@
 import type { JSX } from "react";
 
-export function NoResultsBanner({
-  heading,
-  body,
-}: {
-  heading: string;
-  body: string;
-}): JSX.Element {
+export function NoResultsBanner({ heading, body }: { heading: string; body: string }): JSX.Element {
   return (
     <div
       data-testid="banner-no-results"

@@ -1,13 +1,15 @@
-import type { JSX } from "react";
-import { memo } from "react";
+// biome-ignore-all lint/a11y/useSemanticElements: virtualized grid rows/cells use divs per ARIA grid pattern and absolute positioning.
+// biome-ignore-all lint/a11y/useFocusableInteractive: grid keyboard focus is managed at the row level; individual cells are not tab stops.
+
 import type { EventRow as EventRowData } from "@ahp-viewer/core";
-import type { CSSProperties } from "react";
+import type { CSSProperties, JSX } from "react";
+import { memo } from "react";
+import { ActionDot } from "./cells/ActionDot.js";
 import { DirectionGlyph } from "./cells/DirectionGlyph.js";
 import { KindTag } from "./cells/KindTag.js";
-import { ActionDot } from "./cells/ActionDot.js";
-import { StatusCell } from "./cells/StatusCell.js";
 import { LatencyCell } from "./cells/LatencyCell.js";
 import { PayloadPreview } from "./cells/PayloadPreview.js";
+import { StatusCell } from "./cells/StatusCell.js";
 
 export interface EventRowProps {
   row: EventRowData;
@@ -35,6 +37,13 @@ export const EventRow = memo(function EventRow({
       aria-rowindex={row.idx + 1}
       aria-selected={isSelected}
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      tabIndex={isSelected ? 0 : -1}
       data-testid={`row-${row.idx}`}
       style={{
         display: "grid",

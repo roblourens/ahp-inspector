@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
 import type { EventRow as EventRowData } from "@ahp-viewer/core";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 import { EventRow } from "./EventRow.js";
 
 afterEach(() => cleanup());

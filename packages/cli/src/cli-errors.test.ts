@@ -3,13 +3,7 @@
 // port-in-use exit codes + stderr copy match UI-SPEC §10 verbatim.
 
 import { describe, expect, it } from "vitest";
-import {
-  CLI_MINI,
-  spawnCli,
-  spawnCliRaw,
-  waitForExit,
-  waitForLine,
-} from "./cli-test-helpers.js";
+import { CLI_MINI, spawnCli, spawnCliRaw, waitForExit, waitForLine } from "./cli-test-helpers.js";
 
 describe("ahp-viewer CLI errors (Plan 02-05)", () => {
   it("Case A: no file → log file not found + Usage, exit 1", async () => {
@@ -56,12 +50,13 @@ describe("ahp-viewer CLI errors (Plan 02-05)", () => {
         expect(port).not.toBe("");
 
         // 2. Spawn a second instance bound to that exact port.
-        const { code, stderr } = await spawnCli(
-          [CLI_MINI, "--port", port, "--no-open"],
-          12_000,
-        );
+        const { code, stderr } = await spawnCli([CLI_MINI, "--port", port, "--no-open"], 12_000);
         expect(code).toBe(1);
-        expect(stderr).toMatch(new RegExp(`Error: port ${port} is in use\\. Try: ahp-viewer --port ${Number(port) + 1} `));
+        expect(stderr).toMatch(
+          new RegExp(
+            `Error: port ${port} is in use\\. Try: ahp-viewer --port ${Number(port) + 1} `,
+          ),
+        );
       } finally {
         first.child.kill("SIGTERM");
         await waitForExit(first.child);

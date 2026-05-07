@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
 import type { EventRow as EventRowData } from "@ahp-viewer/core";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { TimelineList } from "./TimelineList.js";
 
 const ROWS = 50_000;
@@ -58,9 +58,7 @@ describe("TimelineList — virtualization", () => {
     // and also override getBoundingClientRect for completeness — Rule 3 deviation
     // from the plan, which only mocked getBoundingClientRect.
     originalRect = Element.prototype.getBoundingClientRect;
-    Element.prototype.getBoundingClientRect = function () {
-      return FAKE_RECT;
-    };
+    Element.prototype.getBoundingClientRect = () => FAKE_RECT;
     originalOffsetHeight = Object.getOwnPropertyDescriptor(
       window.HTMLElement.prototype,
       "offsetHeight",
@@ -86,18 +84,10 @@ describe("TimelineList — virtualization", () => {
   afterEach(() => {
     Element.prototype.getBoundingClientRect = originalRect;
     if (originalOffsetHeight) {
-      Object.defineProperty(
-        window.HTMLElement.prototype,
-        "offsetHeight",
-        originalOffsetHeight,
-      );
+      Object.defineProperty(window.HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     }
     if (originalOffsetWidth) {
-      Object.defineProperty(
-        window.HTMLElement.prototype,
-        "offsetWidth",
-        originalOffsetWidth,
-      );
+      Object.defineProperty(window.HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
     }
     cleanup();
   });

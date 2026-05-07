@@ -35,7 +35,7 @@ describe("ahp-viewer CLI launch (Plan 02-05)", () => {
     // Three §10 lines, in order.
     const lines = r.stdout.split("\n");
     const idxRunning = lines.findIndex((l) => l.startsWith("AHP Log Viewer running at"));
-    const idxOpening = lines.findIndex((l) => l === "Opening browser…");
+    const idxOpening = lines.indexOf("Opening browser…");
     const idxWatching = lines.findIndex((l) => l.startsWith("Watching "));
     expect(idxRunning).toBeGreaterThanOrEqual(0);
     expect(idxOpening).toBe(idxRunning + 1);

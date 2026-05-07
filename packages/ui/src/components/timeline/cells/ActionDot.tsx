@@ -1,5 +1,5 @@
-import type { JSX } from "react";
 import type { ActionFamily } from "@ahp-viewer/core";
+import type { JSX } from "react";
 
 const VAR: Record<NonNullable<ActionFamily>, string> = {
   text: "--action-text",
@@ -9,11 +9,7 @@ const VAR: Record<NonNullable<ActionFamily>, string> = {
   unknown: "--action-unknown",
 };
 
-export function ActionDot({
-  family,
-}: {
-  family: ActionFamily | null;
-}): JSX.Element | null {
+export function ActionDot({ family }: { family: ActionFamily | null }): JSX.Element | null {
   if (family == null) return null;
   return (
     <span

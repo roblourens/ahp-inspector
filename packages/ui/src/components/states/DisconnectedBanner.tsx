@@ -1,11 +1,7 @@
-import type { JSX } from "react";
 import { WifiOff } from "lucide-react";
+import type { JSX } from "react";
 
-export function DisconnectedBanner({
-  onReconnect,
-}: {
-  onReconnect: () => void;
-}): JSX.Element {
+export function DisconnectedBanner({ onReconnect }: { onReconnect: () => void }): JSX.Element {
   return (
     <div
       data-testid="banner-disconnected"
@@ -20,9 +16,7 @@ export function DisconnectedBanner({
       }}
     >
       <WifiOff size={16} color="var(--color-destructive)" />
-      <span style={{ flex: 1 }}>
-        Disconnected from log stream. Showing last received events.
-      </span>
+      <span style={{ flex: 1 }}>Disconnected from log stream. Showing last received events.</span>
       <button
         type="button"
         onClick={onReconnect}

@@ -1,5 +1,5 @@
-import type { JSX } from "react";
 import type { LatencyBand } from "@ahp-viewer/core";
+import type { JSX } from "react";
 
 function fmt(ms: number | null): string {
   if (ms == null) return "—";

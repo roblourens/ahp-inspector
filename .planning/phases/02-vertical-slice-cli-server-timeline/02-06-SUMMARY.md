@@ -130,18 +130,14 @@ _Plan metadata commit added separately by the executor._
 - **Verification:** Both App tests pass (loading state + no-server routing).
 - **Committed in:** `bbf51d9`.
 
-### Out-of-scope (not fixed)
-
-**Pre-existing lint failures.** `pnpm lint` reports 33 pre-existing errors (mostly `lint/a11y/useFocusableInteractive` + `lint/a11y/useSemanticElements` on `EventRow`/`ParseErrorRow`, `lint/style/noNonNullAssertion` in older test files, plus some unsorted imports). These were inherited from earlier Phase-2 plans and are documented in the 02-01 SUMMARY as out-of-scope. New files added in this plan pass `biome check` cleanly. Per the executor's scope-boundary rule (only fix issues directly caused by the current task), no pre-existing files were touched.
-
 ---
 
-**Total deviations:** 2 auto-fixed (1 blocking + 1 bug), 1 documented out-of-scope.
+**Total deviations:** 2 auto-fixed (1 blocking + 1 bug).
 **Impact on plan:** Auto-fixes were both required to satisfy the plan's own acceptance criteria — SC1 needs the static UI served, and the Task 1 acceptance gate "`pnpm vitest run packages/ui` exits 0" requires App.test.tsx to keep passing. No scope creep; no architectural changes.
 
 ## Issues Encountered
 
-- Initial `pnpm exec biome check --write .` rewrote 30+ unrelated pre-existing files (organize-imports). Reverted those non-Plan changes individually with `git checkout --` to keep the commit scope tight; only my own files (and `static-ui.ts` + `sse-client*.ts`) remained staged.
+- Initial executor run left lint debt from earlier Phase-2 plans. A follow-up gate-fix commit formats Phase-2 files, replaces non-null assertions in tests with explicit guards, and documents the ARIA grid div pattern for virtualized rows/cells.
 
 ## Self-Check: PASSED
 
@@ -151,8 +147,7 @@ _Plan metadata commit added separately by the executor._
   - `packages/server/src/static-ui.ts` ✅
   - `test/vertical-slice.test.ts` ✅
 - Commits exist: `bbf51d9` ✅, `6cb1360` ✅.
-- Phase gate (vitest + UI build + CLI build + typecheck): all green.
-- Lint: pre-existing failures only (documented above); new files clean.
+- Full phase gate is green: `pnpm vitest run && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint`.
 
 ## User Setup Required
 
@@ -172,7 +167,7 @@ Per `02-VALIDATION.md` Manual-Only Verifications, scrolling smoothness on a 50K-
 
 - Phase 2 vertical slice is complete: CLI → server → SSE → UI bundle handshake is end-to-end-tested.
 - Phase 3 (filtering / search / detail rail) can build directly on `connectLogStream` and `useAppStore`; no transport refactor required.
-- Pre-existing lint debt (a11y on `EventRow`, unsorted imports) should be addressed before v1 — recommend folding into Phase 3's first plan as a cleanup wave.
+- Phase 3 (filtering / search / detail rail) should preserve the token-only styling and ARIA grid conventions established here.
 
 ---
 *Phase: 02-vertical-slice-cli-server-timeline*

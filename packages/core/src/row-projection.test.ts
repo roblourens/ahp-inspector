@@ -156,7 +156,11 @@ describe("projectRow() — unmatched / orphan / pending", () => {
     expect(row.latencyBand).toBeNull();
   });
   it("orphan response: status round-trips", () => {
-    const e = mkEvent({ kind: "response", method: null, raw: { jsonrpc: "2.0", id: 99, result: {} } });
+    const e = mkEvent({
+      kind: "response",
+      method: null,
+      raw: { jsonrpc: "2.0", id: 99, result: {} },
+    });
     const row = projectRow(e, 0, "orphan", null);
     expect(row.status).toBe("orphan");
     expect(row.kindTag).toBe("RES");

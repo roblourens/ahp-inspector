@@ -1,5 +1,5 @@
-import { create } from "zustand";
 import type { EventRow, LatencyBand, Status } from "@ahp-viewer/core";
+import { create } from "zustand";
 
 export type Connection = "connecting" | "connected" | "disconnected" | "no-server";
 

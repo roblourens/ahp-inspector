@@ -63,10 +63,7 @@ export function kindTagFor(kind: EventKind): KindTag {
   return KIND_TAG[kind];
 }
 
-export function actionFamilyFor(
-  kind: EventKind,
-  actionType: string | null,
-): ActionFamily | null {
+export function actionFamilyFor(kind: EventKind, actionType: string | null): ActionFamily | null {
   if (kind !== "action") return null;
   if (!actionType) return "unknown";
   if (/^text$/i.test(actionType)) return "text";

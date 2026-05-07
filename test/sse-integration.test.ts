@@ -91,7 +91,8 @@ function openSseClient(opts: {
             pending = pending.slice(sep + 2);
             const frame = parseFrame(raw);
             if (frame) {
-              if (waiters.length > 0) waiters.shift()!(frame);
+              const waiter = waiters.shift();
+              if (waiter) waiter(frame);
               else buf.push(frame);
             }
             sep = pending.indexOf("\n\n");
@@ -110,7 +111,8 @@ function openSseClient(opts: {
           }
         };
         const next = (timeoutMs = 2000): Promise<Frame> => {
-          if (buf.length > 0) return Promise.resolve(buf.shift()!);
+          const buffered = buf.shift();
+          if (buffered) return Promise.resolve(buffered);
           return new Promise<Frame>((res2, rej2) => {
             const t = setTimeout(() => rej2(new Error("SSE next() timeout")), timeoutMs);
             waiters.push((f) => {
@@ -163,8 +165,9 @@ describe("SSE log stream", () => {
     const fixture = readFileSync(fixturePath, "utf8");
     // Split into request line, then everything else, then the late response.
     const lines = fixture.split("\n").filter((l) => l.length > 0);
-    const requestLine = lines[0]!;
-    const responseLine = lines[1]!;
+    const requestLine = lines[0];
+    const responseLine = lines[1];
+    if (!requestLine || !responseLine) throw new Error("expected request and response lines");
     const remaining = lines.slice(2);
 
     const host = makeFakeHost(fixturePath);
