@@ -17,7 +17,6 @@ import {
   projectRow,
   type Status,
 } from "@ahp-viewer/core";
-import { SearchIndex } from "./search-index.js";
 import { LineSplitter, normalize, parseLine } from "@ahp-viewer/parser";
 import {
   type Direction,
@@ -25,6 +24,7 @@ import {
   type LogHandle,
   makeParseErrorEvent,
 } from "@ahp-viewer/shared";
+import { SearchIndex } from "./search-index.js";
 
 /** Server-side log metadata. NEVER carries absolute paths (T-02-03). */
 export interface LogMeta {
@@ -144,15 +144,12 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     if (evSeq != null) lastSeenServerSeq.set(sessionKey, evSeq);
 
     const rawRec =
-      ev.raw != null && typeof ev.raw === "object"
-        ? (ev.raw as Record<string, unknown>)
-        : null;
+      ev.raw != null && typeof ev.raw === "object" ? (ev.raw as Record<string, unknown>) : null;
     const errRec =
       rawRec?.error != null && typeof rawRec.error === "object"
         ? (rawRec.error as Record<string, unknown>)
         : null;
-    const errorCode =
-      typeof errRec?.code === "number" ? (errRec.code as number) : null;
+    const errorCode = typeof errRec?.code === "number" ? (errRec.code as number) : null;
     const isAuthFailure =
       (ev.kind === "response" && errorCode === -32007) ||
       ((ev.kind === "protocol-notification" || ev.kind === "server-notification") &&

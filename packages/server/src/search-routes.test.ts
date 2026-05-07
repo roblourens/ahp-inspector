@@ -4,9 +4,9 @@
 // Covers: substring match, 256-char cap, 5000 result cap, empty query = match-all,
 // limit param capped at MAX_RESULTS.
 
+import type { AhpEvent } from "@ahp-viewer/shared";
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
-import type { AhpEvent } from "@ahp-viewer/shared";
 import type { AppState, LogMeta } from "./app-state.js";
 import { SearchIndex } from "./search-index.js";
 import { registerSearchRoutes } from "./search-routes.js";
@@ -15,7 +15,9 @@ import { registerSearchRoutes } from "./search-routes.js";
 // Minimal AhpEvent factory for tests
 // ---------------------------------------------------------------------------
 
-function makeEvent(overrides: Partial<AhpEvent> & { seq: number; method: string | null }): AhpEvent {
+function makeEvent(
+  overrides: Partial<AhpEvent> & { seq: number; method: string | null },
+): AhpEvent {
   return {
     ts: overrides.seq,
     tsRaw: String(overrides.seq),
@@ -85,13 +87,15 @@ describe("SearchIndex", () => {
 
   it("haystack includes raw JSON payload content, sessionId, and turnId", () => {
     const idx = new SearchIndex();
-    idx.append(makeEvent({
-      seq: 0,
-      method: "tools/call",
-      sessionId: "sess-abc",
-      turnId: "turn-xyz",
-      raw: { jsonrpc: "2.0", id: 42, method: "tools/call", params: { name: "uniqueToolName" } },
-    }));
+    idx.append(
+      makeEvent({
+        seq: 0,
+        method: "tools/call",
+        sessionId: "sess-abc",
+        turnId: "turn-xyz",
+        raw: { jsonrpc: "2.0", id: 42, method: "tools/call", params: { name: "uniqueToolName" } },
+      }),
+    );
     // Should match on the raw JSON payload
     expect(idx.scan("uniquetoolname", 10).matches).toContain(0);
     // Should match on session ID
@@ -108,7 +112,8 @@ describe("SearchIndex", () => {
 function makeSearchAppState(entries: Array<{ method: string }>): AppState {
   const si = new SearchIndex();
   for (let i = 0; i < entries.length; i++) {
-    const e = entries[i]!;
+    const e = entries[i];
+    if (!e) continue;
     si.append(makeEvent({ seq: i, method: e.method }));
   }
   const meta: LogMeta = { filename: "test.log", sizeBytes: 0, startedAt: 0 };
@@ -143,7 +148,7 @@ describe("GET /api/log/search", () => {
     ]);
     const res = await app.request("/api/log/search?q=initialize");
     expect(res.status).toBe(200);
-    const body = await res.json() as { matches: number[]; total: number; truncated: boolean };
+    const body = (await res.json()) as { matches: number[]; total: number; truncated: boolean };
     expect(body.matches).toContain(0);
     expect(body.matches).toContain(2);
     expect(body.matches).not.toContain(1);
@@ -152,14 +157,10 @@ describe("GET /api/log/search", () => {
   });
 
   it("no q param returns all indices (match-all)", async () => {
-    const app = buildApp([
-      { method: "alpha" },
-      { method: "beta" },
-      { method: "gamma" },
-    ]);
+    const app = buildApp([{ method: "alpha" }, { method: "beta" }, { method: "gamma" }]);
     const res = await app.request("/api/log/search");
     expect(res.status).toBe(200);
-    const body = await res.json() as { matches: number[]; total: number; truncated: boolean };
+    const body = (await res.json()) as { matches: number[]; total: number; truncated: boolean };
     expect(body.matches).toEqual([0, 1, 2]);
     expect(body.total).toBe(3);
   });
@@ -170,20 +171,16 @@ describe("GET /api/log/search", () => {
     const res = await app.request(`/api/log/search?q=${encodeURIComponent(q)}`);
     expect(res.status).toBe(200);
     // Just assert it doesn't error — the query is capped
-    const body = await res.json() as { matches: number[]; total: number };
+    const body = (await res.json()) as { matches: number[]; total: number };
     expect(typeof body.total).toBe("number");
   });
 
   it("limit param is capped at 5000", async () => {
     // Build 3 events; request limit=99999 — effectively returns all 3
-    const app = buildApp([
-      { method: "a" },
-      { method: "b" },
-      { method: "c" },
-    ]);
+    const app = buildApp([{ method: "a" }, { method: "b" }, { method: "c" }]);
     const res = await app.request("/api/log/search?limit=99999");
     expect(res.status).toBe(200);
-    const body = await res.json() as { matches: number[]; total: number; truncated: boolean };
+    const body = (await res.json()) as { matches: number[]; total: number; truncated: boolean };
     // All 3 returned (well within server cap of 5000)
     expect(body.total).toBe(3);
     expect(body.truncated).toBe(false);
@@ -194,9 +191,8 @@ describe("GET /api/log/search", () => {
     // All 10 contain "same"
     const res = await app.request("/api/log/search?q=same&limit=3");
     expect(res.status).toBe(200);
-    const body = await res.json() as { matches: number[]; total: number; truncated: boolean };
+    const body = (await res.json()) as { matches: number[]; total: number; truncated: boolean };
     expect(body.matches).toHaveLength(3);
     expect(body.truncated).toBe(true);
   });
 });
-

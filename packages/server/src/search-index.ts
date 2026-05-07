@@ -20,29 +20,19 @@ export class SearchIndex {
     } catch {
       rawStr = "";
     }
-    const entry = [
-      ev.method,
-      ev.actionType,
-      ev.sessionId,
-      ev.turnId,
-      idStr,
-      rawStr,
-    ]
+    const entry = [ev.method, ev.actionType, ev.sessionId, ev.turnId, idStr, rawStr]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
     this.#haystack.push(entry);
   }
 
-  scan(
-    q: string,
-    limit: number,
-  ): { matches: number[]; truncated: boolean } {
+  scan(q: string, limit: number): { matches: number[]; truncated: boolean } {
     const matches: number[] = [];
     const matchAll = q === "";
     let truncated = false;
     for (let i = 0; i < this.#haystack.length; i++) {
-      if (matchAll || this.#haystack[i]!.includes(q)) {
+      if (matchAll || (this.#haystack[i] ?? "").includes(q)) {
         if (matches.length < limit) {
           matches.push(i);
         } else {

@@ -11,7 +11,9 @@ import { type ServerType, serve } from "@hono/node-server";
 import { Hono } from "hono";
 import type { AppState } from "./app-state.js";
 import { cspMiddleware } from "./csp.js";
+import { registerDetailRoutes } from "./detail-routes.js";
 import { hostGuardMiddleware } from "./host-guard.js";
+import { registerSearchRoutes } from "./search-routes.js";
 import { registerLogRoutes } from "./sse-routes.js";
 import { registerStaticUi } from "./static-ui.js";
 
@@ -44,6 +46,8 @@ export function startLogServer(opts: LogServerOptions): Promise<LogServerHandle>
   app.use("*", cspMiddleware);
   app.get("/health", (c) => c.json({ status: "ok", version: opts.version }));
   registerLogRoutes(app, opts.appState);
+  registerDetailRoutes(app, opts.appState);
+  registerSearchRoutes(app, opts.appState);
   if (opts.uiDistDir) registerStaticUi(app, opts.uiDistDir);
 
   return new Promise<LogServerHandle>((resolve, reject) => {
