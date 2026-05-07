@@ -50,9 +50,9 @@ function locateUiDist(): string | undefined {
     // tsx: packages/cli/src/index.ts → packages/ui/dist
     resolvePath(__dirname, "..", "..", "ui", "dist"),
     // tsup output: packages/cli/dist/index.js → packages/ui/dist
-    resolvePath(__dirname, "..", "..", "ui", "dist"),
-    // Hoisted layouts.
-    resolvePath(__dirname, "..", "ui", "dist"),
+    resolvePath(__dirname, "..", "..", "..", "ui", "dist"),
+    // Hoisted monorepo root: packages/cli/dist → <root>/packages/ui/dist
+    resolvePath(__dirname, "..", "..", "..", "packages", "ui", "dist"),
   ];
   for (const c of candidates) {
     try {
@@ -61,6 +61,9 @@ function locateUiDist(): string | undefined {
       /* try next */
     }
   }
+  process.stderr.write(
+    "Warning: UI dist not found — serving API only. Run `pnpm --filter @ahp-viewer/ui build` to build the UI.\n",
+  );
   return undefined;
 }
 
