@@ -272,7 +272,11 @@ describe("Phase 3 EventRow extras", () => {
       kind: "protocol-notification",
       method: "notification",
       actionType: "notify/authRequired",
-      raw: { jsonrpc: "2.0", method: "notification", params: { notification: { type: "notify/authRequired" } } },
+      raw: {
+        jsonrpc: "2.0",
+        method: "notification",
+        params: { notification: { type: "notify/authRequired" } },
+      },
     });
     const row = projectRow(e, 0, "n/a", null, {
       errorCode: null,

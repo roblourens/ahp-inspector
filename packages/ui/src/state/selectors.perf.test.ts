@@ -1,7 +1,6 @@
 import type { EventRow } from "@ahp-viewer/core";
 import { describe, expect, it } from "vitest";
-import { EMPTY_FILTERS } from "./filters.js";
-import { applyFacets } from "./filters.js";
+import { applyFacets, EMPTY_FILTERS } from "./filters.js";
 
 function makeRow(overrides: Partial<EventRow> = {}): EventRow {
   return {

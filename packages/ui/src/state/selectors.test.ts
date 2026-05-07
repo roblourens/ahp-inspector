@@ -5,8 +5,7 @@
 import type { EventRow } from "@ahp-viewer/core";
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { EMPTY_FILTERS } from "./filters.js";
-import { applyFacets } from "./filters.js";
+import { applyFacets, EMPTY_FILTERS } from "./filters.js";
 import { useFacetCounts, useFilteredRows, useGroupedItems } from "./selectors.js";
 import { useAppStore } from "./store.js";
 
@@ -163,11 +162,7 @@ describe("useGroupedItems", () => {
   afterEach(() => resetStore());
 
   it("grouping='none' returns [{ kind:'row', rowIdx:0 }, ...] for each index", () => {
-    const rows = [
-      makeRow({ idx: 0 }),
-      makeRow({ idx: 1 }),
-      makeRow({ idx: 2 }),
-    ];
+    const rows = [makeRow({ idx: 0 }), makeRow({ idx: 1 }), makeRow({ idx: 2 })];
     resetStore(rows);
     useAppStore.setState({ grouping: "none" });
     const { result } = renderHook(() => useGroupedItems([0, 1, 2]));
@@ -188,10 +183,18 @@ describe("useGroupedItems", () => {
     useAppStore.setState({ grouping: "session" });
     const { result } = renderHook(() => useGroupedItems([0, 1, 2]));
     // Should have: header(sess-a), row(0), row(1), header(sess-b), row(2)
-    expect(result.current[0]).toMatchObject({ kind: "header", level: "session", sessionId: "sess-a" });
+    expect(result.current[0]).toMatchObject({
+      kind: "header",
+      level: "session",
+      sessionId: "sess-a",
+    });
     expect(result.current[1]).toEqual({ kind: "row", rowIdx: 0 });
     expect(result.current[2]).toEqual({ kind: "row", rowIdx: 1 });
-    expect(result.current[3]).toMatchObject({ kind: "header", level: "session", sessionId: "sess-b" });
+    expect(result.current[3]).toMatchObject({
+      kind: "header",
+      level: "session",
+      sessionId: "sess-b",
+    });
     expect(result.current[4]).toEqual({ kind: "row", rowIdx: 2 });
   });
 

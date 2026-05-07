@@ -128,11 +128,9 @@ export const useAppStore = create<AppStoreState>((set) => ({
   detailWidth: 420,
   // Phase 3 actions
   setSearchQuery: (q) => set({ searchQuery: q }),
-  setSearchMatches: (matches) =>
-    set({ searchMatches: matches !== null ? new Set(matches) : null }),
+  setSearchMatches: (matches) => set({ searchMatches: matches !== null ? new Set(matches) : null }),
   setFilters: (f) => set({ filters: f }),
-  patchFilter: (key, value) =>
-    set((s) => ({ filters: { ...s.filters, [key]: value } })),
+  patchFilter: (key, value) => set((s) => ({ filters: { ...s.filters, [key]: value } })),
   clearFilters: () => set({ filters: EMPTY_FILTERS, searchQuery: "", searchMatches: null }),
   setGrouping: (mode) => set({ grouping: mode }),
   toggleGroupCollapsed: (key) =>
