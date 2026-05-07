@@ -46,6 +46,8 @@ const ALLOW = new Set<string>([
   "@testing-library/jest-dom",
   "@types/react",
   "@types/react-dom",
+  // Phase-3 UI runtime dep (plan 03-00)
+  "react-json-view-lite",
 ]);
 
 interface PkgJson {

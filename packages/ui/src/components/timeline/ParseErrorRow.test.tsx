@@ -28,6 +28,10 @@ const baseError: EventRowData = {
   payloadPreview: "",
   parseErrorReason: "expected token",
   lineIndex: 5,
+  errorCode: null,
+  serverSeq: null,
+  gapBefore: false,
+  isAuthFailure: false,
 };
 
 describe("ParseErrorRow — UI-SPEC §7.3", () => {

@@ -246,3 +246,121 @@ describe("projectRow() — action family derivation", () => {
     expect(row.actionFamily).toBeNull();
   });
 });
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Phase 3 EventRow extras (plan 03-00) — TDD RED before implementation
+// ──────────────────────────────────────────────────────────────────────────────
+describe("Phase 3 EventRow extras", () => {
+  it("response with errorCode=-32007 extras gets isAuthFailure:true and errorCode:-32007", () => {
+    const e = mkEvent({
+      kind: "response",
+      method: null,
+      raw: { jsonrpc: "2.0", id: 1, error: { code: -32007, message: "Not authenticated" } },
+    });
+    const row = projectRow(e, 0, "ok", null, {
+      errorCode: -32007,
+      serverSeq: null,
+      gapBefore: false,
+      isAuthFailure: true,
+    });
+    expect(row.isAuthFailure).toBe(true);
+    expect(row.errorCode).toBe(-32007);
+  });
+
+  it("protocol-notification with notify/authRequired extras gets isAuthFailure:true", () => {
+    const e = mkEvent({
+      kind: "protocol-notification",
+      method: "notification",
+      actionType: "notify/authRequired",
+      raw: {
+        jsonrpc: "2.0",
+        method: "notification",
+        params: { notification: { type: "notify/authRequired" } },
+      },
+    });
+    const row = projectRow(e, 0, "n/a", null, {
+      errorCode: null,
+      serverSeq: null,
+      gapBefore: false,
+      isAuthFailure: true,
+    });
+    expect(row.isAuthFailure).toBe(true);
+  });
+
+  it("row with gapBefore:true extras propagates gapBefore", () => {
+    const e = mkEvent({ kind: "action", method: "action", serverSeq: 3 });
+    const row = projectRow(e, 0, "n/a", null, {
+      errorCode: null,
+      serverSeq: 3,
+      gapBefore: true,
+      isAuthFailure: false,
+    });
+    expect(row.gapBefore).toBe(true);
+    expect(row.serverSeq).toBe(3);
+  });
+
+  it("row with gapBefore:false extras propagates gapBefore:false", () => {
+    const e = mkEvent({ kind: "action", method: "action", serverSeq: 2 });
+    const row = projectRow(e, 0, "n/a", null, {
+      errorCode: null,
+      serverSeq: 2,
+      gapBefore: false,
+      isAuthFailure: false,
+    });
+    expect(row.gapBefore).toBe(false);
+  });
+
+  it("row with no serverSeq extras gets gapBefore:false, serverSeq:null", () => {
+    const e = mkEvent({ kind: "request" });
+    const row = projectRow(e, 0, "pending", null, {
+      errorCode: null,
+      serverSeq: null,
+      gapBefore: false,
+      isAuthFailure: false,
+    });
+    expect(row.gapBefore).toBe(false);
+    expect(row.serverSeq).toBeNull();
+  });
+
+  it("normal ok response gets isAuthFailure:false, errorCode:null", () => {
+    const e = mkEvent({
+      kind: "response",
+      method: null,
+      raw: { jsonrpc: "2.0", id: 2, result: { ok: true } },
+    });
+    const row = projectRow(e, 0, "ok", 50, {
+      errorCode: null,
+      serverSeq: null,
+      gapBefore: false,
+      isAuthFailure: false,
+    });
+    expect(row.isAuthFailure).toBe(false);
+    expect(row.errorCode).toBeNull();
+  });
+
+  it("calling projectRow without extras produces safe defaults (all null/false)", () => {
+    const row = projectRow(mkEvent(), 0, "ok", 0);
+    expect(row.errorCode).toBeNull();
+    expect(row.serverSeq).toBeNull();
+    expect(row.gapBefore).toBe(false);
+    expect(row.isAuthFailure).toBe(false);
+  });
+
+  it("parse-error rows get errorCode:null, serverSeq:null, gapBefore:false, isAuthFailure:false", () => {
+    const e = mkEvent({
+      seq: 5,
+      kind: "parse-error",
+      method: null,
+      id: null,
+      idType: "null",
+      raw: undefined,
+      parse: "error",
+      parseError: { reason: "bad json", rawText: "{bad" },
+    });
+    const row = projectRow(e, 5, "n/a", null);
+    expect(row.errorCode).toBeNull();
+    expect(row.serverSeq).toBeNull();
+    expect(row.gapBefore).toBe(false);
+    expect(row.isAuthFailure).toBe(false);
+  });
+});

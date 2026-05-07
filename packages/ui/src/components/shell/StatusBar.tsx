@@ -5,6 +5,9 @@ interface StatusBarProps {
   connection: Connection;
   eventCount: number;
   selectedRowIndex?: number | null;
+  visibleCount?: number;
+  totalCount?: number;
+  groupCount?: number;
 }
 
 interface StatusVisual {
@@ -17,14 +20,25 @@ function visualFor(
   connection: Connection,
   eventCount: number,
   selectedRowIndex: number | null | undefined,
+  visibleCount: number | undefined,
+  totalCount: number | undefined,
+  groupCount: number | undefined,
 ): StatusVisual {
   switch (connection) {
     case "connected": {
       const base = `Connected · ${eventCount} events`;
-      const label =
+      let label =
         selectedRowIndex != null && selectedRowIndex >= 0
           ? `${base} · selected #${selectedRowIndex}`
           : base;
+      // Show visible/total when filtered
+      if (visibleCount !== undefined && totalCount !== undefined && visibleCount !== totalCount) {
+        label = `${label} · ${visibleCount}/${totalCount} visible`;
+      }
+      // Show group count when grouped
+      if (groupCount !== undefined && groupCount > 0) {
+        label = `${label} · ${groupCount} groups`;
+      }
       return { glyph: "●", dotColor: "var(--color-success)", label };
     }
     case "connecting":
@@ -40,8 +54,18 @@ export function StatusBar({
   connection,
   eventCount,
   selectedRowIndex = null,
+  visibleCount,
+  totalCount,
+  groupCount,
 }: StatusBarProps): JSX.Element {
-  const { glyph, dotColor, label } = visualFor(connection, eventCount, selectedRowIndex);
+  const { glyph, dotColor, label } = visualFor(
+    connection,
+    eventCount,
+    selectedRowIndex,
+    visibleCount,
+    totalCount,
+    groupCount,
+  );
   return (
     <div
       style={{

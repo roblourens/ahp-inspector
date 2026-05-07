@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready_to_plan
-stopped_at: Phase 02 complete; ready to plan Phase 03
-last_updated: "2026-05-07T16:35:00Z"
+status: planning
+stopped_at: Completed 03-06-PLAN.md
+last_updated: "2026-05-07T19:42:04.574Z"
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 10
-  completed_plans: 10
+  completed_phases: 3
+  total_plans: 17
+  completed_plans: 17
   percent: 100
 ---
 
@@ -18,17 +18,17 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 02 — vertical-slice-cli-server-timeline
+**Current Focus:** Phase 03 — detail-search-and-filtering
 
 ## Current Position
 
-Phase: 02 (vertical-slice-cli-server-timeline) — COMPLETE
-Plan: 7 of 7
+Phase: 03 (detail-search-and-filtering) — **COMPLETE**
+Plan: 7 of 7 (all plans done)
 
 - **Milestone:** v1
-- **Phase:** 2 — Vertical Slice — CLI, Server, Timeline
-- **Plan:** 02-06 complete; verification report passed
-- **Status:** Phase 02 complete
+- **Phase:** 4
+- **Plan:** Not started
+- **Status:** Ready to plan
 - **Progress:** [██████████] 100%
 
 ## Performance Metrics
@@ -44,6 +44,13 @@ Plan: 7 of 7
 | Phase 02 P04 | 10min | 3 tasks | 16 files |
 | Phase 02 P05 | 6min | 2 tasks | 9 files |
 | Phase 02 P06 | 14min | 2 tasks | 9 files |
+| Phase 03 P00 | 15min | 2 tasks | 11 files |
+| Phase 03 P01 | 6 | 2 tasks | 7 files |
+| Phase 03 P02 | 5min | 2 tasks | 5 files |
+| Phase 03 P03 | 15min | 2 tasks | 14 files |
+| Phase 03 P04 | 15min | 3 tasks | 17 files |
+| Phase 03 P05 | 14min | 2 tasks | 15 files |
+| Phase 03 P06 | 15min | 2 tasks | 29 files |
 
 ## Accumulated Context
 
@@ -72,10 +79,28 @@ Plan: 7 of 7
 - Plan 02-06: App.tsx probes `/api/log/meta` once on mount before opening the stream — separates 'no server' (HTTP probe failure) from 'disconnected' (SSE drop), matching ServerNotRunningState semantics from Plan 02-04. `window.__ahpStream` holds the active ConnectionHandle for DisconnectedBanner reconnect.
 - Plan 02-06: `registerStaticUi` mounts on absolute distDir under the existing `app.use("*", cspMiddleware)` registration, so static responses inherit CSP/nosniff/no-referrer (T-02-06-03). CLI auto-discovers `packages/ui/dist` via `locateUiDist()`.
 - Plan 02-06: vertical-slice test treats request/response correlation as collapsed-into-snapshot for the file-read flow (CLI ingests entire fixture before SSE client connects); separate `append`+`patch` cycle is covered by `test/sse-integration.test.ts` (Plan 02-01) using a fake host.
+- Plan 03-00: `EventRowExtras` uses optional parameter with `DEFAULT_EXTRAS` default — avoids breaking callers that don't need extras; extras computation lives in `AppState.buildRow` (server) to respect boundary.test.ts portable-package restrictions.
+- Plan 03-00: `lastSeenServerSeq Map<string|null, number>` in `AppState` tracks per-session serverSeq for gap detection; `eventAt(idx)` added to `AppState` interface as the hook Plan 03-01 uses for the raw event detail API endpoint.
+- Plan 03-01: `SearchIndex.scan` uses `String.prototype.includes` (no regex from user input) with query capped at 256 chars and result count capped at 5000 — mitigates T-03-01-01 (ReDoS) and T-03-01-02 (unbounded result DoS).
+- Plan 03-01: `correlatorDataFor(idx)` added to `AppState` interface — exposes correlator metadata (pairIdx, latencyMs, status) to route handlers without leaking the private `Correlator` object; keeps detail-routes.ts a thin HTTP adapter.
+- Plan 03-02: `useDeferredValue` wraps filters and searchMatches in `useFilteredRows` — mitigates T-03-02-01 (DoS: main-thread block at 50k+ rows); perf gate confirmed 11 ms < 15 ms threshold.
+- Plan 03-02: Conditional spread `{ ...(row.turnId !== null ? { turnId } : {}) }` used for VirtualItem header to satisfy `exactOptionalPropertyTypes`; `?.has()` optional chaining replaces `!` non-null assertion on deferredMatches.
+- Plan 03-03: FacetPopover capped at 100 visible options with "…and N more" footer — T-03-03-02 DoS mitigation for large session lists.
+- Plan 03-03: biome `useSemanticElements` rule requires `<input type="radio">+<label>` over `<button role="radio">`; plan prescribed the button pattern but the semantic HTML version is equivalent for a11y.
+- Plan 03-04: fetchEvent uses conditional init object for AbortSignal (exactOptionalPropertyTypes: fetch signal must be AbortSignal|null, not undefined)
+- Plan 03-04: AhpFieldStrip uses conditional spread pattern for optional props — required by exactOptionalPropertyTypes; PrettyJsonView casts data as object for react-json-view-lite
+- Plan 03-05: search-client.ts uses conditional spread for AbortSignal — RequestInit.signal is AbortSignal|null (not |undefined); exactOptionalPropertyTypes enforcement
+- Plan 03-05: SearchInput accepts ref as plain prop (React 19 — no forwardRef needed); FilterBar passes searchInputRef via conditional spread
+- Plan 03-05: TimelineList.onSelect wraps store selectIdx in lambda to adapt (number|null)→void to number→void
+- Plan 03-05: highlightMatches uses React mark elements with CSS token colors — never interpret searchQuery as HTML (XSS-safe per T-03-05-03)
+- Plan 03-05: StickyGroupBar returns null when topGroup is null — no DOM overhead when grouping is off
+- Plan 03-06: @vitest-environment jsdom directive needed for UI hook tests run via root vitest config — avoids breaking `pnpm test` when selectors.test.ts and search-client.test.ts run without jsdom environment
+- Plan 03-06: return null over <></> for early-return JSX components; requires JSX.Element|null return type annotation; satisfies biome noUselessFragments
+- Plan 03-06: tabIndex={-1} on gap-banner and group-header role=row divs — biome useFocusableInteractive requires programmatic focusability; keyboard navigation managed at TimelineRegion level
 
 ### Open TODOs
 
-- Plan Phase 03: Detail, Search, and Filtering.
+- Phases 04-05: Live discovery (tail-mode), light/dark/hacker theme switching.
 
 ### Blockers
 
@@ -83,9 +108,9 @@ Plan: 7 of 7
 
 ## Session Continuity
 
-**Last session:** 2026-05-07T16:35:00Z
+**Last session:** 2026-05-07T19:11:34.926Z
 **Next action:** `/gsd-plan-phase 3`
-**Stopped at:** Phase 02 complete; ready to plan Phase 03
+**Stopped at:** Completed 03-06-PLAN.md
 
 ---
 *State initialized: 2026-05-06*

@@ -12,7 +12,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 
 - [x] **Phase 1: Core Foundations** - Project scaffolding, canonical event model, JSONL + sample parsers, EventStore, host adapter boundary (completed 2026-05-07)
 - [x] **Phase 2: Vertical Slice — CLI, Server, Timeline** - Open a JSONL file from the CLI and render an information-dense virtualized timeline in the browser (completed 2026-05-07)
-- [ ] **Phase 3: Detail, Search, and Filtering** - Inspect events deeply, search and filter responsively, group by session/turn
+- [x] **Phase 3: Detail, Search, and Filtering** - Inspect events deeply, search and filter responsively, group by session/turn (completed 2026-05-07)
 - [ ] **Phase 4: Live Tail, Discovery, and Persistence** - Auto-discover VS Code logs, watch growing files, pause/resume, persist filter state per log
 - [ ] **Phase 5: Themes, Polish, and Verification** - Light/dark/hacker themes via design tokens, responsive layout, full UI + E2E test coverage
 
@@ -64,7 +64,25 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
   3. User can run free-text search across method, action type, IDs, session, turn, error text, and payload text, and combine it with filters for direction, kind, method, action type, session, turn, status, and time range.
   4. Search and filter changes update the visible timeline without blocking typing, with active filters visible at a glance and a clear-all action.
   5. User can toggle session/turn grouping to read traffic as a story; server sequence gaps and authentication failures are surfaced when present.
-**Plans**: TBD
+**Plans**: 7 plans
+Plans:
+**Wave 1**
+- [x] 03-00-PLAN.md — Wave 0: Foundation (security allowlist, EventRow extension, Phase 3 tokens, test scaffold)
+- [x] 03-01-PLAN.md — Wave 1a: Detail + Search backend endpoints (GET /api/log/event/:idx + GET /api/log/search)
+- [x] 03-02-PLAN.md — Wave 1b: Store extensions, FilterState, selectors, performance gate (parallel)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 03-03-PLAN.md — Wave 2a: Filter bar UI — FacetChips, GroupToggle, ActiveChips, NoResultsState
+- [x] 03-04-PLAN.md — Wave 2b: Detail panel UI — DetailPanel, AhpFieldStrip, PrettyJsonView, CopyMenu (parallel)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 03-05-PLAN.md — Wave 3: Search client + grouping + App assembly (AppShell wiring, TimelineList polymorphic)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 03-06-PLAN.md — Wave 4: Phase 3 gate test + browser UAT + USER_GUIDE update
+
+**Cross-cutting constraints:**
+- No raw #hex literals in any component file
 **UI hint**: yes
 
 ### Phase 4: Live Tail, Discovery, and Persistence
@@ -99,7 +117,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 |-------|----------------|--------|-----------|
 | 1. Core Foundations | 3/3 | Complete    | 2026-05-07 |
 | 2. Vertical Slice — CLI, Server, Timeline | 7/7 | Complete | 2026-05-07 |
-| 3. Detail, Search, and Filtering | 0/0 | Not started | - |
+| 3. Detail, Search, and Filtering | 7/7 | Complete   | 2026-05-07 |
 | 4. Live Tail, Discovery, and Persistence | 0/0 | Not started | - |
 | 5. Themes, Polish, and Verification | 0/0 | Not started | - |
 

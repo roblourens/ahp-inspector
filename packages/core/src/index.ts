@@ -5,6 +5,7 @@ export type {
   ActionFamily,
   DirGlyph,
   EventRow,
+  EventRowExtras,
   KindTag,
   LatencyBand,
 } from "./row-projection.js";

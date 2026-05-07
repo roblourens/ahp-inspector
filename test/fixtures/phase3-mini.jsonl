@@ -1,0 +1,6 @@
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"sessionId":"test-session-0001","clientName":"test-client"}}
+{"jsonrpc":"2.0","id":1,"error":{"code":-32007,"message":"Not authenticated — auth required"}}
+{"jsonrpc":"2.0","method":"notification","params":{"notification":{"type":"notify/authRequired","message":"Authentication required"}}}
+{"jsonrpc":"2.0","method":"action","params":{"sessionId":"test-session-0001","serverSeq":1,"action":{"type":"text","text":"first action, serverSeq=1"}}}
+{"jsonrpc":"2.0","method":"action","params":{"sessionId":"test-session-0001","serverSeq":3,"action":{"type":"text","text":"third action — serverSeq gap 1→3, gapBefore=true"}}}
+{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}

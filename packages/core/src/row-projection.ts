@@ -34,7 +34,27 @@ export interface EventRow {
   // Parse-error specifics; null/empty for ok events.
   readonly parseErrorReason: string | null;
   readonly lineIndex: number | null; // 1-based source line; from seq+1
+  // Phase 3 additions — additive, non-breaking (row-projection.ts:9-13)
+  readonly errorCode: number | null;
+  readonly serverSeq: number | null;
+  readonly gapBefore: boolean;
+  readonly isAuthFailure: boolean;
 }
+
+/** Phase 3 additive extras — computed in AppState before projectRow call. */
+export interface EventRowExtras {
+  readonly errorCode: number | null;
+  readonly serverSeq: number | null;
+  readonly gapBefore: boolean;
+  readonly isAuthFailure: boolean;
+}
+
+const DEFAULT_EXTRAS: EventRowExtras = {
+  errorCode: null,
+  serverSeq: null,
+  gapBefore: false,
+  isAuthFailure: false,
+};
 
 export function bandFor(latencyMs: number | null): LatencyBand | null {
   if (latencyMs === null || latencyMs < 0) return null;
@@ -104,6 +124,7 @@ export function projectRow(
   idx: number,
   status: Status,
   latencyMs: number | null,
+  extras: EventRowExtras = DEFAULT_EXTRAS,
 ): EventRow {
   if (event.kind === "parse-error") {
     return {
@@ -129,6 +150,7 @@ export function projectRow(
       payloadPreview: "",
       parseErrorReason: event.parseError?.reason ?? "unknown parse error",
       lineIndex: event.seq + 1,
+      ...DEFAULT_EXTRAS,
     };
   }
   const session = event.sessionId;
@@ -157,5 +179,6 @@ export function projectRow(
     payloadPreview: payloadPreviewOf(event.raw),
     parseErrorReason: null,
     lineIndex: null,
+    ...extras,
   };
 }
