@@ -1,14 +1,28 @@
 import type { JSX } from "react";
 import { useEffect } from "react";
 import { useAppStore } from "../../state/store.js";
-import { TimelineList } from "./TimelineList.js";
-import { LoadingState } from "../states/LoadingState.js";
-import { EmptyState } from "../states/EmptyState.js";
-import { NoResultsBanner } from "../states/NoResultsBanner.js";
+import { connectLogStream } from "../../transport/sse-client.js";
 import { DisconnectedBanner } from "../states/DisconnectedBanner.js";
+import { EmptyState } from "../states/EmptyState.js";
+import { LoadingState } from "../states/LoadingState.js";
+import { NoResultsBanner } from "../states/NoResultsBanner.js";
+import { TimelineList } from "./TimelineList.js";
 
 export interface TimelineRegionProps {
   onReconnect?: () => void;
+}
+
+function defaultReconnect(): void {
+  // Tear down any prior handle, then open a fresh one.
+  if (typeof window !== "undefined" && window.__ahpStream) {
+    try {
+      window.__ahpStream.close();
+    } catch {
+      /* ignore */
+    }
+  }
+  const handle = connectLogStream();
+  if (typeof window !== "undefined") window.__ahpStream = handle;
 }
 
 export function TimelineRegion({ onReconnect }: TimelineRegionProps = {}): JSX.Element {
@@ -69,7 +83,7 @@ export function TimelineRegion({ onReconnect }: TimelineRegionProps = {}): JSX.E
         />
       )}
       {connection === "disconnected" && (
-        <DisconnectedBanner onReconnect={onReconnect ?? (() => {})} />
+        <DisconnectedBanner onReconnect={onReconnect ?? defaultReconnect} />
       )}
       <TimelineList rows={rows} selectedIdx={selectedIdx} onSelect={select} />
     </div>

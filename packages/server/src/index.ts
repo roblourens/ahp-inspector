@@ -7,3 +7,5 @@ export { hostGuardMiddleware } from "./host-guard.js";
 export type { LogServerHandle, LogServerOptions } from "./log-server.js";
 export { startLogServer } from "./log-server.js";
 export { registerLogRoutes } from "./sse-routes.js";
+export type { StaticUiOptions } from "./static-ui.js";
+export { registerStaticUi } from "./static-ui.js";

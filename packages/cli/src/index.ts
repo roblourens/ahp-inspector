@@ -7,7 +7,7 @@
 // structural (`classifyDirection`) — Phase-1's hard-coded `dir='c2s'` is
 // gone.
 
-import { readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
 import { NodeHostAdapter } from "@ahp-viewer/host-node";
@@ -38,6 +38,32 @@ function loadVersion(): string {
 
 const VERSION = loadVersion();
 
+/**
+ * Resolve the built UI dist directory (`packages/ui/dist`). Looked up
+ * relative to the CLI's location at runtime so it works whether we're
+ * launched from `tsx` (src) or the bundled binary (dist). Returns
+ * `undefined` if the bundle hasn't been built yet — the server will then
+ * skip the static UI mount and the API still works.
+ */
+function locateUiDist(): string | undefined {
+  const candidates = [
+    // tsx: packages/cli/src/index.ts → packages/ui/dist
+    resolvePath(__dirname, "..", "..", "ui", "dist"),
+    // tsup output: packages/cli/dist/index.js → packages/ui/dist
+    resolvePath(__dirname, "..", "..", "ui", "dist"),
+    // Hoisted layouts.
+    resolvePath(__dirname, "..", "ui", "dist"),
+  ];
+  for (const c of candidates) {
+    try {
+      if (existsSync(join(c, "index.html"))) return c;
+    } catch {
+      /* try next */
+    }
+  }
+  return undefined;
+}
+
 function fail(msg: string, code = 1): never {
   process.stderr.write(msg.endsWith("\n") ? msg : `${msg}\n`);
   process.exit(code);
@@ -62,9 +88,7 @@ const program = new Command()
   .option("--no-open", "do not auto-open the default browser")
   .action(async (file: string | undefined, opts: { port: string; open: boolean }) => {
     if (!file) {
-      fail(
-        `Error: log file not found: <missing>\nUsage: ahp-viewer <path-to-log.jsonl>`,
-      );
+      fail(`Error: log file not found: <missing>\nUsage: ahp-viewer <path-to-log.jsonl>`);
     }
     const absPath = resolvePath(file);
     let stat: ReturnType<typeof statSync>;
@@ -73,16 +97,12 @@ const program = new Command()
     } catch (err) {
       const e = err as NodeJS.ErrnoException;
       if (e.code === "ENOENT") {
-        fail(
-          `Error: log file not found: ${absPath}\nUsage: ahp-viewer <path-to-log.jsonl>`,
-        );
+        fail(`Error: log file not found: ${absPath}\nUsage: ahp-viewer <path-to-log.jsonl>`);
       }
       fail(`Error: cannot read ${absPath}: ${e.message}\nCheck file permissions.`);
     }
     if (!stat.isFile()) {
-      fail(
-        `Error: log file not found: ${absPath}\nUsage: ahp-viewer <path-to-log.jsonl>`,
-      );
+      fail(`Error: log file not found: ${absPath}\nUsage: ahp-viewer <path-to-log.jsonl>`);
     }
 
     const port = parsePort(opts.port);
@@ -104,15 +124,20 @@ const program = new Command()
     }
 
     let serverHandle: LogServerHandle;
+    const uiDistDir = locateUiDist();
     try {
-      serverHandle = await startLogServer({ appState, port, version: VERSION });
+      const serverOpts: Parameters<typeof startLogServer>[0] = {
+        appState,
+        port,
+        version: VERSION,
+        ...(uiDistDir ? { uiDistDir } : {}),
+      };
+      serverHandle = await startLogServer(serverOpts);
     } catch (err) {
       const e = err as NodeJS.ErrnoException;
       await appState.dispose().catch(() => undefined);
       if (e.code === "EADDRINUSE") {
-        fail(
-          `Error: port ${port} is in use. Try: ahp-viewer --port ${port + 1} ${absPath}`,
-        );
+        fail(`Error: port ${port} is in use. Try: ahp-viewer --port ${port + 1} ${absPath}`);
       }
       fail(`Error: failed to start server: ${e.message}`);
     }

@@ -1,11 +1,21 @@
-import { render } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
-import { cleanup } from "@testing-library/react";
+import { cleanup, render } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App.js";
 import { useAppStore } from "./state/store.js";
 
+beforeEach(() => {
+  // Stub fetch with a never-resolving promise so the App's probe effect
+  // doesn't transition the store and doesn't trigger a real network call
+  // inside jsdom. Tests assert the synchronous initial render only.
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() => new Promise(() => {})),
+  );
+});
+
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
   // Reset store between tests so connection state doesn't leak.
   useAppStore.setState({
     rows: [],

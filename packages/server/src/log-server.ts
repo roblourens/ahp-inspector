@@ -13,6 +13,7 @@ import type { AppState } from "./app-state.js";
 import { cspMiddleware } from "./csp.js";
 import { hostGuardMiddleware } from "./host-guard.js";
 import { registerLogRoutes } from "./sse-routes.js";
+import { registerStaticUi } from "./static-ui.js";
 
 const HOSTNAME = "127.0.0.1" as const;
 
@@ -22,6 +23,12 @@ export interface LogServerOptions {
   readonly port: number;
   /** Version string returned by GET /health. */
   readonly version: string;
+  /**
+   * Optional absolute path to the built UI dist directory. When set, the
+   * server mounts `/`, `/assets/*`, `/fonts/*` to serve the standalone web
+   * app. Plan 02-06.
+   */
+  readonly uiDistDir?: string;
 }
 
 export interface LogServerHandle {
@@ -37,6 +44,7 @@ export function startLogServer(opts: LogServerOptions): Promise<LogServerHandle>
   app.use("*", cspMiddleware);
   app.get("/health", (c) => c.json({ status: "ok", version: opts.version }));
   registerLogRoutes(app, opts.appState);
+  if (opts.uiDistDir) registerStaticUi(app, opts.uiDistDir);
 
   return new Promise<LogServerHandle>((resolve, reject) => {
     const server = serve(
