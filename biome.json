@@ -19,11 +19,20 @@
     }
   },
   "files": {
-    "ignore": ["**/dist/**", "**/node_modules/**", "**/coverage/**", "test/fixtures/**"]
+    "includes": [
+      "**",
+      "!**/dist/**",
+      "!**/node_modules/**",
+      "!**/coverage/**",
+      "!test/fixtures/**",
+      "!.github/**",
+      "!.planning/**",
+      "!pnpm-lock.yaml"
+    ]
   },
   "overrides": [
     {
-      "include": ["packages/shared/**", "packages/core/**", "packages/parser/**"],
+      "includes": ["packages/shared/**", "packages/core/**", "packages/parser/**"],
       "linter": {
         "rules": {
           "style": {

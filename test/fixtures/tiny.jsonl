@@ -1,0 +1,8 @@
+{"jsonrpc":"2.0","id":1,"method":"listSessions","params":{}}
+{"jsonrpc":"2.0","id":1,"result":{"sessions":[]}}
+{"jsonrpc":"2.0","method":"dispatch","params":{"action":{"type":"noop"}}}
+{"jsonrpc":"2.0","method":"action","params":{"action":{"type":"rootState.onDidChange","payload":{}},"serverSeq":1,"origin":"server"}}
+{"jsonrpc":"2.0","method":"notification","params":{"notification":{"type":"log","message":"hello"}}}
+{"jsonrpc":"2.0","id":2,"error":{"code":-32000,"message":"boom"}}
+{"jsonrpc":"2.0","id":"abc","method":"authenticate","params":{}}
+{"jsonrpc":"2.0","id":null,"method":"ping","params":{}}
