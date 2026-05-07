@@ -180,4 +180,29 @@ describe("useSearch", () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(useAppStore.getState().searchMatches).toBeNull();
   });
+
+  it("WR-02: in-flight request is aborted when query changes before it resolves", async () => {
+    // Capture the AbortSignal passed to the first fetch.
+    let capturedSignal: AbortSignal | undefined;
+    mockFetch.mockImplementation((_url: string, init?: RequestInit) => {
+      capturedSignal = init?.signal;
+      // Never resolves — simulates in-flight
+      return new Promise(() => {});
+    });
+
+    renderHook(() => useSearch());
+
+    // Start first query and advance past debounce so fetch fires
+    useAppStore.setState({ searchQuery: "slow" });
+    await vi.advanceTimersByTimeAsync(200);
+
+    expect(capturedSignal).toBeDefined();
+    expect(capturedSignal?.aborted).toBe(false);
+
+    // Change query — WR-02 fix: cleanup must abort the in-flight request signal
+    useAppStore.setState({ searchQuery: "fast" });
+    await vi.advanceTimersByTimeAsync(0); // flush React effects / cleanup
+
+    expect(capturedSignal?.aborted).toBe(true);
+  });
 });

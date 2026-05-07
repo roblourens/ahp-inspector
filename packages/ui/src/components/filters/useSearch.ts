@@ -41,6 +41,8 @@ export function useSearch(): void {
     }, DEBOUNCE_MS);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      abortRef.current?.abort();   // cancel any in-flight request immediately
+      abortRef.current = null;
     };
   }, [query, setMatches]);
 }
