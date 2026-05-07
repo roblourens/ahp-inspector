@@ -17,6 +17,7 @@ import {
   projectRow,
   type Status,
 } from "@ahp-viewer/core";
+import { SearchIndex } from "./search-index.js";
 import { LineSplitter, normalize, parseLine } from "@ahp-viewer/parser";
 import {
   type Direction,
@@ -73,6 +74,7 @@ export interface AppStateOptions {
 
 export interface AppState {
   readonly meta: LogMeta;
+  readonly searchIndex: SearchIndex;
   snapshot(): { meta: LogMeta; rows: EventRow[] };
   subscribe(listener: Listener): () => void;
   /**
@@ -82,6 +84,15 @@ export interface AppState {
   runFlush(nowMs?: number): void;
   /** Returns the raw AhpEvent at the given store index, or null if out of range. */
   eventAt(idx: number): import("@ahp-viewer/shared").AhpEvent | null;
+  /**
+   * Returns correlator metadata for the event at the given index.
+   * Used by detail-routes to build the DetailResponse shape.
+   */
+  correlatorDataFor(idx: number): {
+    pairIdx: number | null;
+    latencyMs: number | null;
+    status: Status;
+  };
   dispose(): Promise<void>;
 }
 
@@ -103,6 +114,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   const rows: EventRow[] = [];
   const listeners = new Set<Listener>();
   const unmatchedTimeoutMs = opts.unmatchedTimeoutMs ?? 30_000;
+  const searchIdx = new SearchIndex();
 
   let seq = 0;
   let byteOffset = 0;
@@ -165,6 +177,11 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       const row = buildRow(i);
       rows[i] = row;
       newRows.push(row);
+      // Haystack stays in sync with store — append once per new event.
+      if (i >= searchIdx.size) {
+        const ev = store.at(i);
+        if (ev) searchIdx.append(ev);
+      }
     }
     // 2. Detect retroactive patches: any earlier row whose status/latency
     //    changed (e.g. pending → ok when a response paired the request).
@@ -251,6 +268,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   let disposed = false;
   return {
     meta,
+    searchIndex: searchIdx,
     snapshot() {
       return { meta, rows: rows.slice() };
     },
@@ -263,6 +281,13 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     runFlush,
     eventAt(idx: number) {
       return store.at(idx) ?? null;
+    },
+    correlatorDataFor(idx: number) {
+      return {
+        pairIdx: correlator.pairOf(idx),
+        latencyMs: correlator.latencyOf(idx),
+        status: correlator.statusOf(idx),
+      };
     },
     async dispose() {
       if (disposed) return;
