@@ -46,7 +46,7 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 
 - [x] **DETAIL-01**: User can expand or select an event to inspect details without breaking timeline virtualization.
 - [x] **DETAIL-02**: Detail view shows normalized summary fields, correlation metadata, and the full raw JSON payload.
-- [ ] **DETAIL-03**: Detail view supports folded pretty JSON, raw JSON text, syntax highlighting, truncation for huge payloads, and copy actions.
+- [x] **DETAIL-03**: Detail view supports folded pretty JSON, raw JSON text, syntax highlighting, truncation for huge payloads, and copy actions.
 - [x] **DETAIL-04**: Detail view highlights AHP-specific fields such as session, turn, tool call, action type, serverSeq, origin, request id, error code, and notification type when present.
 
 ### Search and Filtering
@@ -138,7 +138,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TIME-06 | Phase 2 | Complete |
 | DETAIL-01 | Phase 3 | Complete |
 | DETAIL-02 | Phase 3 | Complete |
-| DETAIL-03 | Phase 3 | Pending |
+| DETAIL-03 | Phase 3 | Complete |
 | DETAIL-04 | Phase 3 | Complete |
 | SEARCH-01 | Phase 3 | Complete |
 | SEARCH-02 | Phase 3 | Complete |
