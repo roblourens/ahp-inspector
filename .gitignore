@@ -1,0 +1,9 @@
+node_modules
+dist
+.turbo
+coverage
+*.log
+# Defensive: keep raw VS Code AHP capture logs out of the repo.
+~/agenthost.*.log
+agenthost.*.log
+.DS_Store
