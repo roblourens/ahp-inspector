@@ -81,7 +81,17 @@ describe("createAppState", () => {
 
   it("emits a patch when a late response pairs with an earlier request", async () => {
     const host = makeFakeHost("/tmp/x.log");
-    state = await createAppState({ host, file: "/tmp/x.log", flushIntervalMs: 0 });
+    state = await createAppState({
+      host,
+      file: "/tmp/x.log",
+      flushIntervalMs: 0,
+      // Simulate VS Code direction: requests go c2s, responses come back s2c.
+      directionInference: (raw): "c2s" | "s2c" => {
+        const r = raw as { method?: unknown; result?: unknown; error?: unknown };
+        if (r && (r.result !== undefined || r.error !== undefined)) return "s2c";
+        return "c2s";
+      },
+    });
     const events: SsePayload[] = [];
     state.subscribe((p) => events.push(p));
 
