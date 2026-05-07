@@ -39,7 +39,7 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 - [x] **TIME-02**: Each timeline row displays the most important scan fields: timestamp, direction, kind, method/action type, status, latency, session, turn, relevant IDs, and a short payload preview.
 - [x] **TIME-03**: Timeline rows use clear visual encoding for direction, event kind, success/error state, action taxonomy, and latency severity.
 - [x] **TIME-04**: User can select rows with mouse or keyboard and keep context while navigating through results.
-- [ ] **TIME-05**: User can toggle session/turn grouping to understand AHP traffic as a story instead of only a flat stream.
+- [x] **TIME-05**: User can toggle session/turn grouping to understand AHP traffic as a story instead of only a flat stream.
 - [x] **TIME-06**: User sees useful empty, loading, no-results, parse-error, and disconnected states.
 
 ### Event Detail
@@ -134,7 +134,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TIME-02 | Phase 2 | Complete |
 | TIME-03 | Phase 2 | Complete |
 | TIME-04 | Phase 3 | Complete |
-| TIME-05 | Phase 3 | Pending |
+| TIME-05 | Phase 3 | Complete |
 | TIME-06 | Phase 2 | Complete |
 | DETAIL-01 | Phase 3 | Complete |
 | DETAIL-02 | Phase 3 | Complete |
