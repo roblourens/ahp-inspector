@@ -40,7 +40,8 @@ function walk(dir: string): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = `${dir}/${entry.name}`;
     if (entry.isDirectory()) out.push(...walk(full));
-    else if (entry.isFile() && entry.name.endsWith(".ts")) out.push(full);
+    else if (entry.isFile() && entry.name.endsWith(".ts") && !entry.name.endsWith(".test.ts"))
+      out.push(full);
   }
   return out;
 }
