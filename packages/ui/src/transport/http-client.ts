@@ -56,7 +56,8 @@ export async function fetchEvent(
 ): Promise<DetailResponse | null> {
   const cached = cacheGet(idx);
   if (cached) return cached;
-  const resp = await fetch(`/api/log/event/${idx}`, { signal });
+  const init: RequestInit = signal !== undefined ? { signal } : {};
+  const resp = await fetch(`/api/log/event/${idx}`, init);
   if (resp.status === 404) return null;
   if (!resp.ok) throw new Error(`Failed to load event: ${resp.status}`);
   const data: DetailResponse = await resp.json() as DetailResponse;

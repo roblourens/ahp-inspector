@@ -33,7 +33,7 @@ interface FieldDef {
   label: string;
   stripeColor: string;
   value: string;
-  annotation?: string;
+  annotation?: string | undefined;
 }
 
 function getRawParams(rawEvent: AhpEvent): Record<string, unknown> | null {
@@ -95,7 +95,7 @@ export function AhpFieldStrip({ row, rawEvent }: AhpFieldStripProps): JSX.Elemen
       label: "Server seq",
       stripeColor: "var(--color-text-muted)",
       value: String(row.serverSeq),
-      annotation: row.gapBefore ? "gap before" : undefined,
+      ...(row.gapBefore ? { annotation: "gap before" } : {}),
     });
   }
 
@@ -156,7 +156,7 @@ export function AhpFieldStrip({ row, rawEvent }: AhpFieldStripProps): JSX.Elemen
           stripeColor={f.stripeColor}
           label={f.label}
           value={f.value}
-          annotation={f.annotation}
+          {...(f.annotation !== undefined ? { annotation: f.annotation } : {})}
         />
       ))}
     </div>

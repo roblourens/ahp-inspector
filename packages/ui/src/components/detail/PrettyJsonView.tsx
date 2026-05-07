@@ -38,7 +38,7 @@ export function PrettyJsonView({
       <TruncationBanner
         kind="client-cap"
         bytes={serialized.length}
-        onOpenRaw={onOpenRaw}
+        {...(onOpenRaw !== undefined ? { onOpenRaw } : {})}
       />
     );
   }
@@ -57,7 +57,7 @@ export function PrettyJsonView({
       }}
     >
       <JsonView
-        data={data}
+        data={data as object}
         shouldExpandNode={(level: number) => level < 2}
         style={defaultStyles}
       />

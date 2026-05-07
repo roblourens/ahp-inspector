@@ -268,7 +268,7 @@ export function DetailPanel(): JSX.Element {
       {/* Auth failure banner */}
       {isAuthFailure && (
         <AuthFailureBanner
-          code={row?.errorCode ?? undefined}
+          {...(row?.errorCode !== null && row?.errorCode !== undefined ? { code: row.errorCode } : {})}
         />
       )}
 
