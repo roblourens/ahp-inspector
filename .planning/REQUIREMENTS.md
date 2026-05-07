@@ -16,12 +16,12 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 
 ### Log Ingestion
 
-- [ ] **INGEST-01**: User can open an AHP JSONL log by passing a file path to the CLI.
+- [x] **INGEST-01**: User can open an AHP JSONL log by passing a file path to the CLI.
 - [ ] **INGEST-02**: User can discover likely VS Code / Copilot AHP log files from the app and select one to view.
 - [ ] **INGEST-03**: User can manually open a log file when auto-discovery misses it.
 - [ ] **INGEST-04**: User can watch a selected log as new JSONL entries are appended without reparsing the entire file.
 - [ ] **INGEST-05**: User can pause and resume live following without losing their place in the log.
-- [ ] **INGEST-06**: User can see clear parse-error rows for malformed JSONL lines while valid neighboring entries still load.
+- [x] **INGEST-06**: User can see clear parse-error rows for malformed JSONL lines while valid neighboring entries still load.
 - [x] **INGEST-07**: Developer can use the current human-readable sample log as a fixture through a legacy parser adapter without coupling the main event model to that format.
 
 ### Event Model and Correlation
@@ -29,18 +29,18 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 - [x] **EVENT-01**: Each JSONL entry is normalized into a canonical event model with timestamp, direction, kind, method or action type, IDs, optional session/turn/tool identifiers, sequence data, raw payload, and parse status.
 - [x] **EVENT-02**: Requests, responses, notifications, state actions, protocol notifications, errors, and parse errors are classified consistently.
 - [x] **EVENT-03**: Request and response pairs are correlated using a bidirectional JSON-RPC-safe key that preserves session, direction, id value, and id type.
-- [ ] **EVENT-04**: Correlated request rows show response status and latency when the matching response arrives.
-- [ ] **EVENT-05**: Unmatched, orphaned, failed, and malformed events are visually distinguishable.
+- [x] **EVENT-04**: Correlated request rows show response status and latency when the matching response arrives.
+- [x] **EVENT-05**: Unmatched, orphaned, failed, and malformed events are visually distinguishable.
 - [ ] **EVENT-06**: Server sequence gaps and authentication failures can be detected and surfaced when present in the event stream.
 
 ### Timeline UI
 
-- [ ] **TIME-01**: User sees a virtualized, information-dense timeline that remains responsive on large logs.
-- [ ] **TIME-02**: Each timeline row displays the most important scan fields: timestamp, direction, kind, method/action type, status, latency, session, turn, relevant IDs, and a short payload preview.
-- [ ] **TIME-03**: Timeline rows use clear visual encoding for direction, event kind, success/error state, action taxonomy, and latency severity.
+- [x] **TIME-01**: User sees a virtualized, information-dense timeline that remains responsive on large logs.
+- [x] **TIME-02**: Each timeline row displays the most important scan fields: timestamp, direction, kind, method/action type, status, latency, session, turn, relevant IDs, and a short payload preview.
+- [x] **TIME-03**: Timeline rows use clear visual encoding for direction, event kind, success/error state, action taxonomy, and latency severity.
 - [ ] **TIME-04**: User can select rows with mouse or keyboard and keep context while navigating through results.
 - [ ] **TIME-05**: User can toggle session/turn grouping to understand AHP traffic as a story instead of only a flat stream.
-- [ ] **TIME-06**: User sees useful empty, loading, no-results, parse-error, and disconnected states.
+- [x] **TIME-06**: User sees useful empty, loading, no-results, parse-error, and disconnected states.
 
 ### Event Detail
 
@@ -117,25 +117,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUND-02 | Phase 1 | Complete |
 | FOUND-03 | Phase 1 | Complete |
 | FOUND-04 | Phase 1 | Complete |
-| INGEST-01 | Phase 2 | Pending |
+| INGEST-01 | Phase 2 | Complete |
 | INGEST-02 | Phase 4 | Pending |
 | INGEST-03 | Phase 4 | Pending |
 | INGEST-04 | Phase 4 | Pending |
 | INGEST-05 | Phase 4 | Pending |
-| INGEST-06 | Phase 2 | Pending |
+| INGEST-06 | Phase 2 | Complete |
 | INGEST-07 | Phase 1 | Complete |
 | EVENT-01 | Phase 1 | Complete |
 | EVENT-02 | Phase 1 | Complete |
 | EVENT-03 | Phase 1 | Complete |
-| EVENT-04 | Phase 2 | Pending |
-| EVENT-05 | Phase 2 | Pending |
+| EVENT-04 | Phase 2 | Complete |
+| EVENT-05 | Phase 2 | Complete |
 | EVENT-06 | Phase 3 | Pending |
-| TIME-01 | Phase 2 | Pending |
-| TIME-02 | Phase 2 | Pending |
-| TIME-03 | Phase 2 | Pending |
+| TIME-01 | Phase 2 | Complete |
+| TIME-02 | Phase 2 | Complete |
+| TIME-03 | Phase 2 | Complete |
 | TIME-04 | Phase 3 | Pending |
 | TIME-05 | Phase 3 | Pending |
-| TIME-06 | Phase 2 | Pending |
+| TIME-06 | Phase 2 | Complete |
 | DETAIL-01 | Phase 3 | Pending |
 | DETAIL-02 | Phase 3 | Pending |
 | DETAIL-03 | Phase 3 | Pending |

@@ -11,7 +11,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 ## Phases
 
 - [x] **Phase 1: Core Foundations** - Project scaffolding, canonical event model, JSONL + sample parsers, EventStore, host adapter boundary (completed 2026-05-07)
-- [ ] **Phase 2: Vertical Slice — CLI, Server, Timeline** - Open a JSONL file from the CLI and render an information-dense virtualized timeline in the browser
+- [x] **Phase 2: Vertical Slice — CLI, Server, Timeline** - Open a JSONL file from the CLI and render an information-dense virtualized timeline in the browser (completed 2026-05-07)
 - [ ] **Phase 3: Detail, Search, and Filtering** - Inspect events deeply, search and filter responsively, group by session/turn
 - [ ] **Phase 4: Live Tail, Discovery, and Persistence** - Auto-discover VS Code logs, watch growing files, pause/resume, persist filter state per log
 - [ ] **Phase 5: Themes, Polish, and Verification** - Light/dark/hacker themes via design tokens, responsive layout, full UI + E2E test coverage
@@ -44,7 +44,14 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
   3. Each row shows timestamp, direction, kind, method/action type, status, latency, session, turn, key IDs, and a short payload preview.
   4. Visual encoding makes direction, event kind, success vs error, action taxonomy, and latency severity readable at a glance, and unmatched / orphaned / failed / malformed events stand out.
   5. Empty, loading, no-results, parse-error, and disconnected states render with informative content instead of blank screens.
-**Plans**: TBD
+**Plans**: 7 plans
+- [x] 02-00-PLAN.md — Wave 0: boundary/security guardrails, @ahp-viewer/ui skeleton + jsdom, vendored fonts, EventRow projection contract
+- [x] 02-01-PLAN.md — AppState + Projector + SSE routes + CSP/Host-guard middleware
+- [x] 02-02-PLAN.md — UI foundations: tokens / fonts / global CSS / Zustand store / app shell chrome / TimelineRegion stub / hex-literal guard
+- [x] 02-03-PLAN.md — Timeline cells: DirectionGlyph / KindTag / ActionDot / StatusCell / LatencyCell / PayloadPreview (+ tests)
+- [x] 02-04-PLAN.md — Wave 2: Five screen-level states + EventRow / ParseErrorRow / TimelineList virtualization + TimelineRegion (replaces 02-02 stub) + App.tsx state routing
+- [x] 02-05-PLAN.md — Wave 2: CLI launch path, browser open, error copy, --port validation, structural direction inference
+- [x] 02-06-PLAN.md — Wave 3: SSE client wiring + static-UI mount + vertical-slice gate test
 **UI hint**: yes
 
 ### Phase 3: Detail, Search, and Filtering
@@ -91,7 +98,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Foundations | 3/3 | Complete    | 2026-05-07 |
-| 2. Vertical Slice — CLI, Server, Timeline | 0/0 | Not started | - |
+| 2. Vertical Slice — CLI, Server, Timeline | 7/7 | Complete | 2026-05-07 |
 | 3. Detail, Search, and Filtering | 0/0 | Not started | - |
 | 4. Live Tail, Discovery, and Persistence | 0/0 | Not started | - |
 | 5. Themes, Polish, and Verification | 0/0 | Not started | - |

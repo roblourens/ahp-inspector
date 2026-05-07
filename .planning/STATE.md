@@ -2,13 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-05-07T05:02:24.978Z"
+status: ready_to_plan
+stopped_at: Phase 02 complete; ready to plan Phase 03
+last_updated: "2026-05-07T16:35:00Z"
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 2
+  total_plans: 10
+  completed_plans: 10
   percent: 100
 ---
 
@@ -17,25 +18,32 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 2 — Vertical Slice — CLI, Server, Timeline
+**Current Focus:** Phase 02 — vertical-slice-cli-server-timeline
 
 ## Current Position
 
-Phase: 2 (Vertical Slice — CLI, Server, Timeline) — PLANNING
+Phase: 02 (vertical-slice-cli-server-timeline) — COMPLETE
+Plan: 7 of 7
 
 - **Milestone:** v1
 - **Phase:** 2 — Vertical Slice — CLI, Server, Timeline
-- **Plan:** Not started
-- **Status:** Ready to plan
-- **Progress:** [██░░░░░░░░] 1/5 phases complete
+- **Plan:** 02-06 complete; verification report passed
+- **Status:** Phase 02 complete
+- **Progress:** [██████████] 100%
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases complete | 1 / 5 |
+| Phases complete | 2 / 5 |
 | v1 requirements mapped | 41 / 41 |
-| v1 requirements validated | 10 / 41 |
+| v1 requirements validated | 18 / 41 |
+| Phase 02 P01 | 30min | 2 tasks | 12 files |
+| Phase 02 P02 | 10min | 2 tasks | 17 files |
+| Phase 02 P03 | 13min | 2 tasks | 12 files |
+| Phase 02 P04 | 10min | 3 tasks | 16 files |
+| Phase 02 P05 | 6min | 2 tasks | 9 files |
+| Phase 02 P06 | 14min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -46,10 +54,28 @@ Phase: 2 (Vertical Slice — CLI, Server, Timeline) — PLANNING
 - Use `../agent-host-protocol` as the source of truth for AHP method, action, notification, and schema concepts.
 - Local-only privacy posture: no telemetry, no CDN assets, no outbound network for viewing logs.
 - Themes (light, dark, hacker) implemented via design tokens from the start so future VS Code theme integration does not require a UI rewrite.
+- Plan 02-01: SSE heartbeat uses `setInterval` rather than a `stream.sleep` loop — the long await blocks subscriber writes and was the root cause of an integration-test timeout.
+- Plan 02-01: `AppState` owns ingest + projection + listener fan-out behind one interface; SSE route handlers are pure transport.
+- Plan 02-02: `tokens.css` is the single source of truth for every UI color/spacing/typography variable; a Vitest guard rejects raw `#xxxxxx` literals under `packages/ui/src/components/` so theme drift is impossible.
+- Plan 02-02: Substituted lucide-react `FileBraces` for `FileJson` (FileJson is not exported in lucide-react@1.14.0); semantic match for a JSONL source, no dependency-lock churn.
+- Plan 02-02: `useAppStore` (Zustand) is the single UI state surface (rows / connection / selectedIdx / meta + 7 actions); shell components are pure presentational and only `AppShell` reads the store.
+- Plan 02-03: widen `DirectionGlyph` prop to `Direction | "unknown"` locally — shared `Direction` is `c2s|s2c` only, but UI-SPEC §5.1 requires an "unknown" fallback glyph; widened cell prop avoids changing the shared type.
+- Plan 02-03: import `KindTag`/`ActionFamily`/`LatencyBand`/`Status` from `@ahp-viewer/core` barrel; import `Direction` from `@ahp-viewer/shared` (not re-exported by core).
+- Plan 02-04: TanStack Virtual measures via `offsetWidth`/`offsetHeight` (virtual-core `getRect`), not `getBoundingClientRect`; virt test mocks both `HTMLElement.prototype` getters in jsdom to give the scroll element a non-zero viewport.
+- Plan 02-04: window-scoped keydown handler in `TimelineRegion` (Up/Down/PageUp/PageDown/Home/End/Esc); empty-rows guard prevents bogus selection when no rows exist.
+- Plan 02-04: `App.tsx` routes to `ServerNotRunningState` full-page (before `AppShell`) when `connection === "no-server"`; Plan 02-06 SSE client will set this on EventSource failure.
+- Plan 02-05: `classifyDirection` assumes client-side capture — request `{id, method}` → c2s; response (`result`/`error`) and server-originated `method === "action"|"notification"` → s2c. A future flag will inject an inverted inference for server-side logs.
+- Plan 02-05: deleted Phase-1 `cli.smoke.test.ts` (depended on removed `--no-server` flag); `cli-launch.test.ts` is its strict superset and asserts UI-SPEC §10 verbatim copy + 127.0.0.1-only binding via `not.toMatch(/0\.0\.0\.0/)` and `/localhost/`.
+- Plan 02-05: dropped plan-prescribed `serverHandle.sayGoodbye()` call — method does not exist on `LogServerHandle`; CLI shutdown disposes `appState` then `serverHandle.close()` only. SSE 'bye' broadcast is a route-layer concern Plan 02-06 will exercise via the EventSource client.
+- Plan 02-06: SSE client buffers snapshot chunks locally and only commits to the store on `snapshot-end` (single setRows). Mid-snapshot store is empty by design — avoids virtualized rerender thrash on large baselines.
+- Plan 02-06: graceful `bye` flips connection to 'disconnected' and explicitly closes the EventSource; transient `onerror` keeps state at 'connecting' so the browser's built-in retry loop is not poisoned (T-02-06-02).
+- Plan 02-06: App.tsx probes `/api/log/meta` once on mount before opening the stream — separates 'no server' (HTTP probe failure) from 'disconnected' (SSE drop), matching ServerNotRunningState semantics from Plan 02-04. `window.__ahpStream` holds the active ConnectionHandle for DisconnectedBanner reconnect.
+- Plan 02-06: `registerStaticUi` mounts on absolute distDir under the existing `app.use("*", cspMiddleware)` registration, so static responses inherit CSP/nosniff/no-referrer (T-02-06-03). CLI auto-discovers `packages/ui/dist` via `locateUiDist()`.
+- Plan 02-06: vertical-slice test treats request/response correlation as collapsed-into-snapshot for the file-read flow (CLI ingests entire fixture before SSE client connects); separate `append`+`patch` cycle is covered by `test/sse-integration.test.ts` (Plan 02-01) using a fake host.
 
 ### Open TODOs
 
-- Plan Phase 2.
+- Plan Phase 03: Detail, Search, and Filtering.
 
 ### Blockers
 
@@ -57,8 +83,9 @@ Phase: 2 (Vertical Slice — CLI, Server, Timeline) — PLANNING
 
 ## Session Continuity
 
-**Last session:** Completed Phase 1 — Core Foundations. Built the workspace/tooling scaffold, canonical AHP event model, JSONL and legacy parsers, EventStore, correlator, Node host adapter, local health server, and CLI shell.
-**Next action:** `/gsd-discuss-phase 2` or `/gsd-ui-phase 2`
+**Last session:** 2026-05-07T16:35:00Z
+**Next action:** `/gsd-plan-phase 3`
+**Stopped at:** Phase 02 complete; ready to plan Phase 03
 
 ---
 *State initialized: 2026-05-06*

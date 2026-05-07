@@ -13,7 +13,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsup src/index.ts --format esm --dts --shims"
+    "build": "tsup"
   },
   "dependencies": {
     "@ahp-viewer/core": "workspace:*",
@@ -21,6 +21,7 @@
     "@ahp-viewer/parser": "workspace:*",
     "@ahp-viewer/server": "workspace:*",
     "@ahp-viewer/shared": "workspace:*",
-    "commander": "^14.0.3"
+    "commander": "^14.0.3",
+    "open": "^11.0.0"
   }
 }

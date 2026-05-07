@@ -21,12 +21,12 @@
   "files": {
     "includes": [
       "**",
-      "!**/dist/**",
-      "!**/node_modules/**",
-      "!**/coverage/**",
-      "!test/fixtures/**",
-      "!.github/**",
-      "!.planning/**",
+      "!**/dist",
+      "!**/node_modules",
+      "!**/coverage",
+      "!test/fixtures",
+      "!.github",
+      "!.planning",
       "!pnpm-lock.yaml"
     ]
   },

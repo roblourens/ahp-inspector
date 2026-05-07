@@ -1,0 +1,3 @@
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"sessionId":"sess-cli-aaa"}}
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{}}}
+{"jsonrpc":"2.0","method":"action","params":{"type":"text","sessionId":"sess-cli-aaa","text":"hi"}}

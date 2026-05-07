@@ -16,13 +16,15 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 - ✓ AHP protocol concepts are sourced from `../agent-host-protocol` instead of hand-rolled definitions — Phase 1
 - ✓ Canonical event model, tolerant JSONL parser, isolated legacy sample adapter, and JSON-RPC-safe correlation key are implemented and tested — Phase 1
 - ✓ Local-only baseline is enforced with localhost binding, dependency allow-list checks, boundary tests, and scrubbed synthetic fixtures — Phase 1
+- ✓ CLI-to-local-server-to-browser vertical slice opens JSONL logs and streams rows over SSE — Phase 2
+- ✓ Information-dense virtualized timeline renders 50,000-event logs with direction, kind, status, session/turn, IDs, latency, and payload preview visible — Phase 2
+- ✓ Empty, no-server, disconnected, and parse-error states are implemented, tested, and verified in browser UAT — Phase 2
 
 ### Active
 
 - [ ] Discover likely VS Code / Copilot AHP log files automatically and support manual file selection.
 - [ ] Parse and watch real JSONL AHP log files emitted by VS Code, while using current human-readable logs as shape guidance during development.
-- [ ] Display an information-dense traffic timeline where requests, responses, notifications, actions, errors, timing, direction, method/type, session, turn, and relevant IDs are easy to scan.
-- [ ] Correlate request/response pairs and make failures, latency, and unmatched events visually obvious.
+- [ ] Add expandable event details, formatted raw JSON, and responsive search/filtering across timeline rows.
 - [ ] Provide fast search and filtering across methods, action types, sessions, turns, status/error state, direction, time range, and payload text.
 - [ ] Let users expand an individual event to inspect formatted details and raw JSON.
 - [ ] Keep the UI responsive on large and actively growing logs through incremental parsing, virtualization, and efficient indexing.
@@ -57,7 +59,7 @@ The primary user is a developer debugging or exploring VS Code-to-agent-host beh
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Build standalone local web app first | Faster iteration and easier development; extension packaging can follow once the core viewer is useful | — Pending |
+| Build standalone local web app first | Faster iteration and easier development; extension packaging can follow once the core viewer is useful | ✓ Good |
 | Keep VS Code extension as a later host | The user wants eventual in-editor use, but not at the cost of delaying the core viewer | — Pending |
 | Target real JSONL logs | The current sample is useful but human-readable; VS Code can be changed to emit proper JSONL for reliable parsing | — Pending |
 | Support auto-discovery plus manual open | Auto-discovery reduces friction, manual open handles unknown log locations and samples | — Pending |
@@ -82,4 +84,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-07 after Phase 1 completion*
+*Last updated: 2026-05-07 after Phase 2 completion*
