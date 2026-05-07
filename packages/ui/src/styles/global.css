@@ -25,6 +25,16 @@ html[data-theme="dark"] body {
   font-family: var(--font-mono);
 }
 .ts,
+.latency,
+.id,
+.method,
+.preview {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ts,
 .latency {
   font-variant-numeric: tabular-nums;
 }

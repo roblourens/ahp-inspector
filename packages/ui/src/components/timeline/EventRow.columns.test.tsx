@@ -69,6 +69,27 @@ describe("EventRow — UI-SPEC §7.2 11 columns", () => {
     expect(screen.getByText("session/delta")).toBeTruthy();
   });
 
+  it("keeps long action labels on one truncated line", () => {
+    render(
+      <EventRow
+        row={{
+          ...baseRow,
+          kind: "action",
+          kindTag: "ACT",
+          method: "action",
+          actionType: "session/toolCallContentChanged",
+        }}
+        isSelected={false}
+        onClick={() => {}}
+      />,
+    );
+
+    const methodCell = screen.getByTitle("session/toolCallContentChanged (action)");
+    expect(methodCell.style.whiteSpace).toBe("nowrap");
+    expect(methodCell.style.overflow).toBe("hidden");
+    expect(screen.getByText("session/toolCallContentChanged")).toBeTruthy();
+  });
+
   it("sets role=row + aria-rowindex + aria-selected", () => {
     render(<EventRow row={{ ...baseRow, idx: 4 }} isSelected onClick={() => {}} />);
     const row = screen.getByRole("row");

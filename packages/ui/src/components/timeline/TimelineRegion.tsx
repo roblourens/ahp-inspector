@@ -174,6 +174,7 @@ export function TimelineRegion({
         rows={rows}
         selectedIdx={selectedIdx}
         onSelect={(idx) => select(idx)}
+        searchQuery={searchQuery}
         groupCollapsed={groupCollapsed}
         onToggleGroup={toggleGroupCollapsed}
         {...(onTopGroupChange !== undefined ? { onTopGroupChange } : {})}

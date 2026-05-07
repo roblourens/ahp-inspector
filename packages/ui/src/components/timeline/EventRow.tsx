@@ -133,12 +133,27 @@ export const EventRow = memo(function EventRow({
       <div role="gridcell">
         <KindTag kind={row.kindTag} />
       </div>
-      <div role="gridcell" className="method" title={labelTitle}>
+      <div
+        role="gridcell"
+        className="method"
+        title={labelTitle}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          minWidth: 0,
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+        }}
+      >
         <ActionDot family={row.actionFamily} />
         <span
           style={{
             marginLeft: row.actionFamily ? 4 : 0,
             fontWeight: label ? 600 : 400,
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
           {label ? highlightMatches(label, searchQuery) : "—"}

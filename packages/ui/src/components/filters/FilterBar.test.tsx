@@ -66,10 +66,13 @@ describe("FilterBar", () => {
     expect(screen.getByTestId("filter-bar")).toBeTruthy();
   });
 
-  it("renders SearchInput with placeholder", () => {
+  it("renders a prominent SearchInput with placeholder and shortcut hint", () => {
     render(<FilterBar />);
-    const input = screen.getByPlaceholderText("Search method, id, session, payload…");
+    expect(screen.getByText("Search")).toBeTruthy();
+    const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
     expect(input).toBeTruthy();
+    expect(input.getAttribute("aria-label")).toBe("Search all events");
+    expect(screen.getByTitle("Press / to focus search")).toBeTruthy();
   });
 
   it("renders all 8 facet chips", () => {

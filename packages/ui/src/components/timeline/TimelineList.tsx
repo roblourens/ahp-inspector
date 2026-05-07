@@ -28,6 +28,7 @@ export interface TimelineListProps {
   rows: EventRowData[];
   selectedIdx: number | null;
   onSelect: (idx: number) => void;
+  searchQuery?: string;
   onTopGroupChange?: (group: { level: "session" | "turn"; label: string } | null) => void;
   groupCollapsed?: Set<string>;
   onToggleGroup?: (key: string) => void;
@@ -38,6 +39,7 @@ export function TimelineList({
   rows,
   selectedIdx,
   onSelect,
+  searchQuery = "",
   onTopGroupChange,
   groupCollapsed,
   onToggleGroup,
@@ -170,6 +172,7 @@ export function TimelineList({
               row={row}
               isSelected={isSelected}
               onClick={() => onSelect(row.idx)}
+              searchQuery={searchQuery}
               style={style}
             />
           );
