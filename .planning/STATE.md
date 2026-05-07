@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-07T15:09:58.623Z"
+last_updated: "2026-05-07T15:19:14.033Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
-  percent: 70
+  completed_plans: 8
+  percent: 80
 ---
 
 # State: AHP Log Viewer
@@ -22,13 +22,13 @@ progress:
 ## Current Position
 
 Phase: 02 (vertical-slice-cli-server-timeline) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 
 - **Milestone:** v1
 - **Phase:** 2 — Vertical Slice — CLI, Server, Timeline
-- **Plan:** 02-03 complete; 02-04 next
+- **Plan:** 02-04 complete; 02-05 next
 - **Status:** Executing Phase 02
-- **Progress:** [███████░░░] 70%
+- **Progress:** [████████░░] 80%
 
 ## Performance Metrics
 
@@ -40,6 +40,7 @@ Plan: 4 of 7
 | Phase 02 P01 | 30min | 2 tasks | 12 files |
 | Phase 02 P02 | 10min | 2 tasks | 17 files |
 | Phase 02 P03 | 13min | 2 tasks | 12 files |
+| Phase 02 P04 | 10min | 3 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -57,6 +58,9 @@ Plan: 4 of 7
 - Plan 02-02: `useAppStore` (Zustand) is the single UI state surface (rows / connection / selectedIdx / meta + 7 actions); shell components are pure presentational and only `AppShell` reads the store.
 - Plan 02-03: widen `DirectionGlyph` prop to `Direction | "unknown"` locally — shared `Direction` is `c2s|s2c` only, but UI-SPEC §5.1 requires an "unknown" fallback glyph; widened cell prop avoids changing the shared type.
 - Plan 02-03: import `KindTag`/`ActionFamily`/`LatencyBand`/`Status` from `@ahp-viewer/core` barrel; import `Direction` from `@ahp-viewer/shared` (not re-exported by core).
+- Plan 02-04: TanStack Virtual measures via `offsetWidth`/`offsetHeight` (virtual-core `getRect`), not `getBoundingClientRect`; virt test mocks both `HTMLElement.prototype` getters in jsdom to give the scroll element a non-zero viewport.
+- Plan 02-04: window-scoped keydown handler in `TimelineRegion` (Up/Down/PageUp/PageDown/Home/End/Esc); empty-rows guard prevents bogus selection when no rows exist.
+- Plan 02-04: `App.tsx` routes to `ServerNotRunningState` full-page (before `AppShell`) when `connection === "no-server"`; Plan 02-06 SSE client will set this on EventSource failure.
 
 ### Open TODOs
 
@@ -68,8 +72,9 @@ Plan: 4 of 7
 
 ## Session Continuity
 
-**Last session:** 2026-05-07T15:09:35.981Z
-**Next action:** `/gsd-execute-phase 2`
+**Last session:** 2026-05-07T15:19:14.030Z
+**Next action:** Execute Plan 02-05 (`/gsd-execute-phase 2`)
+**Stopped at:** Completed 02-04-PLAN.md
 
 ---
 *State initialized: 2026-05-06*

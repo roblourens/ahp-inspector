@@ -49,7 +49,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 - [x] 02-01-PLAN.md — AppState + Projector + SSE routes + CSP/Host-guard middleware
 - [x] 02-02-PLAN.md — UI foundations: tokens / fonts / global CSS / Zustand store / app shell chrome / TimelineRegion stub / hex-literal guard
 - [x] 02-03-PLAN.md — Timeline cells: DirectionGlyph / KindTag / ActionDot / StatusCell / LatencyCell / PayloadPreview (+ tests)
-- [ ] 02-04-PLAN.md — Wave 2: Five screen-level states + EventRow / ParseErrorRow / TimelineList virtualization + TimelineRegion (replaces 02-02 stub) + App.tsx state routing
+- [x] 02-04-PLAN.md — Wave 2: Five screen-level states + EventRow / ParseErrorRow / TimelineList virtualization + TimelineRegion (replaces 02-02 stub) + App.tsx state routing
 - [ ] 02-05-PLAN.md — Wave 2: CLI launch path, browser open, error copy, --port validation, structural direction inference
 - [ ] 02-06-PLAN.md — Wave 3: SSE client wiring + static-UI mount + vertical-slice gate test
 **UI hint**: yes
