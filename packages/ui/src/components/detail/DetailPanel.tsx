@@ -262,6 +262,11 @@ export function DetailPanel(): JSX.Element | null {
   const row = selectedIdx !== null ? (rows[selectedIdx] ?? null) : null;
   const isAuthFailure = row?.isAuthFailure ?? false;
 
+  // WR-03: Prefer live row values for status/latencyMs so that SSE patch updates
+  // (pending → ok) are reflected immediately, even on a cache hit.
+  const liveStatus = (row?.status ?? detail.status) as Status;
+  const liveLatencyMs = row?.latencyMs ?? detail.latencyMs;
+
   return (
     <aside
       data-testid="detail-panel"
@@ -289,7 +294,7 @@ export function DetailPanel(): JSX.Element | null {
       )}
 
       {/* Summary */}
-      <DetailSummary event={event} latencyMs={detail.latencyMs} status={detail.status as Status} />
+      <DetailSummary event={event} latencyMs={liveLatencyMs} status={liveStatus} />
 
       {/* AHP field strip */}
       {row && <AhpFieldStrip row={row} rawEvent={event} />}
@@ -308,8 +313,8 @@ export function DetailPanel(): JSX.Element | null {
         <CopyMenu
           event={event}
           pairEvent={detail.pair as AhpEvent | null}
-          latencyMs={detail.latencyMs}
-          status={detail.status as Status}
+          latencyMs={liveLatencyMs}
+          status={liveStatus}
           onCopy={(msg, ok) => setToast({ message: msg, kind: ok ? "success" : "error" })}
         />
       </div>

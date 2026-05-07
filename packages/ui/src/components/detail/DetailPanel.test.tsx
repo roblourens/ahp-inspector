@@ -176,3 +176,26 @@ describe("DetailPanel — retry", () => {
     });
   });
 });
+
+describe("DetailPanel — WR-03: live status/latency from store row", () => {
+  it("shows live row status (ok) even when cached fetch returned pending", async () => {
+    // Cached fetch says status="pending"; the SSE patch has already updated the row to "ok"
+    vi.mocked(fetchEvent).mockResolvedValue(
+      makeDetailResponse({ status: "pending", latencyMs: null }),
+    );
+    // Row already reflects the patch: status="ok", latencyMs=42
+    useAppStore.setState({
+      selectedIdx: 0,
+      rows: [makeRow({ status: "ok", latencyMs: 42 })],
+    });
+    render(<DetailPanel />);
+    await waitFor(() => {
+      expect(screen.getByTestId("detail-summary")).toBeInTheDocument();
+    });
+    // Should display the live "ok" status from the row, not "pending" from cache
+    expect(screen.getByTestId("detail-summary")).toHaveTextContent("ok");
+    expect(screen.getByTestId("detail-summary")).not.toHaveTextContent("pending");
+    // Should display the live latency from the row
+    expect(screen.getByTestId("detail-summary")).toHaveTextContent("42ms");
+  });
+});
