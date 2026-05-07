@@ -11,6 +11,7 @@ import {
   bandFor,
   Correlator,
   type EventRow,
+  type EventRowExtras,
   EventStore,
   type LatencyBand,
   projectRow,
@@ -79,6 +80,8 @@ export interface AppState {
    * flushIntervalMs is 0; production callers should rely on the ticker.
    */
   runFlush(nowMs?: number): void;
+  /** Returns the raw AhpEvent at the given store index, or null if out of range. */
+  eventAt(idx: number): import("@ahp-viewer/shared").AhpEvent | null;
   dispose(): Promise<void>;
 }
 
@@ -114,12 +117,43 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     }
   }
 
+  const lastSeenServerSeq = new Map<string | null, number>();
+
   function buildRow(idx: number): EventRow {
     const ev = store.at(idx);
     if (!ev) throw new Error(`AppState.buildRow: missing event at idx=${idx}`);
     const status = correlator.statusOf(idx);
     const latency = correlator.latencyOf(idx);
-    return projectRow(ev, idx, status, latency);
+
+    const evSeq = store.serverSeq[idx] ?? null;
+    const sessionKey = ev.sessionId ?? null;
+    const prevSeq = lastSeenServerSeq.get(sessionKey);
+    const gapBefore = evSeq != null && prevSeq != null && evSeq !== prevSeq + 1;
+    if (evSeq != null) lastSeenServerSeq.set(sessionKey, evSeq);
+
+    const rawRec =
+      ev.raw != null && typeof ev.raw === "object"
+        ? (ev.raw as Record<string, unknown>)
+        : null;
+    const errRec =
+      rawRec?.error != null && typeof rawRec.error === "object"
+        ? (rawRec.error as Record<string, unknown>)
+        : null;
+    const errorCode =
+      typeof errRec?.code === "number" ? (errRec.code as number) : null;
+    const isAuthFailure =
+      (ev.kind === "response" && errorCode === -32007) ||
+      ((ev.kind === "protocol-notification" || ev.kind === "server-notification") &&
+        ev.actionType === "notify/authRequired");
+
+    const extras: EventRowExtras = {
+      errorCode,
+      serverSeq: evSeq,
+      gapBefore,
+      isAuthFailure,
+    };
+
+    return projectRow(ev, idx, status, latency, extras);
   }
 
   // Subscribe AFTER the Correlator so the correlator updates first and our
@@ -227,6 +261,9 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       };
     },
     runFlush,
+    eventAt(idx: number) {
+      return store.at(idx) ?? null;
+    },
     async dispose() {
       if (disposed) return;
       disposed = true;

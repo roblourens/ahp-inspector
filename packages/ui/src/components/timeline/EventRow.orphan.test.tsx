@@ -28,6 +28,10 @@ const base: EventRowData = {
   payloadPreview: "",
   parseErrorReason: null,
   lineIndex: 1,
+  errorCode: null,
+  serverSeq: null,
+  gapBefore: false,
+  isAuthFailure: false,
 };
 
 function railBg(): string {

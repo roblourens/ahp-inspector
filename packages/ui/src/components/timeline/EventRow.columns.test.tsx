@@ -28,6 +28,10 @@ const baseRow: EventRowData = {
   payloadPreview: '{"hello":"world"}',
   parseErrorReason: null,
   lineIndex: 1,
+  errorCode: null,
+  serverSeq: null,
+  gapBefore: false,
+  isAuthFailure: false,
 };
 
 describe("EventRow — UI-SPEC §7.2 11 columns", () => {

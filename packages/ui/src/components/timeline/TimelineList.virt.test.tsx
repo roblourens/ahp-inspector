@@ -29,6 +29,10 @@ function makeRow(i: number): EventRowData {
     payloadPreview: "",
     parseErrorReason: null,
     lineIndex: i + 1,
+    errorCode: null,
+    serverSeq: null,
+    gapBefore: false,
+    isAuthFailure: false,
   };
 }
 
