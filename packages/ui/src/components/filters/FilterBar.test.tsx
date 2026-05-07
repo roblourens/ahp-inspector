@@ -101,6 +101,29 @@ describe("FilterBar", () => {
     expect(screen.getByRole("listbox")).toBeTruthy();
   });
 
+  it("does not clip facet popovers behind the timeline", () => {
+    render(<FilterBar />);
+    const bar = screen.getByTestId("filter-bar");
+    expect(bar.style.overflow).toBe("visible");
+    expect(bar.style.position).toBe("relative");
+    expect(Number(bar.style.zIndex)).toBeGreaterThan(0);
+  });
+
+  it("uses readable labels for long session facet values", () => {
+    useAppStore.setState({
+      rows: [
+        makeRow({
+          sessionId: "copilot:/session/frontend-polish-2026-05-07",
+          sessionShort: "frontend-polish",
+        }),
+      ],
+    });
+    render(<FilterBar />);
+    fireEvent.click(screen.getByRole("button", { name: /Session/i }));
+
+    expect(screen.getByText("frontend-polish")).toBeTruthy();
+  });
+
   it("clicking GroupToggleChip opens a popover with grouping options", () => {
     render(<FilterBar />);
     const groupBtn = screen.getByRole("button", { name: /Group:/i });

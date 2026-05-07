@@ -51,6 +51,24 @@ describe("EventRow — UI-SPEC §7.2 11 columns", () => {
     expect(screen.getByText('{"hello":"world"}')).toBeTruthy();
   });
 
+  it("shows the action type as the primary label for action envelopes", () => {
+    render(
+      <EventRow
+        row={{
+          ...baseRow,
+          kind: "action",
+          kindTag: "ACT",
+          method: "action",
+          actionType: "session/delta",
+        }}
+        isSelected={false}
+        onClick={() => {}}
+      />,
+    );
+
+    expect(screen.getByText("session/delta")).toBeTruthy();
+  });
+
   it("sets role=row + aria-rowindex + aria-selected", () => {
     render(<EventRow row={{ ...baseRow, idx: 4 }} isSelected onClick={() => {}} />);
     const row = screen.getByRole("row");

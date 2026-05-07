@@ -1,3 +1,4 @@
+import { formatSessionShort } from "@ahp-viewer/core";
 import type { JSX, RefObject } from "react";
 import { useState } from "react";
 import { useFacetCounts, useFilteredRows } from "../../state/selectors.js";
@@ -20,8 +21,15 @@ type OpenPopover =
   | "time"
   | null;
 
-function mapToOptions(m: Map<string, number>): { value: string; label: string; count: number }[] {
-  return Array.from(m.entries()).map(([value, count]) => ({ value, label: value, count }));
+function mapToOptions(
+  m: Map<string, number>,
+  labelFor: (value: string) => string = (value) => value,
+): { value: string; label: string; count: number }[] {
+  return Array.from(m.entries()).map(([value, count]) => ({
+    value,
+    label: labelFor(value),
+    count,
+  }));
 }
 
 export function FilterBar({
@@ -62,7 +70,9 @@ export function FilterBar({
         background: "var(--color-surface)",
         borderBottom: "1px solid var(--color-border)",
         flexWrap: "nowrap",
-        overflow: "hidden",
+        overflow: "visible",
+        position: "relative",
+        zIndex: 1000,
       }}
     >
       {/* Search input */}
@@ -163,7 +173,7 @@ export function FilterBar({
         />
         {openPopover === "session" && (
           <FacetPopover
-            options={mapToOptions(facetCounts.session)}
+            options={mapToOptions(facetCounts.session, formatSessionShort)}
             selected={filters.session}
             onChange={(vals) => patchFilter("session", vals)}
             onClose={close}

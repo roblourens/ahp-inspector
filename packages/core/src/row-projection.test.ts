@@ -4,6 +4,7 @@ import {
   actionFamilyFor,
   bandFor,
   dirGlyphFor,
+  formatSessionShort,
   formatTs,
   kindTagFor,
   payloadPreviewOf,
@@ -95,6 +96,23 @@ describe("formatTs()", () => {
   });
   it("handles end-of-day", () => {
     expect(formatTs(Date.UTC(2026, 0, 1, 23, 59, 59, 999))).toBe("23:59:59.999");
+  });
+});
+
+describe("formatSessionShort()", () => {
+  it("uses the semantic session slug instead of the trailing date", () => {
+    expect(formatSessionShort("copilot:/session/frontend-polish-2026-05-07")).toBe(
+      "frontend-polish",
+    );
+  });
+
+  it("keeps compact session suffixes readable", () => {
+    expect(formatSessionShort("session-abc12345")).toBe("abc12345");
+  });
+
+  it("uses stable compact labels for uuid-like ids", () => {
+    expect(formatSessionShort("aaaaaaaa-1111-2222-3333-444444444444")).toBe("aaaaaaaa");
+    expect(formatSessionShort("ahp://session/0123456789abcdef")).toBe("89abcdef");
   });
 });
 

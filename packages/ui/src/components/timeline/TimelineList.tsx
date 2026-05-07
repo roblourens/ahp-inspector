@@ -1,6 +1,6 @@
 // biome-ignore-all lint/a11y/useSemanticElements: virtualized grid uses divs so rows can be absolutely positioned.
 
-import type { EventRow as EventRowData } from "@ahp-viewer/core";
+import { type EventRow as EventRowData, formatSessionShort } from "@ahp-viewer/core";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { CSSProperties, JSX } from "react";
 import { useEffect, useMemo, useRef } from "react";
@@ -67,7 +67,7 @@ export function TimelineList({
       if (item.kind === "header") {
         const label =
           item.level === "session"
-            ? `Session ${item.sessionId.slice(-8)}`
+            ? `Session ${formatSessionShort(item.sessionId)}`
             : `↳ Turn ${(item.turnId ?? "").slice(-6)}`;
         return { level: item.level, label };
       }

@@ -27,6 +27,19 @@ function railColor(row: EventRowData, isSelected: boolean): string {
   return "transparent";
 }
 
+function primaryLabel(row: EventRowData): string | null {
+  if (row.kind === "action") return row.actionType ?? row.method;
+  return row.method ?? row.actionType;
+}
+
+function primaryLabelTitle(row: EventRowData): string {
+  const label = primaryLabel(row);
+  if (row.kind === "action" && row.method && row.actionType) {
+    return `${row.actionType} (${row.method})`;
+  }
+  return label ?? "";
+}
+
 /**
  * Highlight occurrences of `query` (case-insensitive) within `text`.
  * Returns a JSX element with <mark> wrapping each match.
@@ -70,6 +83,9 @@ export const EventRow = memo(function EventRow({
   style,
   searchQuery = "",
 }: EventRowProps): JSX.Element {
+  const label = primaryLabel(row);
+  const labelTitle = primaryLabelTitle(row);
+
   return (
     <div
       role="row"
@@ -86,7 +102,7 @@ export const EventRow = memo(function EventRow({
       data-testid={`row-${row.idx}`}
       style={{
         display: "grid",
-        gridTemplateColumns: "2px 96px 16px 44px 220px 64px 48px 64px 72px 96px 1fr",
+        gridTemplateColumns: "2px 96px 16px 44px 240px 132px 72px 64px 72px 96px 1fr",
         alignItems: "center",
         height: "var(--row-height)",
         padding: "4px 8px",
@@ -117,19 +133,15 @@ export const EventRow = memo(function EventRow({
       <div role="gridcell">
         <KindTag kind={row.kindTag} />
       </div>
-      <div role="gridcell" className="method" title={row.method ?? row.actionType ?? ""}>
+      <div role="gridcell" className="method" title={labelTitle}>
         <ActionDot family={row.actionFamily} />
         <span
           style={{
             marginLeft: row.actionFamily ? 4 : 0,
-            fontWeight: row.method ? 600 : 400,
+            fontWeight: label ? 600 : 400,
           }}
         >
-          {row.method
-            ? highlightMatches(row.method, searchQuery)
-            : row.actionType
-              ? highlightMatches(row.actionType, searchQuery)
-              : "—"}
+          {label ? highlightMatches(label, searchQuery) : "—"}
         </span>
       </div>
       <div role="gridcell" className="id" title={row.sessionId ?? ""}>
