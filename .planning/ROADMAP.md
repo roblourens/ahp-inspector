@@ -44,7 +44,14 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
   3. Each row shows timestamp, direction, kind, method/action type, status, latency, session, turn, key IDs, and a short payload preview.
   4. Visual encoding makes direction, event kind, success vs error, action taxonomy, and latency severity readable at a glance, and unmatched / orphaned / failed / malformed events stand out.
   5. Empty, loading, no-results, parse-error, and disconnected states render with informative content instead of blank screens.
-**Plans**: TBD
+**Plans**: 7 plans
+- [ ] 02-00-PLAN.md — Wave 0: boundary/security guardrails, @ahp-viewer/ui skeleton + jsdom, vendored fonts, EventRow projection contract
+- [ ] 02-01-PLAN.md — AppState + Projector + SSE routes + CSP/Host-guard middleware
+- [ ] 02-02-PLAN.md — UI foundations: tokens / fonts / global CSS / Zustand store / app shell chrome / TimelineRegion stub / hex-literal guard
+- [ ] 02-03-PLAN.md — Timeline cells: DirectionGlyph / KindTag / ActionDot / StatusCell / LatencyCell / PayloadPreview (+ tests)
+- [ ] 02-04-PLAN.md — Wave 2: Five screen-level states + EventRow / ParseErrorRow / TimelineList virtualization + TimelineRegion (replaces 02-02 stub) + App.tsx state routing
+- [ ] 02-05-PLAN.md — Wave 2: CLI launch path, browser open, error copy, --port validation, structural direction inference
+- [ ] 02-06-PLAN.md — Wave 3: SSE client wiring + static-UI mount + vertical-slice gate test
 **UI hint**: yes
 
 ### Phase 3: Detail, Search, and Filtering
@@ -91,7 +98,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Foundations | 3/3 | Complete    | 2026-05-07 |
-| 2. Vertical Slice — CLI, Server, Timeline | 0/0 | Not started | - |
+| 2. Vertical Slice — CLI, Server, Timeline | 0/7 | Planning  | - |
 | 3. Detail, Search, and Filtering | 0/0 | Not started | - |
 | 4. Live Tail, Discovery, and Persistence | 0/0 | Not started | - |
 | 5. Themes, Polish, and Verification | 0/0 | Not started | - |

@@ -20,7 +20,7 @@ created: 2026-05-07
 | **Framework** | Vitest 4.1.5 + React Testing Library 16.3.2 + jsdom 29.1.1 |
 | **Config file** | `vitest.config.ts`; `packages/ui/vitest.config.ts` for jsdom UI tests |
 | **Quick run command** | `pnpm vitest run --changed` |
-| **Full suite command** | `pnpm vitest run && pnpm -F @ahp-viewer/ui build && pnpm typecheck` |
+| **Full suite command** | `pnpm vitest run && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint` |
 
 ---
 
@@ -28,7 +28,7 @@ created: 2026-05-07
 
 - **After every task commit:** Run `pnpm vitest run --changed`
 - **After every plan wave:** Run `pnpm vitest run`
-- **Before `/gsd-verify-work`:** Run `pnpm vitest run && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck`
+- **Before `/gsd-verify-work`:** Run `pnpm vitest run && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint`
 - **Max feedback latency:** quick changed-file Vitest feedback between task commits
 
 ---
@@ -43,10 +43,11 @@ created: 2026-05-07
 | 02-00-04 | 00 | 0 | EVENT-04 / EVENT-05 / TIME-02 / TIME-03 | — | `EventRow` projection exposes row fields, status, latency, and visual-state flags | unit | `pnpm vitest run packages/core/src/row-projection.test.ts` | ❌ W0 | ⬜ pending |
 | 02-01-01 | 01 | 1 | INGEST-01 / EVENT-04 | T-02-03 | SSE emits snapshot chunks, append frames, and late-correlation patch frames without exposing absolute paths | integration | `pnpm vitest run test/sse-integration.test.ts` | ❌ W0 | ⬜ pending |
 | 02-01-02 | 01 | 1 | FOUND-04 | T-02-04 | Server responses include CSP and reject invalid Host headers | integration | `pnpm vitest run test/csp.test.ts` | ❌ W0 | ⬜ pending |
-| 02-02-01 | 02 | 1 | TIME-06 | — | Loading, empty, no-results, disconnected, and server-not-running states render UI-SPEC copy verbatim | component | `pnpm vitest run packages/ui/src/components/states/*.test.tsx` | ❌ W0 | ⬜ pending |
-| 02-02-02 | 02 | 1 | TIME-01 / TIME-02 / TIME-03 / EVENT-05 / INGEST-06 | — | Virtualized timeline renders only visible rows and all required row columns/cells | component | `pnpm vitest run packages/ui/src/components/timeline/*.test.tsx packages/ui/src/components/timeline/cells/*.test.tsx` | ❌ W0 | ⬜ pending |
-| 02-03-01 | 03 | 1 | INGEST-01 | T-02-05 | CLI validates file path and port, prints UI-SPEC copy, and never opens a remote URL | integration | `pnpm vitest run packages/cli/src/cli-launch.test.ts packages/cli/src/cli-errors.test.ts` | ❌ W0 | ⬜ pending |
-| 02-04-01 | 04 | 2 | INGEST-01 / INGEST-06 / EVENT-04 / EVENT-05 / TIME-01 / TIME-02 / TIME-03 / TIME-06 | T-02-01..T-02-05 | Browser UI receives SSE data from fixture log and renders timeline/state contract end-to-end | integration | `pnpm vitest run test/vertical-slice.test.ts` | ❌ W0 | ⬜ pending |
+| 02-02-01 | 02 | 1 | TIME-01 / TIME-06 | — | UI foundations + shell chrome (tokens/store/HeaderBar/SourceStrip/StatusBar/DetailRailPlaceholder) wired through Zustand; StatusBar copy verbatim for all four connection states | component | `pnpm vitest run packages/ui/src/components/shell packages/ui/src/styles packages/ui/src/state` | ❌ W0 | ⬜ pending |
+| 02-03-01 | 03 | 1 | TIME-02 / TIME-03 | — | Six timeline cells (DirectionGlyph/KindTag/ActionDot/StatusCell/LatencyCell/PayloadPreview) render per UI-SPEC §5 with only design-token colors | component | `pnpm vitest run packages/ui/src/components/timeline/cells` | ❌ W0 | ⬜ pending |
+| 02-04-01 | 04 | 2 | TIME-01 / TIME-02 / TIME-03 / TIME-06 / EVENT-05 / INGEST-06 | — | Five screen-level states render UI-SPEC §10 verbatim; virtualized 50K-row TimelineList renders ≤ ~50 DOM rows; EventRow exposes 11 columns; ParseErrorRow shows BAD-line copy; TimelineRegion routes states + keyboard nav; App.tsx routes no-server | component | `pnpm vitest run packages/ui/src/components/states packages/ui/src/components/timeline` | ❌ W0 | ⬜ pending |
+| 02-05-01 | 05 | 2 | INGEST-01 | T-02-05 | CLI validates file path and port, prints UI-SPEC copy, and never opens a remote URL | integration | `pnpm vitest run packages/cli/src/cli-launch.test.ts packages/cli/src/cli-errors.test.ts` | ❌ W0 | ⬜ pending |
+| 02-06-01 | 06 | 3 | INGEST-01 / INGEST-06 / EVENT-04 / EVENT-05 / TIME-01 / TIME-02 / TIME-03 / TIME-06 | T-02-01..T-02-05 | Browser UI receives SSE data from fixture log and renders timeline/state contract end-to-end | integration | `pnpm vitest run test/vertical-slice.test.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
