@@ -90,6 +90,15 @@ describe("EventRow — UI-SPEC §7.2 11 columns", () => {
     expect(screen.getByText("session/toolCallContentChanged")).toBeTruthy();
   });
 
+  it("prevents every timeline column from wrapping", () => {
+    render(<EventRow row={baseRow} isSelected={false} onClick={() => {}} />);
+    for (const cell of screen.getAllByRole("gridcell")) {
+      expect(cell.style.whiteSpace).toBe("nowrap");
+      expect(cell.style.overflow).toBe("hidden");
+      expect(cell.style.textOverflow).toBe("ellipsis");
+    }
+  });
+
   it("sets role=row + aria-rowindex + aria-selected", () => {
     render(<EventRow row={{ ...baseRow, idx: 4 }} isSelected onClick={() => {}} />);
     const row = screen.getByRole("row");

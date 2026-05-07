@@ -20,6 +20,13 @@ export interface EventRowProps {
   searchQuery?: string;
 }
 
+const cellStyle: CSSProperties = {
+  minWidth: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
 function railColor(row: EventRowData, isSelected: boolean): string {
   if (isSelected) return "var(--color-accent)";
   if (row.status === "orphan" || row.status === "unmatched") return "var(--color-warning)";
@@ -114,12 +121,12 @@ export const EventRow = memo(function EventRow({
       <div
         role="gridcell"
         data-testid="row-rail"
-        style={{ width: 2, height: "100%", background: railColor(row, isSelected) }}
+        style={{ ...cellStyle, width: 2, height: "100%", background: railColor(row, isSelected) }}
       />
-      <div role="gridcell" className="ts">
+      <div role="gridcell" className="ts" style={cellStyle}>
         {row.tsFmt}
       </div>
-      <div role="gridcell">
+      <div role="gridcell" style={cellStyle}>
         {row.isAuthFailure ? (
           <ShieldAlert
             size={14}
@@ -130,7 +137,7 @@ export const EventRow = memo(function EventRow({
           <DirectionGlyph direction={row.dir} />
         )}
       </div>
-      <div role="gridcell">
+      <div role="gridcell" style={cellStyle}>
         <KindTag kind={row.kindTag} />
       </div>
       <div
@@ -138,11 +145,9 @@ export const EventRow = memo(function EventRow({
         className="method"
         title={labelTitle}
         style={{
+          ...cellStyle,
           display: "flex",
           alignItems: "center",
-          minWidth: 0,
-          overflow: "hidden",
-          whiteSpace: "nowrap",
         }}
       >
         <ActionDot family={row.actionFamily} />
@@ -154,27 +159,28 @@ export const EventRow = memo(function EventRow({
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
+            display: "block",
           }}
         >
           {label ? highlightMatches(label, searchQuery) : "—"}
         </span>
       </div>
-      <div role="gridcell" className="id" title={row.sessionId ?? ""}>
+      <div role="gridcell" className="id" title={row.sessionId ?? ""} style={cellStyle}>
         {row.sessionShort ?? "—"}
       </div>
-      <div role="gridcell" className="id" title={row.turnId ?? ""}>
+      <div role="gridcell" className="id" title={row.turnId ?? ""} style={cellStyle}>
         {row.turnShort ?? "—"}
       </div>
-      <div role="gridcell">
+      <div role="gridcell" style={cellStyle}>
         <StatusCell status={row.status} />
       </div>
-      <div role="gridcell">
+      <div role="gridcell" style={cellStyle}>
         <LatencyCell ms={row.latencyMs} band={row.latencyBand} />
       </div>
-      <div role="gridcell" className="id">
+      <div role="gridcell" className="id" style={cellStyle}>
         {row.keyId ?? "—"}
       </div>
-      <div role="gridcell">
+      <div role="gridcell" style={cellStyle}>
         <PayloadPreview text={row.payloadPreview} />
       </div>
     </div>
