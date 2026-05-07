@@ -57,8 +57,8 @@ Phase: 2 (Vertical Slice — CLI, Server, Timeline) — PLANNING
 
 ## Session Continuity
 
-**Last session:** 2026-05-07T05:46:39.837Z
-**Next action:** `/gsd-discuss-phase 2` or `/gsd-ui-phase 2`
+**Last session:** Phase 2 UI-SPEC approved and committed at `.planning/phases/02-vertical-slice-cli-server-timeline/02-UI-SPEC.md`.
+**Next action:** `/gsd-plan-phase 2`
 
 ---
 *State initialized: 2026-05-06*
