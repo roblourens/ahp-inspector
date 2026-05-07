@@ -1,6 +1,7 @@
 import type { EventRow as EventRowData } from "@ahp-viewer/core";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { VirtualItem } from "../../state/selectors.js";
 import { TimelineList } from "./TimelineList.js";
 
 const ROWS = 50_000;
@@ -37,6 +38,7 @@ function makeRow(i: number): EventRowData {
 }
 
 const fixture = Array.from({ length: ROWS }, (_, i) => makeRow(i));
+const fixtureItems: VirtualItem[] = fixture.map((r) => ({ kind: "row", rowIdx: r.idx }));
 
 const FAKE_RECT: DOMRect = {
   height: 400,
@@ -99,7 +101,7 @@ describe("TimelineList — virtualization", () => {
   it("renders ≤ ~50 DOM rows for a 50,000-row fixture", async () => {
     render(
       <div style={{ height: 400 }}>
-        <TimelineList rows={fixture} selectedIdx={null} onSelect={() => {}} />
+        <TimelineList items={fixtureItems} rows={fixture} selectedIdx={null} onSelect={() => {}} />
       </div>,
     );
 
