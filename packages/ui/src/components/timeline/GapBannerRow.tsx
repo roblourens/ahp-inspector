@@ -18,7 +18,6 @@ export function GapBannerRow({ prev, curr, virtualStyle }: GapBannerRowProps): J
       role="row"
       aria-label={ariaLabel}
       data-testid="gap-banner"
-      // biome-ignore lint/a11y/useFocusableInteractive: grid row managed by keyboard handler in TimelineRegion
       tabIndex={-1}
       style={{
         position: "absolute",

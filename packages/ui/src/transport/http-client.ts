@@ -28,7 +28,15 @@ const cache = new Map<number, DetailResponse>();
 const cacheOrder: number[] = [];
 
 function cacheGet(idx: number): DetailResponse | undefined {
-  return cache.get(idx);
+  const cached = cache.get(idx);
+  if (cached !== undefined) {
+    const existing = cacheOrder.indexOf(idx);
+    if (existing !== -1) {
+      cacheOrder.splice(existing, 1);
+      cacheOrder.push(idx);
+    }
+  }
+  return cached;
 }
 
 function cacheSet(idx: number, data: DetailResponse): void {
@@ -64,4 +72,9 @@ export async function fetchEvent(
   const data: DetailResponse = (await resp.json()) as DetailResponse;
   cacheSet(idx, data);
   return data;
+}
+
+export function clearEventCacheForTests(): void {
+  cache.clear();
+  cacheOrder.length = 0;
 }

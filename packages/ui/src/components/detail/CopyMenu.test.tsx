@@ -38,12 +38,24 @@ describe("CopyMenu — copy raw JSON vs pretty JSON", () => {
   it("Copy raw JSON produces compact (minified) JSON", async () => {
     const written: string[] = [];
     Object.defineProperty(navigator, "clipboard", {
-      value: { writeText: vi.fn(async (t: string) => { written.push(t); }) },
+      value: {
+        writeText: vi.fn(async (t: string) => {
+          written.push(t);
+        }),
+      },
       configurable: true,
     });
     const onCopy = vi.fn();
     const rawData = { a: 1, b: [2, 3] };
-    render(<CopyMenu event={makeEvent(rawData)} pairEvent={null} latencyMs={null} status="ok" onCopy={onCopy} />);
+    render(
+      <CopyMenu
+        event={makeEvent(rawData)}
+        pairEvent={null}
+        latencyMs={null}
+        status="ok"
+        onCopy={onCopy}
+      />,
+    );
 
     // Open menu
     fireEvent.click(screen.getByRole("button", { name: /copy/i }));
@@ -60,12 +72,24 @@ describe("CopyMenu — copy raw JSON vs pretty JSON", () => {
   it("Copy pretty JSON produces indented JSON", async () => {
     const written: string[] = [];
     Object.defineProperty(navigator, "clipboard", {
-      value: { writeText: vi.fn(async (t: string) => { written.push(t); }) },
+      value: {
+        writeText: vi.fn(async (t: string) => {
+          written.push(t);
+        }),
+      },
       configurable: true,
     });
     const onCopy = vi.fn();
     const rawData = { a: 1, b: [2, 3] };
-    render(<CopyMenu event={makeEvent(rawData)} pairEvent={null} latencyMs={null} status="ok" onCopy={onCopy} />);
+    render(
+      <CopyMenu
+        event={makeEvent(rawData)}
+        pairEvent={null}
+        latencyMs={null}
+        status="ok"
+        onCopy={onCopy}
+      />,
+    );
 
     // Open menu
     fireEvent.click(screen.getByRole("button", { name: /copy/i }));
@@ -82,13 +106,23 @@ describe("CopyMenu — copy raw JSON vs pretty JSON", () => {
   it("Copy raw JSON and Copy pretty JSON produce different output for structured data", async () => {
     const written: string[] = [];
     Object.defineProperty(navigator, "clipboard", {
-      value: { writeText: vi.fn(async (t: string) => { written.push(t); }) },
+      value: {
+        writeText: vi.fn(async (t: string) => {
+          written.push(t);
+        }),
+      },
       configurable: true,
     });
     const onCopy = vi.fn();
     const rawData = { jsonrpc: "2.0", method: "tools/list", params: {} };
     const { unmount } = render(
-      <CopyMenu event={makeEvent(rawData)} pairEvent={null} latencyMs={null} status="ok" onCopy={onCopy} />,
+      <CopyMenu
+        event={makeEvent(rawData)}
+        pairEvent={null}
+        latencyMs={null}
+        status="ok"
+        onCopy={onCopy}
+      />,
     );
 
     // Copy raw
@@ -101,7 +135,13 @@ describe("CopyMenu — copy raw JSON vs pretty JSON", () => {
     onCopy.mockClear();
 
     const { unmount: unmount2 } = render(
-      <CopyMenu event={makeEvent(rawData)} pairEvent={null} latencyMs={null} status="ok" onCopy={onCopy} />,
+      <CopyMenu
+        event={makeEvent(rawData)}
+        pairEvent={null}
+        latencyMs={null}
+        status="ok"
+        onCopy={onCopy}
+      />,
     );
 
     // Copy pretty

@@ -185,7 +185,7 @@ describe("useSearch", () => {
     // Capture the AbortSignal passed to the first fetch.
     let capturedSignal: AbortSignal | undefined;
     mockFetch.mockImplementation((_url: string, init?: RequestInit) => {
-      capturedSignal = init?.signal;
+      capturedSignal = init?.signal ?? undefined;
       // Never resolves — simulates in-flight
       return new Promise(() => {});
     });

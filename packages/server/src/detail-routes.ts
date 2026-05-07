@@ -19,9 +19,9 @@ export type DetailResponse = {
 export function registerDetailRoutes(app: Hono, appState: AppState): void {
   app.get("/api/log/event/:idx", (c) => {
     const raw = c.req.param("idx");
-    const idx = parseInt(raw, 10);
+    const idx = Number(raw);
     // T-03-01-03: validate idx before any store access
-    if (!Number.isFinite(idx) || idx < 0) {
+    if (!Number.isInteger(idx) || idx < 0) {
       return c.json({ error: "invalid idx" }, 400);
     }
     const event = appState.eventAt(idx);

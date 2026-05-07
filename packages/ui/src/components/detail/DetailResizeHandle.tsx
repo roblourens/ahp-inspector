@@ -8,7 +8,7 @@
  * No raw #hex literals.
  */
 import type { JSX, KeyboardEvent, MouseEvent } from "react";
-import { useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 interface DetailResizeHandleProps {
   width: number;
@@ -26,13 +26,30 @@ export function DetailResizeHandle({
   const dragging = useRef(false);
   const startX = useRef(0);
   const startWidth = useRef(0);
+  const moveHandler = useRef<((ev: globalThis.MouseEvent) => void) | null>(null);
+  const upHandler = useRef<(() => void) | null>(null);
 
   function clamp(v: number): number {
     return Math.max(min, Math.min(max, v));
   }
 
+  const stopDrag = useCallback(() => {
+    dragging.current = false;
+    if (moveHandler.current) {
+      document.removeEventListener("mousemove", moveHandler.current);
+      moveHandler.current = null;
+    }
+    if (upHandler.current) {
+      document.removeEventListener("mouseup", upHandler.current);
+      upHandler.current = null;
+    }
+  }, []);
+
+  useEffect(() => stopDrag, [stopDrag]);
+
   function handleMouseDown(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
+    stopDrag();
     dragging.current = true;
     startX.current = e.clientX;
     startWidth.current = width;
@@ -44,11 +61,11 @@ export function DetailResizeHandle({
     }
 
     function onMouseUp() {
-      dragging.current = false;
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
+      stopDrag();
     }
 
+    moveHandler.current = onMouseMove;
+    upHandler.current = onMouseUp;
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
   }

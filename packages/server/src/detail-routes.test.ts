@@ -167,6 +167,17 @@ describe("GET /api/log/event/:idx", () => {
     expect(body.error).toBe("invalid idx");
   });
 
+  it("returns 400 for partial numeric idx", async () => {
+    const app = buildApp([
+      { event: makeEvent({ seq: 0 }), pairIdx: null, latencyMs: null, status: "n/a" },
+      { event: makeEvent({ seq: 1 }), pairIdx: null, latencyMs: null, status: "n/a" },
+    ]);
+    const res = await app.request("/api/log/event/1abc");
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe("invalid idx");
+  });
+
   it("T-03-01-04: response JSON does NOT contain absolute fixture path", async () => {
     const absolutePath = "/private/tmp/hidden-secret-dir/test.log";
     const ev = makeEvent({ seq: 0 });

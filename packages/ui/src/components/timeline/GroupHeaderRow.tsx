@@ -41,7 +41,6 @@ export function GroupHeaderRow({
     <div
       role="row"
       data-testid={`group-header-${level}`}
-      // biome-ignore lint/a11y/useFocusableInteractive: grid row managed by keyboard handler in TimelineRegion
       tabIndex={-1}
       style={{
         position: "absolute",
