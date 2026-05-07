@@ -92,7 +92,11 @@ export class Correlator {
     }
     // Otherwise park as pending. If there was already a pending request with
     // the same key (rare — same dir, same id, same session before any reply),
-    // that prior request becomes orphaned: status stays 'pending' until flush.
+    // mark the displaced request orphaned before overwriting the map entry.
+    const displaced = this.#pendingRequests.get(key);
+    if (displaced !== undefined) {
+      this.status[displaced] = "orphan";
+    }
     this.#pendingRequests.set(key, idx);
     this.status[idx] = "pending";
   }
@@ -105,7 +109,12 @@ export class Correlator {
       this.#pair(reqIdx, idx);
       return;
     }
-    // Out-of-order: park until the matching request shows up.
+    // Out-of-order: park until the matching request shows up. If another early
+    // response with the same key already exists, mark the displaced one orphaned.
+    const displaced = this.#pendingResponses.get(key);
+    if (displaced !== undefined) {
+      this.status[displaced] = "orphan";
+    }
     this.#pendingResponses.set(key, idx);
   }
 
