@@ -104,6 +104,18 @@ describe("FilterBar", () => {
     expect(screen.getByRole("listbox")).toBeTruthy();
   });
 
+  it("closes an open facet popover when its chip is clicked again", () => {
+    render(<FilterBar />);
+    const dirChip = screen.getByRole("button", { name: /Dir/i });
+    fireEvent.click(dirChip);
+    expect(screen.getByRole("listbox")).toBeTruthy();
+
+    fireEvent.mouseDown(dirChip);
+    fireEvent.click(dirChip);
+
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
   it("does not clip facet popovers behind the timeline", () => {
     render(<FilterBar />);
     const bar = screen.getByTestId("filter-bar");
@@ -133,6 +145,18 @@ describe("FilterBar", () => {
     fireEvent.click(groupBtn);
     expect(screen.getByRole("radio", { name: "Session" })).toBeTruthy();
     expect(screen.getByRole("radio", { name: /Session \+ Turn/i })).toBeTruthy();
+  });
+
+  it("closes the grouping popover when GroupToggleChip is clicked again", () => {
+    render(<FilterBar />);
+    const groupBtn = screen.getByRole("button", { name: /Group:/i });
+    fireEvent.click(groupBtn);
+    expect(screen.getByRole("radio", { name: "Session" })).toBeTruthy();
+
+    fireEvent.mouseDown(groupBtn);
+    fireEvent.click(groupBtn);
+
+    expect(screen.queryByRole("radio", { name: "Session" })).toBeNull();
   });
 
   it("selecting a grouping mode dispatches setGrouping", () => {

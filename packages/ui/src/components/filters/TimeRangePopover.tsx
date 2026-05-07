@@ -63,7 +63,7 @@ export function TimeRangePopover({
     fontSize: "var(--text-ui-muted-size)",
     padding: "var(--space-1) var(--space-2)",
     outline: "none",
-    colorScheme: "dark",
+    colorScheme: "var(--color-scheme)",
   };
 
   return (

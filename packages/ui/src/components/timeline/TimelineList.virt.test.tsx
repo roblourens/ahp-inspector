@@ -107,6 +107,9 @@ describe("TimelineList — virtualization", () => {
 
     const grid = screen.getByRole("grid");
     expect(grid.getAttribute("aria-rowcount")).toBe(String(ROWS));
+    expect(screen.getByTestId("timeline-column-header")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Time" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Payload" })).toBeInTheDocument();
 
     const rendered = await screen.findAllByRole("row");
     expect(rendered.length).toBeGreaterThanOrEqual(1);

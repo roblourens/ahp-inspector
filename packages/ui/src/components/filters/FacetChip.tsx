@@ -20,6 +20,7 @@ export function FacetChip({
     <button
       type="button"
       onClick={onClick}
+      onMouseDown={(event) => event.stopPropagation()}
       disabled={isDisabled}
       aria-expanded={isOpen}
       aria-haspopup="listbox"

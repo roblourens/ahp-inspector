@@ -20,6 +20,8 @@ export interface EventRowProps {
   searchQuery?: string;
 }
 
+export const TIMELINE_GRID_COLUMNS = "2px 96px 16px 44px 240px 132px 72px 64px 72px 96px 1fr";
+
 const cellStyle: CSSProperties = {
   minWidth: 0,
   overflow: "hidden",
@@ -109,7 +111,7 @@ export const EventRow = memo(function EventRow({
       data-testid={`row-${row.idx}`}
       style={{
         display: "grid",
-        gridTemplateColumns: "2px 96px 16px 44px 240px 132px 72px 64px 72px 96px 1fr",
+        gridTemplateColumns: TIMELINE_GRID_COLUMNS,
         alignItems: "center",
         height: "var(--row-height)",
         padding: "4px 8px",

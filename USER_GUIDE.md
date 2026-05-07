@@ -18,9 +18,15 @@ node packages/cli/dist/index.js path/to/log.jsonl
 
 The CLI prints a loopback URL, opens the browser by default, and serves the UI locally from `127.0.0.1`.
 
+## Choose a theme
+
+Use the **Dark**, **Light**, and **Hacker** buttons in the header to switch the app appearance. The selection is saved in the browser and applies to the timeline, filters, detail panel, and Pretty JSON syntax colors.
+
+![Hacker theme with column labels](screenshots/phase3-hacker-theme-columns.png)
+
 ## Read the timeline
 
-The main timeline is a dense, virtualized grid. Each row shows timestamp, direction, kind, method/action type, session, turn, status, latency, key ID, and a short payload preview. Direction arrows (`→`/`←`), kind tags (`REQ`, `RES`, `ACT`, `BAD`), status pills, and row rails help scan traffic quickly.
+The main timeline is a dense, virtualized grid with fixed column labels. Each row shows timestamp, direction, kind, method/action type, session, turn, status, latency, key ID, and a short payload preview. Direction arrows (`→`/`←`), kind tags (`REQ`, `RES`, `ACT`, `BAD`), status pills, and row rails help scan traffic quickly.
 
 ![Large timeline](screenshots/phase2-uat-fixed-large.png)
 
@@ -48,7 +54,7 @@ If the log stream disconnects after data has loaded, the viewer keeps the last r
 
 ## Current limitations
 
-Phase 2 provides the vertical slice: CLI launch, local server, SSE stream, virtualized timeline, and state handling. Live discovery (tail-mode) and full light/dark/hacker theme switching are planned for later phases.
+Phase 2 provides the vertical slice: CLI launch, local server, SSE stream, virtualized timeline, and state handling. Live discovery and tail-mode are planned for later phases.
 
 ## Searching events
 
@@ -72,7 +78,7 @@ Click any of the **8 facet chips** in the filter bar to open a popover with the 
 | **Kind** | Event kind (`request` / `response` / `action` / `protocol-notification`) |
 | **Method** | RPC method name |
 | **Action** | Action type family |
-| **Session** | Session ID (last 8 chars shown) |
+| **Session** | Session ID, shortened into a readable label when possible |
 | **Turn** | Turn ID (last 6 chars shown) |
 | **Status** | Correlation status (`ok` / `error` / `timeout` / pending) |
 | **Time** | Time range (from / to) |
@@ -93,7 +99,7 @@ Use the **Group: None** toggle (right end of the filter bar) to restructure the 
 | Mode | Effect |
 |------|--------|
 | **None** | Flat chronological order (default) |
-| **Session** | One group header per session; shows session label (last 8 chars), event count, and duration |
+| **Session** | One group header per session; shows a readable session label, event count, and duration |
 | **Session + Turn** | Nested sub-headers per turn inside each session |
 
 Group headers are visual-only rows — keyboard navigation (Up/Down/Home/End) moves through event rows only, skipping headers.
@@ -157,4 +163,3 @@ A brief **"Copied N chars"** toast appears at the bottom-right to confirm the cl
 | `Esc` | Clear search → clear filters → deselect row (in sequence) |
 
 ![/ key focuses the search input](screenshots/phase3-keyboard.png)
-

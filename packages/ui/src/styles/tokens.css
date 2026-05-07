@@ -1,5 +1,7 @@
 :root,
 [data-theme="dark"] {
+  --color-scheme: dark;
+
   /* Spacing */
   --space-0: 0;
   --space-1: 4px;
@@ -92,7 +94,210 @@
   --color-auth-fail-rail: var(--color-destructive);
   --color-auth-fail-banner-bg: color-mix(in srgb, var(--color-destructive) 14%, var(--color-bg));
 
+  /* JSON tree */
+  --color-json-bg: var(--color-surface);
+  --color-json-key: var(--color-accent);
+  --color-json-string: var(--color-success);
+  --color-json-number: var(--color-warning);
+  --color-json-boolean: var(--color-info);
+  --color-json-null: var(--color-text-subtle);
+  --color-json-punctuation: var(--color-text-muted);
+
   /* ── Phase 3: Fixed heights (4 px grid) ─────────────────────────────── */
+  --row-group-header-height: 24px;
+  --row-banner-height: 20px;
+  --filter-bar-height: 40px;
+  --filter-chips-height: 32px;
+}
+
+[data-theme="light"] {
+  --color-scheme: light;
+
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+  --row-height: 28px;
+
+  --font-sans:
+    "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --text-row-size: 13px;
+  --text-row-line: 20px;
+  --text-ui-size: 13px;
+  --text-ui-muted-size: 12px;
+  --text-heading-size: 16px;
+  --text-body-size: 14px;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+
+  --color-bg: #f7f8fb;
+  --color-surface: #ffffff;
+  --color-surface-raised: #f0f3f8;
+  --color-border: #d6dbe5;
+  --color-border-strong: #aeb7c6;
+  --color-accent: #245fc7;
+  --color-accent-foreground: #ffffff;
+
+  --color-text: #18202c;
+  --color-text-muted: #5b6575;
+  --color-text-subtle: #7a8494;
+  --color-text-disabled: #a8b0bd;
+
+  --color-success: #16734a;
+  --color-warning: #9a5b00;
+  --color-destructive: #c11f3d;
+  --color-info: #006d9c;
+
+  --dir-c2s: #245fc7;
+  --dir-s2c: #7852b8;
+  --dir-internal: #5b6575;
+
+  --kind-request: #245fc7;
+  --kind-response: #16734a;
+  --kind-notification: #9a5b00;
+  --kind-action: #7852b8;
+  --kind-error: #c11f3d;
+  --kind-parse-error: #c11f3d;
+
+  --action-text: #16734a;
+  --action-tool-call: #245fc7;
+  --action-tool-result: #4f7d10;
+  --action-status: #5b6575;
+  --action-unknown: #7a8494;
+
+  --latency-fast: #dff1e7;
+  --latency-normal: #e3eaf5;
+  --latency-slow: #f8ebd5;
+  --latency-critical: #f7dce3;
+
+  --color-search-match-bg: #fff0a8;
+  --color-search-match-fg: #18202c;
+
+  --color-chip-bg: var(--color-surface-raised);
+  --color-chip-bg-active: #dfe8f8;
+  --color-chip-border: var(--color-border-strong);
+  --color-chip-fg: var(--color-text);
+  --color-chip-fg-muted: var(--color-text-muted);
+  --color-chip-dismiss: var(--color-text-muted);
+
+  --color-group-header-bg: #edf1f7;
+  --color-group-header-fg: var(--color-text);
+  --color-group-header-meta: var(--color-text-muted);
+  --color-gap-banner-bg: color-mix(in srgb, var(--color-warning) 12%, var(--color-bg));
+  --color-gap-banner-fg: var(--color-warning);
+  --color-auth-fail-rail: var(--color-destructive);
+  --color-auth-fail-banner-bg: color-mix(in srgb, var(--color-destructive) 10%, var(--color-bg));
+
+  --color-json-bg: var(--color-surface);
+  --color-json-key: var(--color-accent);
+  --color-json-string: var(--color-success);
+  --color-json-number: var(--color-warning);
+  --color-json-boolean: var(--color-info);
+  --color-json-null: var(--color-text-subtle);
+  --color-json-punctuation: var(--color-text-muted);
+
+  --row-group-header-height: 24px;
+  --row-banner-height: 20px;
+  --filter-bar-height: 40px;
+  --filter-chips-height: 32px;
+}
+
+[data-theme="hacker"] {
+  --color-scheme: dark;
+
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+  --row-height: 28px;
+
+  --font-sans:
+    "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --text-row-size: 13px;
+  --text-row-line: 20px;
+  --text-ui-size: 13px;
+  --text-ui-muted-size: 12px;
+  --text-heading-size: 16px;
+  --text-body-size: 14px;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+
+  --color-bg: #020704;
+  --color-surface: #06120a;
+  --color-surface-raised: #0a1b10;
+  --color-border: #12351d;
+  --color-border-strong: #1f6b34;
+  --color-accent: #39ff88;
+  --color-accent-foreground: #020704;
+
+  --color-text: #d6ffe2;
+  --color-text-muted: #79d994;
+  --color-text-subtle: #3c8f55;
+  --color-text-disabled: #245633;
+
+  --color-success: #39ff88;
+  --color-warning: #d7ff57;
+  --color-destructive: #ff4f7b;
+  --color-info: #54f7ff;
+
+  --dir-c2s: #39ff88;
+  --dir-s2c: #54f7ff;
+  --dir-internal: #79d994;
+
+  --kind-request: #39ff88;
+  --kind-response: #54f7ff;
+  --kind-notification: #d7ff57;
+  --kind-action: #b86cff;
+  --kind-error: #ff4f7b;
+  --kind-parse-error: #ff4f7b;
+
+  --action-text: #39ff88;
+  --action-tool-call: #54f7ff;
+  --action-tool-result: #d7ff57;
+  --action-status: #79d994;
+  --action-unknown: #3c8f55;
+
+  --latency-fast: #0c2414;
+  --latency-normal: #102833;
+  --latency-slow: #2f3210;
+  --latency-critical: #3a1220;
+
+  --color-search-match-bg: #254512;
+  --color-search-match-fg: #d6ffe2;
+
+  --color-chip-bg: var(--color-surface-raised);
+  --color-chip-bg-active: #12351d;
+  --color-chip-border: var(--color-border-strong);
+  --color-chip-fg: var(--color-text);
+  --color-chip-fg-muted: var(--color-text-muted);
+  --color-chip-dismiss: var(--color-text-muted);
+
+  --color-group-header-bg: #07160c;
+  --color-group-header-fg: var(--color-text);
+  --color-group-header-meta: var(--color-text-muted);
+  --color-gap-banner-bg: color-mix(in srgb, var(--color-warning) 14%, var(--color-bg));
+  --color-gap-banner-fg: var(--color-warning);
+  --color-auth-fail-rail: var(--color-destructive);
+  --color-auth-fail-banner-bg: color-mix(in srgb, var(--color-destructive) 14%, var(--color-bg));
+
+  --color-json-bg: var(--color-surface);
+  --color-json-key: var(--color-accent);
+  --color-json-string: #d7ff57;
+  --color-json-number: #54f7ff;
+  --color-json-boolean: #b86cff;
+  --color-json-null: var(--color-text-subtle);
+  --color-json-punctuation: var(--color-text-muted);
+
   --row-group-header-height: 24px;
   --row-banner-height: 20px;
   --filter-bar-height: 40px;

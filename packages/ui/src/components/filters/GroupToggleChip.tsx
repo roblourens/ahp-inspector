@@ -119,6 +119,7 @@ export function GroupToggleChip({ value, onChange }: GroupToggleChipProps): JSX.
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         onClick={() => setIsOpen((o) => !o)}
+        onMouseDown={(event) => event.stopPropagation()}
         style={{
           display: "inline-flex",
           alignItems: "center",
