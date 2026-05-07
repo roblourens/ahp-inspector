@@ -20,7 +20,7 @@ The CLI prints a loopback URL, opens the browser by default, and serves the UI l
 
 ## Choose a theme
 
-Use the **Dark**, **Light**, and **Hacker** buttons in the header to switch the app appearance. The selection is saved in the browser and applies to the timeline, filters, detail panel, and Pretty JSON syntax colors.
+Use the compact theme picker in the header to switch between **Dark**, **Light**, and **Hacker**. The selection is saved in the browser and applies to the timeline, filters, detail panel, and Pretty JSON syntax colors.
 
 ![Hacker theme with column labels](screenshots/phase3-hacker-theme-columns.png)
 
@@ -131,7 +131,7 @@ The top of the panel shows the core AHP fields in a structured strip with colore
 
 ### Pretty vs Raw tab
 
-- **Pretty** — expandable JSON tree rendered by react-json-view-lite. Payloads larger than 256 KB show a truncation warning.
+- **Pretty** — expandable JSON tree rendered by react-json-view-lite. Click a node label or its +/- marker to collapse or expand it. Payloads larger than 256 KB show a truncation warning.
 - **Raw** — monospace `<pre>` block containing the full raw JSON for copy-paste.
 
 ![Detail panel Raw JSON view](screenshots/phase3-detail-raw.png)

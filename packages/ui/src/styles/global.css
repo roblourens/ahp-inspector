@@ -100,3 +100,21 @@ body {
 .ahp-json-collapsed {
   color: var(--color-json-punctuation);
 }
+.ahp-json-expander {
+  cursor: pointer;
+  display: inline-block;
+  width: 1.5ch;
+  user-select: none;
+}
+.ahp-json-expander::before {
+  content: "+";
+}
+.ahp-json-expander[aria-expanded="true"]::before {
+  content: "-";
+}
+.ahp-json-collapsed {
+  cursor: pointer;
+}
+.ahp-json-collapsed::before {
+  content: "...";
+}

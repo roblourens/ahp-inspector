@@ -79,6 +79,7 @@ export function PrettyJsonView({
       <JsonView
         data={data as object}
         shouldExpandNode={(level: number) => level < 2}
+        clickToExpandNode
         style={JSON_STYLES}
       />
     </div>

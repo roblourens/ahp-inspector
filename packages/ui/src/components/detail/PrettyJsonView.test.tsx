@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { PrettyJsonView } from "./PrettyJsonView.js";
 
@@ -12,5 +12,23 @@ describe("PrettyJsonView", () => {
     expect(container.querySelector(".ahp-json-container")).toBeTruthy();
     expect(container.querySelector(".ahp-json-label")).toBeTruthy();
     expect(container.querySelector(".ahp-json-boolean")).toBeTruthy();
+  });
+
+  it("keeps object nodes expandable and collapsible", () => {
+    const { container } = render(
+      <PrettyJsonView data={{ params: { resource: "ahp:/sessions" } }} />,
+    );
+    expect(screen.getByText('"ahp:/sessions"')).toBeInTheDocument();
+
+    const paramsLabel = Array.from(container.querySelectorAll(".ahp-json-clickable-label")).find(
+      (node) => node.textContent?.includes("params"),
+    );
+    expect(paramsLabel).toBeTruthy();
+
+    fireEvent.click(paramsLabel as Element);
+    expect(screen.queryByText('"ahp:/sessions"')).toBeNull();
+
+    fireEvent.click(paramsLabel as Element);
+    expect(screen.getByText('"ahp:/sessions"')).toBeInTheDocument();
   });
 });
