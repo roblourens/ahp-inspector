@@ -158,6 +158,9 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   // Ingest loop.
   const watcher = opts.host.watchLog(handle, (chunk: Uint8Array) => {
     const text = decoder.decode(chunk, { stream: true });
+    // Detect CRLF vs LF so byteOffset stays byte-accurate for Windows logs.
+    // The LineSplitter strips the '\r', so we add the extra byte here if needed.
+    const newlineSize = text.includes("\r\n") ? 2 : 1;
     let lines: string[];
     try {
       lines = splitter.push(text);
@@ -180,7 +183,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
         : normalize(parsed.raw, m);
       store.append(ev);
       seq += 1;
-      byteOffset += byteLength + 1; // +1 for the consumed newline
+      byteOffset += byteLength + newlineSize; // +1 LF or +2 CRLF
     }
   });
 
