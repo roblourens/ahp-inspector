@@ -6,7 +6,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { CLI_MINI, spawnCliRaw, waitForExit, waitForLine } from "./cli-test-helpers.js";
 
 describe("ahp-viewer CLI launch (Plan 02-05)", () => {
-  let toKill: NodeJS.Process | null = null;
   // biome-ignore lint/suspicious/noExplicitAny: track the latest child for teardown
   let lastChild: any = null;
 
@@ -19,7 +18,6 @@ describe("ahp-viewer CLI launch (Plan 02-05)", () => {
       }
     }
     lastChild = null;
-    toKill = null;
   });
 
   it("prints §10 success copy and exits cleanly on SIGTERM", async () => {
@@ -66,6 +64,5 @@ describe("ahp-viewer CLI launch (Plan 02-05)", () => {
     expect(r.stdout).not.toMatch(/could not auto-open/);
     r.child.kill("SIGTERM");
     await waitForExit(r.child);
-    void toKill;
   }, 10_000);
 });
