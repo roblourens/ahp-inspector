@@ -3,13 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-07T15:19:14.033Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-05-07T15:27:13.655Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # State: AHP Log Viewer
@@ -22,13 +23,13 @@ progress:
 ## Current Position
 
 Phase: 02 (vertical-slice-cli-server-timeline) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 
 - **Milestone:** v1
 - **Phase:** 2 — Vertical Slice — CLI, Server, Timeline
-- **Plan:** 02-04 complete; 02-05 next
+- **Plan:** 02-05 complete; 02-06 next
 - **Status:** Executing Phase 02
-- **Progress:** [████████░░] 80%
+- **Progress:** [█████████░] 90%
 
 ## Performance Metrics
 
@@ -41,6 +42,7 @@ Plan: 5 of 7
 | Phase 02 P02 | 10min | 2 tasks | 17 files |
 | Phase 02 P03 | 13min | 2 tasks | 12 files |
 | Phase 02 P04 | 10min | 3 tasks | 16 files |
+| Phase 02 P05 | 6min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -61,6 +63,9 @@ Plan: 5 of 7
 - Plan 02-04: TanStack Virtual measures via `offsetWidth`/`offsetHeight` (virtual-core `getRect`), not `getBoundingClientRect`; virt test mocks both `HTMLElement.prototype` getters in jsdom to give the scroll element a non-zero viewport.
 - Plan 02-04: window-scoped keydown handler in `TimelineRegion` (Up/Down/PageUp/PageDown/Home/End/Esc); empty-rows guard prevents bogus selection when no rows exist.
 - Plan 02-04: `App.tsx` routes to `ServerNotRunningState` full-page (before `AppShell`) when `connection === "no-server"`; Plan 02-06 SSE client will set this on EventSource failure.
+- Plan 02-05: `classifyDirection` assumes client-side capture — request `{id, method}` → c2s; response (`result`/`error`) and server-originated `method === "action"|"notification"` → s2c. A future flag will inject an inverted inference for server-side logs.
+- Plan 02-05: deleted Phase-1 `cli.smoke.test.ts` (depended on removed `--no-server` flag); `cli-launch.test.ts` is its strict superset and asserts UI-SPEC §10 verbatim copy + 127.0.0.1-only binding via `not.toMatch(/0\.0\.0\.0/)` and `/localhost/`.
+- Plan 02-05: dropped plan-prescribed `serverHandle.sayGoodbye()` call — method does not exist on `LogServerHandle`; CLI shutdown disposes `appState` then `serverHandle.close()` only. SSE 'bye' broadcast is a route-layer concern Plan 02-06 will exercise via the EventSource client.
 
 ### Open TODOs
 
@@ -72,9 +77,9 @@ Plan: 5 of 7
 
 ## Session Continuity
 
-**Last session:** 2026-05-07T15:19:14.030Z
-**Next action:** Execute Plan 02-05 (`/gsd-execute-phase 2`)
-**Stopped at:** Completed 02-04-PLAN.md
+**Last session:** 2026-05-07T15:26:44.410Z
+**Next action:** Execute Plan 02-06 (`/gsd-execute-phase 2`)
+**Stopped at:** Completed 02-05-PLAN.md
 
 ---
 *State initialized: 2026-05-06*
