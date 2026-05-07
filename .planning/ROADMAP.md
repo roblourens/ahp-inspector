@@ -69,7 +69,7 @@ Plans:
 **Wave 1**
 - [x] 03-00-PLAN.md — Wave 0: Foundation (security allowlist, EventRow extension, Phase 3 tokens, test scaffold)
 - [x] 03-01-PLAN.md — Wave 1a: Detail + Search backend endpoints (GET /api/log/event/:idx + GET /api/log/search)
-- [ ] 03-02-PLAN.md — Wave 1b: Store extensions, FilterState, selectors, performance gate (parallel)
+- [x] 03-02-PLAN.md — Wave 1b: Store extensions, FilterState, selectors, performance gate (parallel)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 03-03-PLAN.md — Wave 2a: Filter bar UI — FacetChips, GroupToggle, ActiveChips, NoResultsState
@@ -117,7 +117,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Core Foundations | 3/3 | Complete    | 2026-05-07 |
 | 2. Vertical Slice — CLI, Server, Timeline | 7/7 | Complete | 2026-05-07 |
-| 3. Detail, Search, and Filtering | 2/7 | In Progress|  |
+| 3. Detail, Search, and Filtering | 3/7 | In Progress|  |
 | 4. Live Tail, Discovery, and Persistence | 0/0 | Not started | - |
 | 5. Themes, Polish, and Verification | 0/0 | Not started | - |
 

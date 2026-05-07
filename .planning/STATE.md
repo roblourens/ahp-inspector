@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-05-07T18:05:32.293Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-05-07T18:14:21.748Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 17
-  completed_plans: 12
-  percent: 71
+  completed_plans: 13
+  percent: 76
 ---
 
 # State: AHP Log Viewer
@@ -29,7 +29,7 @@ Plan: 2 of 7
 - **Phase:** 2 — Vertical Slice — CLI, Server, Timeline
 - **Plan:** 02-06 complete; verification report passed
 - **Status:** Executing Phase 03
-- **Progress:** [███████░░░] 71%
+- **Progress:** [████████░░] 76%
 
 ## Performance Metrics
 
@@ -46,6 +46,7 @@ Plan: 2 of 7
 | Phase 02 P06 | 14min | 2 tasks | 9 files |
 | Phase 03 P00 | 15min | 2 tasks | 11 files |
 | Phase 03 P01 | 6 | 2 tasks | 7 files |
+| Phase 03 P02 | 5min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Plan: 2 of 7
 - Plan 03-00: `lastSeenServerSeq Map<string|null, number>` in `AppState` tracks per-session serverSeq for gap detection; `eventAt(idx)` added to `AppState` interface as the hook Plan 03-01 uses for the raw event detail API endpoint.
 - Plan 03-01: `SearchIndex.scan` uses `String.prototype.includes` (no regex from user input) with query capped at 256 chars and result count capped at 5000 — mitigates T-03-01-01 (ReDoS) and T-03-01-02 (unbounded result DoS).
 - Plan 03-01: `correlatorDataFor(idx)` added to `AppState` interface — exposes correlator metadata (pairIdx, latencyMs, status) to route handlers without leaking the private `Correlator` object; keeps detail-routes.ts a thin HTTP adapter.
+- Plan 03-02: `useDeferredValue` wraps filters and searchMatches in `useFilteredRows` — mitigates T-03-02-01 (DoS: main-thread block at 50k+ rows); perf gate confirmed 11 ms < 15 ms threshold.
+- Plan 03-02: Conditional spread `{ ...(row.turnId !== null ? { turnId } : {}) }` used for VirtualItem header to satisfy `exactOptionalPropertyTypes`; `?.has()` optional chaining replaces `!` non-null assertion on deferredMatches.
 
 ### Open TODOs
 
@@ -89,9 +92,9 @@ Plan: 2 of 7
 
 ## Session Continuity
 
-**Last session:** 2026-05-07T18:05:32.291Z
+**Last session:** 2026-05-07T18:14:21.745Z
 **Next action:** `/gsd-plan-phase 3`
-**Stopped at:** Completed 03-01-PLAN.md
+**Stopped at:** Completed 03-02-PLAN.md
 
 ---
 *State initialized: 2026-05-06*
