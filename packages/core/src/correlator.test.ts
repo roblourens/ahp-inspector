@@ -78,7 +78,8 @@ describe("Correlator", () => {
     const r2 = s.append(req(1, 110, { method: "b" }));
     expect(c.pairOf(r1)).toBeNull();
     expect(c.pairOf(r2)).toBeNull();
-    expect(c.statusOf(r1)).toBe("pending");
+    // r1 is displaced by r2 and must be marked orphan (WR-01 fix).
+    expect(c.statusOf(r1)).toBe("orphan");
     expect(c.statusOf(r2)).toBe("pending");
   });
 
