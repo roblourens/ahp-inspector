@@ -13,10 +13,13 @@ const ALLOW = new Set<string>([
   "@biomejs/biome",
   "vitest",
   "tsup",
+  "tsx",
   "@types/node",
   // Runtime deps
   "commander",
   "chokidar",
+  "hono",
+  "@hono/node-server",
   "agent-host-protocol",
   // Workspace packages
   "@ahp-viewer/shared",

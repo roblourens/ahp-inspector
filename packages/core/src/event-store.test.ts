@@ -33,7 +33,9 @@ describe("EventStore", () => {
 
   it("append returns indices 0,1,2 and pushes to columns", () => {
     const s = new EventStore();
-    const a = s.append(ev({ seq: 0, dir: "c2s", kind: "request", id: 1, idType: "number", method: "ls" }));
+    const a = s.append(
+      ev({ seq: 0, dir: "c2s", kind: "request", id: 1, idType: "number", method: "ls" }),
+    );
     const b = s.append(ev({ seq: 1, dir: "s2c", kind: "response", id: 1, idType: "number" }));
     expect(a).toBe(0);
     expect(b).toBe(1);

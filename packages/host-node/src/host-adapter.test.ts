@@ -1,4 +1,4 @@
-import { mkdtempSync, appendFileSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -87,9 +87,9 @@ describe("NodeHostAdapter", () => {
     w.dispose();
     expect(appearedWithin).toBe(true);
     const total = chunks.reduce((n, c) => n + c.byteLength, 0);
-    const decoded = Buffer.concat(chunks.map((c) => Buffer.from(c.buffer, c.byteOffset, c.byteLength))).toString(
-      "utf8",
-    );
+    const decoded = Buffer.concat(
+      chunks.map((c) => Buffer.from(c.buffer, c.byteOffset, c.byteLength)),
+    ).toString("utf8");
     expect(decoded).toContain("line2-appended");
     expect(total).toBeGreaterThan(initialBytes);
   }, 3000);

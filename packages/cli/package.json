@@ -16,8 +16,11 @@
     "build": "tsup src/index.ts --format esm --dts --shims"
   },
   "dependencies": {
+    "@ahp-viewer/core": "workspace:*",
     "@ahp-viewer/host-node": "workspace:*",
+    "@ahp-viewer/parser": "workspace:*",
     "@ahp-viewer/server": "workspace:*",
+    "@ahp-viewer/shared": "workspace:*",
     "commander": "^14.0.3"
   }
 }

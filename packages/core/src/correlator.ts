@@ -14,8 +14,7 @@
 
 import type { AhpEvent, CorrelationKey } from "@ahp-viewer/shared";
 import { correlationKeyForRequest, correlationKeyForResponse } from "@ahp-viewer/shared";
-import type { AppendRange } from "./event-store.js";
-import { EventStore } from "./event-store.js";
+import type { AppendRange, EventStore } from "./event-store.js";
 import type { Status } from "./types.js";
 
 export class Correlator {

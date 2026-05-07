@@ -106,10 +106,16 @@ describe("Correlator", () => {
   it("notifications/actions/protocol-notifications/parse-errors NEVER touch correlation map", () => {
     const s = new EventStore();
     const c = new Correlator(s);
-    const i1 = s.append(ev({ seq: 0, ts: 1, dir: "c2s", kind: "client-notification", method: "n" }));
-    const i2 = s.append(ev({ seq: 1, ts: 2, dir: "s2c", kind: "server-notification", method: "n" }));
+    const i1 = s.append(
+      ev({ seq: 0, ts: 1, dir: "c2s", kind: "client-notification", method: "n" }),
+    );
+    const i2 = s.append(
+      ev({ seq: 1, ts: 2, dir: "s2c", kind: "server-notification", method: "n" }),
+    );
     const i3 = s.append(ev({ seq: 2, ts: 3, dir: "s2c", kind: "action", method: "action" }));
-    const i4 = s.append(ev({ seq: 3, ts: 4, dir: "s2c", kind: "protocol-notification", method: "notification" }));
+    const i4 = s.append(
+      ev({ seq: 3, ts: 4, dir: "s2c", kind: "protocol-notification", method: "notification" }),
+    );
     const i5 = s.append(ev({ seq: 4, ts: 5, dir: "c2s", kind: "parse-error", parse: "error" }));
     for (const i of [i1, i2, i3, i4, i5]) {
       expect(c.pairOf(i)).toBeNull();

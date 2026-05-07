@@ -10,5 +10,10 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ahp-viewer/shared": "workspace:*",
+    "hono": "^4.12.18",
+    "@hono/node-server": "^1.13.7"
   }
 }

@@ -3,7 +3,7 @@
 // the appended tail. RESEARCH Pattern 6 (lines 362-407).
 
 import { createReadStream, statSync } from "node:fs";
-import { FSWatcher, watch as chokidarWatch } from "chokidar";
+import { watch as chokidarWatch, type FSWatcher } from "chokidar";
 
 const CHUNK_BYTES = 256 * 1024;
 
