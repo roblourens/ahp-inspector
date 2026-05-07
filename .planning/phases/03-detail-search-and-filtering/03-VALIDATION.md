@@ -39,7 +39,7 @@ created: 2026-05-07
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 03-W0-01 | Wave 0 | 0 | EVENT-06 | T-03-05 | Additive EventRow fields only; no raw payload inflation in SSE | unit | `pnpm -F @ahp-viewer/core test src/row-projection.test.ts` | ❌ W0 | ⬜ pending |
-| 03-W0-02 | Wave 0 | 0 | DETAIL-02, SEARCH-01 | T-03-07 | Detail/search endpoints bounds-check idx and cap query length | integration | `pnpm -F @ahp-viewer/server test src/detail-routes.test.ts src/search-routes.test.ts` | ❌ W0 | ⬜ pending |
+| 03-W1-02 | Detail/Search API | 1 | DETAIL-02, SEARCH-01 | T-03-07 | Detail/search endpoints bounds-check idx and cap query length | integration | `pnpm -F @ahp-viewer/server test src/detail-routes.test.ts src/search-routes.test.ts` | ❌ W1 | ⬜ pending |
 | 03-W0-03 | Wave 0 | 0 | DETAIL-03 | T-03-03 | `react-json-view-lite` allow-listed and checked for no eval/new Function | security | `pnpm test test/security.test.ts` | ❌ W0 | ⬜ pending |
 | 03-W1-01 | Detail API | 1 | DETAIL-01, DETAIL-02 | T-03-05, T-03-07 | Lazy detail fetch returns bounded payload and correlation metadata | integration | `pnpm -F @ahp-viewer/server test src/detail-routes.test.ts` | ❌ W1 | ⬜ pending |
 | 03-W2-01 | Detail UI | 2 | DETAIL-01, DETAIL-02, DETAIL-03, DETAIL-04 | T-03-03, T-03-04 | Text-only JSON rendering, explicit clipboard action, truncation banner | jsdom | `pnpm -F @ahp-viewer/ui test src/components/detail/DetailPanel.test.tsx` | ❌ W2 | ⬜ pending |
@@ -56,9 +56,9 @@ created: 2026-05-07
 
 - [ ] Install `react-json-view-lite@2.5.0` and add it to `test/security.test.ts` dependency allow-list.
 - [ ] Extend row projection tests for `errorCode`, `serverSeq`, `gapBefore`, and `isAuthFailure`.
-- [ ] Add failing server tests for `GET /api/log/event/:idx` and `GET /api/log/search`.
-- [ ] Add failing UI tests for detail panel selection, raw/pretty toggle, truncation, copy, and field highlights.
-- [ ] Add selector/filter performance tests with a 50,000-row synthetic data set.
+- [ ] Confirm Plan 03-01 creates failing server tests for `GET /api/log/event/:idx` and `GET /api/log/search` before implementation.
+- [ ] Confirm Plan 03-04 creates failing UI tests for detail panel selection, raw/pretty toggle, truncation, copy, and field highlights before implementation.
+- [ ] Confirm Plan 03-02 creates selector/filter performance tests with a 50,000-row synthetic data set before implementation.
 
 ---
 
@@ -76,7 +76,7 @@ created: 2026-05-07
 
 - [x] All phase requirements have planned automated coverage.
 - [x] Sampling continuity defined for each task/wave.
-- [x] Wave 0 covers all missing test references and dependencies.
+- [x] Wave 0 covers the shared dependency/security/EventRow foundation; each feature wave owns its red-to-green test scaffold.
 - [x] No watch-mode flags in validation commands.
 - [x] Full phase gate includes test, builds, typecheck, lint, and browser UAT.
 

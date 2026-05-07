@@ -66,13 +66,23 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
   5. User can toggle session/turn grouping to read traffic as a story; server sequence gaps and authentication failures are surfaced when present.
 **Plans**: 7 plans
 Plans:
+**Wave 1**
 - [ ] 03-00-PLAN.md — Wave 0: Foundation (security allowlist, EventRow extension, Phase 3 tokens, test scaffold)
 - [ ] 03-01-PLAN.md — Wave 1a: Detail + Search backend endpoints (GET /api/log/event/:idx + GET /api/log/search)
 - [ ] 03-02-PLAN.md — Wave 1b: Store extensions, FilterState, selectors, performance gate (parallel)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 03-03-PLAN.md — Wave 2a: Filter bar UI — FacetChips, GroupToggle, ActiveChips, NoResultsState
 - [ ] 03-04-PLAN.md — Wave 2b: Detail panel UI — DetailPanel, AhpFieldStrip, PrettyJsonView, CopyMenu (parallel)
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 03-05-PLAN.md — Wave 3: Search client + grouping + App assembly (AppShell wiring, TimelineList polymorphic)
+
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 03-06-PLAN.md — Wave 4: Phase 3 gate test + browser UAT + USER_GUIDE update
+
+**Cross-cutting constraints:**
+- No raw #hex literals in any component file
 **UI hint**: yes
 
 ### Phase 4: Live Tail, Discovery, and Persistence

@@ -465,36 +465,36 @@ import { JsonView, defaultStyles } from 'react-json-view-lite';
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Shiki vs. tree-only highlighting?**
    - What we know: DETAIL-03 says "syntax highlighting." Shiki is the project's documented choice (STACK.md:29) but not installed.
    - What's unclear: Is "syntax highlighting" satisfied by `react-json-view-lite`'s key/value styling, or does the user expect token-level color coding?
-   - Recommendation: Ship `react-json-view-lite` only in Phase 3; defer Shiki to Phase 5 polish. Surface this as a discuss-phase question if invoked.
+   - RESOLVED: Ship `react-json-view-lite` key/value coloring in Phase 3; defer full Shiki token-level highlighting to Phase 5 polish.
 
 2. **Search regex support?**
    - What we know: SEARCH-01 says "free-text search" — no mention of regex.
    - What's unclear: Power users may expect `/regex/` syntax.
-   - Recommendation: Substring only in v1. ADV-06 ("Wireshark-style filter language") is explicitly v2 in REQUIREMENTS.md.
+   - RESOLVED: Substring-only search in v1. Plan 03-01 uses escaped `.includes()` matching; ADV-06 ("Wireshark-style filter language") remains v2 in REQUIREMENTS.md.
 
 3. **Server search index strategy at >200k events?**
    - What we know: Linear scan tested informally for 50k; not measured for 200k+.
    - What's unclear: Real-world VS Code log sizes.
-   - Recommendation: Build linear scan in Wave 4; add a perf test gate that fails at >200ms and forces a MiniSearch upgrade if hit.
+   - RESOLVED: Build linear scan first with a <200ms selector/perf gate in Plan 03-02; upgrade to MiniSearch only if that gate fails on the synthetic large set.
 
 4. **Should detail-panel raw view stream large payloads?**
    - What we know: Detail response cap of 4MB is a recommendation, not a requirement.
    - What's unclear: Real maximum payload size in VS Code AHP logs (model outputs, file contents).
-   - Recommendation: 4MB hard cap on server response; raw view shows truncation banner with byte size; `Copy raw` always copies the full server response.
+   - RESOLVED: Use a 4MB hard cap on the server detail response. Raw and pretty views show truncation banners with byte counts; `Copy raw` copies the bounded server response.
 
 5. **Group-header sticky implementation choice**
    - What we know: Two options — separate sticky chrome bar (simpler) vs. in-list sticky via `rangeExtractor` (more accurate).
    - What's unclear: Whether the chrome bar approach feels janky on rapid scroll.
-   - Recommendation: Start with chrome bar. If UAT flags as janky, upgrade to `rangeExtractor`.
+   - RESOLVED: Start with the separate chrome bar approach (`StickyGroupBar`) in Plan 03-05. If browser UAT flags it as janky, upgrade to `rangeExtractor` in the same execution wave before sign-off.
 
 6. **Detail panel resizable width**
    - UI-SPEC §6.1: "Phase 2 placeholder; Phase 3 expands to resizable 360–600px."
-   - Recommendation: Yes — implement drag handle in Wave 2. Persist resize state in store (memory only; persistence is Phase 4).
+   - RESOLVED: Implement `DetailResizeHandle` with mouse drag and keyboard arrows in Plan 03-04. Store width in memory only; persistence remains Phase 4.
 
 ---
 
