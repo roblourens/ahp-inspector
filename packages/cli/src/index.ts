@@ -1,21 +1,25 @@
 #!/usr/bin/env node
-// ahp-viewer CLI entrypoint. Boots the local app shell:
-//   - opens a JSONL log via NodeHostAdapter (FOUND-01)
-//   - feeds bytes through LineSplitter → parseLine → normalize → EventStore
-//   - Correlator pairs requests/responses (EVENT-03)
-//   - Hono health server bound to 127.0.0.1 (FOUND-04)
-// SIGINT triggers a clean shutdown.
+// ahp-viewer CLI entrypoint (Phase 2, Plan 02-05).
+//
+// Validates inputs, builds AppState from the file, starts the log server
+// bound to 127.0.0.1, prints UI-SPEC §10 verbatim copy, opens the default
+// browser, and cleans up on SIGINT/SIGTERM. Direction inference is
+// structural (`classifyDirection`) — Phase-1's hard-coded `dir='c2s'` is
+// gone.
 
-import { Buffer } from "node:buffer";
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { readFileSync, statSync } from "node:fs";
+import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Correlator, EventStore } from "@ahp-viewer/core";
 import { NodeHostAdapter } from "@ahp-viewer/host-node";
-import { LineSplitter, normalize, parseLine } from "@ahp-viewer/parser";
-import { type HealthServerHandle, startHealthServer } from "@ahp-viewer/server";
-import { type Direction, makeParseErrorEvent } from "@ahp-viewer/shared";
+import {
+  type AppState,
+  createAppState,
+  type LogServerHandle,
+  startLogServer,
+} from "@ahp-viewer/server";
 import { Command } from "commander";
+import open from "open";
+import { classifyDirection } from "./direction.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -34,69 +38,115 @@ function loadVersion(): string {
 
 const VERSION = loadVersion();
 
+function fail(msg: string, code = 1): never {
+  process.stderr.write(msg.endsWith("\n") ? msg : `${msg}\n`);
+  process.exit(code);
+}
+
+function parsePort(value: string): number {
+  if (!/^-?\d+$/.test(value)) {
+    fail(`Error: invalid --port value: ${value}. Use 0–65535.`);
+  }
+  const n = Number(value);
+  if (!Number.isInteger(n) || n < 0 || n > 65535) {
+    fail(`Error: invalid --port value: ${value}. Use 0–65535.`);
+  }
+  return n;
+}
+
 const program = new Command()
   .name("ahp-viewer")
   .version(VERSION)
   .argument("[file]", "AHP JSONL log file path")
-  .option("--port <n>", "local server port", "5173")
-  .option("--no-server", "skip starting the local health server (smoke-test mode)")
-  .action(async (file: string | undefined, opts: { port: string; server: boolean }) => {
+  .option("--port <n>", "local server port (0 = ephemeral)", "5173")
+  .option("--no-open", "do not auto-open the default browser")
+  .action(async (file: string | undefined, opts: { port: string; open: boolean }) => {
+    if (!file) {
+      fail(
+        `Error: log file not found: <missing>\nUsage: ahp-viewer <path-to-log.jsonl>`,
+      );
+    }
+    const absPath = resolvePath(file);
+    let stat: ReturnType<typeof statSync>;
+    try {
+      stat = statSync(absPath);
+    } catch (err) {
+      const e = err as NodeJS.ErrnoException;
+      if (e.code === "ENOENT") {
+        fail(
+          `Error: log file not found: ${absPath}\nUsage: ahp-viewer <path-to-log.jsonl>`,
+        );
+      }
+      fail(`Error: cannot read ${absPath}: ${e.message}\nCheck file permissions.`);
+    }
+    if (!stat.isFile()) {
+      fail(
+        `Error: log file not found: ${absPath}\nUsage: ahp-viewer <path-to-log.jsonl>`,
+      );
+    }
+
+    const port = parsePort(opts.port);
+
     const host = new NodeHostAdapter();
-    const store = new EventStore();
-    void new Correlator(store);
-
-    let serverHandle: HealthServerHandle | undefined;
-    if (opts.server !== false) {
-      serverHandle = await startHealthServer({
-        port: Number(opts.port),
-        version: VERSION,
+    let appState: AppState;
+    try {
+      appState = await createAppState({
+        host,
+        file: absPath,
+        directionInference: classifyDirection,
       });
-      console.log(`[ahp-viewer] listening on ${serverHandle.url}`);
+    } catch (err) {
+      const e = err as NodeJS.ErrnoException;
+      if (e.code === "EACCES" || e.code === "EPERM") {
+        fail(`Error: cannot read ${absPath}: ${e.message}\nCheck file permissions.`);
+      }
+      fail(`Error: cannot read ${absPath}: ${(e as Error).message}\nCheck file permissions.`);
     }
 
-    let watcherDispose: (() => void) | undefined;
-    if (file) {
-      const handle = await host.openLog(file);
-      console.log(`[ahp-viewer] opened ${handle.path} (${handle.size} bytes)`);
-      const splitter = new LineSplitter();
-      const decoder = new TextDecoder("utf-8");
-      let seq = 0;
-      let byteOffset = 0;
-      // Phase-1 placeholder: real direction inference lands with the
-      // transport in Phase 2.
-      const dir: Direction = "c2s";
-      const watcher = host.watchLog(handle, (chunk) => {
-        const text = decoder.decode(chunk, { stream: true });
-        for (const line of splitter.push(text)) {
-          const byteLength = Buffer.byteLength(line, "utf8");
-          const ts = Date.now();
-          const meta = {
-            seq,
-            ts,
-            tsRaw: String(ts),
-            dir,
-            byteOffset,
-            byteLength,
-          };
-          const parsed = parseLine(line, byteOffset, byteLength);
-          const ev = parsed.error
-            ? makeParseErrorEvent(meta, parsed.error.reason, parsed.text)
-            : normalize(parsed.raw, meta);
-          store.append(ev);
-          seq += 1;
-          byteOffset += byteLength + 1;
-        }
-      });
-      watcherDispose = () => {
-        watcher.dispose();
-      };
-    } else {
-      console.log("[ahp-viewer] no file specified; UI not yet wired (Phase 2)");
+    let serverHandle: LogServerHandle;
+    try {
+      serverHandle = await startLogServer({ appState, port, version: VERSION });
+    } catch (err) {
+      const e = err as NodeJS.ErrnoException;
+      await appState.dispose().catch(() => undefined);
+      if (e.code === "EADDRINUSE") {
+        fail(
+          `Error: port ${port} is in use. Try: ahp-viewer --port ${port + 1} ${absPath}`,
+        );
+      }
+      fail(`Error: failed to start server: ${e.message}`);
     }
 
-    const shutdown = async () => {
-      if (watcherDispose) watcherDispose();
-      if (serverHandle) await serverHandle.close();
+    // URL is constructed from server-controlled host (127.0.0.1, hard-coded
+    // in startLogServer) + the bound port. NEVER from user-supplied input.
+    // T-02-05b: open() only ever receives this loopback URL.
+    const url = `http://127.0.0.1:${serverHandle.port}`;
+    process.stdout.write(
+      `AHP Log Viewer running at ${url}\nOpening browser…\nWatching ${absPath}\n`,
+    );
+
+    if (opts.open !== false) {
+      try {
+        await open(url, { wait: false });
+      } catch {
+        process.stdout.write(`(could not auto-open; visit ${url})\n`);
+      }
+    }
+
+    let shuttingDown = false;
+    const shutdown = async (): Promise<void> => {
+      if (shuttingDown) return;
+      shuttingDown = true;
+      try {
+        await appState.dispose();
+      } catch {
+        // ignore — best-effort
+      }
+      try {
+        await serverHandle.close();
+      } catch {
+        // ignore — best-effort
+      }
       process.exit(0);
     };
     process.on("SIGINT", () => {
@@ -108,6 +158,6 @@ const program = new Command()
   });
 
 program.parseAsync().catch((err) => {
-  console.error("[ahp-viewer] fatal:", (err as Error)?.message ?? err);
+  process.stderr.write(`Error: ${(err as Error).message}\n`);
   process.exit(1);
 });
