@@ -9,9 +9,10 @@
  *
  * No raw #hex literals.
  */
-import type { JSX } from "react";
-import type { AhpEvent } from "@ahp-viewer/shared";
+
 import type { Status } from "@ahp-viewer/core";
+import type { AhpEvent } from "@ahp-viewer/shared";
+import type { JSX } from "react";
 
 interface DetailSummaryProps {
   event: AhpEvent;
@@ -47,16 +48,22 @@ function fmtTs(ts: number): string {
 
 function kindTagFor(kind: AhpEvent["kind"]): string {
   switch (kind) {
-    case "request": return "REQ";
-    case "response": return "RES";
+    case "request":
+      return "REQ";
+    case "response":
+      return "RES";
     case "client-notification":
     case "server-notification":
     case "protocol-notification":
       return "NTF";
-    case "action": return "ACT";
-    case "parse-error": return "BAD";
-    case "log": return "LOG";
-    default: return "?";
+    case "action":
+      return "ACT";
+    case "parse-error":
+      return "BAD";
+    case "log":
+      return "LOG";
+    default:
+      return "?";
   }
 }
 
@@ -90,8 +97,7 @@ export function DetailSummary({ event, latencyMs, status }: DetailSummaryProps):
           marginTop: "2px",
         }}
       >
-        Status:{" "}
-        <span style={{ color: statusColor(status) }}>{status}</span>
+        Status: <span style={{ color: statusColor(status) }}>{status}</span>
         {" · "}
         Latency: {latencyMs !== null ? `${latencyMs}ms` : "—"}
       </div>

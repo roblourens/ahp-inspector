@@ -32,11 +32,7 @@ function visualFor(
           ? `${base} · selected #${selectedRowIndex}`
           : base;
       // Show visible/total when filtered
-      if (
-        visibleCount !== undefined &&
-        totalCount !== undefined &&
-        visibleCount !== totalCount
-      ) {
+      if (visibleCount !== undefined && totalCount !== undefined && visibleCount !== totalCount) {
         label = `${label} · ${visibleCount}/${totalCount} visible`;
       }
       // Show group count when grouped

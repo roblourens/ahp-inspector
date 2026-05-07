@@ -13,12 +13,13 @@
  *
  * No raw #hex literals. No dangerouslySetInnerHTML.
  */
-import { type JSX, useCallback, useEffect, useRef, useState } from "react";
-import { Loader2 } from "lucide-react";
-import type { AhpEvent } from "@ahp-viewer/shared";
+
 import type { Status } from "@ahp-viewer/core";
+import type { AhpEvent } from "@ahp-viewer/shared";
+import { Loader2 } from "lucide-react";
+import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "../../state/store.js";
-import { fetchEvent, type DetailResponse } from "../../transport/http-client.js";
+import { type DetailResponse, fetchEvent } from "../../transport/http-client.js";
 import { AhpFieldStrip } from "./AhpFieldStrip.js";
 import { AuthFailureBanner } from "./AuthFailureBanner.js";
 import { CopyMenu } from "./CopyMenu.js";
@@ -26,8 +27,8 @@ import { CopyToast } from "./CopyToast.js";
 import { DetailResizeHandle } from "./DetailResizeHandle.js";
 import { DetailSummary } from "./DetailSummary.js";
 import { DetailTabs } from "./DetailTabs.js";
-import { PrivacyCaption } from "./PrivacyCaption.js";
 import { PrettyJsonView } from "./PrettyJsonView.js";
+import { PrivacyCaption } from "./PrivacyCaption.js";
 import { RawJsonView } from "./RawJsonView.js";
 
 interface LoadState {
@@ -36,7 +37,7 @@ interface LoadState {
   error: string | null;
 }
 
-export function DetailPanel(): JSX.Element {
+export function DetailPanel(): JSX.Element | null {
   const selectedIdx = useAppStore((s) => s.selectedIdx);
   const rows = useAppStore((s) => s.rows);
   const detailWidth = useAppStore((s) => s.detailWidth);
@@ -138,7 +139,13 @@ export function DetailPanel(): JSX.Element {
           >
             No event selected
           </h2>
-          <p style={{ margin: 0, fontSize: "var(--text-ui-muted-size)", fontFamily: "var(--font-sans)" }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: "var(--text-ui-muted-size)",
+              fontFamily: "var(--font-sans)",
+            }}
+          >
             Select a row in the timeline to inspect its details.
           </p>
         </div>
@@ -216,7 +223,14 @@ export function DetailPanel(): JSX.Element {
             textAlign: "center",
           }}
         >
-          <p style={{ margin: 0, color: "var(--color-destructive)", fontFamily: "var(--font-sans)", fontSize: "var(--text-ui-size)" }}>
+          <p
+            style={{
+              margin: 0,
+              color: "var(--color-destructive)",
+              fontFamily: "var(--font-sans)",
+              fontSize: "var(--text-ui-size)",
+            }}
+          >
             {loadState.error ?? "Failed to load event."}
           </p>
           <button
@@ -242,7 +256,7 @@ export function DetailPanel(): JSX.Element {
 
   // ── Populated state ──────────────────────────────────────────────────────────
   const detail = loadState.detail;
-  if (!detail) return <></>;
+  if (!detail) return null;
 
   const event = detail.event as AhpEvent;
   const row = selectedIdx !== null ? (rows[selectedIdx] ?? null) : null;
@@ -268,16 +282,14 @@ export function DetailPanel(): JSX.Element {
       {/* Auth failure banner */}
       {isAuthFailure && (
         <AuthFailureBanner
-          {...(row?.errorCode !== null && row?.errorCode !== undefined ? { code: row.errorCode } : {})}
+          {...(row?.errorCode !== null && row?.errorCode !== undefined
+            ? { code: row.errorCode }
+            : {})}
         />
       )}
 
       {/* Summary */}
-      <DetailSummary
-        event={event}
-        latencyMs={detail.latencyMs}
-        status={detail.status as Status}
-      />
+      <DetailSummary event={event} latencyMs={detail.latencyMs} status={detail.status as Status} />
 
       {/* AHP field strip */}
       {row && <AhpFieldStrip row={row} rawEvent={event} />}
@@ -308,10 +320,7 @@ export function DetailPanel(): JSX.Element {
         style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column" }}
       >
         {activeTab === "pretty" ? (
-          <PrettyJsonView
-            data={event.raw}
-            onOpenRaw={() => setActiveTab("raw")}
-          />
+          <PrettyJsonView data={event.raw} onOpenRaw={() => setActiveTab("raw")} />
         ) : (
           <RawJsonView data={event.raw} />
         )}
@@ -322,11 +331,7 @@ export function DetailPanel(): JSX.Element {
 
       {/* Copy toast */}
       {toast && (
-        <CopyToast
-          key={toast.message + Date.now()}
-          message={toast.message}
-          kind={toast.kind}
-        />
+        <CopyToast key={toast.message + Date.now()} message={toast.message} kind={toast.kind} />
       )}
     </aside>
   );

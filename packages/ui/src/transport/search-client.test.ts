@@ -1,11 +1,12 @@
+// @vitest-environment jsdom
 /**
  * Tests for searchEvents fetch function and useSearch hook (Plan 03-05).
  * Environment: jsdom (packages/ui/vitest.config.ts)
  */
 import { cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useAppStore } from "../state/store.js";
 import { useSearch } from "../components/filters/useSearch.js";
+import { useAppStore } from "../state/store.js";
 import { searchEvents } from "./search-client.js";
 
 // ── searchEvents ──────────────────────────────────────────────────────────────
@@ -72,7 +73,7 @@ describe("searchEvents", () => {
     await searchEvents("test");
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     // signal should not be set when not provided
-    expect(Object.prototype.hasOwnProperty.call(init, "signal")).toBe(false);
+    expect(Object.hasOwn(init, "signal")).toBe(false);
   });
 
   it("propagates AbortError when signal is aborted", async () => {

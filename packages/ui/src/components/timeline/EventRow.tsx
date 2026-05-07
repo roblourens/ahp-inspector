@@ -2,9 +2,9 @@
 // biome-ignore-all lint/a11y/useFocusableInteractive: grid keyboard focus is managed at the row level; individual cells are not tab stops.
 
 import type { EventRow as EventRowData } from "@ahp-viewer/core";
+import { ShieldAlert } from "lucide-react";
 import type { CSSProperties, JSX } from "react";
 import { memo } from "react";
-import { ShieldAlert } from "lucide-react";
 import { ActionDot } from "./cells/ActionDot.js";
 import { DirectionGlyph } from "./cells/DirectionGlyph.js";
 import { KindTag } from "./cells/KindTag.js";

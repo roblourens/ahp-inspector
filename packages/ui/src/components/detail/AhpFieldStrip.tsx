@@ -10,9 +10,10 @@
  *
  * No raw #hex literals — all stripe colors use CSS var().
  */
-import type { JSX } from "react";
+
 import type { EventRow } from "@ahp-viewer/core";
 import type { AhpEvent } from "@ahp-viewer/shared";
+import type { JSX } from "react";
 import { AhpFieldRow } from "./AhpFieldRow.js";
 
 const AHP_ERROR_LABELS: Record<number, string> = {
@@ -121,9 +122,7 @@ export function AhpFieldStrip({ row, rawEvent }: AhpFieldStripProps): JSX.Elemen
   // 8. errorCode
   if (row.errorCode !== null) {
     const label = AHP_ERROR_LABELS[row.errorCode];
-    const valueStr = label
-      ? `${row.errorCode} — ${label}`
-      : String(row.errorCode);
+    const valueStr = label ? `${row.errorCode} — ${label}` : String(row.errorCode);
     fields.push({
       label: "Error code",
       stripeColor: "var(--color-destructive)",

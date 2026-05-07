@@ -8,7 +8,7 @@
  * react-json-view-lite uses text-only rendering, no eval (verified 03-RESEARCH).
  */
 import type { JSX } from "react";
-import { JsonView, defaultStyles } from "react-json-view-lite";
+import { defaultStyles, JsonView } from "react-json-view-lite";
 import "react-json-view-lite/dist/index.css";
 import { TruncationBanner } from "./TruncationBanner.js";
 

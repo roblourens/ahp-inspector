@@ -60,13 +60,8 @@ export function AppShell(): JSX.Element {
       {hasActiveFilters && <ActiveFilterChips />}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-          {grouping !== "none" && stickyGroup && (
-            <StickyGroupBar topGroup={stickyGroup} />
-          )}
-          <TimelineRegion
-            searchInputRef={searchInputRef}
-            onTopGroupChange={setStickyGroup}
-          />
+          {grouping !== "none" && stickyGroup && <StickyGroupBar topGroup={stickyGroup} />}
+          <TimelineRegion searchInputRef={searchInputRef} onTopGroupChange={setStickyGroup} />
         </div>
         <div
           data-testid="detail-panel-wrapper"

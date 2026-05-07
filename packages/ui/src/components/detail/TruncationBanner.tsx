@@ -3,8 +3,9 @@
  *
  * No raw #hex literals; uses CSS variable color-mix pattern from tokens.css.
  */
-import type { JSX } from "react";
+
 import { AlertTriangle } from "lucide-react";
+import type { JSX } from "react";
 
 interface TruncationBannerProps {
   kind: "client-cap" | "server-cap";

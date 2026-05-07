@@ -5,8 +5,9 @@
  *
  * No raw #hex literals.
  */
-import type { JSX } from "react";
+
 import { Info } from "lucide-react";
+import type { JSX } from "react";
 
 export function PrivacyCaption(): JSX.Element {
   return (

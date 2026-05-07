@@ -1,6 +1,7 @@
 // biome-ignore-all lint/a11y/useSemanticElements: virtualized grid uses divs for absolute positioning.
-import type { CSSProperties, JSX } from "react";
+
 import { AlertTriangle } from "lucide-react";
+import type { CSSProperties, JSX } from "react";
 
 export interface GapBannerRowProps {
   prev: number;
@@ -17,6 +18,8 @@ export function GapBannerRow({ prev, curr, virtualStyle }: GapBannerRowProps): J
       role="row"
       aria-label={ariaLabel}
       data-testid="gap-banner"
+      // biome-ignore lint/a11y/useFocusableInteractive: grid row managed by keyboard handler in TimelineRegion
+      tabIndex={-1}
       style={{
         position: "absolute",
         top: 0,

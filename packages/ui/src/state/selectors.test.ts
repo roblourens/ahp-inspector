@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * Unit tests for selectors: applyFacets, useFilteredRows, useFacetCounts, useGroupedItems.
  * Environment: jsdom (packages/ui/vitest.config.ts)

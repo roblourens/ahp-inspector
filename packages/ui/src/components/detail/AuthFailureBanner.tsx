@@ -3,8 +3,9 @@
  *
  * No raw #hex literals; uses --color-auth-fail-banner-bg token.
  */
-import type { JSX } from "react";
+
 import { ShieldAlert } from "lucide-react";
+import type { JSX } from "react";
 
 interface AuthFailureBannerProps {
   code?: number;

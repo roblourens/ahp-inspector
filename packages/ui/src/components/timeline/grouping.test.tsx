@@ -220,16 +220,12 @@ describe("StickyGroupBar", () => {
   });
 
   it("renders session group label when topGroup is set", () => {
-    render(
-      <StickyGroupBar topGroup={{ level: "session", label: "Session abc12345" }} />,
-    );
+    render(<StickyGroupBar topGroup={{ level: "session", label: "Session abc12345" }} />);
     expect(screen.getByText("Session abc12345")).toBeTruthy();
   });
 
   it("renders turn group label when topGroup is a turn", () => {
-    render(
-      <StickyGroupBar topGroup={{ level: "turn", label: "↳ Turn xyz789" }} />,
-    );
+    render(<StickyGroupBar topGroup={{ level: "turn", label: "↳ Turn xyz789" }} />);
     expect(screen.getByText("↳ Turn xyz789")).toBeTruthy();
   });
 });
@@ -311,12 +307,7 @@ describe("TimelineList — polymorphic VirtualItem rendering", () => {
   it("renders GroupHeaderRow for header items", async () => {
     render(
       <div style={{ height: 400 }}>
-        <TimelineList
-          items={items}
-          rows={rows}
-          selectedIdx={null}
-          onSelect={() => {}}
-        />
+        <TimelineList items={items} rows={rows} selectedIdx={null} onSelect={() => {}} />
       </div>,
     );
     // GroupHeaderRow should render the session label
@@ -327,12 +318,7 @@ describe("TimelineList — polymorphic VirtualItem rendering", () => {
   it("renders GapBannerRow for gap-banner items", async () => {
     render(
       <div style={{ height: 400 }}>
-        <TimelineList
-          items={items}
-          rows={rows}
-          selectedIdx={null}
-          onSelect={() => {}}
-        />
+        <TimelineList items={items} rows={rows} selectedIdx={null} onSelect={() => {}} />
       </div>,
     );
     const gap = await screen.findByText(/serverSeq gap: 3 → 7/);
@@ -342,12 +328,7 @@ describe("TimelineList — polymorphic VirtualItem rendering", () => {
   it("renders EventRow for row items", async () => {
     render(
       <div style={{ height: 400 }}>
-        <TimelineList
-          items={items}
-          rows={rows}
-          selectedIdx={null}
-          onSelect={() => {}}
-        />
+        <TimelineList items={items} rows={rows} selectedIdx={null} onSelect={() => {}} />
       </div>,
     );
     // EventRow rows should be rendered
@@ -358,12 +339,7 @@ describe("TimelineList — polymorphic VirtualItem rendering", () => {
   it("uses correct aria-rowcount based on items length", () => {
     render(
       <div style={{ height: 400 }}>
-        <TimelineList
-          items={items}
-          rows={rows}
-          selectedIdx={null}
-          onSelect={() => {}}
-        />
+        <TimelineList items={items} rows={rows} selectedIdx={null} onSelect={() => {}} />
       </div>,
     );
     const grid = screen.getByRole("grid");

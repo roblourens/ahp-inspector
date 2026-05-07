@@ -24,7 +24,11 @@ function mapToOptions(m: Map<string, number>): { value: string; label: string; c
   return Array.from(m.entries()).map(([value, count]) => ({ value, label: value, count }));
 }
 
-export function FilterBar({ searchInputRef }: { searchInputRef?: RefObject<HTMLInputElement | null> }): JSX.Element {
+export function FilterBar({
+  searchInputRef,
+}: {
+  searchInputRef?: RefObject<HTMLInputElement | null>;
+}): JSX.Element {
   const searchQuery = useAppStore((s) => s.searchQuery);
   const setSearchQuery = useAppStore((s) => s.setSearchQuery);
   const filters = useAppStore((s) => s.filters);

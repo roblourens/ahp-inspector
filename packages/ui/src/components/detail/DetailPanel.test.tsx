@@ -2,10 +2,11 @@
  * Tests for DetailPanel and AhpFieldStrip (Plan 03-04, Task 1).
  * T-03-04-01: contract test with <script> payload ensures no XSS.
  */
-import { cleanup, render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+
+import type { EventRow } from "@ahp-viewer/core";
 import type { AhpEvent } from "@ahp-viewer/shared";
-import type { EventRow, Status } from "@ahp-viewer/core";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { useAppStore } from "../../state/store.js";
 import type { DetailResponse } from "../../transport/http-client.js";
 

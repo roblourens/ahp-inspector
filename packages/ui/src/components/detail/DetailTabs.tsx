@@ -24,7 +24,8 @@ export function DetailTabs({ active, onChange }: DetailTabsProps): JSX.Element {
   function handleKeyDown(e: KeyboardEvent<HTMLButtonElement>, idx: number): void {
     if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
       e.preventDefault();
-      const next = e.key === "ArrowRight" ? (idx + 1) % TABS.length : (idx - 1 + TABS.length) % TABS.length;
+      const next =
+        e.key === "ArrowRight" ? (idx + 1) % TABS.length : (idx - 1 + TABS.length) % TABS.length;
       const tab = TABS[next];
       if (tab) onChange(tab.id);
     }

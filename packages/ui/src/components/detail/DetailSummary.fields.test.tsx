@@ -1,10 +1,11 @@
 /**
  * Tests for AhpFieldStrip — all 9 AHP fields (Plan 03-04 Task 1).
  */
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+
 import type { EventRow, KindTag } from "@ahp-viewer/core";
 import type { AhpEvent } from "@ahp-viewer/shared";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 import { AhpFieldStrip } from "./AhpFieldStrip.js";
 
 function makeRow(overrides: Partial<EventRow> = {}): EventRow {
@@ -211,7 +212,7 @@ describe("AhpFieldStrip — empty strip", () => {
   it("renders an empty strip (no rows) when no AHP fields are present", () => {
     const row = makeRow();
     const rawEvent = makeEvent();
-    const { container } = render(<AhpFieldStrip row={row} rawEvent={rawEvent} />);
+    render(<AhpFieldStrip row={row} rawEvent={rawEvent} />);
     const strip = screen.getByTestId("ahp-field-strip");
     // The strip itself should exist but have no field rows inside it
     expect(strip).toBeInTheDocument();

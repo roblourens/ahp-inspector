@@ -15,7 +15,7 @@ interface CopyToastProps {
   kind: "success" | "error";
 }
 
-export function CopyToast({ message, kind }: CopyToastProps): JSX.Element {
+export function CopyToast({ message, kind }: CopyToastProps): JSX.Element | null {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
@@ -23,15 +23,14 @@ export function CopyToast({ message, kind }: CopyToastProps): JSX.Element {
     return () => clearTimeout(id);
   }, []);
 
-  if (!visible) return <></>;
+  if (!visible) return null;
 
   const bgColor =
     kind === "success"
       ? "color-mix(in srgb, var(--color-success) 20%, var(--color-surface-raised))"
       : "color-mix(in srgb, var(--color-destructive) 20%, var(--color-surface-raised))";
 
-  const borderColor =
-    kind === "success" ? "var(--color-success)" : "var(--color-destructive)";
+  const borderColor = kind === "success" ? "var(--color-success)" : "var(--color-destructive)";
 
   return (
     <div

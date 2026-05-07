@@ -5,9 +5,9 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import type { CSSProperties, JSX } from "react";
 import { useEffect, useMemo, useRef } from "react";
 import type { VirtualItem } from "../../state/selectors.js";
+import { EventRow } from "./EventRow.js";
 import { GapBannerRow } from "./GapBannerRow.js";
 import { GroupHeaderRow } from "./GroupHeaderRow.js";
-import { EventRow } from "./EventRow.js";
 import { ParseErrorRow } from "./ParseErrorRow.js";
 
 const ITEM_HEIGHT = {
@@ -79,8 +79,7 @@ export function TimelineList({
   const prevTopGroupRef = useRef<typeof topGroup>(null);
   useEffect(() => {
     const prev = prevTopGroupRef.current;
-    const changed =
-      prev?.label !== topGroup?.label || prev?.level !== topGroup?.level;
+    const changed = prev?.label !== topGroup?.label || prev?.level !== topGroup?.level;
     if (changed && onTopGroupChange) {
       onTopGroupChange(topGroup);
     }

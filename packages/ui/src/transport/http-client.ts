@@ -8,8 +8,9 @@
  *   T-03-04-04: AbortController per idx — previous controller aborted on
  *   new selectedIdx change in DetailPanel's useEffect cleanup.
  */
-import type { AhpEvent } from "@ahp-viewer/shared";
+
 import type { Status } from "@ahp-viewer/core";
+import type { AhpEvent } from "@ahp-viewer/shared";
 
 export type { AhpEvent };
 
@@ -38,8 +39,8 @@ function cacheSet(idx: number, data: DetailResponse): void {
     return;
   }
   if (cacheOrder.length >= MAX_CACHE) {
-    const evict = cacheOrder.shift()!;
-    cache.delete(evict);
+    const evict = cacheOrder.shift();
+    if (evict !== undefined) cache.delete(evict);
   }
   cacheOrder.push(idx);
   cache.set(idx, data);
@@ -60,7 +61,7 @@ export async function fetchEvent(
   const resp = await fetch(`/api/log/event/${idx}`, init);
   if (resp.status === 404) return null;
   if (!resp.ok) throw new Error(`Failed to load event: ${resp.status}`);
-  const data: DetailResponse = await resp.json() as DetailResponse;
+  const data: DetailResponse = (await resp.json()) as DetailResponse;
   cacheSet(idx, data);
   return data;
 }

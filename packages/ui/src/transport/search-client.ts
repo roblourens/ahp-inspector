@@ -9,10 +9,7 @@ export interface SearchResult {
  * Respects AbortSignal; throws DOMException AbortError on cancel (caller handles).
  * No Node.js imports — browser-only fetch API only.
  */
-export async function searchEvents(
-  q: string,
-  signal?: AbortSignal,
-): Promise<SearchResult> {
+export async function searchEvents(q: string, signal?: AbortSignal): Promise<SearchResult> {
   const params = new URLSearchParams({ q, limit: "5000" });
   // exactOptionalPropertyTypes: only include signal property when it's defined,
   // because RequestInit.signal is AbortSignal | null (not | undefined).

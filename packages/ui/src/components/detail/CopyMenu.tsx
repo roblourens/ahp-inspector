@@ -7,10 +7,11 @@
  *
  * No raw #hex literals. No dangerouslySetInnerHTML.
  */
-import { type JSX, useEffect, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
-import type { AhpEvent } from "@ahp-viewer/shared";
+
 import type { Status } from "@ahp-viewer/core";
+import type { AhpEvent } from "@ahp-viewer/shared";
+import { ChevronDown } from "lucide-react";
+import { type JSX, useEffect, useRef, useState } from "react";
 
 interface CopyMenuProps {
   event: AhpEvent;
@@ -22,9 +23,12 @@ interface CopyMenuProps {
 
 function directionWord(dir: string): string {
   switch (dir) {
-    case "c2s": return "Client→Server";
-    case "s2c": return "Server→Client";
-    default: return "Internal";
+    case "c2s":
+      return "Client→Server";
+    case "s2c":
+      return "Server→Client";
+    default:
+      return "Internal";
   }
 }
 
@@ -57,11 +61,7 @@ async function copyText(text: string): Promise<void> {
   }
 }
 
-function buildSummary(
-  event: AhpEvent,
-  latencyMs: number | null,
-  status: Status,
-): string {
+function buildSummary(event: AhpEvent, latencyMs: number | null, status: Status): string {
   const ts = fmtTs(event.ts);
   const dir = directionWord(event.dir);
   const method = event.method ?? event.actionType ?? "—";

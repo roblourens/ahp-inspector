@@ -1,6 +1,7 @@
 // biome-ignore-all lint/a11y/useSemanticElements: virtualized grid uses divs for absolute positioning.
-import type { CSSProperties, JSX } from "react";
+
 import { ChevronDown, ChevronRight } from "lucide-react";
+import type { CSSProperties, JSX } from "react";
 
 export interface GroupHeaderRowProps {
   level: "session" | "turn";
@@ -32,9 +33,7 @@ export function GroupHeaderRow({
   virtualStyle,
 }: GroupHeaderRowProps): JSX.Element {
   const label =
-    level === "session"
-      ? `Session ${sessionId.slice(-8)}`
-      : `↳ Turn ${(turnId ?? "").slice(-6)}`;
+    level === "session" ? `Session ${sessionId.slice(-8)}` : `↳ Turn ${(turnId ?? "").slice(-6)}`;
 
   const ariaLabel = isCollapsed ? `Expand ${label}` : `Collapse ${label}`;
 
@@ -42,6 +41,8 @@ export function GroupHeaderRow({
     <div
       role="row"
       data-testid={`group-header-${level}`}
+      // biome-ignore lint/a11y/useFocusableInteractive: grid row managed by keyboard handler in TimelineRegion
+      tabIndex={-1}
       style={{
         position: "absolute",
         top: 0,
@@ -78,7 +79,9 @@ export function GroupHeaderRow({
       >
         {isCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
       </button>
-      <span style={{ flex: 1, fontWeight: "var(--weight-semibold)" as CSSProperties["fontWeight"] }}>
+      <span
+        style={{ flex: 1, fontWeight: "var(--weight-semibold)" as CSSProperties["fontWeight"] }}
+      >
         {label}
       </span>
       <span style={{ color: "var(--color-group-header-meta)", flexShrink: 0 }}>

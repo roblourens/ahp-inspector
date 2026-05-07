@@ -1,7 +1,7 @@
 import type { JSX, RefObject } from "react";
 import { useEffect, useRef } from "react";
-import { useFilteredRows, useGroupedItems } from "../../state/selectors.js";
 import { isFiltersEmpty } from "../../state/filters.js";
+import { useFilteredRows, useGroupedItems } from "../../state/selectors.js";
 import { useAppStore } from "../../state/store.js";
 import { connectLogStream } from "../../transport/sse-client.js";
 import { DisconnectedBanner } from "../states/DisconnectedBanner.js";
@@ -35,7 +35,11 @@ interface ChordState {
   at: number;
 }
 
-export function TimelineRegion({ onReconnect, searchInputRef, onTopGroupChange }: TimelineRegionProps = {}): JSX.Element {
+export function TimelineRegion({
+  onReconnect,
+  searchInputRef,
+  onTopGroupChange,
+}: TimelineRegionProps = {}): JSX.Element {
   const rows = useAppStore((s) => s.rows);
   const connection = useAppStore((s) => s.connection);
   const meta = useAppStore((s) => s.meta);
