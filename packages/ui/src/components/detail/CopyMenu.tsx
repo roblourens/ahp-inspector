@@ -112,7 +112,7 @@ export function CopyMenu({
       label: "Copy raw JSON",
       action: () => {
         try {
-          return JSON.stringify(event.raw, null, 2);
+          return JSON.stringify(event.raw);
         } catch {
           return "[Circular or non-serializable value]";
         }
