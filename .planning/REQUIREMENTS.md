@@ -113,52 +113,52 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | TBD | Pending |
-| FOUND-02 | TBD | Pending |
-| FOUND-03 | TBD | Pending |
-| FOUND-04 | TBD | Pending |
-| INGEST-01 | TBD | Pending |
-| INGEST-02 | TBD | Pending |
-| INGEST-03 | TBD | Pending |
-| INGEST-04 | TBD | Pending |
-| INGEST-05 | TBD | Pending |
-| INGEST-06 | TBD | Pending |
-| INGEST-07 | TBD | Pending |
-| EVENT-01 | TBD | Pending |
-| EVENT-02 | TBD | Pending |
-| EVENT-03 | TBD | Pending |
-| EVENT-04 | TBD | Pending |
-| EVENT-05 | TBD | Pending |
-| EVENT-06 | TBD | Pending |
-| TIME-01 | TBD | Pending |
-| TIME-02 | TBD | Pending |
-| TIME-03 | TBD | Pending |
-| TIME-04 | TBD | Pending |
-| TIME-05 | TBD | Pending |
-| TIME-06 | TBD | Pending |
-| DETAIL-01 | TBD | Pending |
-| DETAIL-02 | TBD | Pending |
-| DETAIL-03 | TBD | Pending |
-| DETAIL-04 | TBD | Pending |
-| SEARCH-01 | TBD | Pending |
-| SEARCH-02 | TBD | Pending |
-| SEARCH-03 | TBD | Pending |
-| SEARCH-04 | TBD | Pending |
-| SEARCH-05 | TBD | Pending |
-| THEME-01 | TBD | Pending |
-| THEME-02 | TBD | Pending |
-| THEME-03 | TBD | Pending |
-| THEME-04 | TBD | Pending |
-| THEME-05 | TBD | Pending |
-| VERIFY-01 | TBD | Pending |
-| VERIFY-02 | TBD | Pending |
-| VERIFY-03 | TBD | Pending |
-| VERIFY-04 | TBD | Pending |
+| FOUND-01 | Phase 1 | Pending |
+| FOUND-02 | Phase 1 | Pending |
+| FOUND-03 | Phase 1 | Pending |
+| FOUND-04 | Phase 1 | Pending |
+| INGEST-01 | Phase 2 | Pending |
+| INGEST-02 | Phase 4 | Pending |
+| INGEST-03 | Phase 4 | Pending |
+| INGEST-04 | Phase 4 | Pending |
+| INGEST-05 | Phase 4 | Pending |
+| INGEST-06 | Phase 2 | Pending |
+| INGEST-07 | Phase 1 | Pending |
+| EVENT-01 | Phase 1 | Pending |
+| EVENT-02 | Phase 1 | Pending |
+| EVENT-03 | Phase 1 | Pending |
+| EVENT-04 | Phase 2 | Pending |
+| EVENT-05 | Phase 2 | Pending |
+| EVENT-06 | Phase 3 | Pending |
+| TIME-01 | Phase 2 | Pending |
+| TIME-02 | Phase 2 | Pending |
+| TIME-03 | Phase 2 | Pending |
+| TIME-04 | Phase 3 | Pending |
+| TIME-05 | Phase 3 | Pending |
+| TIME-06 | Phase 2 | Pending |
+| DETAIL-01 | Phase 3 | Pending |
+| DETAIL-02 | Phase 3 | Pending |
+| DETAIL-03 | Phase 3 | Pending |
+| DETAIL-04 | Phase 3 | Pending |
+| SEARCH-01 | Phase 3 | Pending |
+| SEARCH-02 | Phase 3 | Pending |
+| SEARCH-03 | Phase 3 | Pending |
+| SEARCH-04 | Phase 3 | Pending |
+| SEARCH-05 | Phase 4 | Pending |
+| THEME-01 | Phase 5 | Pending |
+| THEME-02 | Phase 5 | Pending |
+| THEME-03 | Phase 5 | Pending |
+| THEME-04 | Phase 5 | Pending |
+| THEME-05 | Phase 5 | Pending |
+| VERIFY-01 | Phase 1 | Pending |
+| VERIFY-02 | Phase 5 | Pending |
+| VERIFY-03 | Phase 5 | Pending |
+| VERIFY-04 | Phase 1 | Pending |
 
 **Coverage:**
-- v1 requirements: 42 total
-- Mapped to phases: 0
-- Unmapped: 42 ⚠
+- v1 requirements: 41 total
+- Mapped to phases: 41
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-06*
