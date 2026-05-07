@@ -1,13 +1,14 @@
 import { Search, X } from "lucide-react";
-import type { JSX } from "react";
+import type { JSX, RefObject } from "react";
 
 interface SearchInputProps {
   value: string;
   onChange(q: string): void;
   onClear(): void;
+  ref?: RefObject<HTMLInputElement | null>;
 }
 
-export function SearchInput({ value, onChange, onClear }: SearchInputProps): JSX.Element {
+export function SearchInput({ value, onChange, onClear, ref }: SearchInputProps): JSX.Element {
   return (
     <div
       style={{
@@ -34,6 +35,7 @@ export function SearchInput({ value, onChange, onClear }: SearchInputProps): JSX
       </span>
       <input
         type="text"
+        ref={ref}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search method, id, session, payload…"

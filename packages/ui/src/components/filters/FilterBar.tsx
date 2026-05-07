@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import type { JSX, RefObject } from "react";
 import { useState } from "react";
 import { useFacetCounts, useFilteredRows } from "../../state/selectors.js";
 import { useAppStore } from "../../state/store.js";
@@ -24,7 +24,7 @@ function mapToOptions(m: Map<string, number>): { value: string; label: string; c
   return Array.from(m.entries()).map(([value, count]) => ({ value, label: value, count }));
 }
 
-export function FilterBar(): JSX.Element {
+export function FilterBar({ searchInputRef }: { searchInputRef?: RefObject<HTMLInputElement | null> }): JSX.Element {
   const searchQuery = useAppStore((s) => s.searchQuery);
   const setSearchQuery = useAppStore((s) => s.setSearchQuery);
   const filters = useAppStore((s) => s.filters);
@@ -66,6 +66,7 @@ export function FilterBar(): JSX.Element {
         value={searchQuery}
         onChange={setSearchQuery}
         onClear={() => setSearchQuery("")}
+        {...(searchInputRef !== undefined ? { ref: searchInputRef } : {})}
       />
 
       {/* Direction facet */}

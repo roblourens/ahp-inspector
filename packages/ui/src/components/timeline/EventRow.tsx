@@ -4,6 +4,7 @@
 import type { EventRow as EventRowData } from "@ahp-viewer/core";
 import type { CSSProperties, JSX } from "react";
 import { memo } from "react";
+import { ShieldAlert } from "lucide-react";
 import { ActionDot } from "./cells/ActionDot.js";
 import { DirectionGlyph } from "./cells/DirectionGlyph.js";
 import { KindTag } from "./cells/KindTag.js";
@@ -16,6 +17,7 @@ export interface EventRowProps {
   isSelected: boolean;
   onClick: () => void;
   style?: CSSProperties;
+  searchQuery?: string;
 }
 
 function railColor(row: EventRowData, isSelected: boolean): string {
@@ -25,11 +27,48 @@ function railColor(row: EventRowData, isSelected: boolean): string {
   return "transparent";
 }
 
+/**
+ * Highlight occurrences of `query` (case-insensitive) within `text`.
+ * Returns a JSX element with <mark> wrapping each match.
+ * Only applies when query is ≥ 2 characters (T-03-05-03: uses React elements — auto-escaped, no XSS).
+ */
+function highlightMatches(text: string, query: string): JSX.Element {
+  if (query.length < 2) return <>{text}</>;
+  const lower = text.toLowerCase();
+  const lowerQ = query.toLowerCase();
+  const parts: JSX.Element[] = [];
+  let last = 0;
+  let idx = lower.indexOf(lowerQ, last);
+  while (idx !== -1) {
+    if (idx > last) {
+      parts.push(<span key={`t-${last}`}>{text.slice(last, idx)}</span>);
+    }
+    parts.push(
+      <mark
+        key={`m-${idx}`}
+        style={{
+          background: "var(--color-search-match-bg)",
+          color: "var(--color-search-match-fg)",
+        }}
+      >
+        {text.slice(idx, idx + query.length)}
+      </mark>,
+    );
+    last = idx + query.length;
+    idx = lower.indexOf(lowerQ, last);
+  }
+  if (last < text.length) {
+    parts.push(<span key={`t-${last}`}>{text.slice(last)}</span>);
+  }
+  return <>{parts}</>;
+}
+
 export const EventRow = memo(function EventRow({
   row,
   isSelected,
   onClick,
   style,
+  searchQuery = "",
 }: EventRowProps): JSX.Element {
   return (
     <div
@@ -65,7 +104,15 @@ export const EventRow = memo(function EventRow({
         {row.tsFmt}
       </div>
       <div role="gridcell">
-        <DirectionGlyph direction={row.dir} />
+        {row.isAuthFailure ? (
+          <ShieldAlert
+            size={14}
+            data-testid="auth-fail-glyph"
+            style={{ color: "var(--color-auth-fail-rail)", display: "block" }}
+          />
+        ) : (
+          <DirectionGlyph direction={row.dir} />
+        )}
       </div>
       <div role="gridcell">
         <KindTag kind={row.kindTag} />
@@ -78,7 +125,11 @@ export const EventRow = memo(function EventRow({
             fontWeight: row.method ? 600 : 400,
           }}
         >
-          {row.method ?? row.actionType ?? "—"}
+          {row.method
+            ? highlightMatches(row.method, searchQuery)
+            : row.actionType
+              ? highlightMatches(row.actionType, searchQuery)
+              : "—"}
         </span>
       </div>
       <div role="gridcell" className="id" title={row.sessionId ?? ""}>

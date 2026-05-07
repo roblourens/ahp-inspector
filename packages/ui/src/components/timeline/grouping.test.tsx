@@ -6,7 +6,8 @@
 import type { EventRow as EventRowData } from "@ahp-viewer/core";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { VirtualItem } from "../../../state/selectors.js";
+// Fix import path: grouping.test.tsx is at .../timeline/, selectors is at .../state/
+import type { VirtualItem } from "../../state/selectors.js";
 import { GapBannerRow } from "./GapBannerRow.js";
 import { GroupHeaderRow } from "./GroupHeaderRow.js";
 import { StickyGroupBar } from "./StickyGroupBar.js";

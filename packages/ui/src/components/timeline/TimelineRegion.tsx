@@ -1,5 +1,7 @@
-import type { JSX } from "react";
-import { useEffect } from "react";
+import type { JSX, RefObject } from "react";
+import { useEffect, useRef } from "react";
+import { useFilteredRows, useGroupedItems } from "../../state/selectors.js";
+import { isFiltersEmpty } from "../../state/filters.js";
 import { useAppStore } from "../../state/store.js";
 import { connectLogStream } from "../../transport/sse-client.js";
 import { DisconnectedBanner } from "../states/DisconnectedBanner.js";
@@ -10,6 +12,8 @@ import { TimelineList } from "./TimelineList.js";
 
 export interface TimelineRegionProps {
   onReconnect?: () => void;
+  searchInputRef?: RefObject<HTMLInputElement | null>;
+  onTopGroupChange?: (group: { level: "session" | "turn"; label: string } | null) => void;
 }
 
 function defaultReconnect(): void {
@@ -25,43 +29,119 @@ function defaultReconnect(): void {
   if (typeof window !== "undefined") window.__ahpStream = handle;
 }
 
-export function TimelineRegion({ onReconnect }: TimelineRegionProps = {}): JSX.Element {
+// Chord state for "g s" grouping shortcut
+interface ChordState {
+  key: string;
+  at: number;
+}
+
+export function TimelineRegion({ onReconnect, searchInputRef, onTopGroupChange }: TimelineRegionProps = {}): JSX.Element {
   const rows = useAppStore((s) => s.rows);
   const connection = useAppStore((s) => s.connection);
   const meta = useAppStore((s) => s.meta);
   const selectedIdx = useAppStore((s) => s.selectedIdx);
   const select = useAppStore((s) => s.selectIdx);
   const clear = useAppStore((s) => s.clearSelection);
+  const searchQuery = useAppStore((s) => s.searchQuery);
+  const setSearchQuery = useAppStore((s) => s.setSearchQuery);
+  const setSearchMatches = useAppStore((s) => s.setSearchMatches);
+  const filters = useAppStore((s) => s.filters);
+  const clearFilters = useAppStore((s) => s.clearFilters);
+  const grouping = useAppStore((s) => s.grouping);
+  const setGrouping = useAppStore((s) => s.setGrouping);
+  const groupCollapsed = useAppStore((s) => s.groupCollapsed);
+  const toggleGroupCollapsed = useAppStore((s) => s.toggleGroupCollapsed);
+
+  // Selectors — compute filtered/grouped items.
+  const filteredRowIdxs = useFilteredRows();
+  const groupedItems = useGroupedItems(filteredRowIdxs);
+
+  const chordRef = useRef<ChordState | null>(null);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent): void {
-      if (rows.length === 0) return;
-      const cur = selectedIdx ?? -1;
+      // "/" — focus search input
+      if (e.key === "/" && !(e.target instanceof HTMLInputElement)) {
+        e.preventDefault();
+        searchInputRef?.current?.focus();
+        return;
+      }
+
+      // "g s" chord — cycle grouping
+      const now = Date.now();
+      const prev = chordRef.current;
+      if (e.key === "g") {
+        chordRef.current = { key: "g", at: now };
+        return;
+      }
+      if (e.key === "s" && prev?.key === "g" && now - prev.at < 500) {
+        chordRef.current = null;
+        const next =
+          grouping === "none" ? "session" : grouping === "session" ? "session+turn" : "none";
+        setGrouping(next);
+        return;
+      }
+      chordRef.current = null;
+
+      // Esc priority: search → (popovers handled in FilterBar) → filters → selection
+      if (e.key === "Escape") {
+        if (searchQuery) {
+          setSearchQuery("");
+          setSearchMatches(null);
+        } else if (!isFiltersEmpty(filters)) {
+          clearFilters();
+        } else {
+          clear();
+        }
+        return;
+      }
+
+      // Navigation over filteredRowIdxs
+      if (filteredRowIdxs.length === 0) return;
+      const curPos = selectedIdx !== null ? filteredRowIdxs.indexOf(selectedIdx) : -1;
+
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        select(Math.min(rows.length - 1, cur + 1));
+        const next = filteredRowIdxs[Math.min(filteredRowIdxs.length - 1, curPos + 1)];
+        if (next !== undefined) select(next);
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        select(Math.max(0, cur - 1));
+        const next = filteredRowIdxs[Math.max(0, curPos - 1)];
+        if (next !== undefined) select(next);
       } else if (e.key === "PageDown") {
         e.preventDefault();
-        select(Math.min(rows.length - 1, cur + 20));
+        const next = filteredRowIdxs[Math.min(filteredRowIdxs.length - 1, curPos + 20)];
+        if (next !== undefined) select(next);
       } else if (e.key === "PageUp") {
         e.preventDefault();
-        select(Math.max(0, cur - 20));
+        const next = filteredRowIdxs[Math.max(0, curPos - 20)];
+        if (next !== undefined) select(next);
       } else if (e.key === "Home") {
         e.preventDefault();
-        select(0);
+        const next = filteredRowIdxs[0];
+        if (next !== undefined) select(next);
       } else if (e.key === "End") {
         e.preventDefault();
-        select(rows.length - 1);
-      } else if (e.key === "Escape") {
-        clear();
+        const next = filteredRowIdxs[filteredRowIdxs.length - 1];
+        if (next !== undefined) select(next);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [rows.length, selectedIdx, select, clear]);
+  }, [
+    filteredRowIdxs,
+    selectedIdx,
+    select,
+    clear,
+    searchQuery,
+    setSearchQuery,
+    setSearchMatches,
+    filters,
+    clearFilters,
+    grouping,
+    setGrouping,
+    searchInputRef,
+  ]);
 
   if (connection === "connecting" && rows.length === 0) {
     return <LoadingState filename={meta?.filename ?? ""} />;
@@ -85,7 +165,15 @@ export function TimelineRegion({ onReconnect }: TimelineRegionProps = {}): JSX.E
       {connection === "disconnected" && (
         <DisconnectedBanner onReconnect={onReconnect ?? defaultReconnect} />
       )}
-      <TimelineList rows={rows} selectedIdx={selectedIdx} onSelect={select} />
+      <TimelineList
+        items={groupedItems}
+        rows={rows}
+        selectedIdx={selectedIdx}
+        onSelect={(idx) => select(idx)}
+        groupCollapsed={groupCollapsed}
+        onToggleGroup={toggleGroupCollapsed}
+        {...(onTopGroupChange !== undefined ? { onTopGroupChange } : {})}
+      />
     </div>
   );
 }
