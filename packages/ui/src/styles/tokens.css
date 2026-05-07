@@ -70,4 +70,31 @@
   --latency-normal: #3a4252;
   --latency-slow: #5a4a2e;
   --latency-critical: #5a2e36;
+
+  /* ── Phase 3: Search highlight ───────────────────────────────────────── */
+  --color-search-match-bg: #3a3520;
+  --color-search-match-fg: #e6e9ef;
+
+  /* ── Phase 3: Filter / chip surfaces ────────────────────────────────── */
+  --color-chip-bg: var(--color-surface-raised);
+  --color-chip-bg-active: var(--color-border);
+  --color-chip-border: var(--color-border-strong);
+  --color-chip-fg: var(--color-text);
+  --color-chip-fg-muted: var(--color-text-muted);
+  --color-chip-dismiss: var(--color-text-muted);
+
+  /* ── Phase 3: Group header / gap banner / auth-failure surfaces ──────── */
+  --color-group-header-bg: #1a1f27;
+  --color-group-header-fg: var(--color-text);
+  --color-group-header-meta: var(--color-text-muted);
+  --color-gap-banner-bg: color-mix(in srgb, var(--color-warning) 14%, var(--color-bg));
+  --color-gap-banner-fg: var(--color-warning);
+  --color-auth-fail-rail: var(--color-destructive);
+  --color-auth-fail-banner-bg: color-mix(in srgb, var(--color-destructive) 14%, var(--color-bg));
+
+  /* ── Phase 3: Fixed heights (4 px grid) ─────────────────────────────── */
+  --row-group-header-height: 24px;
+  --row-banner-height: 20px;
+  --filter-bar-height: 40px;
+  --filter-chips-height: 32px;
 }
