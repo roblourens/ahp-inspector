@@ -1,0 +1,19 @@
+{
+  "name": "@ahp-viewer/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ahp-viewer/shared": "workspace:*",
+    "hono": "^4.12.18",
+    "@hono/node-server": "^1.13.7"
+  }
+}

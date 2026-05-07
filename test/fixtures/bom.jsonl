@@ -1,0 +1,3 @@
+﻿{"jsonrpc":"2.0","id":1,"method":"listSessions","params":{}}
+{"jsonrpc":"2.0","id":1,"result":{"sessions":[]}}
+{"jsonrpc":"2.0","method":"dispatch","params":{"action":{"type":"noop"}}}

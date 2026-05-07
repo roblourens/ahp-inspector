@@ -1,0 +1,60 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.14/schema.json",
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always"
+    }
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!**/dist/**",
+      "!**/node_modules/**",
+      "!**/coverage/**",
+      "!test/fixtures/**",
+      "!.github/**",
+      "!.planning/**",
+      "!pnpm-lock.yaml"
+    ]
+  },
+  "overrides": [
+    {
+      "includes": ["packages/shared/**", "packages/core/**", "packages/parser/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "fs": "Portable packages must not import Node fs.",
+                  "fs/promises": "Portable packages must not import Node fs/promises.",
+                  "path": "Portable packages must not import Node path.",
+                  "chokidar": "Portable packages must not import chokidar.",
+                  "react": "Portable packages must not import react.",
+                  "react-dom": "Portable packages must not import react-dom.",
+                  "vite": "Portable packages must not import vite.",
+                  "hono": "Portable packages must not import hono.",
+                  "@ahp-viewer/host-node": "Portable packages must not import @ahp-viewer/host-node."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

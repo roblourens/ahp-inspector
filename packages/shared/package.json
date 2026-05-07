@@ -1,0 +1,19 @@
+{
+  "name": "@ahp-viewer/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./ahp": "./src/ahp/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsup src/index.ts --format esm --dts"
+  },
+  "dependencies": {
+    "agent-host-protocol": "file:../../../agent-host-protocol"
+  }
+}

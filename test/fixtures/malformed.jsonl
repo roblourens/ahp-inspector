@@ -1,0 +1,5 @@
+{"jsonrpc":"2.0","id":1,"method":"listSessions","params":{}}
+{"jsonrpc":"2.0","id":3,"method":"listSes
+this is not json
+
+{"jsonrpc":"2.0","id":1,"result":{"sessions":[]}}

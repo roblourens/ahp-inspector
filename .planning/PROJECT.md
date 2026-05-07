@@ -12,7 +12,10 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Foundation architecture separates portable shared/parser/core logic from Node host, server, and CLI packages — Phase 1
+- ✓ AHP protocol concepts are sourced from `../agent-host-protocol` instead of hand-rolled definitions — Phase 1
+- ✓ Canonical event model, tolerant JSONL parser, isolated legacy sample adapter, and JSON-RPC-safe correlation key are implemented and tested — Phase 1
+- ✓ Local-only baseline is enforced with localhost binding, dependency allow-list checks, boundary tests, and scrubbed synthetic fixtures — Phase 1
 
 ### Active
 
@@ -59,6 +62,7 @@ The primary user is a developer debugging or exploring VS Code-to-agent-host beh
 | Target real JSONL logs | The current sample is useful but human-readable; VS Code can be changed to emit proper JSONL for reliable parsing | — Pending |
 | Support auto-discovery plus manual open | Auto-discovery reduces friction, manual open handles unknown log locations and samples | — Pending |
 | Include light, dark, and hacker themes in v1 | Visual polish and theme variety are part of the product vision, not optional decoration | — Pending |
+| Use TypeScript workspace contracts for Phase 1 | Keeps parser/core/event contracts portable and extension-ready before UI work begins | ✓ Good |
 
 ## Evolution
 
@@ -78,4 +82,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-06 after initialization*
+*Last updated: 2026-05-07 after Phase 1 completion*

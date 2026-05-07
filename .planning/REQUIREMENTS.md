@@ -9,10 +9,10 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 
 ### Project Foundation
 
-- [ ] **FOUND-01**: Developer can install dependencies and run a standalone local AHP Log Viewer from the CLI.
-- [ ] **FOUND-02**: The codebase separates portable core logic, Node/local host capabilities, server transport, CLI entrypoint, and browser UI so the UI can later run in a VS Code webview.
-- [ ] **FOUND-03**: The app uses `../agent-host-protocol` as the source of truth for AHP method, action, notification, and schema concepts instead of inventing protocol definitions.
-- [ ] **FOUND-04**: The app enforces a local-only security posture with no telemetry, no CDN assets, and no outbound network dependencies for viewing logs.
+- [x] **FOUND-01**: Developer can install dependencies and run a standalone local AHP Log Viewer from the CLI.
+- [x] **FOUND-02**: The codebase separates portable core logic, Node/local host capabilities, server transport, CLI entrypoint, and browser UI so the UI can later run in a VS Code webview.
+- [x] **FOUND-03**: The app uses `../agent-host-protocol` as the source of truth for AHP method, action, notification, and schema concepts instead of inventing protocol definitions.
+- [x] **FOUND-04**: The app enforces a local-only security posture with no telemetry, no CDN assets, and no outbound network dependencies for viewing logs.
 
 ### Log Ingestion
 
@@ -22,13 +22,13 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 - [ ] **INGEST-04**: User can watch a selected log as new JSONL entries are appended without reparsing the entire file.
 - [ ] **INGEST-05**: User can pause and resume live following without losing their place in the log.
 - [ ] **INGEST-06**: User can see clear parse-error rows for malformed JSONL lines while valid neighboring entries still load.
-- [ ] **INGEST-07**: Developer can use the current human-readable sample log as a fixture through a legacy parser adapter without coupling the main event model to that format.
+- [x] **INGEST-07**: Developer can use the current human-readable sample log as a fixture through a legacy parser adapter without coupling the main event model to that format.
 
 ### Event Model and Correlation
 
-- [ ] **EVENT-01**: Each JSONL entry is normalized into a canonical event model with timestamp, direction, kind, method or action type, IDs, optional session/turn/tool identifiers, sequence data, raw payload, and parse status.
-- [ ] **EVENT-02**: Requests, responses, notifications, state actions, protocol notifications, errors, and parse errors are classified consistently.
-- [ ] **EVENT-03**: Request and response pairs are correlated using a bidirectional JSON-RPC-safe key that preserves session, direction, id value, and id type.
+- [x] **EVENT-01**: Each JSONL entry is normalized into a canonical event model with timestamp, direction, kind, method or action type, IDs, optional session/turn/tool identifiers, sequence data, raw payload, and parse status.
+- [x] **EVENT-02**: Requests, responses, notifications, state actions, protocol notifications, errors, and parse errors are classified consistently.
+- [x] **EVENT-03**: Request and response pairs are correlated using a bidirectional JSON-RPC-safe key that preserves session, direction, id value, and id type.
 - [ ] **EVENT-04**: Correlated request rows show response status and latency when the matching response arrives.
 - [ ] **EVENT-05**: Unmatched, orphaned, failed, and malformed events are visually distinguishable.
 - [ ] **EVENT-06**: Server sequence gaps and authentication failures can be detected and surfaced when present in the event stream.
@@ -67,10 +67,10 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 
 ### Verification
 
-- [ ] **VERIFY-01**: Parser and normalizer tests cover valid JSONL, malformed lines, partial trailing lines, CRLF/BOM handling, large payloads, request/response correlation, and the legacy sample adapter.
+- [x] **VERIFY-01**: Parser and normalizer tests cover valid JSONL, malformed lines, partial trailing lines, CRLF/BOM handling, large payloads, request/response correlation, and the legacy sample adapter.
 - [ ] **VERIFY-02**: UI tests cover timeline rendering, row selection, detail view, filtering/search, theme switching, empty states, and parse-error states.
 - [ ] **VERIFY-03**: End-to-end tests exercise opening a fixture log, filtering/searching, expanding event details, and following appended events.
-- [ ] **VERIFY-04**: Fixture logs are scrubbed so committed test data does not contain tokens or private prompt/output content.
+- [x] **VERIFY-04**: Fixture logs are scrubbed so committed test data does not contain tokens or private prompt/output content.
 
 ## v2 Requirements
 
@@ -113,20 +113,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 1 | Pending |
-| FOUND-02 | Phase 1 | Pending |
-| FOUND-03 | Phase 1 | Pending |
-| FOUND-04 | Phase 1 | Pending |
+| FOUND-01 | Phase 1 | Complete |
+| FOUND-02 | Phase 1 | Complete |
+| FOUND-03 | Phase 1 | Complete |
+| FOUND-04 | Phase 1 | Complete |
 | INGEST-01 | Phase 2 | Pending |
 | INGEST-02 | Phase 4 | Pending |
 | INGEST-03 | Phase 4 | Pending |
 | INGEST-04 | Phase 4 | Pending |
 | INGEST-05 | Phase 4 | Pending |
 | INGEST-06 | Phase 2 | Pending |
-| INGEST-07 | Phase 1 | Pending |
-| EVENT-01 | Phase 1 | Pending |
-| EVENT-02 | Phase 1 | Pending |
-| EVENT-03 | Phase 1 | Pending |
+| INGEST-07 | Phase 1 | Complete |
+| EVENT-01 | Phase 1 | Complete |
+| EVENT-02 | Phase 1 | Complete |
+| EVENT-03 | Phase 1 | Complete |
 | EVENT-04 | Phase 2 | Pending |
 | EVENT-05 | Phase 2 | Pending |
 | EVENT-06 | Phase 3 | Pending |
@@ -150,10 +150,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 | THEME-03 | Phase 5 | Pending |
 | THEME-04 | Phase 5 | Pending |
 | THEME-05 | Phase 5 | Pending |
-| VERIFY-01 | Phase 1 | Pending |
+| VERIFY-01 | Phase 1 | Complete |
 | VERIFY-02 | Phase 5 | Pending |
 | VERIFY-03 | Phase 5 | Pending |
-| VERIFY-04 | Phase 1 | Pending |
+| VERIFY-04 | Phase 1 | Complete |
+| EXT-01 | v2 | Deferred |
+| EXT-02 | v2 | Deferred |
+| EXT-03 | v2 | Deferred |
+| ADV-01 | v2 | Deferred |
+| ADV-02 | v2 | Deferred |
+| ADV-03 | v2 | Deferred |
+| ADV-04 | v2 | Deferred |
+| ADV-05 | v2 | Deferred |
+| ADV-06 | v2 | Deferred |
+| ADV-07 | v2 | Deferred |
+| ADV-08 | v2 | Deferred |
 
 **Coverage:**
 - v1 requirements: 41 total
@@ -162,4 +173,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-05-06*
-*Last updated: 2026-05-06 after initial definition*
+*Last updated: 2026-05-07 after Phase 1 completion*
