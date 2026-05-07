@@ -28,7 +28,10 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
   3. A legacy adapter parses the current human-readable sample log into the same canonical model without leaking its format into the core.
   4. Request/response correlation produces a JSON-RPC-safe bidirectional key that preserves session, direction, id value, and id type.
   5. Parser/normalizer tests cover valid JSONL, malformed lines, partial trailing lines, CRLF/BOM, large payloads, correlation, and the legacy adapter — using scrubbed fixture logs.
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 01-01-PLAN.md — Workspace + tooling scaffold + Wave 0 boundary/security/fixture-scrub tests
+- [ ] 01-02-PLAN.md — Shared AHP/event/host contracts + JSONL parser + normalizer + legacy adapter
+- [ ] 01-03-PLAN.md — EventStore + Correlator + NodeHostAdapter + Hono health server + CLI entry
 **UI hint**: no
 
 ### Phase 2: Vertical Slice — CLI, Server, Timeline
@@ -87,7 +90,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Foundations | 0/0 | Not started | - |
+| 1. Core Foundations | 0/3 | Planned | - |
 | 2. Vertical Slice — CLI, Server, Timeline | 0/0 | Not started | - |
 | 3. Detail, Search, and Filtering | 0/0 | Not started | - |
 | 4. Live Tail, Discovery, and Persistence | 0/0 | Not started | - |
