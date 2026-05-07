@@ -21,7 +21,8 @@ export function App(): JSX.Element {
     fetch("/api/log/meta").then(
       (r) => {
         if (cancelled) return;
-        if (!r.ok) {
+        const contentType = r.headers.get("content-type") ?? "";
+        if (!r.ok || !contentType.toLowerCase().includes("application/json")) {
           useAppStore.getState().setConnection("no-server");
           return;
         }

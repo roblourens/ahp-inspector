@@ -6,9 +6,9 @@
 // a single setRows() call (avoids transient flicker for large baselines).
 //
 // T-02-06-02: graceful `bye` closes the EventSource and prevents browser
-// auto-reconnect storms; transient `onerror` keeps connection at 'connecting'
-// (the EventSource will reconnect on its own). Only readyState=CLOSED
-// escalates to 'disconnected'.
+// auto-reconnect storms. Before the first snapshot, transient `onerror` keeps
+// connection at 'connecting'. After data has loaded, any stream error is
+// user-visible as disconnected so the retry banner appears promptly.
 
 import type { EventRow, LatencyBand, Status } from "@ahp-viewer/core";
 import { useAppStore } from "../state/store.js";
@@ -59,6 +59,7 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   let snapshotRows: EventRow[] = [];
   let graceful = false;
   let closedByCaller = false;
+  let hasConnected = false;
 
   const onSnapshotBegin = (ev: Event): void => {
     try {
@@ -84,6 +85,7 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   const onSnapshotEnd = (): void => {
     useAppStore.getState().setRows(snapshotRows);
     snapshotRows = [];
+    hasConnected = true;
     useAppStore.getState().setConnection("connected");
   };
   const onAppend = (ev: Event): void => {
@@ -116,8 +118,10 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   };
   const onError = (): void => {
     if (graceful || closedByCaller) return;
-    // EventSource.CLOSED === 2
-    if (es.readyState === 2) {
+    // EventSource.CLOSED === 2. Browser implementations often report
+    // CONNECTING while retrying after a server crash, but once the user has
+    // seen data this is a real interruption that should expose Retry.
+    if (hasConnected || es.readyState === 2) {
       useAppStore.getState().setConnection("disconnected");
     } else {
       useAppStore.getState().setConnection("connecting");

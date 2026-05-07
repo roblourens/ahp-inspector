@@ -1,4 +1,4 @@
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App.js";
 import { useAppStore } from "./state/store.js";
@@ -37,6 +37,21 @@ describe("App smoke", () => {
     useAppStore.setState({ connection: "no-server" });
     const { getByTestId, queryByTestId } = render(<App />);
     expect(getByTestId("state-server-not-running")).toBeInTheDocument();
+    expect(queryByTestId("app-shell")).toBeNull();
+  });
+
+  it("treats a non-JSON meta response as no-server", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(
+          new Response("<!doctype html>", { headers: { "content-type": "text/html" } }),
+        ),
+      ),
+    );
+    const { getByTestId, queryByTestId } = render(<App />);
+
+    await waitFor(() => expect(getByTestId("state-server-not-running")).toBeInTheDocument());
     expect(queryByTestId("app-shell")).toBeNull();
   });
 });

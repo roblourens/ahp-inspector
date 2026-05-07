@@ -166,12 +166,28 @@ describe("connectLogStream — connection lifecycle", () => {
   it("onerror with readyState=CLOSED sets disconnected; readyState=CONNECTING stays connecting", () => {
     connectLogStream({ EventSourceCtor: Ctor });
     const es = firstInstance();
-    // Transient: still trying to reconnect.
+    // Transient before the first snapshot: still trying to connect.
     es.readyState = 0;
     es.fireError();
     expect(useAppStore.getState().connection).toBe("connecting");
     // Permanent: browser gave up.
     es.readyState = 2;
+    es.fireError();
+    expect(useAppStore.getState().connection).toBe("disconnected");
+  });
+
+  it("onerror after a successful snapshot shows disconnected even while EventSource retries", () => {
+    connectLogStream({ EventSourceCtor: Ctor });
+    const es = firstInstance();
+    es.emit("snapshot-begin", {
+      meta: { filename: "x.jsonl", sizeBytes: 0, startedAt: 0 },
+      total: 1,
+    });
+    es.emit("snapshot-chunk", { rows: [row(0)], from: 0 });
+    es.emit("snapshot-end", {});
+    expect(useAppStore.getState().connection).toBe("connected");
+
+    es.readyState = 0;
     es.fireError();
     expect(useAppStore.getState().connection).toBe("disconnected");
   });
