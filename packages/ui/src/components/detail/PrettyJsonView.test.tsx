@@ -31,4 +31,23 @@ describe("PrettyJsonView", () => {
     fireEvent.click(paramsLabel as Element);
     expect(screen.getByText('"ahp:/sessions"')).toBeInTheDocument();
   });
+
+  it("expands nested AHP fields by default through level four", () => {
+    render(
+      <PrettyJsonView
+        data={{
+          params: {
+            action: {
+              toolCall: {
+                args: {
+                  uri: "safe-resource.md",
+                },
+              },
+            },
+          },
+        }}
+      />,
+    );
+    expect(screen.getByText('"safe-resource.md"')).toBeInTheDocument();
+  });
 });

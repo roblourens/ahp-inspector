@@ -119,4 +119,38 @@ describe("TimelineList — virtualization", () => {
     expect(rendered.length).toBeGreaterThanOrEqual(1);
     expect(rendered.length).toBeLessThan(100);
   });
+
+  it("highlights a visible correlated response for the selected request", async () => {
+    const rows = [makeRow(0), makeRow(1)];
+    rows[0] = { ...rows[0], kind: "request", pairIdx: 1 };
+    rows[1] = { ...rows[1], kind: "response", kindTag: "RES", pairIdx: 0 };
+    render(
+      <div style={{ height: 400 }}>
+        <TimelineList
+          items={rows.map((r) => ({ kind: "row", rowIdx: r.idx }))}
+          rows={rows}
+          selectedIdx={0}
+          onSelect={() => {}}
+        />
+      </div>,
+    );
+    expect(await screen.findByTestId("row-1")).toHaveAttribute("data-pair-highlight", "response");
+    expect(screen.getByTestId("row-0")).toHaveAttribute("data-selected", "true");
+  });
+
+  it("marks selected response when its correlated request is hidden by filters", async () => {
+    const rows = [makeRow(0), makeRow(1)];
+    rows[0] = { ...rows[0], kind: "request", pairIdx: 1 };
+    rows[1] = { ...rows[1], kind: "response", kindTag: "RES", pairIdx: 0 };
+    render(
+      <div style={{ height: 400 }}>
+        <TimelineList items={[{ kind: "row", rowIdx: 1 }]} rows={rows} selectedIdx={1} onSelect={() => {}} />
+      </div>,
+    );
+    const selected = await screen.findByTestId("row-1");
+    expect(selected).toHaveAttribute("data-pair-hidden", "request");
+    expect(selected.getAttribute("aria-label")).toContain(
+      "Correlated request is hidden by current filters",
+    );
+  });
 });

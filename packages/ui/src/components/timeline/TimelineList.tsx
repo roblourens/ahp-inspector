@@ -58,6 +58,25 @@ export function TimelineList({
   onToggleGroup,
 }: TimelineListProps): JSX.Element {
   const parentRef = useRef<HTMLDivElement>(null);
+  const visibleRowIdxs = useMemo(() => {
+    const visible = new Set<number>();
+    for (const item of items) {
+      if (item.kind === "row") {
+        const row = rows[item.rowIdx];
+        if (row) visible.add(row.idx);
+      }
+    }
+    return visible;
+  }, [items, rows]);
+  const selectedRow = selectedIdx !== null ? rows[selectedIdx] : undefined;
+  const selectedPairIdx = selectedRow?.pairIdx ?? null;
+  const selectedPairVisible = selectedPairIdx !== null && visibleRowIdxs.has(selectedPairIdx);
+  const hiddenPairKind =
+    selectedPairIdx !== null && !selectedPairVisible
+      ? selectedRow?.kind === "response"
+        ? "request"
+        : "response"
+      : null;
   const v = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
@@ -205,7 +224,14 @@ export function TimelineList({
             // kind === "row"
             const row = rows[item.rowIdx];
             if (!row) return null;
-            const isSelected = row.idx === selectedIdx;
+             const isSelected = row.idx === selectedIdx;
+            const pairHighlight =
+              selectedPairIdx !== null && row.idx === selectedPairIdx && selectedPairVisible
+                ? row.kind === "response"
+                  ? "response"
+                  : "request"
+                : null;
+            const pairHidden = isSelected ? hiddenPairKind : null;
             const style: CSSProperties = {
               position: "absolute",
               top: 0,
@@ -227,11 +253,13 @@ export function TimelineList({
               <EventRow
                 key={row.idx}
                 row={row}
-                isSelected={isSelected}
-                onClick={() => onSelect(row.idx)}
-                searchQuery={searchQuery}
-                style={style}
-              />
+                 isSelected={isSelected}
+                 onClick={() => onSelect(row.idx)}
+                 searchQuery={searchQuery}
+                 pairHighlight={pairHighlight}
+                 pairHidden={pairHidden}
+                 style={style}
+               />
             );
           })}
         </div>

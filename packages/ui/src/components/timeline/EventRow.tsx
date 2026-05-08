@@ -16,6 +16,8 @@ export interface EventRowProps {
   onClick: () => void;
   style?: CSSProperties;
   searchQuery?: string;
+  pairHighlight?: "request" | "response" | null;
+  pairHidden?: "request" | "response" | null;
 }
 
 export const TIMELINE_GRID_COLUMNS =
@@ -114,10 +116,18 @@ export const EventRow = memo(function EventRow({
   onClick,
   style,
   searchQuery = "",
+  pairHighlight = null,
+  pairHidden = null,
 }: EventRowProps): JSX.Element {
   const label = primaryLabel(row);
   const labelTitle = primaryLabelTitle(row);
   const badge = statusBadge(row);
+  const hiddenPairCopy =
+    pairHidden === "response"
+      ? "Correlated response is hidden by current filters"
+      : pairHidden === "request"
+        ? "Correlated request is hidden by current filters"
+        : null;
 
   return (
     <div
@@ -126,7 +136,8 @@ export const EventRow = memo(function EventRow({
       aria-selected={isSelected}
       aria-label={`${row.keyId ?? "no id"} ${row.tsFmt} ${row.dir} ${row.kindTag} ${label ?? "no event"}${
         badge ? ` ${badge.text}` : ""
-      }`}
+      }${hiddenPairCopy ? ` ${hiddenPairCopy}` : ""}`}
+      title={hiddenPairCopy ?? undefined}
       onClick={onClick}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -137,6 +148,8 @@ export const EventRow = memo(function EventRow({
       tabIndex={isSelected ? 0 : -1}
       data-testid={`row-${row.idx}`}
       data-selected={isSelected ? "true" : undefined}
+      data-pair-highlight={pairHighlight ?? undefined}
+      data-pair-hidden={pairHidden ?? undefined}
       style={{
         display: "grid",
         gridTemplateColumns: TIMELINE_GRID_COLUMNS,
@@ -144,7 +157,11 @@ export const EventRow = memo(function EventRow({
         height: "var(--row-height)",
         padding: "4px 8px",
         cursor: "pointer",
-        background: isSelected ? "var(--color-surface-raised)" : "transparent",
+        background: isSelected
+          ? "var(--color-surface-raised)"
+          : pairHighlight
+            ? "color-mix(in srgb, var(--color-info) 14%, transparent)"
+            : "transparent",
         ...style,
       }}
     >

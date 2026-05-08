@@ -10,20 +10,35 @@ import { TimelineRegion } from "./TimelineRegion.js";
 
 function makeRow(idx: number): EventRow {
   return {
-    kind: "event",
     idx,
-    ts: idx,
-    direction: "request",
-    eventKind: "chat",
+    seq: idx,
+    ts: 0,
+    tsFmt: "12:00:00.000",
+    dir: "c2s",
+    dirGlyph: "→",
+    kind: "request",
+    kindTag: "REQ",
+    method: "ping",
+    actionType: null,
+    actionFamily: null,
     sessionId: "s1",
+    sessionShort: "s1",
     turnId: "t1",
-    eventId: `e${idx}`,
-    status: null,
+    turnShort: "t1",
+    keyId: `e${idx}`,
+    status: "pending",
     latencyMs: null,
     latencyBand: null,
-    eventName: "x",
     payloadPreview: "",
-  } as unknown as EventRow;
+    summary: `ping id=e${idx}`,
+    pairIdx: null,
+    parseErrorReason: null,
+    lineIndex: idx + 1,
+    errorCode: null,
+    serverSeq: null,
+    gapBefore: false,
+    isAuthFailure: false,
+  };
 }
 
 beforeEach(() => {
@@ -153,5 +168,45 @@ describe("TimelineRegion — Plan 04-06 Task 2", () => {
     ce.focus();
     fireEvent.keyDown(ce, { key: " ", code: "Space" });
     expect(useAppStore.getState().livePaused).toBe(false);
+  });
+
+  it("renders pair highlight from stable row pairIdx metadata", async () => {
+    const originalOffsetHeight = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      "offsetHeight",
+    );
+    const originalOffsetWidth = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      "offsetWidth",
+    );
+    Object.defineProperty(window.HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      get: () => 400,
+    });
+    Object.defineProperty(window.HTMLElement.prototype, "offsetWidth", {
+      configurable: true,
+      get: () => 800,
+    });
+    const request = { ...makeRow(0), pairIdx: 1, status: "ok" as const };
+    const response = {
+      ...makeRow(1),
+      kind: "response" as const,
+      kindTag: "RES" as const,
+      method: null,
+      dir: "s2c" as const,
+      dirGlyph: "←" as const,
+      pairIdx: 0,
+      status: "ok" as const,
+    };
+    useAppStore.setState({ rows: [request, response], selectedIdx: 1 });
+    render(<TimelineRegion />);
+    expect(await screen.findByTestId("row-0")).toHaveAttribute("data-pair-highlight", "request");
+    expect(screen.getByTestId("row-1")).toHaveAttribute("data-selected", "true");
+    if (originalOffsetHeight) {
+      Object.defineProperty(window.HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
+    }
+    if (originalOffsetWidth) {
+      Object.defineProperty(window.HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    }
   });
 });
