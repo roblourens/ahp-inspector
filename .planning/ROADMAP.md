@@ -133,7 +133,7 @@ Plans:
 
 ## Next
 
-Plan Phase 10 pinned comparison and milestone verification.
+Execute Phase 10 pinned comparison and milestone verification.
 
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*

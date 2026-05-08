@@ -129,10 +129,10 @@ Create a synthetic large JSONL fixture or test helper with many timeline events 
 | SSE payload inflation | Replay state in rows would harm large logs. | Keep state fetch lazy through `/api/state-at`; verify SSE frames omit replay fields. |
 | Boundary violation | UI imports server code. | Duplicate minimal client types if needed; run `test/boundary.test.ts`. |
 
-## Open Questions Resolved by Default
+## Open Questions (RESOLVED)
 
-- **Persist pins?** No, keep memory-only for privacy and scope.
-- **How many pins?** Support two active comparison points for first implementation.
-- **Diff depth?** Top-level only, with overflow cap.
-- **Where UI lives?** Existing detail/state inspector rail/drawer.
-- **Docs refresh?** Phase 10 plan 10-03 owns user guide and screenshots.
+- **Persist pins?** RESOLVED: No, keep memory-only for privacy and scope.
+- **How many pins?** RESOLVED: Support two active comparison points for first implementation.
+- **Diff depth?** RESOLVED: Top-level only, with overflow cap.
+- **Where UI lives?** RESOLVED: Existing detail/state inspector rail/drawer.
+- **Docs refresh?** RESOLVED: Phase 10 plan 10-03 owns user guide and screenshots.
