@@ -69,6 +69,17 @@ export class LineSplitter {
     return out;
   }
 
+  /**
+   * Drop the buffered partial-line state. Used after a rotation/shrink so the
+   * next `push()` starts cleanly from offset 0 (Phase 4 INGEST-04). Also
+   * clears the BOM-consumed flag so a freshly rotated file behaves like a
+   * brand-new splitter instance.
+   */
+  reset(): void {
+    this.buf = "";
+    this.bomConsumed = false;
+  }
+
   /** Flush any remaining buffered bytes as a final line. Idempotent. */
   flush(): string[] {
     if (this.buf.length === 0) return [];
