@@ -4,14 +4,14 @@ milestone: v1.1
 milestone_name: milestone
 status: executing
 stopped_at: Milestone v1.0 archived
-last_updated: "2026-05-08T17:08:06.081Z"
-last_activity: 2026-05-08 -- Phase 09 planning complete
+last_updated: "2026-05-08T17:16:00.000Z"
+last_activity: 2026-05-08 -- Phase 09 plan 09-01 complete
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 15
-  completed_plans: 9
-  percent: 60
+  completed_plans: 10
+  percent: 67
 ---
 
 # State: AHP Log Viewer
@@ -23,10 +23,10 @@ progress:
 
 ## Current Position
 
-Phase: 09 (state-inspector-ui) — READY TO EXECUTE
-Plan: 0 of 3
-Status: Ready to execute
-Last activity: 2026-05-08 -- Phase 09 planning complete
+Phase: 09 (state-inspector-ui) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 09
+Last activity: 2026-05-08 -- Phase 09 plan 09-01 complete
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Last activity: 2026-05-08 -- Phase 09 planning complete
 | Phase 06 plans | 3 complete | 8 tasks | validated |
 | Phase 07 plans | 3 complete | 9 tasks | validated |
 | Phase 08 plans | 3 complete | 8 tasks | validated |
+| Phase 09 plans | 1 complete / 3 planned | 09-02 next | executing |
 
 ## Accumulated Context
 
@@ -107,6 +108,7 @@ Last activity: 2026-05-08 -- Phase 09 planning complete
 - Phase 08: reconstructed state is lazy-only: `/api/state-at` reads through `AppState.stateAtIndex`, while SSE rows never include replay resources, diagnostics, intents, cache, or state fields.
 - Phase 08: `StateReplayIndex` is exact-index LRU cache scoped per `AppState`; it survives live append for historical exact indexes and resets on rotation/dispose/log switch.
 - Phase 08: `/api/state-at` defaults to metadata-only resources and returns full state only for exact `resourceKind` + `resourceUri` selections, with confidence, diagnostics, intents, and cache metadata.
+- Phase 09: State inspection begins from an explicit detail-panel "State at this point" action; the first UI request is metadata-only and never inflates timeline rows.
 - Phase 05: Responsive details use a desktop side rail at >=1400px and an overlay drawer below 1400px; theme choice remains global under `ahp-theme` while per-log preferences remain keyed by opaque logKey.
 - Phase 06: `@ahp-viewer/protocol` is a generated workspace package synced from sibling `../agent-host-protocol/types` via `pnpm sync:ahp`; generated files carry a DO NOT EDIT banner and source commit metadata.
 - Phase 06: Parser code imports canonical `ActionEnvelope` / `ProtocolNotification` directly from `@ahp-viewer/protocol`; `@ahp-viewer/shared/ahp` remains only as compatibility aliases for old I-prefixed names.

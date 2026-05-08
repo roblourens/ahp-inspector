@@ -32,6 +32,7 @@ import { DETAIL_MAX_WIDTH, DETAIL_MIN_WIDTH } from "./detail-layout.js";
 import { PrettyJsonView } from "./PrettyJsonView.js";
 import { PrivacyCaption } from "./PrivacyCaption.js";
 import { RawJsonView } from "./RawJsonView.js";
+import { StateInspectorPanel } from "./StateInspectorPanel.js";
 
 interface LoadState {
   status: "idle" | "loading" | "error" | "ok";
@@ -346,6 +347,8 @@ export function DetailPanel({
 
       {/* AHP field strip */}
       {row && <AhpFieldStrip row={row} rawEvent={event} />}
+
+      <StateInspectorPanel idx={selectedIdx} logKey={logKey} />
 
       {/* Tab strip + copy menu header */}
       <div
