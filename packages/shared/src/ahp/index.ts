@@ -1,35 +1,44 @@
-// Re-export AHP types verbatim from the sibling repo. Do NOT redefine.
-// FOUND-03: locked re-export surface so every later phase consumes identical types.
-//
-// The `agent-host-protocol` package has no `exports` map, so we import the
-// canonical barrel directly via subpath. With moduleResolution: "bundler"
-// TypeScript resolves the `.js` extension to the corresponding `.ts` file.
-
-// `ActionType` and `NotificationType` are upstream `const enum`s. Under
-// `isolatedModules` + `verbatimModuleSyntax` we can only re-export them as
-// types; consumers that need a string-literal value should narrow against the
-// re-exported type rather than reading runtime members. (RESEARCH §"Sources".)
-export type { ActionType, IActionEnvelope } from "agent-host-protocol/types/actions.js";
+// Compatibility re-export backed by generated @ahp-viewer/protocol.
+// New protocol consumers should import canonical names directly from
+// @ahp-viewer/protocol; this subpath keeps older shared callers compiling.
 export type {
-  IAhpClientNotification,
-  IAhpNotification,
-  IAhpRequest,
-  IAhpResponse,
-  IAhpServerNotification,
-  IAhpSuccessResponse,
-  IClientNotificationMap,
-  ICommandMap,
-  IJsonRpcErrorResponse,
-  IJsonRpcNotification,
-  IJsonRpcRequest,
-  IJsonRpcResponse,
-  IJsonRpcSuccessResponse,
-  INotificationMap,
-  IProtocolMessage,
-  IServerNotificationMap,
-} from "agent-host-protocol/types/messages.js";
-export type {
+  ActionEnvelope,
+  ActionEnvelope as IActionEnvelope,
+  ActionType,
+  AhpClientNotification,
+  AhpClientNotification as IAhpClientNotification,
+  AhpNotification,
+  AhpNotification as IAhpNotification,
+  AhpRequest,
+  AhpRequest as IAhpRequest,
+  AhpResponse,
+  AhpResponse as IAhpResponse,
+  AhpServerNotification,
+  AhpServerNotification as IAhpServerNotification,
+  AhpSuccessResponse,
+  AhpSuccessResponse as IAhpSuccessResponse,
   AuthRequiredReason,
-  IProtocolNotification,
+  ClientNotificationMap,
+  ClientNotificationMap as IClientNotificationMap,
+  CommandMap,
+  CommandMap as ICommandMap,
+  JsonRpcErrorResponse,
+  JsonRpcErrorResponse as IJsonRpcErrorResponse,
+  JsonRpcNotification,
+  JsonRpcNotification as IJsonRpcNotification,
+  JsonRpcRequest,
+  JsonRpcRequest as IJsonRpcRequest,
+  JsonRpcResponse,
+  JsonRpcResponse as IJsonRpcResponse,
+  JsonRpcSuccessResponse,
+  JsonRpcSuccessResponse as IJsonRpcSuccessResponse,
+  NotificationMap,
+  NotificationMap as INotificationMap,
   NotificationType,
-} from "agent-host-protocol/types/notifications.js";
+  ProtocolMessage,
+  ProtocolMessage as IProtocolMessage,
+  ProtocolNotification,
+  ProtocolNotification as IProtocolNotification,
+  ServerNotificationMap,
+  ServerNotificationMap as IServerNotificationMap,
+} from "@ahp-viewer/protocol";

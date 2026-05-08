@@ -8,9 +8,9 @@
 //   - request / response            → kind:'request' / 'response'
 //   - anything else                 → kind:'parse-error' via makeParseErrorEvent
 
+import type { ActionEnvelope, ProtocolNotification } from "@ahp-viewer/protocol";
 import type { AhpEvent, EventKind, IdType, NormalizeMeta } from "@ahp-viewer/shared";
 import { makeParseErrorEvent } from "@ahp-viewer/shared";
-import type { IActionEnvelope, IProtocolNotification } from "@ahp-viewer/shared/ahp";
 import { extractSessionId, extractToolCallId, extractTurnId } from "./extract.js";
 
 function coerceId(v: unknown): number | string | null {
@@ -52,7 +52,7 @@ export function normalize(raw: unknown, meta: NormalizeMeta): AhpEvent {
     kind = "response";
   } else if (hasMethod) {
     if (m.method === "action" && meta.dir === "s2c") {
-      const env = (m.params ?? {}) as Partial<IActionEnvelope>;
+      const env = (m.params ?? {}) as Partial<ActionEnvelope>;
       kind = "action";
       const action = (env as { action?: { type?: unknown } }).action;
       actionType =
@@ -61,7 +61,7 @@ export function normalize(raw: unknown, meta: NormalizeMeta): AhpEvent {
           : null;
       serverSeq = typeof env.serverSeq === "number" ? env.serverSeq : null;
     } else if (m.method === "notification" && meta.dir === "s2c") {
-      const params = (m.params ?? {}) as { notification?: IProtocolNotification };
+      const params = (m.params ?? {}) as { notification?: ProtocolNotification };
       kind = "protocol-notification";
       const notif = params.notification;
       actionType =

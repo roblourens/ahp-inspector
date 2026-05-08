@@ -24,7 +24,7 @@ import {
 
 // ─── AHP re-export shape ─────────────────────────────────────────────────────
 
-describe("AHP re-exports (FOUND-03)", () => {
+describe("AHP compatibility re-exports (SYNC-04)", () => {
   it("type-only symbols typecheck via the @ahp-viewer/shared/ahp subpath", () => {
     // Pure type-level assertions: if the imports above resolved, they pass.
     type _M = IProtocolMessage;

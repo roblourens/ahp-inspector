@@ -21,7 +21,7 @@ const ALLOW = new Set<string>([
   "chokidar",
   "hono",
   "@hono/node-server",
-  "agent-host-protocol",
+  "@ahp-viewer/protocol",
   // Workspace packages
   "@ahp-viewer/shared",
   "@ahp-viewer/parser",

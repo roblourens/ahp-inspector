@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Reducer-backed State Snapshots
-status: planning
+status: in_progress
 last_updated: "2026-05-08T14:36:16.395Z"
 last_activity: 2026-05-08
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 15
-  completed_plans: 0
-  percent: 0
+  completed_plans: 3
+  percent: 20
 ---
 
 # State: AHP Log Viewer
@@ -22,10 +22,10 @@ progress:
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Requirements and roadmap defined
-Last activity: 2026-05-08 — Milestone v1.1 requirements and roadmap created
+Phase: 6 complete; Phase 7 next
+Plan: 06-01 through 06-03 complete
+Status: Protocol reducer sync foundation implemented and validated
+Last activity: 2026-05-08 — Phase 6 synced canonical AHP reducers/types into @ahp-viewer/protocol and added parity validation
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Last activity: 2026-05-08 — Milestone v1.1 requirements and roadmap created
 | Phase 05 Pall | 74min | 18 tasks | 50 files |
 | v1.1 requirements mapped | 25 / 25 |
 | v1.1 phases planned | 5 phases |
+| Phase 06 plans | 3 complete | 8 tasks | validated |
 
 ## Accumulated Context
 
@@ -101,6 +102,9 @@ Last activity: 2026-05-08 — Milestone v1.1 requirements and roadmap created
 - Plan 03-06: tabIndex={-1} on gap-banner and group-header role=row divs — biome useFocusableInteractive requires programmatic focusability; keyboard navigation managed at TimelineRegion level
 - Phase 05: Playwright browser UAT uses @playwright/test, starts the local CLI/server against copied synthetic fixtures, captures the committed screenshot matrix, and verifies no absolute path leakage in browser-visible text.
 - Phase 05: Responsive details use a desktop side rail at >=1400px and an overlay drawer below 1400px; theme choice remains global under `ahp-theme` while per-log preferences remain keyed by opaque logKey.
+- Phase 06: `@ahp-viewer/protocol` is a generated workspace package synced from sibling `../agent-host-protocol/types` via `pnpm sync:ahp`; generated files carry a DO NOT EDIT banner and source commit metadata.
+- Phase 06: Parser code imports canonical `ActionEnvelope` / `ProtocolNotification` directly from `@ahp-viewer/protocol`; `@ahp-viewer/shared/ahp` remains only as compatibility aliases for old I-prefixed names.
+- Phase 06: Reducer parity tests run copied upstream synthetic reducer fixtures with `Date.now()` mocked to `9999`; fixture privacy tests prevent real JSONL/log data from entering the generated fixture set.
 - Milestone v1.1: reducer-backed state reconstruction should be implemented as server-side replay of canonical AHP snapshots/action envelopes, using synced protocol reducers from `../agent-host-protocol` and explicit confidence diagnostics for partial logs.
 
 ### Open TODOs
