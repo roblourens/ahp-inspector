@@ -31,11 +31,11 @@ Requirements for reducer-backed state reconstruction.
 
 ### Inspector UI
 
-- [ ] **STATE-01**: User can request "state at this point" from a selected timeline row or detail panel.
-- [ ] **STATE-02**: User can choose among reconstructed root/session/terminal resources available at the selected point.
-- [ ] **STATE-03**: User can inspect reconstructed state in themed summary, Pretty JSON, and Raw JSON views.
-- [ ] **STATE-04**: User sees confidence and replay diagnostics next to the reconstructed state.
-- [ ] **STATE-05**: User can copy reconstructed state or a concise state summary.
+- [x] **STATE-01**: User can request "state at this point" from a selected timeline row or detail panel.
+- [x] **STATE-02**: User can choose among reconstructed root/session/terminal resources available at the selected point.
+- [x] **STATE-03**: User can inspect reconstructed state in themed summary, Pretty JSON, and Raw JSON views.
+- [x] **STATE-04**: User sees confidence and replay diagnostics next to the reconstructed state.
+- [x] **STATE-05**: User can copy reconstructed state or a concise state summary.
 
 ### Comparison
 
@@ -85,11 +85,11 @@ Requirements for reducer-backed state reconstruction.
 | CONF-01 | Phase 8 | Done |
 | CONF-02 | Phase 8 | Done |
 | CONF-03 | Phase 8 | Done |
-| STATE-01 | Phase 9 | Pending |
-| STATE-02 | Phase 9 | Pending |
-| STATE-03 | Phase 9 | Pending |
-| STATE-04 | Phase 9 | Pending |
-| STATE-05 | Phase 9 | Pending |
+| STATE-01 | Phase 9 | Done |
+| STATE-02 | Phase 9 | Done |
+| STATE-03 | Phase 9 | Done |
+| STATE-04 | Phase 9 | Done |
+| STATE-05 | Phase 9 | Done |
 | COMPARE-01 | Phase 10 | Pending |
 | COMPARE-02 | Phase 10 | Pending |
 | COMPARE-03 | Phase 10 | Pending |

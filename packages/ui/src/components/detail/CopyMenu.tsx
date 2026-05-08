@@ -12,6 +12,7 @@ import type { Status } from "@ahp-viewer/core";
 import type { AhpEvent } from "@ahp-viewer/shared";
 import { ChevronDown } from "lucide-react";
 import { type JSX, useEffect, useRef, useState } from "react";
+import { copyText } from "./clipboard.js";
 
 interface CopyMenuProps {
   event: AhpEvent;
@@ -59,26 +60,6 @@ function appendEventContext(prefix: string, event: AhpEvent): string {
   if (event.turnId) out += ` turn=${event.turnId}`;
   if (event.toolCallId) out += ` tool=${event.toolCallId}`;
   return `${out}\n`;
-}
-
-async function copyText(text: string): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return;
-  } catch {
-    // Fallback for browsers that don't support clipboard API
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed";
-    ta.style.top = "0";
-    ta.style.left = "0";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
-    document.execCommand("copy");
-    document.body.removeChild(ta);
-  }
 }
 
 function buildSummary(
