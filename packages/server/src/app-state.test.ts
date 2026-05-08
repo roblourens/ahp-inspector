@@ -68,6 +68,27 @@ function makeFakeHost(path: string): FakeHost {
   };
 }
 
+function ahpDirection(raw: unknown): "c2s" | "s2c" {
+  const r = raw as { result?: unknown; error?: unknown };
+  return r && (r.result !== undefined || r.error !== undefined) ? "s2c" : "c2s";
+}
+
+function initializeRequest(id = 1): string {
+  return `${JSON.stringify({ jsonrpc: "2.0", id, method: "initialize", params: {} })}\n`;
+}
+
+function initializeRootSnapshotResponse(id = 1): string {
+  return `${JSON.stringify({
+    jsonrpc: "2.0",
+    id,
+    result: {
+      protocolVersion: "0.1.0",
+      serverSeq: 0,
+      snapshots: [{ resource: "agenthost:/root", fromSeq: 0, state: { agents: [] } }],
+    },
+  })}\n`;
+}
+
 describe("createAppState", () => {
   let state: AppState | undefined;
 
@@ -187,6 +208,68 @@ describe("createAppState", () => {
   it("dispose() is idempotent and stops the watcher", async () => {
     const host = makeFakeHost("/tmp/x.log");
     state = await createAppState({ host, file: "/tmp/x.log", flushIntervalMs: 0 });
+    await state.dispose();
+    await state.dispose();
+    state = undefined;
+  });
+
+  it("stateAtIndex(targetIndex: number) returns replay result, totalEvents, and cache.hit metadata", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/x.log",
+      flushIntervalMs: 0,
+      directionInference: ahpDirection,
+    });
+
+    host.push(initializeRequest());
+    host.push(initializeRootSnapshotResponse());
+
+    const first = state.stateAtIndex(1);
+    const second = state.stateAtIndex(1);
+
+    expect(first.totalEvents).toBe(2);
+    expect(first.cache.hit).toBe(false);
+    expect(first.result.resources[0]?.key).toEqual({ kind: "root", uri: "agenthost:/root" });
+    expect(second.cache.hit).toBe(true);
+    expect(second.result).toEqual(first.result);
+  });
+
+  it("clears stateAtIndex cache on rotation reset", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/x.log",
+      flushIntervalMs: 0,
+      directionInference: ahpDirection,
+    });
+
+    host.push(initializeRequest());
+    host.push(initializeRootSnapshotResponse());
+    expect(state.stateAtIndex(1).cache.hit).toBe(false);
+    expect(state.stateAtIndex(1).cache.hit).toBe(true);
+
+    host.triggerReset({ newSize: 0, reason: "shrink" });
+    host.push(initializeRequest(2));
+
+    const replacement = state.stateAtIndex(0);
+    expect(replacement.cache.hit).toBe(false);
+    expect(replacement.totalEvents).toBe(1);
+  });
+
+  it("clears stateAtIndex cache during dispose without breaking idempotent dispose", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/x.log",
+      flushIntervalMs: 0,
+      directionInference: ahpDirection,
+    });
+
+    host.push(initializeRequest());
+    host.push(initializeRootSnapshotResponse());
+    expect(state.stateAtIndex(1).cache.hit).toBe(false);
+
     await state.dispose();
     await state.dispose();
     state = undefined;
