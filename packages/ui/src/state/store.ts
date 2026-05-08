@@ -93,6 +93,17 @@ export interface AppStoreState {
   resetForLogSwitch(): void;
 }
 
+function patchRow(row: EventRow, update: PatchUpdate): EventRow {
+  return {
+    ...row,
+    status: update.status,
+    latencyMs: update.latencyMs,
+    latencyBand: update.latencyBand,
+    ...(update.summary !== undefined ? { summary: update.summary } : {}),
+    ...(update.pairIdx !== undefined ? { pairIdx: update.pairIdx } : {}),
+  };
+}
+
 function deriveSessionCount(rows: EventRow[]): number {
   const s = new Set<string>();
   for (const r of rows) if (r.sessionId) s.add(r.sessionId);
@@ -137,20 +148,19 @@ export const useAppStore = create<AppStoreState>((set) => ({
   applyPatch: (updates) =>
     set((s) => {
       const next = s.rows.slice();
+      const pendingNext = s.pendingBuffer.slice();
       for (const u of updates) {
         const prev = next[u.idx];
         if (prev) {
-          next[u.idx] = {
-            ...prev,
-            status: u.status,
-            latencyMs: u.latencyMs,
-            latencyBand: u.latencyBand,
-            ...(u.summary !== undefined ? { summary: u.summary } : {}),
-            ...(u.pairIdx !== undefined ? { pairIdx: u.pairIdx } : {}),
-          };
+          next[u.idx] = patchRow(prev, u);
+        }
+        const pendingIndex = pendingNext.findIndex((row) => row.idx === u.idx);
+        if (pendingIndex !== -1) {
+          const pendingPrev = pendingNext[pendingIndex];
+          if (pendingPrev) pendingNext[pendingIndex] = patchRow(pendingPrev, u);
         }
       }
-      return { rows: next };
+      return { rows: next, pendingBuffer: pendingNext };
     }),
   setConnection: (connection) => set({ connection }),
   setMeta: (meta) => set({ meta }),
