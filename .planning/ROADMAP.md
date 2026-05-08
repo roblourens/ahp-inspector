@@ -14,7 +14,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 - [x] **Phase 2: Vertical Slice — CLI, Server, Timeline** - Open a JSONL file from the CLI and render an information-dense virtualized timeline in the browser (completed 2026-05-07)
 - [x] **Phase 3: Detail, Search, and Filtering** - Inspect events deeply, search and filter responsively, group by session/turn (completed 2026-05-07)
 - [x] **Phase 4: Live Tail, Discovery, and Persistence** - Auto-discover VS Code logs, watch growing files, pause/resume, persist filter state per log (completed 2026-05-08)
-- [ ] **Phase 5: Themes, Polish, and Verification** - Light/dark/hacker themes via design tokens, responsive layout, full UI + E2E test coverage
+- [x] **Phase 5: Themes, Polish, and Verification** - Light/dark/hacker themes via design tokens, responsive layout, full UI + E2E test coverage (completed 2026-05-08)
 
 ## Phase Details
 
