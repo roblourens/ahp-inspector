@@ -2,87 +2,93 @@
 
 ## What This Is
 
-AHP Log Viewer is a local-first GUI for discovering, watching, searching, and understanding Agent Host Protocol traffic logs. It starts as a standalone local web app launched from the CLI, with architecture kept compatible with a future VS Code extension/webview. It helps developers quickly digest VS Code-to-agent-host communication by turning raw JSONL protocol traffic into a fast, information-dense, polished timeline with expandable details.
+AHP Log Viewer is a shipped local-first GUI for discovering, watching, searching, and understanding Agent Host Protocol JSONL traffic logs. It runs as a standalone CLI-launched local web app and keeps the architecture compatible with a future VS Code extension/webview host. It turns raw VS Code-to-agent-host JSON-RPC traffic into a fast, information-dense, polished timeline with expandable details.
 
 ## Core Value
 
 Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
 
+## Current State
+
+**v1.0 Initial MVP shipped:** 2026-05-08
+
+The v1.0 milestone delivered:
+
+- Local CLI/server/UI workflow for opening AHP JSONL logs.
+- Canonical event normalization sourced from `../agent-host-protocol`, legacy sample support, scrubbed fixtures, and robust parser/correlation tests.
+- Virtualized timeline with row summaries, ID-first scan layout, pair highlighting, error annotations, grouping, keyboard navigation, and large-log responsiveness.
+- Detail view with AHP field highlights, correlation metadata, expanded Pretty JSON, raw JSON, truncation, and copy actions.
+- Search and filtering across payloads, methods/actions, IDs, session/turn, status/error, and time ranges.
+- Auto-discovery, manual open, live tail, pause/resume, log switch, rotation/watch-error handling, and per-log preference persistence.
+- Polished dark, light, and hacker themes through design tokens, responsive detail layouts, browser UAT screenshots, and Playwright E2E coverage.
+
+Final gate passed: `pnpm test`, UI build, CLI build, typecheck, lint, E2E, state validation, roadmap analysis, and milestone integration re-audit.
+
 ## Requirements
 
 ### Validated
 
-- ✓ Foundation architecture separates portable shared/parser/core logic from Node host, server, and CLI packages — Phase 1
-- ✓ AHP protocol concepts are sourced from `../agent-host-protocol` instead of hand-rolled definitions — Phase 1
-- ✓ Canonical event model, tolerant JSONL parser, isolated legacy sample adapter, and JSON-RPC-safe correlation key are implemented and tested — Phase 1
-- ✓ Local-only baseline is enforced with localhost binding, dependency allow-list checks, boundary tests, and scrubbed synthetic fixtures — Phase 1
-- ✓ CLI-to-local-server-to-browser vertical slice opens JSONL logs and streams rows over SSE — Phase 2
-- ✓ Information-dense virtualized timeline renders 50,000-event logs with direction, kind, status, session/turn, IDs, latency, and payload preview visible — Phase 2
-- ✓ Empty, no-server, disconnected, and parse-error states are implemented, tested, and verified in browser UAT — Phase 2
-- ✓ Expandable event details show AHP fields, correlation metadata, pretty/raw JSON, copy actions, truncation handling, auth banners, and privacy copy — Phase 3
-- ✓ Search and filtering slice the timeline by payload text, direction, kind, method, action type, session, turn, status, and time range without blocking large-log interaction — Phase 3
-- ✓ Session/turn grouping, serverSeq gap banners, auth-failure markers, and keyboard navigation are implemented, tested, and browser-verified — Phase 3
+- ✓ FOUND-01 through FOUND-04 — install/run, package boundaries, AHP source-of-truth usage, local-only security posture — v1.0
+- ✓ INGEST-01 through INGEST-07 — CLI open, discovery, manual open, live tail, pause/resume, parse errors, legacy adapter — v1.0
+- ✓ EVENT-01 through EVENT-06 — canonical model, classification, correlation, latency/status updates, visual distinguishability, gap/auth surfacing — v1.0
+- ✓ TIME-01 through TIME-06 — virtualized timeline, scan fields, visual encoding, selection, grouping, states — v1.0
+- ✓ DETAIL-01 through DETAIL-04 — detail inspector, normalized metadata, Pretty/Raw JSON, truncation, copy, AHP field highlights — v1.0
+- ✓ SEARCH-01 through SEARCH-05 — free-text search, facets, non-blocking updates, clear filters, per-log persistence — v1.0
+- ✓ THEME-01 through THEME-05 — dark/light/hacker themes, token architecture, persistence, responsive layout — v1.0
+- ✓ VERIFY-01 through VERIFY-04 — parser/unit coverage, UI coverage, E2E coverage, scrubbed fixtures — v1.0
 
 ### Active
 
-- [ ] Discover likely VS Code / Copilot AHP log files automatically and support manual file selection.
-- [ ] Parse and watch real JSONL AHP log files emitted by VS Code, while using current human-readable logs as shape guidance during development.
-- [ ] Keep the UI responsive on large and actively growing logs through incremental parsing, virtualization, and efficient indexing.
-- [ ] Provide polished light, dark, and hacker themes with a distinctive, attractive visual style.
-- [ ] Preserve a clean boundary between log ingestion/parsing, analysis state, and UI so the standalone app can later be hosted inside a VS Code extension.
+Fresh requirements for the next milestone should be created with `/gsd-new-milestone`.
 
-### Out of Scope
+### Future Candidates
 
-- Editing or replaying protocol traffic — v1 is an observer, not a protocol manipulator.
-- Full VS Code extension packaging — the architecture should prepare for it, but the initial deliverable is the standalone local web app.
-- Building or modifying the AHP protocol itself — this project consumes AHP schemas/types and logs.
-- Remote multi-user hosting — the app is local developer tooling.
+- VS Code extension/webview host using the same UI and core model.
+- Multi-log comparison, saved searches/filter presets, bookmarks/annotations, filtered exports, aggregate dashboards, advanced filter DSL, session/range diffing, and full AHP schema validation.
+
+### Out of Scope for v1.0
+
+- Editing or replaying protocol traffic — v1 is an observer/debugger, not a protocol mutator.
+- Remote hosted log viewing — logs can contain sensitive tokens, prompts, paths, and model output.
+- Telemetry, analytics, CDN fonts, or external AI explanations — violates local-only privacy posture.
+- Full VS Code extension packaging — standalone app shipped first; extension compatibility remains architectural.
+- Custom filter DSL and multi-file workspace — single-log excellence came first.
 
 ## Context
 
-The Agent Host Protocol (AHP) is a JSON-RPC 2.0 protocol used by clients such as VS Code to communicate with agent hosts. The protocol defines client-to-server requests such as `initialize`, `listSessions`, `createSession`, `fetchTurns`, resource operations, authentication, and session configuration; client-to-server notifications such as `dispatchAction`; and server-to-client notifications/actions such as `action` and `notification`. Protocol details, TypeScript types, and JSON schemas live in `../agent-host-protocol`.
+The Agent Host Protocol (AHP) is a JSON-RPC 2.0 protocol used by clients such as VS Code to communicate with agent hosts. The protocol defines requests, notifications, actions, session/resource flows, authentication, and state updates. Protocol details, TypeScript types, and JSON schemas live in `../agent-host-protocol`.
 
-VS Code is logging AHP traffic to files. A current sample at `~/agenthost.2a22cea9-b08d-4287-83ca-fe6817470628.log` is human-readable and timestamped, with entries such as `>> dispatch`, `<< listSessions`, `!! listSessions`, and `** onDidAction`; future VS Code output can be changed to emit real JSONL. The viewer should use the current sample to understand useful fields and UX needs, but v1 should target a stable JSONL event format.
-
-The primary user is a developer debugging or exploring VS Code-to-agent-host behavior. They need to identify what happened, what failed, what changed state, which events belong together, and what payload details matter without scrolling through raw logs.
+VS Code can emit AHP traffic as JSONL logs. AHP Log Viewer treats the real JSONL shape as canonical while keeping a legacy adapter for old human-readable sample logs. The primary user is a developer debugging or exploring VS Code-to-agent-host behavior who needs to identify what happened, what failed, what changed state, and which events belong together without reading raw JSONL line by line.
 
 ## Constraints
 
-- **Runtime**: Start as a standalone local web app launched from the CLI — fastest path to development and local file access.
-- **Future compatibility**: Keep a host abstraction for file discovery, file watching, and file reading so the same UI can later run in a VS Code webview.
-- **Protocol source**: Use `../agent-host-protocol` as the reference for AHP concepts, method names, action/notification types, and schemas.
-- **Log format**: Design for real JSONL even though the current sample is formatted for humans.
-- **Performance**: Large and growing logs must remain responsive; avoid rendering or reparsing the whole file on every update.
-- **Security/privacy**: Logs can contain tokens, prompts, file paths, model output, and other sensitive content; the app should run locally and avoid sending log content to external services.
+- **Runtime:** Standalone local web app launched from the CLI.
+- **Future compatibility:** Host abstraction for discovery, watching, and reading so the same UI can later run in a VS Code webview.
+- **Protocol source:** Use `../agent-host-protocol` for AHP concepts, method/action/notification names, and schemas.
+- **Log format:** Target real JSONL.
+- **Performance:** Large and growing logs must remain responsive through incremental parsing, indexing, and virtualization.
+- **Security/privacy:** Logs stay local; no telemetry, CDN assets, or outbound viewing dependencies.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Build standalone local web app first | Faster iteration and easier development; extension packaging can follow once the core viewer is useful | ✓ Good |
-| Keep VS Code extension as a later host | The user wants eventual in-editor use, but not at the cost of delaying the core viewer | — Pending |
-| Target real JSONL logs | The current sample is useful but human-readable; VS Code can be changed to emit proper JSONL for reliable parsing | — Pending |
-| Support auto-discovery plus manual open | Auto-discovery reduces friction, manual open handles unknown log locations and samples | — Pending |
-| Include light, dark, and hacker themes in v1 | Visual polish and theme variety are part of the product vision, not optional decoration | — Pending |
-| Use TypeScript workspace contracts for Phase 1 | Keeps parser/core/event contracts portable and extension-ready before UI work begins | ✓ Good |
-| Use lazy server endpoints for detail and payload search | SSE rows carry compact projections, so raw payload detail/search stays server-side and bounded | ✓ Good |
+| Build standalone local web app first | Fastest route to useful local file tooling | ✓ Good |
+| Keep VS Code extension as future host | Preserves direction without delaying v1 | ✓ Good |
+| Target real JSONL logs | Reliable parsing and testing beat human-readable log scraping | ✓ Good |
+| Use `../agent-host-protocol` types | Prevents protocol drift and hand-rolled schemas | ✓ Good |
+| Keep local-only privacy posture | AHP logs may contain secrets, prompts, paths, and outputs | ✓ Good |
+| Use design tokens for themes | Dark/light/hacker polish and future VS Code theme integration share one system | ✓ Good |
+| Use lazy server endpoints for raw detail/search | Keeps SSE rows compact and large-log rendering fast | ✓ Good |
+| Insert Phase 04.1 before theme work | Real-shaped row information needed to be correct before visual polish | ✓ Good |
+| Run milestone integration audit before archive | Caught and fixed paused-buffer, detail-cache, rotation, and pair-metadata gaps | ✓ Good |
 
-## Evolution
+## Archives
 
-This document evolves at phase transitions and milestone boundaries.
-
-**After each phase transition** (via `/gsd-transition`):
-1. Requirements invalidated? → Move to Out of Scope with reason
-2. Requirements validated? → Move to Validated with phase reference
-3. New requirements emerged? → Add to Active
-4. Decisions to log? → Add to Key Decisions
-5. "What This Is" still accurate? → Update if drifted
-
-**After each milestone** (via `/gsd-complete-milestone`):
-1. Full review of all sections
-2. Core Value check — still the right priority?
-3. Audit Out of Scope — reasons still valid?
-4. Update Context with current state
+- v1.0 roadmap: `.planning/milestones/v1.0-ROADMAP.md`
+- v1.0 requirements: `.planning/milestones/v1.0-REQUIREMENTS.md`
+- v1.0 audit: `.planning/milestones/v1.0-MILESTONE-AUDIT.md`
+- milestone index: `.planning/MILESTONES.md`
 
 ---
-*Last updated: 2026-05-07 after Phase 3 completion*
+*Last updated: 2026-05-08 after v1.0 milestone*
