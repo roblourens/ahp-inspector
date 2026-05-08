@@ -73,10 +73,13 @@ export function registerStateRoutes(app: Hono, sessions: LogSessionManager): voi
     const resourceKind = c.req.query("resourceKind");
     const resourceUri = c.req.query("resourceUri");
     if ((resourceKind === undefined) !== (resourceUri === undefined)) {
-      return c.json({
-        code: "bad-request",
-        message: "resourceKind and resourceUri must be provided together",
-      }, 400);
+      return c.json(
+        {
+          code: "bad-request",
+          message: "resourceKind and resourceUri must be provided together",
+        },
+        400,
+      );
     }
     if (resourceKind !== undefined && !isSelectableResourceKind(resourceKind)) {
       return c.json({ code: "bad-request", message: "invalid resourceKind" }, 400);
@@ -88,11 +91,14 @@ export function registerStateRoutes(app: Hono, sessions: LogSessionManager): voi
     const idx = Number(rawIdx);
     const stateAt = a.appState.stateAtIndex(idx);
     if (idx >= stateAt.totalEvents) {
-      return c.json({
-        code: "not-found",
-        message: "event index not found",
-        totalEvents: stateAt.totalEvents,
-      }, 404);
+      return c.json(
+        {
+          code: "not-found",
+          message: "event index not found",
+          totalEvents: stateAt.totalEvents,
+        },
+        404,
+      );
     }
 
     return c.json(
@@ -129,7 +135,9 @@ function projectStateAtResponse(
 ): StateAtSuccessResponse {
   const selected =
     selectedKind && selectedUri
-      ? resources.find((resource) => resource.key.kind === selectedKind && resource.key.uri === selectedUri)
+      ? resources.find(
+          (resource) => resource.key.kind === selectedKind && resource.key.uri === selectedUri,
+        )
       : undefined;
   return {
     logKey,

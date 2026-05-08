@@ -55,9 +55,7 @@ export class StateReplayIndex {
   }
 
   #isCacheable(targetIndex: number): boolean {
-    return (
-      Number.isInteger(targetIndex) && targetIndex >= 0 && targetIndex < this.#store.size()
-    );
+    return Number.isInteger(targetIndex) && targetIndex >= 0 && targetIndex < this.#store.size();
   }
 
   #cacheInfo(hit: boolean): StateReplayCacheInfo {

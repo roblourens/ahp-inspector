@@ -26,10 +26,7 @@ import {
 } from "@ahp-viewer/shared";
 import { computeLogKey } from "./log-key.js";
 import { SearchIndex } from "./search-index.js";
-import {
-  StateReplayIndex,
-  type StateReplayIndexResult,
-} from "./state-replay-index.js";
+import { StateReplayIndex, type StateReplayIndexResult } from "./state-replay-index.js";
 
 /** Server-side log metadata. NEVER carries absolute paths (T-02-03). */
 export interface LogMeta {

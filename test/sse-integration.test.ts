@@ -77,6 +77,15 @@ function inferDir(raw: unknown): Direction {
   return "c2s";
 }
 
+function expectNoReplayFields(json: string): void {
+  // Key-link marker for Phase 8: not.toContain("resources")
+  expect(json).not.toContain('"resources"');
+  expect(json).not.toContain('"diagnostics"');
+  expect(json).not.toContain('"intents"');
+  expect(json).not.toContain('"cache"');
+  expect(json).not.toContain('"state":{');
+}
+
 interface Frame {
   event: string;
   data: string;
@@ -226,6 +235,7 @@ describe("SSE log stream", () => {
     const beginPayload = JSON.parse(begin.data);
     expect(beginPayload.meta.filename).toBe("phase2-mini.jsonl");
     expect(beginPayload.total).toBeGreaterThanOrEqual(4);
+    expectNoReplayFields(begin.data);
     // T-02-03: no absolute fixture dir leakage.
     expect(begin.data).not.toContain("/Users/");
     expect(begin.data).not.toContain("test/fixtures");
@@ -235,6 +245,7 @@ describe("SSE log stream", () => {
     let frame = await c.next();
     while (frame.event === "snapshot-chunk") {
       sawChunk = true;
+      expectNoReplayFields(frame.data);
       expect(frame.data).not.toContain("/Users/");
       expect(frame.data).not.toContain("test/fixtures");
       frame = await c.next();
@@ -254,6 +265,7 @@ describe("SSE log stream", () => {
       const f = await c.next(2000);
       if (f.event === "append") {
         appendSeen = true;
+        expectNoReplayFields(f.data);
         expect(f.data).not.toContain("/Users/");
       } else if (f.event === "patch") {
         const payload = JSON.parse(f.data) as {
@@ -270,6 +282,53 @@ describe("SSE log stream", () => {
     expect(patchSeen).toBe(true);
     expect(okPatch?.status).toBe("ok");
     expect(okPatch?.latencyMs ?? -1).toBeGreaterThanOrEqual(0);
+  });
+
+  it("keeps large-log SSE frames free of replay state after state-at lookup", async () => {
+    const host = makeFakeHost("/tmp/large-state.log");
+    appState = await createAppState({
+      host,
+      file: "/tmp/large-state.log",
+      flushIntervalMs: 0,
+      directionInference: inferDir,
+    });
+    for (let i = 0; i < 250; i++) {
+      host.push(
+        `${JSON.stringify({ jsonrpc: "2.0", id: i + 1, method: "ping", params: { i } })}\n`,
+      );
+    }
+
+    handle = await startLogServer({ sessions: fakeSessions(appState), port: 0, version: "0.1.0" });
+    const c = await openSseClient({
+      port: handle.port,
+      path: "/api/log/stream",
+      hostHeader: `127.0.0.1:${handle.port}`,
+    });
+    client = c;
+
+    const begin = await c.next();
+    expect(begin.event).toBe("snapshot-begin");
+    expect(JSON.parse(begin.data).total).toBe(250);
+    expectNoReplayFields(begin.data);
+
+    let chunks = 0;
+    let frame = await c.next();
+    while (frame.event === "snapshot-chunk") {
+      chunks++;
+      expectNoReplayFields(frame.data);
+      frame = await c.next();
+    }
+    expect(chunks).toBeGreaterThan(0);
+    expect(frame.event).toBe("snapshot-end");
+
+    const stateAt = await fetch(
+      `http://127.0.0.1:${handle.port}/api/state-at?idx=249&logKey=${appState.meta.logKey}`,
+      {
+        headers: { Host: `127.0.0.1:${handle.port}` },
+      },
+    );
+    expect(stateAt.status).toBe(200);
+    await expect(c.next(100)).rejects.toThrow("SSE next() timeout");
   });
 });
 
