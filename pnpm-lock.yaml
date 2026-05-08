@@ -71,6 +71,9 @@ importers:
 
   packages/parser:
     dependencies:
+      '@ahp-viewer/protocol':
+        specifier: workspace:*
+        version: link:../protocol
       '@ahp-viewer/shared':
         specifier: workspace:*
         version: link:../shared
@@ -101,9 +104,9 @@ importers:
 
   packages/shared:
     dependencies:
-      agent-host-protocol:
-        specifier: file:../../../agent-host-protocol
-        version: file:../agent-host-protocol
+      '@ahp-viewer/protocol':
+        specifier: workspace:*
+        version: link:../protocol
 
   packages/ui:
     dependencies:
@@ -924,9 +927,6 @@ packages:
     resolution: {integrity: sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==}
     engines: {node: '>=0.4.0'}
     hasBin: true
-
-  agent-host-protocol@file:../agent-host-protocol:
-    resolution: {directory: ../agent-host-protocol, type: directory}
 
   ansi-regex@5.0.1:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
@@ -2240,8 +2240,6 @@ snapshots:
       tinyrainbow: 3.1.0
 
   acorn@8.16.0: {}
-
-  agent-host-protocol@file:../agent-host-protocol: {}
 
   ansi-regex@5.0.1: {}
 

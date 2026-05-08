@@ -14,6 +14,6 @@
     "build": "tsup src/index.ts --format esm --dts"
   },
   "dependencies": {
-    "agent-host-protocol": "file:../../../agent-host-protocol"
+    "@ahp-viewer/protocol": "workspace:*"
   }
 }

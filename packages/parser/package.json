@@ -13,6 +13,7 @@
     "build": "tsup src/index.ts --format esm --dts"
   },
   "dependencies": {
+    "@ahp-viewer/protocol": "workspace:*",
     "@ahp-viewer/shared": "workspace:*"
   }
 }
