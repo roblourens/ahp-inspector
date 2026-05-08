@@ -1,4 +1,5 @@
 import { type JSX, useCallback, useRef, useState } from "react";
+import { usePersistEffect } from "../../persistence/persist-effect.js";
 import { isFiltersEmpty } from "../../state/filters.js";
 import { useFilteredRows, useGroupedItems } from "../../state/selectors.js";
 import { useAppStore } from "../../state/store.js";
@@ -22,6 +23,9 @@ import { SourceStrip } from "./SourceStrip.js";
 import { StatusBar } from "./StatusBar.js";
 
 export function AppShell(): JSX.Element {
+  // Phase 4 Plan 06: per-log persistence (single mount).
+  usePersistEffect();
+
   const meta = useAppStore((s) => s.meta);
   const connection = useAppStore((s) => s.connection);
   const rows = useAppStore((s) => s.rows);

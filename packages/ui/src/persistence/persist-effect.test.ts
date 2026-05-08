@@ -2,7 +2,7 @@
 // usePersistEffect tests — Plan 04-06 Task 3 (TDD).
 
 import type { EventRow } from "@ahp-viewer/core";
-import { renderHook } from "@testing-library/react";
+import { cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EMPTY_FILTERS } from "../state/filters.js";
@@ -57,6 +57,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  cleanup();
   vi.useRealTimers();
   vi.restoreAllMocks();
   localStorage.clear();
