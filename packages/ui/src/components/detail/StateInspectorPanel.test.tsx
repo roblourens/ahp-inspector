@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   fetchStateAt,
@@ -250,6 +250,133 @@ describe("StateInspectorPanel", () => {
     expect(screen.getByTestId("pretty-json-view")).toHaveTextContent("sessionId");
     fireEvent.click(screen.getByRole("tab", { name: /raw json/i }));
     expect(screen.getByTestId("raw-json-view")).toHaveTextContent('"sessionId": "session-1"');
+  });
+
+  it("shows the pin action only after selected resource state loads", async () => {
+    vi.mocked(fetchStateAt)
+      .mockResolvedValueOnce({ ...metadataResponse, resources: [] })
+      .mockResolvedValueOnce({ ...metadataResponse, targetIndex: 8 })
+      .mockResolvedValueOnce(selectedResponse);
+    const { rerender } = render(<StateInspectorPanel idx={7} logKey="log-A" />);
+
+    expect(screen.queryByRole("button", { name: /pin state point/i })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /state at this point/i }));
+    await screen.findByTestId("state-inspector-empty");
+    expect(screen.queryByRole("button", { name: /pin state point/i })).toBeNull();
+
+    rerender(<StateInspectorPanel idx={8} logKey="log-A" />);
+    fireEvent.click(screen.getByRole("button", { name: /state at this point/i }));
+    await screen.findByTestId("state-summary-view");
+
+    expect(screen.getByRole("button", { name: /pin state point/i })).toBeInTheDocument();
+  });
+
+  it("keeps exactly two pinned points and drops the oldest third point", async () => {
+    vi.mocked(fetchStateAt)
+      .mockResolvedValueOnce(metadataResponse)
+      .mockResolvedValueOnce(selectedResponse)
+      .mockResolvedValueOnce({
+        ...metadataResponse,
+        targetIndex: 8,
+        resources: [rootResource],
+      })
+      .mockResolvedValueOnce({
+        ...metadataResponse,
+        targetIndex: 8,
+        resources: [rootResource],
+        selectedResource: {
+          ...rootResource,
+          diagnostics: [],
+          state: { root: true },
+        },
+      })
+      .mockResolvedValueOnce({
+        ...metadataResponse,
+        targetIndex: 9,
+        resources: [terminalResource],
+      })
+      .mockResolvedValueOnce({
+        ...metadataResponse,
+        targetIndex: 9,
+        resources: [terminalResource],
+        selectedResource: {
+          ...terminalResource,
+          diagnostics: [],
+          state: { terminalId: "pty/2" },
+        },
+      });
+    const { rerender } = render(
+      <StateInspectorPanel idx={7} logKey="log-A" eventLabel="first.event" eventTimestamp={1000} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /state at this point/i }));
+    await screen.findByTestId("state-summary-view");
+    fireEvent.click(screen.getByRole("button", { name: /pin state point/i }));
+    expect(
+      within(screen.getByLabelText("Pinned state points")).getByText("#7"),
+    ).toBeInTheDocument();
+
+    rerender(
+      <StateInspectorPanel
+        idx={8}
+        logKey="log-A"
+        eventLabel="second.event"
+        eventTimestamp={2000}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /state at this point/i }));
+    await screen.findByTestId("state-summary-view");
+    fireEvent.click(screen.getByRole("button", { name: /pin state point/i }));
+    expect(
+      within(screen.getByLabelText("Pinned state points")).getByText("#8"),
+    ).toBeInTheDocument();
+
+    rerender(
+      <StateInspectorPanel idx={9} logKey="log-A" eventLabel="third.event" eventTimestamp={3000} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /state at this point/i }));
+    await screen.findByTestId("state-summary-view");
+    fireEvent.click(screen.getByRole("button", { name: /pin state point/i }));
+
+    const pinnedPanel = within(screen.getByLabelText("Pinned state points"));
+    expect(pinnedPanel.queryByText("#7")).toBeNull();
+    expect(pinnedPanel.getByText("#8")).toBeInTheDocument();
+    expect(pinnedPanel.getByText("#9")).toBeInTheDocument();
+    expect(pinnedPanel.getByText("root://workspace")).toBeInTheDocument();
+    expect(pinnedPanel.getByText("terminal://session 1/pty/2")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /remove pinned state/i })).toHaveLength(2);
+  });
+
+  it("clears pinned points when the log key changes", async () => {
+    vi.mocked(fetchStateAt)
+      .mockResolvedValueOnce(metadataResponse)
+      .mockResolvedValueOnce(selectedResponse)
+      .mockResolvedValueOnce({
+        ...metadataResponse,
+        logKey: "log-B",
+      })
+      .mockResolvedValueOnce({
+        ...selectedResponse,
+        logKey: "log-B",
+      });
+    const { rerender } = render(<StateInspectorPanel idx={7} logKey="log-A" />);
+
+    fireEvent.click(screen.getByRole("button", { name: /state at this point/i }));
+    await screen.findByTestId("state-summary-view");
+    fireEvent.click(screen.getByRole("button", { name: /pin state point/i }));
+    expect(
+      within(screen.getByLabelText("Pinned state points")).getByText("#7"),
+    ).toBeInTheDocument();
+
+    rerender(<StateInspectorPanel idx={7} logKey="log-B" />);
+    fireEvent.click(screen.getByRole("button", { name: /state at this point/i }));
+    await screen.findByTestId("state-summary-view");
+
+    const pinnedPanel = within(screen.getByLabelText("Pinned state points"));
+    expect(pinnedPanel.queryByText("#7")).toBeNull();
+    expect(
+      pinnedPanel.getByText("Pin two state points to compare before/after reducer state."),
+    ).toBeInTheDocument();
   });
 
   it("shows aggregate and selected-resource confidence plus replay diagnostics", async () => {

@@ -348,7 +348,12 @@ export function DetailPanel({
       {/* AHP field strip */}
       {row && <AhpFieldStrip row={row} rawEvent={event} />}
 
-      <StateInspectorPanel idx={selectedIdx} logKey={logKey} />
+      <StateInspectorPanel
+        idx={selectedIdx}
+        logKey={logKey}
+        eventLabel={event.method ?? event.actionType ?? event.kind}
+        eventTimestamp={event.ts}
+      />
 
       {/* Tab strip + copy menu header */}
       <div

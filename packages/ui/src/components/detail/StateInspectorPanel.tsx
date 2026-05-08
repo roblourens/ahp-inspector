@@ -2,6 +2,7 @@ import { Loader2 } from "lucide-react";
 import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { fetchStateAt, type StateAtSuccessResponse } from "../../transport/state-client.js";
 import { CopyToast } from "./CopyToast.js";
+import { PinnedStatePanel } from "./PinnedStatePanel.js";
 import { PrettyJsonView } from "./PrettyJsonView.js";
 import { RawJsonView } from "./RawJsonView.js";
 import { StateConfidenceBadge } from "./StateConfidenceBadge.js";
@@ -14,10 +15,19 @@ import {
   stateResourceKey,
 } from "./StateResourceSelector.js";
 import { StateSummaryView } from "./StateSummaryView.js";
+import {
+  clearPinnedStatePoints,
+  createPinnedStatePoint,
+  type PinnedStatePoint,
+  removePinnedStatePoint,
+  upsertPinnedStatePoint,
+} from "./state-pins.js";
 
 interface StateInspectorPanelProps {
   readonly idx: number;
   readonly logKey: string | null;
+  readonly eventLabel?: string;
+  readonly eventTimestamp?: number;
 }
 
 type LoadState =
@@ -41,18 +51,25 @@ type SelectedLoadState =
 const IDLE_STATE: LoadState = { status: "idle", data: null, error: null };
 const IDLE_SELECTED_STATE: SelectedLoadState = { status: "idle", data: null, error: null };
 
-export function StateInspectorPanel({ idx, logKey }: StateInspectorPanelProps): JSX.Element {
+export function StateInspectorPanel({
+  idx,
+  logKey,
+  eventLabel = "unknown event",
+  eventTimestamp = Number.NaN,
+}: StateInspectorPanelProps): JSX.Element {
   const [open, setOpen] = useState(false);
   const [loadState, setLoadState] = useState<LoadState>(IDLE_STATE);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [selectedLoadState, setSelectedLoadState] =
     useState<SelectedLoadState>(IDLE_SELECTED_STATE);
+  const [pinnedPoints, setPinnedPoints] = useState<readonly PinnedStatePoint[]>([]);
   const [stateTab, setStateTab] = useState<StateTab>("summary");
   const [toast, setToast] = useState<{ message: string; kind: "success" | "error" } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const selectedAbortRef = useRef<AbortController | null>(null);
   const requestKey = `${idx}\u0000${logKey ?? ""}`;
   const lastRequestKeyRef = useRef(requestKey);
+  const lastLogKeyRef = useRef(logKey);
 
   const loadSelectedResource = useCallback(
     async (resource: SelectableStateResource) => {
@@ -139,6 +156,12 @@ export function StateInspectorPanel({ idx, logKey }: StateInspectorPanelProps): 
   }, [requestKey]);
 
   useEffect(() => {
+    if (lastLogKeyRef.current === logKey) return;
+    lastLogKeyRef.current = logKey;
+    setPinnedPoints(clearPinnedStatePoints());
+  }, [logKey]);
+
+  useEffect(() => {
     return () => {
       if (abortRef.current) abortRef.current.abort();
       if (selectedAbortRef.current) selectedAbortRef.current.abort();
@@ -160,6 +183,18 @@ export function StateInspectorPanel({ idx, logKey }: StateInspectorPanelProps): 
     setSelectedKey(stateResourceKey(resource));
     setStateTab("summary");
     void loadSelectedResource(resource);
+  }
+
+  function handlePinStatePoint(resource: NonNullable<StateAtSuccessResponse["selectedResource"]>) {
+    if (!logKey) return;
+    const point = createPinnedStatePoint({
+      logKey,
+      targetIndex: idx,
+      eventLabel,
+      eventTimestamp,
+      resource,
+    });
+    setPinnedPoints((current) => upsertPinnedStatePoint(current, point));
   }
 
   return (
@@ -221,6 +256,7 @@ export function StateInspectorPanel({ idx, logKey }: StateInspectorPanelProps): 
                 activeTab={stateTab}
                 onTabChange={setStateTab}
                 onCopy={(message, ok) => setToast({ message, kind: ok ? "success" : "error" })}
+                onPin={handlePinStatePoint}
               />
               <StateDiagnosticsPanel
                 aggregateDiagnostics={loadState.data.diagnostics}
@@ -229,6 +265,11 @@ export function StateInspectorPanel({ idx, logKey }: StateInspectorPanelProps): 
                 }
                 intents={loadState.data.intents}
                 cache={loadState.data.cache}
+              />
+              <PinnedStatePanel
+                points={pinnedPoints}
+                onRemove={(id) => setPinnedPoints((current) => removePinnedStatePoint(current, id))}
+                onClear={() => setPinnedPoints(clearPinnedStatePoints())}
               />
             </>
           )}
@@ -263,12 +304,14 @@ function SelectedStateViews({
   activeTab,
   onTabChange,
   onCopy,
+  onPin,
 }: {
   readonly targetIndex: number;
   readonly loadState: SelectedLoadState;
   readonly activeTab: StateTab;
   readonly onTabChange: (tab: StateTab) => void;
   readonly onCopy: (message: string, ok: boolean) => void;
+  readonly onPin: (resource: NonNullable<StateAtSuccessResponse["selectedResource"]>) => void;
 }): JSX.Element | null {
   if (loadState.status === "idle") return null;
   if (loadState.status === "loading") {
@@ -292,7 +335,12 @@ function SelectedStateViews({
     <div className="state-view-shell" data-testid="state-view-shell">
       <div className="state-view-header">
         <StateConfidenceBadge confidence={resource.confidence} label="Selected resource" />
-        <StateCopyMenu targetIndex={targetIndex} resource={resource} onCopy={onCopy} />
+        <div className="state-view-actions">
+          <button type="button" className="state-copy-button" onClick={() => onPin(resource)}>
+            Pin state point
+          </button>
+          <StateCopyMenu targetIndex={targetIndex} resource={resource} onCopy={onCopy} />
+        </div>
       </div>
       <div className="state-tabs" role="tablist" aria-label="Reconstructed state views">
         {(["summary", "pretty", "raw"] as const).map((tab) => (
