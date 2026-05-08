@@ -12,6 +12,20 @@
 
 import type { SafeCandidate } from "../types/safe-candidate.js";
 
+export interface ActiveLogMeta {
+  readonly filename: string;
+  readonly sizeBytes: number;
+  readonly startedAt: number;
+  readonly logKey: string;
+}
+
+export interface OpenSessionResult {
+  readonly active: {
+    readonly logKey: string;
+    readonly meta: ActiveLogMeta;
+  };
+}
+
 export class SessionOpenError extends Error {
   public readonly code: string;
   constructor(code: string, message: string) {
@@ -35,7 +49,41 @@ export async function fetchCandidates(): Promise<readonly SafeCandidate[]> {
   return data.candidates ?? [];
 }
 
-async function postOpen(body: unknown): Promise<void> {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function parseOpenResult(value: unknown): OpenSessionResult {
+  if (!isRecord(value) || !isRecord(value.active)) {
+    throw new SessionOpenError("bad-response", "open response missing active session");
+  }
+  const { active } = value;
+  if (typeof active.logKey !== "string" || !isRecord(active.meta)) {
+    throw new SessionOpenError("bad-response", "open response missing log key");
+  }
+  const { meta } = active;
+  if (
+    typeof meta.filename !== "string" ||
+    typeof meta.sizeBytes !== "number" ||
+    typeof meta.startedAt !== "number" ||
+    typeof meta.logKey !== "string"
+  ) {
+    throw new SessionOpenError("bad-response", "open response missing metadata");
+  }
+  return {
+    active: {
+      logKey: active.logKey,
+      meta: {
+        filename: meta.filename,
+        sizeBytes: meta.sizeBytes,
+        startedAt: meta.startedAt,
+        logKey: meta.logKey,
+      },
+    },
+  };
+}
+
+async function postOpen(body: unknown): Promise<OpenSessionResult> {
   let res: Response;
   try {
     res = await fetch("/api/sessions/open", {
@@ -46,7 +94,14 @@ async function postOpen(body: unknown): Promise<void> {
   } catch {
     throw new SessionOpenError("network", "fetch failed");
   }
-  if (res.ok) return;
+  if (res.ok) {
+    try {
+      return parseOpenResult(await res.json());
+    } catch (err) {
+      if (err instanceof SessionOpenError) throw err;
+      throw new SessionOpenError("bad-response", "open response was not JSON");
+    }
+  }
   let code = "bad-request";
   try {
     const json = (await res.json()) as { code?: string };
@@ -57,7 +112,7 @@ async function postOpen(body: unknown): Promise<void> {
   throw new SessionOpenError(code, `open failed ${res.status}`);
 }
 
-export const openSessionByCandidate = (candidateId: string): Promise<void> =>
+export const openSessionByCandidate = (candidateId: string): Promise<OpenSessionResult> =>
   postOpen({ id: candidateId });
 
-export const openSessionByPath = (path: string): Promise<void> => postOpen({ path });
+export const openSessionByPath = (path: string): Promise<OpenSessionResult> => postOpen({ path });

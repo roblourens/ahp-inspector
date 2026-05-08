@@ -12,10 +12,7 @@ describe("ahp-viewer CLI errors (Plan 02-05)", () => {
     // failing. We invoke with --no-open and kill it after the banner appears.
     const proc = spawnCliRaw(["--no-open", "--port", "0"]);
     try {
-      const banner = await waitForLine(
-        proc,
-        /AHP Log Viewer running at http:\/\/127\.0\.0\.1:\d+/,
-      );
+      const banner = await waitForLine(proc, /AHP Log Viewer running at http:\/\/127\.0\.0\.1:\d+/);
       expect(banner).toMatch(/127\.0\.0\.1/);
     } finally {
       proc.child.kill("SIGTERM");

@@ -3,7 +3,7 @@
 // tests focus on Plan-04-05 wiring: WatchErrorBanner, LogPickerPanel, SwitchLogButton,
 // and the negative — RotationBanner is NOT rendered by AppShell.
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -25,8 +25,18 @@ vi.mock("../filters/useSearch.js", () => ({
 }));
 vi.mock("../../transport/sessions-client.js", () => ({
   fetchCandidates: vi.fn().mockResolvedValue([]),
-  openSessionByCandidate: vi.fn().mockResolvedValue(undefined),
-  openSessionByPath: vi.fn().mockResolvedValue(undefined),
+  openSessionByCandidate: vi.fn().mockResolvedValue({
+    active: {
+      logKey: "opened-key",
+      meta: { filename: "opened.jsonl", sizeBytes: 1, startedAt: 2, logKey: "opened-key" },
+    },
+  }),
+  openSessionByPath: vi.fn().mockResolvedValue({
+    active: {
+      logKey: "opened-key",
+      meta: { filename: "opened.jsonl", sizeBytes: 1, startedAt: 2, logKey: "opened-key" },
+    },
+  }),
   SessionOpenError: class extends Error {
     constructor(
       public code: string,
@@ -60,10 +70,12 @@ beforeEach(() => {
     grouping: "none",
   });
   vi.clearAllMocks();
+  delete window.__ahpStream;
 });
 
 afterEach(() => {
   cleanup();
+  delete window.__ahpStream;
 });
 
 describe("AppShell — Plan 04-05 wiring", () => {
@@ -104,6 +116,33 @@ describe("AppShell — Plan 04-05 wiring", () => {
     render(<AppShell />);
     fireEvent.click(screen.getByText("Retry Connection"));
     expect(connectLogStream).toHaveBeenCalled();
+  });
+
+  it("selecting a switch-log candidate replaces the previous EventSource handle", async () => {
+    const oldHandle = { close: vi.fn() };
+    const newHandle = { close: vi.fn() };
+    window.__ahpStream = oldHandle;
+    vi.mocked(fetchCandidates).mockResolvedValue([
+      {
+        id: "cand-next",
+        label: "next.jsonl",
+        origin: "vscode",
+        confidence: "high",
+        mtimeMs: Date.now(),
+        sizeBytes: 128,
+      },
+    ]);
+    vi.mocked(connectLogStream).mockReturnValue(newHandle);
+
+    render(<AppShell />);
+    fireEvent.click(screen.getByRole("button", { name: "Switch log" }));
+    fireEvent.click(await screen.findByText("next.jsonl"));
+
+    await waitFor(() => expect(openSessionByCandidate).toHaveBeenCalledWith("cand-next"));
+    expect(oldHandle.close).toHaveBeenCalled();
+    expect(connectLogStream).toHaveBeenCalled();
+    expect(window.__ahpStream).toBe(newHandle);
+    expect(useAppStore.getState().logKey).toBe("opened-key");
   });
 
   it("clicking SwitchLogButton opens LogPickerPanel and triggers fetchCandidates", () => {

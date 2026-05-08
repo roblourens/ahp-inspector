@@ -18,7 +18,7 @@ export interface ConnectionHandle {
 }
 
 interface SnapshotBeginPayload {
-  meta: { filename: string; sizeBytes: number; startedAt: number };
+  meta: { filename: string; sizeBytes: number; startedAt: number; logKey?: string };
   total: number;
 }
 interface SnapshotChunkPayload {
@@ -65,11 +65,15 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
     try {
       const data = JSON.parse((ev as MessageEvent).data) as SnapshotBeginPayload;
       snapshotRows = [];
-      useAppStore.getState().setMeta({
+      const store = useAppStore.getState();
+      store.setMeta({
         filename: data.meta.filename,
         eventCount: 0,
         sessionCount: 0,
       });
+      if (typeof data.meta.logKey === "string" && data.meta.logKey.length > 0) {
+        store.setLogKey(data.meta.logKey);
+      }
     } catch {
       /* malformed frame — ignore */
     }
@@ -132,6 +136,7 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
     snapshotRows = [];
   };
   const onBye = (): void => {
+    if (closedByCaller) return;
     graceful = true;
     try {
       es.close();

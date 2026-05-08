@@ -15,6 +15,13 @@ interface FetchInit {
   body?: string;
 }
 
+const openResponse = {
+  active: {
+    logKey: "abc123",
+    meta: { filename: "foo.jsonl", sizeBytes: 12, startedAt: 34, logKey: "abc123" },
+  },
+};
+
 function mkResponse(init: {
   ok: boolean;
   status: number;
@@ -83,9 +90,10 @@ describe("sessions-client", () => {
     it("posts {id} JSON body and resolves on 200", async () => {
       const fetchMock = vi
         .fn()
-        .mockResolvedValue(mkResponse({ ok: true, status: 200, json: { ok: true } }));
+        .mockResolvedValue(mkResponse({ ok: true, status: 200, json: openResponse }));
       globalThis.fetch = fetchMock;
-      await openSessionByCandidate("cand-123");
+      const result = await openSessionByCandidate("cand-123");
+      expect(result).toEqual(openResponse);
       expect(fetchMock).toHaveBeenCalledWith(
         "/api/sessions/open",
         expect.objectContaining({
@@ -134,15 +142,25 @@ describe("sessions-client", () => {
         code: "network",
       });
     });
+
+    it("throws bad-response when 200 response has no active log metadata", async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValue(mkResponse({ ok: true, status: 200, json: { ok: true } }));
+      await expect(openSessionByCandidate("x")).rejects.toMatchObject({
+        code: "bad-response",
+      });
+    });
   });
 
   describe("openSessionByPath", () => {
     it("posts {path} JSON body and resolves on 200", async () => {
       const fetchMock = vi
         .fn()
-        .mockResolvedValue(mkResponse({ ok: true, status: 200, json: { ok: true } }));
+        .mockResolvedValue(mkResponse({ ok: true, status: 200, json: openResponse }));
       globalThis.fetch = fetchMock;
-      await openSessionByPath("/tmp/foo.jsonl");
+      const result = await openSessionByPath("/tmp/foo.jsonl");
+      expect(result).toEqual(openResponse);
       const callInit = fetchMock.mock.calls[0]?.[1] as FetchInit;
       expect(JSON.parse(callInit.body ?? "{}")).toEqual({ path: "/tmp/foo.jsonl" });
     });

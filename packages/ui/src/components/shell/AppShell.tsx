@@ -8,7 +8,7 @@ import {
   openSessionByCandidate,
   openSessionByPath,
 } from "../../transport/sessions-client.js";
-import { connectLogStream } from "../../transport/sse-client.js";
+import { type ConnectionHandle, connectLogStream } from "../../transport/sse-client.js";
 import type { SafeCandidate } from "../../types/safe-candidate.js";
 import { __APP_VERSION__ } from "../../version.js";
 import { WatchErrorBanner } from "../banners/WatchErrorBanner.js";
@@ -21,6 +21,14 @@ import { TimelineRegion } from "../timeline/TimelineRegion.js";
 import { HeaderBar } from "./HeaderBar.js";
 import { SourceStrip } from "./SourceStrip.js";
 import { StatusBar } from "./StatusBar.js";
+
+function replaceLogStream(): ConnectionHandle {
+  const previous = typeof window !== "undefined" ? window.__ahpStream : undefined;
+  previous?.close();
+  const handle = connectLogStream();
+  if (typeof window !== "undefined") window.__ahpStream = handle;
+  return handle;
+}
 
 export function AppShell(): JSX.Element {
   // Phase 4 Plan 06: per-log persistence (single mount).
@@ -81,13 +89,10 @@ export function AppShell(): JSX.Element {
   const onPickerSelect = useCallback((id: string): void => {
     void (async () => {
       try {
-        await openSessionByCandidate(id);
+        const result = await openSessionByCandidate(id);
+        useAppStore.getState().setLogKey(result.active.logKey);
         useAppStore.getState().setLastOpenRef({ kind: "candidate", id });
-        // Server emits log-reset → snapshot-begin/end on the existing stream.
-        // If the stream is closed, reopen it.
-        if (typeof window !== "undefined" && !window.__ahpStream) {
-          window.__ahpStream = connectLogStream();
-        }
+        replaceLogStream();
       } finally {
         setPickerOpen(false);
       }
@@ -95,20 +100,15 @@ export function AppShell(): JSX.Element {
   }, []);
 
   const onPickerOpenPath = useCallback(async (path: string): Promise<void> => {
-    await openSessionByPath(path);
+    const result = await openSessionByPath(path);
+    useAppStore.getState().setLogKey(result.active.logKey);
     useAppStore.getState().setLastOpenRef({ kind: "path", path });
-    if (typeof window !== "undefined" && !window.__ahpStream) {
-      window.__ahpStream = connectLogStream();
-    }
+    replaceLogStream();
     setPickerOpen(false);
   }, []);
 
   const onWatchErrorRetry = useCallback((): void => {
-    if (typeof window !== "undefined") {
-      window.__ahpStream?.close();
-    }
-    const handle = connectLogStream();
-    if (typeof window !== "undefined") window.__ahpStream = handle;
+    replaceLogStream();
     useAppStore.getState().setLastWatchError(null);
   }, []);
 
@@ -116,14 +116,14 @@ export function AppShell(): JSX.Element {
     void (async () => {
       try {
         if (lastOpenRef?.kind === "candidate") {
-          await openSessionByCandidate(lastOpenRef.id);
+          const result = await openSessionByCandidate(lastOpenRef.id);
+          useAppStore.getState().setLogKey(result.active.logKey);
         } else if (lastOpenRef?.kind === "path") {
-          await openSessionByPath(lastOpenRef.path);
+          const result = await openSessionByPath(lastOpenRef.path);
+          useAppStore.getState().setLogKey(result.active.logKey);
         }
         useAppStore.getState().setLastWatchError(null);
-        if (typeof window !== "undefined" && !window.__ahpStream) {
-          window.__ahpStream = connectLogStream();
-        }
+        replaceLogStream();
       } catch {
         /* swallow — banner stays visible until retry/reopen succeeds */
       }

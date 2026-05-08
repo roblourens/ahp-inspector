@@ -26,7 +26,9 @@ You can run the viewer without specifying a log file:
 ahp-viewer
 ```
 
-The browser opens to a picker showing logs the viewer discovered automatically under `~/Library/Application Support/Code` (macOS), `%APPDATA%\Code` (Windows), and `~/.config/Code` (Linux). Pick a log to begin streaming, or paste an absolute path under "or open manually".
+The browser opens to a picker showing logs the viewer discovered automatically under the standard VS Code log roots for macOS, Windows, and Linux. Pick a log to begin streaming, or paste a local log file path under "or open manually".
+
+![No active log picker](screenshots/phase4/01-no-active-log.png)
 
 ## The log picker
 
@@ -37,15 +39,21 @@ The browser opens to a picker showing logs the viewer discovered automatically u
 
 The picker never reveals absolute paths; it shows only basenames and short context labels relative to the discovery root.
 
+![No candidates hint](screenshots/phase4/02-no-candidates-hint.png)
+
 ## Live tail and pause
 
 The viewer streams new events as the file grows. Use the **Pause** button in the header to freeze the timeline; new events accumulate and a "<N> new events" pill appears at the bottom. Click the pill to flush the buffer and resume. Pause is local to the browser — the server keeps reading.
 
 The Space key toggles pause when focus is outside form fields.
 
+![Paused live tail with new events pill](screenshots/phase4/07-new-events-pill.png)
+
 ## Switching logs
 
-Click **Switch log…** at any time to open the same picker over the current view. Selecting a different log resets the timeline.
+Click **Switch log** at any time to open the same picker over the current view. Selecting a different log resets the timeline.
+
+![Switch log panel](screenshots/phase4/08-switch-log-panel.png)
 
 ## Persistence
 
@@ -53,8 +61,10 @@ Filter selections, column visibility, expanded groups, and the currently-selecte
 
 ## Banners
 
-- **Log file rotated.** — Appears once when the active file rotates (truncate/rename). The viewer continues from the new file.
-- **Lost watch on log file.** — Appears if the OS dropped the file watcher. Click **Retry** to reconnect.
+- **Log rotated — reloading from new file.** — Appears once when the active file rotates (truncate/rename). The viewer continues from the new file.
+- **Watch error: file read error** or **Watch error: watcher stopped** — Appears if the OS file watcher reports a safe error code. Click **Retry Connection** to reconnect or **Reopen log** to reopen the active file.
+
+![Rotation banner](screenshots/phase4/09-rotation-banner.png)
 
 ## Choose a theme
 
@@ -92,7 +102,7 @@ If the log stream disconnects after data has loaded, the viewer keeps the last r
 
 ## Current limitations
 
-Phase 2 provides the vertical slice: CLI launch, local server, SSE stream, virtualized timeline, and state handling. Live discovery and tail-mode are planned for later phases.
+The current standalone app opens one log at a time. Multi-log comparison, export workflows, advanced dashboards, and VS Code extension packaging are deferred.
 
 ## Searching events
 

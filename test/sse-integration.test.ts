@@ -9,10 +9,7 @@ import { resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { type AppState, createAppState } from "../packages/server/src/app-state.js";
 import { type LogServerHandle, startLogServer } from "../packages/server/src/log-server.js";
-import type {
-  ActiveSession,
-  LogSessionManager,
-} from "../packages/server/src/session-manager.js";
+import type { ActiveSession, LogSessionManager } from "../packages/server/src/session-manager.js";
 import type {
   Direction,
   Disposable,

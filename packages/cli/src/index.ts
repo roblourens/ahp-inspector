@@ -91,7 +91,10 @@ function parsePort(value: string): number {
 const program = new Command()
   .name("ahp-viewer")
   .version(VERSION)
-  .argument("[file]", "AHP JSONL log file path (optional — omit to launch into the discovery picker)")
+  .argument(
+    "[file]",
+    "AHP JSONL log file path (optional — omit to launch into the discovery picker)",
+  )
   .option("--port <n>", "local server port (0 = ephemeral)", "5173")
   .option("--no-open", "do not auto-open the default browser")
   .action(async (file: string | undefined, opts: { port: string; open: boolean }) => {
@@ -124,9 +127,7 @@ const program = new Command()
       } catch (err) {
         const e = err as { code?: string; message?: string };
         await sessions.dispose().catch(() => undefined);
-        fail(
-          `Error: cannot open ${absPath}: ${e.message ?? "unknown"}\nCheck file permissions.`,
-        );
+        fail(`Error: cannot open ${absPath}: ${e.message ?? "unknown"}\nCheck file permissions.`);
       }
     }
 

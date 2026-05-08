@@ -28,13 +28,19 @@ const noResolve = (_id: string): string | null => null;
 
 describe("LogSessionManager", () => {
   it("starts with current() === null", async () => {
-    const m = createLogSessionManager({ host: new NodeHostAdapter(), resolveCandidateId: noResolve });
+    const m = createLogSessionManager({
+      host: new NodeHostAdapter(),
+      resolveCandidateId: noResolve,
+    });
     expect(m.current()).toBeNull();
     await m.dispose();
   });
 
   it("open({path}) returns ActiveSession with stable logKey", async () => {
-    const m = createLogSessionManager({ host: new NodeHostAdapter(), resolveCandidateId: noResolve });
+    const m = createLogSessionManager({
+      host: new NodeHostAdapter(),
+      resolveCandidateId: noResolve,
+    });
     const s = await m.open({ path: pathA });
     expect(s.logKey).toMatch(/^[0-9a-f]{32}$/);
     expect(m.current()?.logKey).toBe(s.logKey);
@@ -45,7 +51,10 @@ describe("LogSessionManager", () => {
   });
 
   it("open({path}) → switching disposes previous and notifies onChange", async () => {
-    const m = createLogSessionManager({ host: new NodeHostAdapter(), resolveCandidateId: noResolve });
+    const m = createLogSessionManager({
+      host: new NodeHostAdapter(),
+      resolveCandidateId: noResolve,
+    });
     const events: Array<{ logKey: string } | null> = [];
     m.onChange((a) => events.push(a ? { logKey: a.logKey } : null));
     const a1 = await m.open({ path: pathA });
@@ -57,7 +66,10 @@ describe("LogSessionManager", () => {
   });
 
   it("close() disposes current and emits null", async () => {
-    const m = createLogSessionManager({ host: new NodeHostAdapter(), resolveCandidateId: noResolve });
+    const m = createLogSessionManager({
+      host: new NodeHostAdapter(),
+      resolveCandidateId: noResolve,
+    });
     const seen: Array<unknown> = [];
     m.onChange((a) => seen.push(a));
     await m.open({ path: pathA });
@@ -79,21 +91,32 @@ describe("LogSessionManager", () => {
   });
 
   it("open({id}) with unknown id rejects with code:not-found", async () => {
-    const m = createLogSessionManager({ host: new NodeHostAdapter(), resolveCandidateId: noResolve });
+    const m = createLogSessionManager({
+      host: new NodeHostAdapter(),
+      resolveCandidateId: noResolve,
+    });
     await expect(m.open({ id: "missing" })).rejects.toMatchObject({ code: "not-found" });
     await m.dispose();
   });
 
   it("open({path}) with path > 4096 chars rejects with code:path-too-long", async () => {
-    const m = createLogSessionManager({ host: new NodeHostAdapter(), resolveCandidateId: noResolve });
-    const longPath = "/" + "a".repeat(5000);
+    const m = createLogSessionManager({
+      host: new NodeHostAdapter(),
+      resolveCandidateId: noResolve,
+    });
+    const longPath = `/${"a".repeat(5000)}`;
     await expect(m.open({ path: longPath })).rejects.toMatchObject({ code: "path-too-long" });
     await m.dispose();
   });
 
   it("open({path}) for missing file rejects with code:not-found", async () => {
-    const m = createLogSessionManager({ host: new NodeHostAdapter(), resolveCandidateId: noResolve });
-    await expect(m.open({ path: join(dir, "ghost.jsonl") })).rejects.toMatchObject({ code: "not-found" });
+    const m = createLogSessionManager({
+      host: new NodeHostAdapter(),
+      resolveCandidateId: noResolve,
+    });
+    await expect(m.open({ path: join(dir, "ghost.jsonl") })).rejects.toMatchObject({
+      code: "not-found",
+    });
     await m.dispose();
   });
 });

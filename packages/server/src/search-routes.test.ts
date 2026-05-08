@@ -9,8 +9,8 @@ import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import type { AppState, LogMeta } from "./app-state.js";
 import { SearchIndex } from "./search-index.js";
-import type { ActiveSession, LogSessionManager } from "./session-manager.js";
 import { registerSearchRoutes } from "./search-routes.js";
+import type { ActiveSession, LogSessionManager } from "./session-manager.js";
 
 function fakeSessions(appState: AppState): LogSessionManager {
   const active: ActiveSession = { logKey: appState.meta.logKey, appState };

@@ -6,10 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { type AppState, createAppState } from "../packages/server/src/app-state.js";
 import { CSP_VALUE } from "../packages/server/src/csp.js";
 import { type LogServerHandle, startLogServer } from "../packages/server/src/log-server.js";
-import type {
-  ActiveSession,
-  LogSessionManager,
-} from "../packages/server/src/session-manager.js";
+import type { ActiveSession, LogSessionManager } from "../packages/server/src/session-manager.js";
 import type {
   Disposable,
   HostAdapter,

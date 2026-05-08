@@ -11,7 +11,7 @@
 
 import { discoverVsCodeLogs } from "@ahp-viewer/host-node";
 import type { Hono } from "hono";
-import type { LogSessionManager } from "./session-manager.js";
+import type { ActiveSession, LogSessionManager } from "./session-manager.js";
 
 export function registerSessionRoutes(app: Hono, sessions: LogSessionManager): void {
   app.get("/api/sessions/discover", async (c) => {
@@ -31,7 +31,7 @@ export function registerSessionRoutes(app: Hono, sessions: LogSessionManager): v
     }
     const b = body as { id?: unknown; path?: unknown };
     try {
-      let active;
+      let active: ActiveSession;
       if (typeof b.path === "string") {
         active = await sessions.open({ path: b.path });
       } else if (typeof b.id === "string") {

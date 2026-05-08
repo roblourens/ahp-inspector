@@ -17,6 +17,14 @@ declare global {
   }
 }
 
+function replaceLogStream(): ConnectionHandle {
+  const previous = typeof window !== "undefined" ? window.__ahpStream : undefined;
+  previous?.close();
+  const handle = connectLogStream();
+  if (typeof window !== "undefined") window.__ahpStream = handle;
+  return handle;
+}
+
 export function App(): JSX.Element {
   const connection = useAppStore((s) => s.connection);
   const [candidates, setCandidates] = useState<readonly SafeCandidate[]>([]);
@@ -69,17 +77,17 @@ export function App(): JSX.Element {
   }, [refreshCandidates]);
 
   const onSelect = useCallback(async (id: string): Promise<void> => {
-    await openSessionByCandidate(id);
+    const result = await openSessionByCandidate(id);
+    useAppStore.getState().setLogKey(result.active.logKey);
     useAppStore.getState().setLastOpenRef({ kind: "candidate", id });
-    const handle = connectLogStream();
-    if (typeof window !== "undefined") window.__ahpStream = handle;
+    replaceLogStream();
   }, []);
 
   const onOpenPath = useCallback(async (path: string): Promise<void> => {
-    await openSessionByPath(path);
+    const result = await openSessionByPath(path);
+    useAppStore.getState().setLogKey(result.active.logKey);
     useAppStore.getState().setLastOpenRef({ kind: "path", path });
-    const handle = connectLogStream();
-    if (typeof window !== "undefined") window.__ahpStream = handle;
+    replaceLogStream();
   }, []);
 
   if (connection === "no-server") return <ServerNotRunningState />;

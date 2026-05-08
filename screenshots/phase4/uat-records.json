@@ -1,0 +1,52 @@
+[
+  {
+    "file": "screenshots/phase4/01-no-active-log.png",
+    "status": "pass",
+    "note": "Initial picker shows mixed-confidence discovered candidates with safe labels only."
+  },
+  {
+    "file": "screenshots/phase4/02-no-candidates-hint.png",
+    "status": "pass",
+    "note": "No-candidates state shows discovery-specific help and manual-open fallback."
+  },
+  {
+    "file": "screenshots/phase4/03-manual-open-error-not-found.png",
+    "status": "pass",
+    "note": "Manual-open missing-file copy is fixed and does not echo the typed path."
+  },
+  {
+    "file": "screenshots/phase4/04-manual-open-error-too-long.png",
+    "status": "pass",
+    "note": "Client-side path length validation renders the UI-SPEC copy."
+  },
+  {
+    "file": "screenshots/phase4/05-app-shell-with-rows.png",
+    "status": "pass",
+    "note": "Selected discovered log opens into the populated timeline AppShell."
+  },
+  {
+    "file": "screenshots/phase4/06-live-pause-button-paused.png",
+    "status": "pass",
+    "note": "Pause button is active, accessible, and visually distinct."
+  },
+  {
+    "file": "screenshots/phase4/07-new-events-pill.png",
+    "status": "pass",
+    "note": "While paused, incoming events show the NewEventsPill instead of moving the visible timeline."
+  },
+  {
+    "file": "screenshots/phase4/08-switch-log-panel.png",
+    "status": "pass",
+    "note": "Switch log overlay opens without replacing the current timeline."
+  },
+  {
+    "file": "screenshots/phase4/09-rotation-banner.png",
+    "status": "pass",
+    "note": "Rotation banner appears in TimelineRegion with UI-SPEC copy and no dismiss button."
+  },
+  {
+    "file": "screenshots/phase4/10-watch-error-banner.png",
+    "status": "pass",
+    "note": "Watch-error banner displays safe mapped copy plus Retry Connection and Reopen log actions."
+  }
+]
