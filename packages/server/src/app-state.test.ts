@@ -12,17 +12,37 @@ interface FakeLogHandle extends LogHandle {
 
 interface FakeHost extends HostAdapter {
   push(text: string): void;
+  /** Phase 4: directly invoke the active sink's onReset (if WatchSink). */
+  triggerReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
+  /** Phase 4: directly invoke the active sink's onError (if WatchSink). */
+  triggerError(err: Error, fatal: boolean): void;
 }
 
+type WatchSinkObj = {
+  onChunk(bytes: Uint8Array, byteOffset: number): void;
+  onReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
+  onError(err: Error, fatal: boolean): void;
+};
+
 function makeFakeHost(path: string): FakeHost {
-  let sink: ((bytes: Uint8Array) => void) | null = null;
+  let sink: WatchSinkObj | null = null;
+  let offset = 0;
   const encoder = new TextEncoder();
   const handle: FakeLogHandle = { id: path, path, size: 0 };
   return {
     discoverLogs: async (): Promise<DiscoveryResult> => ({ candidates: [], truncated: false }),
     openLog: async (_p: string): Promise<LogHandle> => handle,
-    watchLog: (_h: LogHandle, onChunk: (b: Uint8Array) => void): Disposable => {
-      sink = onChunk;
+    watchLog: (_h: LogHandle, sinkOrChunk): Disposable => {
+      if (typeof sinkOrChunk === "function") {
+        const fn = sinkOrChunk;
+        sink = {
+          onChunk: (bytes) => fn(bytes),
+          onReset: () => {},
+          onError: () => {},
+        };
+      } else {
+        sink = sinkOrChunk as WatchSinkObj;
+      }
       return {
         dispose: () => {
           sink = null;
@@ -32,7 +52,18 @@ function makeFakeHost(path: string): FakeHost {
     close: async (_h: LogHandle) => {},
     push(text: string): void {
       if (!sink) throw new Error("watchLog not subscribed");
-      sink(encoder.encode(text));
+      const bytes = encoder.encode(text);
+      sink.onChunk(bytes, offset);
+      offset += bytes.byteLength;
+    },
+    triggerReset(info): void {
+      if (!sink) throw new Error("watchLog not subscribed");
+      offset = 0;
+      sink.onReset(info);
+    },
+    triggerError(err, fatal): void {
+      if (!sink) throw new Error("watchLog not subscribed");
+      sink.onError(err, fatal);
     },
   };
 }
@@ -154,5 +185,68 @@ describe("createAppState", () => {
     await state.dispose();
     await state.dispose();
     state = undefined;
+  });
+});
+
+describe("AppState rotation/watch-error propagation (Phase 4 INGEST-04)", () => {
+  let state: AppState | undefined;
+
+  afterEach(async () => {
+    if (state) {
+      await state.dispose();
+      state = undefined;
+    }
+  });
+
+  it("emits rotation SsePayload when host signals onReset", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({ host, file: "/tmp/x.log", flushIntervalMs: 0 });
+    const captured: SsePayload[] = [];
+    state.subscribe((p) => captured.push(p));
+
+    host.triggerReset({ newSize: 0, reason: "shrink" });
+    host.triggerReset({ newSize: 42, reason: "rename" });
+
+    const rotations = captured.filter((p) => p.kind === "rotation");
+    expect(rotations.length).toBe(2);
+    expect(rotations[0]).toMatchObject({ kind: "rotation", newSize: 0, reason: "shrink" });
+    expect(rotations[1]).toMatchObject({ kind: "rotation", newSize: 42, reason: "rename" });
+  });
+
+  it("emits watch-error SsePayload with mapped code", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({ host, file: "/tmp/x.log", flushIntervalMs: 0 });
+    const captured: SsePayload[] = [];
+    state.subscribe((p) => captured.push(p));
+
+    host.triggerError(new Error("boom"), true);
+    host.triggerError(new Error("transient"), false);
+
+    const errors = captured.filter((p) => p.kind === "watch-error");
+    expect(errors.length).toBe(2);
+    expect(errors.find((p) => p.kind === "watch-error" && p.code === "watch-fatal")).toBeTruthy();
+    expect(errors.find((p) => p.kind === "watch-error" && p.code === "read-error")).toBeTruthy();
+  });
+
+  it("rotation resets parser-side byteOffset and partial-line buffer", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({ host, file: "/tmp/x.log", flushIntervalMs: 0 });
+
+    // Push a partial line (no trailing newline) — splitter holds it.
+    host.push('{"jsonrpc":"2.0","id":1,"method":"part');
+    expect(state.snapshot().rows.length).toBe(0);
+
+    // Rotation: splitter buffer should drop, byteOffset should reset.
+    host.triggerReset({ newSize: 0, reason: "shrink" });
+
+    // Post-rotation push of a valid line — must parse cleanly without
+    // concatenating the previous partial.
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "fresh", params: {} })}\n`);
+    const rows = state.snapshot().rows;
+    expect(rows.length).toBe(1);
+    expect(rows[0]?.kind).toBe("request");
+    // First row after rotation starts at byteOffset 0.
+    const ev0 = state.eventAt(0);
+    expect(ev0?.byteOffset).toBe(0);
   });
 });

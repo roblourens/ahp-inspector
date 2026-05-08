@@ -47,7 +47,16 @@ export interface LogHandle {
 export interface HostAdapter {
   discoverLogs(): Promise<DiscoveryResult>;
   openLog(path: string): Promise<LogHandle>;
-  watchLog(handle: LogHandle, onChunk: (bytes: Uint8Array) => void): Disposable;
+  watchLog(
+    handle: LogHandle,
+    sinkOrChunk:
+      | ((bytes: Uint8Array) => void)
+      | {
+          onChunk(bytes: Uint8Array, byteOffset: number): void;
+          onReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
+          onError(err: Error, fatal: boolean): void;
+        },
+  ): Disposable;
   close(handle: LogHandle): Promise<void>;
 }
 

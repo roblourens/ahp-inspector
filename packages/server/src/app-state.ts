@@ -221,35 +221,55 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   });
 
   // Ingest loop.
-  const watcher = opts.host.watchLog(handle, (chunk: Uint8Array) => {
-    const text = decoder.decode(chunk, { stream: true });
-    // Detect CRLF vs LF so byteOffset stays byte-accurate for Windows logs.
-    // The LineSplitter strips the '\r', so we add the extra byte here if needed.
-    const newlineSize = text.includes("\r\n") ? 2 : 1;
-    let lines: string[];
-    try {
-      lines = splitter.push(text);
-    } catch (err) {
+  const watcher = opts.host.watchLog(handle, {
+    onChunk(chunk: Uint8Array, _byteOffset: number) {
+      const text = decoder.decode(chunk, { stream: true });
+      // Detect CRLF vs LF so byteOffset stays byte-accurate for Windows logs.
+      // The LineSplitter strips the '\r', so we add the extra byte here if needed.
+      const newlineSize = text.includes("\r\n") ? 2 : 1;
+      let lines: string[];
+      try {
+        lines = splitter.push(text);
+      } catch (err) {
+        emit({
+          kind: "error",
+          code: "parse-overflow",
+          message: (err as Error).message,
+        });
+        return;
+      }
+      for (const line of lines) {
+        const byteLength = Buffer.byteLength(line, "utf8");
+        const ts = Date.now();
+        const parsed = parseLine(line, byteOffset, byteLength);
+        const dir: Direction = parsed.error ? "c2s" : inferDir(parsed.raw);
+        const m = { seq, ts, tsRaw: String(ts), dir, byteOffset, byteLength };
+        const ev = parsed.error
+          ? makeParseErrorEvent(m, parsed.error.reason, parsed.text)
+          : normalize(parsed.raw, m);
+        store.append(ev);
+        seq += 1;
+        byteOffset += byteLength + newlineSize; // +1 LF or +2 CRLF
+      }
+    },
+    onReset(info) {
+      // Reset parser-side accounting; do NOT mutate store/rows — UI drops on
+      // rotation frame. seq is intentionally NOT reset (T-04-02-04 accepted).
+      try {
+        splitter.reset();
+      } catch {
+        /* defensive */
+      }
+      byteOffset = 0;
+      emit({ kind: "rotation", newSize: info.newSize, reason: info.reason });
+    },
+    onError(err, fatal) {
       emit({
-        kind: "error",
-        code: "parse-overflow",
-        message: (err as Error).message,
+        kind: "watch-error",
+        code: fatal ? "watch-fatal" : "read-error",
+        message: err.message,
       });
-      return;
-    }
-    for (const line of lines) {
-      const byteLength = Buffer.byteLength(line, "utf8");
-      const ts = Date.now();
-      const parsed = parseLine(line, byteOffset, byteLength);
-      const dir: Direction = parsed.error ? "c2s" : inferDir(parsed.raw);
-      const m = { seq, ts, tsRaw: String(ts), dir, byteOffset, byteLength };
-      const ev = parsed.error
-        ? makeParseErrorEvent(m, parsed.error.reason, parsed.text)
-        : normalize(parsed.raw, m);
-      store.append(ev);
-      seq += 1;
-      byteOffset += byteLength + newlineSize; // +1 LF or +2 CRLF
-    }
+    },
   });
 
   function runFlush(nowMs?: number): void {

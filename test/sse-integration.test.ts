@@ -22,12 +22,27 @@ interface FakeHost extends HostAdapter {
 }
 
 function makeFakeHost(path: string): FakeHost {
-  let sink: ((bytes: Uint8Array) => void) | null = null;
+  type WatchSinkObj = {
+    onChunk(bytes: Uint8Array, byteOffset: number): void;
+    onReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
+    onError(err: Error, fatal: boolean): void;
+  };
+  let sink: WatchSinkObj | null = null;
+  let offset = 0;
   return {
     discoverLogs: async (): Promise<LogCandidate[]> => [],
     openLog: async (_p: string): Promise<LogHandle> => ({ id: path }),
-    watchLog: (_h, onChunk) => {
-      sink = onChunk;
+    watchLog: (_h, sinkOrChunk) => {
+      if (typeof sinkOrChunk === "function") {
+        const fn = sinkOrChunk;
+        sink = {
+          onChunk: (bytes) => fn(bytes),
+          onReset: () => {},
+          onError: () => {},
+        };
+      } else {
+        sink = sinkOrChunk as WatchSinkObj;
+      }
       return {
         dispose: () => {
           sink = null;
@@ -37,7 +52,9 @@ function makeFakeHost(path: string): FakeHost {
     close: async () => {},
     push(text) {
       if (!sink) throw new Error("watchLog not subscribed");
-      sink(new TextEncoder().encode(text));
+      const bytes = new TextEncoder().encode(text);
+      sink.onChunk(bytes, offset);
+      offset += bytes.byteLength;
     },
   };
 }
