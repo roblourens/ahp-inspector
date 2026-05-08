@@ -5,7 +5,7 @@ validation_for:
   - 08-02-PLAN.md
   - 08-03-PLAN.md
 nyquist_compliant: true
-quick_run: pnpm test -- packages/server/src/state-replay-index.test.ts packages/server/src/state-routes.test.ts packages/server/src/app-state.test.ts
+quick_run: pnpm test -- packages/server/src/state-replay-index.test.ts packages/server/src/state-routes.test.ts packages/server/src/app-state.test.ts test/sse-integration.test.ts
 full_suite: pnpm test && pnpm typecheck && pnpm lint
 ---
 
@@ -48,7 +48,7 @@ Before executing any Phase 8 task, the executor must confirm:
 ## Quick Run
 
 ```bash
-pnpm test -- packages/server/src/state-replay-index.test.ts packages/server/src/state-routes.test.ts packages/server/src/app-state.test.ts
+pnpm test -- packages/server/src/state-replay-index.test.ts packages/server/src/state-routes.test.ts packages/server/src/app-state.test.ts test/sse-integration.test.ts
 ```
 
 ## Full Suite
