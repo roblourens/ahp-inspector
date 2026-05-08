@@ -212,6 +212,27 @@ A brief **"Copied N chars"** toast appears at the bottom-right to confirm the cl
 
 ![Copy menu with toast](screenshots/phase3-detail-copy-toast.png)
 
+### Reducer-backed state inspection and pinned comparison
+
+For logs that include AHP snapshots and server action envelopes, select a timeline row and click **State at this point** in the detail panel. The viewer reconstructs reducer state locally for that event index, then lists available resources such as `root`, `session`, and `terminal`.
+
+1. Select a row with state history.
+2. Click **State at this point**.
+3. Choose a resource, for example `session copilot:/session/1`.
+4. Read the aggregate and selected-resource confidence labels. **Complete** means the relevant baseline and action stream were available; **Partial** or **Unknown** means the diagnostics should be read before treating the state as authoritative.
+5. Expand **Replay diagnostics** to see missing baselines, server sequence gaps, unknown action types, ignored client intents, and cache status.
+6. Click **Pin state point** to keep the selected resource state in memory.
+7. Select a later row, open the same resource, and click **Pin state point** again.
+8. The **Pinned comparison** panel shows both event points and **Changed top-level paths** so you can quickly see which top-level reducer fields changed.
+
+![Phase 10 dark state comparison](screenshots/phase10/01-dark-state-comparison.png)
+
+![Phase 10 light state comparison](screenshots/phase10/02-light-state-comparison.png)
+
+![Phase 10 hacker state comparison](screenshots/phase10/03-hacker-state-comparison.png)
+
+**Local-only privacy note:** reconstructed state, copied state, pinned state points, and pinned comparisons stay inside the local viewer process/browser memory. The viewer does not send state to telemetry, cloud services, or AI explanation endpoints. Screenshots in this guide use only synthetic Phase 10 fixture data.
+
 ### Keyboard shortcuts
 
 | Key | Action |

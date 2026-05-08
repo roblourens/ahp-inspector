@@ -342,8 +342,8 @@ describe("StateInspectorPanel", () => {
     expect(pinnedPanel.queryByText("#7")).toBeNull();
     expect(pinnedPanel.getByText("#8")).toBeInTheDocument();
     expect(pinnedPanel.getByText("#9")).toBeInTheDocument();
-    expect(pinnedPanel.getByText("root://workspace")).toBeInTheDocument();
-    expect(pinnedPanel.getByText("terminal://session 1/pty/2")).toBeInTheDocument();
+    expect(pinnedPanel.getAllByText("root://workspace").length).toBeGreaterThan(0);
+    expect(pinnedPanel.getAllByText("terminal://session 1/pty/2").length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: /remove pinned state/i })).toHaveLength(2);
   });
 

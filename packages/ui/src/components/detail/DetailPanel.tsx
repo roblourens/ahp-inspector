@@ -33,6 +33,7 @@ import { PrettyJsonView } from "./PrettyJsonView.js";
 import { PrivacyCaption } from "./PrivacyCaption.js";
 import { RawJsonView } from "./RawJsonView.js";
 import { StateInspectorPanel } from "./StateInspectorPanel.js";
+import { clearPinnedStatePoints, type PinnedStatePoint } from "./state-pins.js";
 
 interface LoadState {
   status: "idle" | "loading" | "error" | "ok";
@@ -59,9 +60,11 @@ export function DetailPanel({
     error: null,
   });
   const [activeTab, setActiveTab] = useState<"pretty" | "raw">("pretty");
+  const [pinnedPoints, setPinnedPoints] = useState<readonly PinnedStatePoint[]>([]);
   const [toast, setToast] = useState<{ message: string; kind: "success" | "error" } | null>(null);
   const retryKey = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
+  const pinnedLogKeyRef = useRef(logKey);
 
   const load = useCallback(async (idx: number, activeLogKey: string | null) => {
     // Abort any prior in-flight request (T-03-04-04)
@@ -99,6 +102,12 @@ export function DetailPanel({
       if (abortRef.current) abortRef.current.abort();
     };
   }, [selectedIdx, logKey, load]);
+
+  useEffect(() => {
+    if (pinnedLogKeyRef.current === logKey) return;
+    pinnedLogKeyRef.current = logKey;
+    setPinnedPoints(clearPinnedStatePoints());
+  }, [logKey]);
 
   function handleRetry() {
     if (selectedIdx !== null) {
@@ -353,6 +362,8 @@ export function DetailPanel({
         logKey={logKey}
         eventLabel={event.method ?? event.actionType ?? event.kind}
         eventTimestamp={event.ts}
+        pinnedPoints={pinnedPoints}
+        onPinnedPointsChange={setPinnedPoints}
       />
 
       {/* Tab strip + copy menu header */}

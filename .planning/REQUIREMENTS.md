@@ -39,16 +39,16 @@ Requirements for reducer-backed state reconstruction.
 
 ### Comparison
 
-- [ ] **COMPARE-01**: User can pin at least two state points from the timeline.
-- [ ] **COMPARE-02**: User can compare pinned state points with clear event metadata and changed top-level paths.
-- [ ] **COMPARE-03**: Comparison preserves local-only privacy and never sends state outside the local viewer.
+- [x] **COMPARE-01**: User can pin at least two state points from the timeline.
+- [x] **COMPARE-02**: User can compare pinned state points with clear event metadata and changed top-level paths.
+- [x] **COMPARE-03**: Comparison preserves local-only privacy and never sends state outside the local viewer.
 
 ### Verification
 
 - [x] **VERIFY-01**: Reducer replay is covered by parity fixtures based on `../agent-host-protocol/types/test-cases/reducers`.
 - [x] **VERIFY-02**: Integration tests cover state reconstruction from synthetic JSONL with subscribe/reconnect snapshots and action envelopes.
-- [ ] **VERIFY-03**: Browser E2E covers opening a log, selecting a row, viewing state, pinning two points, and seeing confidence diagnostics.
-- [ ] **VERIFY-04**: Large-log tests confirm state-at-index lookup remains responsive and does not inflate timeline SSE payloads.
+- [x] **VERIFY-03**: Browser E2E covers opening a log, selecting a row, viewing state, pinning two points, and seeing confidence diagnostics.
+- [x] **VERIFY-04**: Large-log tests confirm state-at-index lookup remains responsive and does not inflate timeline SSE payloads.
 
 ## Future Requirements
 
@@ -90,13 +90,13 @@ Requirements for reducer-backed state reconstruction.
 | STATE-03 | Phase 9 | Done |
 | STATE-04 | Phase 9 | Done |
 | STATE-05 | Phase 9 | Done |
-| COMPARE-01 | Phase 10 | Pending |
-| COMPARE-02 | Phase 10 | Pending |
-| COMPARE-03 | Phase 10 | Pending |
+| COMPARE-01 | Phase 10 | Done |
+| COMPARE-02 | Phase 10 | Done |
+| COMPARE-03 | Phase 10 | Done |
 | VERIFY-01 | Phase 6 | Done |
 | VERIFY-02 | Phase 8 | Done |
-| VERIFY-03 | Phase 10 | Pending |
-| VERIFY-04 | Phase 10 | Pending |
+| VERIFY-03 | Phase 10 | Done |
+| VERIFY-04 | Phase 10 | Done |
 
 **Coverage:**
 

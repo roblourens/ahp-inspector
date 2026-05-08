@@ -11,7 +11,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 ## Milestones
 
 - **v1.0 Initial MVP** — shipped 2026-05-08. Delivered standalone local viewing, JSONL ingestion, virtualized timeline, detail/search/filtering, live discovery/tail/persistence, row polish, three themes, and full verification.
-- **v1.1 Reducer-backed State Snapshots** — in progress. Reconstruct root/session/terminal state at selected log events by replaying canonical AHP reducers over snapshots and server action envelopes.
+- **v1.1 Reducer-backed State Snapshots** — ready for milestone verification. Reconstructs root/session/terminal state at selected log events by replaying canonical AHP reducers over snapshots and server action envelopes.
 
 ## Phases
 
@@ -114,9 +114,9 @@ Plans:
 
 Plans:
 
-- [ ] 10-01: Add pinned state points with event metadata and resource context.
-- [ ] 10-02: Add basic comparison with changed top-level paths and clear confidence labels.
-- [ ] 10-03: Add E2E/large-log verification and refresh user-facing docs/screenshots.
+- [x] 10-01: Add pinned state points with event metadata and resource context.
+- [x] 10-02: Add basic comparison with changed top-level paths and clear confidence labels.
+- [x] 10-03: Add E2E/large-log verification and refresh user-facing docs/screenshots.
 
 **Success criteria:**
 
@@ -129,11 +129,11 @@ Plans:
 | Milestone | Phases | Plans | Status | Completed |
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
-| v1.1 Reducer-backed State Snapshots | 4/5 | 12/15 | In progress | — |
+| v1.1 Reducer-backed State Snapshots | 5/5 | 15/15 | Ready for milestone verification | — |
 
 ## Next
 
-Execute Phase 10 pinned comparison and milestone verification.
+Run `/gsd-complete-milestone` for v1.1 milestone verification/archive when requested.
 
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*

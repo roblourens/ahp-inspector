@@ -28,6 +28,8 @@ interface StateInspectorPanelProps {
   readonly logKey: string | null;
   readonly eventLabel?: string;
   readonly eventTimestamp?: number;
+  readonly pinnedPoints?: readonly PinnedStatePoint[];
+  readonly onPinnedPointsChange?: (points: readonly PinnedStatePoint[]) => void;
 }
 
 type LoadState =
@@ -56,13 +58,17 @@ export function StateInspectorPanel({
   logKey,
   eventLabel = "unknown event",
   eventTimestamp = Number.NaN,
+  pinnedPoints: controlledPinnedPoints,
+  onPinnedPointsChange,
 }: StateInspectorPanelProps): JSX.Element {
   const [open, setOpen] = useState(false);
   const [loadState, setLoadState] = useState<LoadState>(IDLE_STATE);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [selectedLoadState, setSelectedLoadState] =
     useState<SelectedLoadState>(IDLE_SELECTED_STATE);
-  const [pinnedPoints, setPinnedPoints] = useState<readonly PinnedStatePoint[]>([]);
+  const [localPinnedPoints, setLocalPinnedPoints] = useState<readonly PinnedStatePoint[]>([]);
+  const pinnedPoints = controlledPinnedPoints ?? localPinnedPoints;
+  const setPinnedPoints = onPinnedPointsChange ?? setLocalPinnedPoints;
   const [stateTab, setStateTab] = useState<StateTab>("summary");
   const [toast, setToast] = useState<{ message: string; kind: "success" | "error" } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -159,7 +165,7 @@ export function StateInspectorPanel({
     if (lastLogKeyRef.current === logKey) return;
     lastLogKeyRef.current = logKey;
     setPinnedPoints(clearPinnedStatePoints());
-  }, [logKey]);
+  }, [logKey, setPinnedPoints]);
 
   useEffect(() => {
     return () => {
@@ -194,7 +200,7 @@ export function StateInspectorPanel({
       eventTimestamp,
       resource,
     });
-    setPinnedPoints((current) => upsertPinnedStatePoint(current, point));
+    setPinnedPoints(upsertPinnedStatePoint(pinnedPoints, point));
   }
 
   return (
@@ -268,7 +274,7 @@ export function StateInspectorPanel({
               />
               <PinnedStatePanel
                 points={pinnedPoints}
-                onRemove={(id) => setPinnedPoints((current) => removePinnedStatePoint(current, id))}
+                onRemove={(id) => setPinnedPoints(removePinnedStatePoint(pinnedPoints, id))}
                 onClear={() => setPinnedPoints(clearPinnedStatePoints())}
               />
             </>

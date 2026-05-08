@@ -17,6 +17,7 @@ import type {
   LogCandidate,
   LogHandle,
 } from "../packages/shared/src/index.js";
+import { phase10StateLogLines } from "../packages/ui/src/test-fixtures/phase10-state-log";
 
 function fakeSessions(appState: AppState): LogSessionManager {
   const active: ActiveSession = { logKey: appState.meta.logKey, appState };
@@ -83,7 +84,15 @@ function expectNoReplayFields(json: string): void {
   expect(json).not.toContain('"diagnostics"');
   expect(json).not.toContain('"intents"');
   expect(json).not.toContain('"cache"');
-  expect(json).not.toContain('"state":{');
+  expect(json).not.toContain('"state":');
+}
+
+function expectNoReplayFieldsInRows(rows: readonly unknown[]): void {
+  for (const row of rows) {
+    const copy = { ...(row as Record<string, unknown>), payloadPreview: "" };
+    const json = JSON.stringify(copy);
+    expectNoReplayFields(json);
+  }
 }
 
 interface Frame {
@@ -284,19 +293,16 @@ describe("SSE log stream", () => {
     expect(okPatch?.latencyMs ?? -1).toBeGreaterThanOrEqual(0);
   });
 
-  it("keeps large-log SSE frames free of replay state after state-at lookup", async () => {
-    const host = makeFakeHost("/tmp/large-state.log");
+  it("large-log state-at lookup remains lazy and keeps SSE frames free of replay state", async () => {
+    const host = makeFakeHost("/tmp/large-phase10-state.log");
     appState = await createAppState({
       host,
-      file: "/tmp/large-state.log",
+      file: "/tmp/large-phase10-state.log",
       flushIntervalMs: 0,
       directionInference: inferDir,
     });
-    for (let i = 0; i < 250; i++) {
-      host.push(
-        `${JSON.stringify({ jsonrpc: "2.0", id: i + 1, method: "ping", params: { i } })}\n`,
-      );
-    }
+    const lines = phase10StateLogLines(1000);
+    for (const line of lines) host.push(`${line}\n`);
 
     handle = await startLogServer({ sessions: fakeSessions(appState), port: 0, version: "0.1.0" });
     const c = await openSseClient({
@@ -308,27 +314,41 @@ describe("SSE log stream", () => {
 
     const begin = await c.next();
     expect(begin.event).toBe("snapshot-begin");
-    expect(JSON.parse(begin.data).total).toBe(250);
+    expect(JSON.parse(begin.data).total).toBeGreaterThanOrEqual(1000);
     expectNoReplayFields(begin.data);
 
     let chunks = 0;
     let frame = await c.next();
     while (frame.event === "snapshot-chunk") {
       chunks++;
-      expectNoReplayFields(frame.data);
+      const payload = JSON.parse(frame.data) as { rows: readonly unknown[] };
+      expectNoReplayFieldsInRows(payload.rows);
       frame = await c.next();
     }
     expect(chunks).toBeGreaterThan(0);
     expect(frame.event).toBe("snapshot-end");
 
+    const lateIndex = lines.length - 1;
+    const started = performance.now();
     const stateAt = await fetch(
-      `http://127.0.0.1:${handle.port}/api/state-at?idx=249&logKey=${appState.meta.logKey}`,
+      `http://127.0.0.1:${handle.port}/api/state-at?idx=${lateIndex}&logKey=${appState.meta.logKey}`,
       {
         headers: { Host: `127.0.0.1:${handle.port}` },
       },
     );
+    const durationMs = performance.now() - started;
     expect(stateAt.status).toBe(200);
-    await expect(c.next(100)).rejects.toThrow("SSE next() timeout");
+    expect(durationMs).toBeLessThan(2000);
+    const body = await stateAt.json();
+    expect(body.resources.length).toBeGreaterThanOrEqual(3);
+
+    host.push(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 5000, method: "phase10/after-state-at" })}\n`,
+    );
+    const append = await c.next();
+    expect(append.event).toBe("append");
+    const appendPayload = JSON.parse(append.data) as { row: unknown };
+    expectNoReplayFieldsInRows([appendPayload.row]);
   });
 });
 
