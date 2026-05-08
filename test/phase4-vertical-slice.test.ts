@@ -26,7 +26,7 @@
 // Maps to VALIDATION 04-W6-01.
 
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
-import { mkdir, mkdtemp, rm, truncate, writeFile, appendFile } from "node:fs/promises";
+import { appendFile, mkdir, mkdtemp, rm, truncate, writeFile } from "node:fs/promises";
 import * as http from "node:http";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -225,13 +225,7 @@ async function buildFixture(): Promise<FixtureLayout> {
   ];
   const files: string[] = [];
   for (const launch of launches) {
-    const exthost = join(
-      logsRoot,
-      launch.name,
-      "window1",
-      "exthost",
-      "GitHub.copilot-chat",
-    );
+    const exthost = join(logsRoot, launch.name, "window1", "exthost", "GitHub.copilot-chat");
     await mkdir(exthost, { recursive: true });
     const file = join(exthost, `agenthost.${launch.name}.jsonl`);
     // A few canonical AHP rows so the AppState snapshot has something to ship.
@@ -251,7 +245,10 @@ async function buildFixture(): Promise<FixtureLayout> {
 
 // ── HTTP helpers ──────────────────────────────────────────────────────────────
 
-async function getJson<T>(port: number, path: string): Promise<{ status: number; body: T | null; text: string }> {
+async function getJson<T>(
+  port: number,
+  path: string,
+): Promise<{ status: number; body: T | null; text: string }> {
   const r = await fetch(`http://127.0.0.1:${port}${path}`);
   const text = await r.text();
   let body: T | null = null;
