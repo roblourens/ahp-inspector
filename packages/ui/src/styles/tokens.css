@@ -131,6 +131,22 @@
   /* ── Phase 4: Watch-error banner ───────────────────────────────── */
   --color-banner-watch-error-bg: color-mix(in srgb, var(--color-destructive) 12%, var(--color-bg));
   --color-banner-watch-error-fg: var(--color-destructive);
+
+  --shadow-menu: 0 8px 24px color-mix(in srgb, var(--color-bg) 70%, transparent);
+  --shadow-panel: -12px 0 28px color-mix(in srgb, var(--color-bg) 28%, transparent);
+  --shadow-drawer: -18px 0 42px color-mix(in srgb, var(--color-bg) 56%, transparent);
+  --focus-ring: var(--color-accent);
+  --row-selected-bg: color-mix(in srgb, var(--color-accent) 16%, var(--color-bg));
+  --row-hover-bg: color-mix(in srgb, var(--color-accent) 8%, var(--color-bg));
+  --overlay-backdrop: color-mix(in srgb, var(--color-bg) 68%, transparent);
+  --drawer-border: 1px solid var(--color-border-strong);
+  --effect-scanline-opacity: 0;
+  --effect-grid-opacity: 0;
+  --effect-noise-opacity: 0;
+  --effect-glow: none;
+  --effect-glow-strong: none;
+  --selection-bg: color-mix(in srgb, var(--color-accent) 34%, var(--color-bg));
+  --selection-fg: var(--color-text);
 }
 
 [data-theme="light"] {
@@ -228,6 +244,34 @@
   --row-banner-height: 20px;
   --filter-bar-height: 40px;
   --filter-chips-height: 32px;
+
+  --color-confidence-high: var(--color-success);
+  --color-confidence-medium: var(--color-warning);
+  --color-confidence-low: var(--color-text-subtle);
+  --color-status-paused-fg: var(--color-accent);
+  --color-status-paused-bg: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
+  --color-pill-bg: var(--color-surface-raised);
+  --color-pill-fg: var(--color-text);
+  --color-pill-border: var(--color-border-strong);
+  --color-banner-rotation-bg: color-mix(in srgb, var(--color-warning) 10%, var(--color-bg));
+  --color-banner-rotation-fg: var(--color-warning);
+  --color-banner-watch-error-bg: color-mix(in srgb, var(--color-destructive) 10%, var(--color-bg));
+  --color-banner-watch-error-fg: var(--color-destructive);
+  --shadow-menu: 0 8px 24px color-mix(in srgb, var(--color-border-strong) 34%, transparent);
+  --shadow-panel: -10px 0 26px color-mix(in srgb, var(--color-border-strong) 18%, transparent);
+  --shadow-drawer: -18px 0 42px color-mix(in srgb, var(--color-border-strong) 32%, transparent);
+  --focus-ring: var(--color-accent);
+  --row-selected-bg: color-mix(in srgb, var(--color-accent) 12%, var(--color-bg));
+  --row-hover-bg: color-mix(in srgb, var(--color-accent) 6%, var(--color-bg));
+  --overlay-backdrop: color-mix(in srgb, var(--color-text) 28%, transparent);
+  --drawer-border: 1px solid var(--color-border-strong);
+  --effect-scanline-opacity: 0;
+  --effect-grid-opacity: 0;
+  --effect-noise-opacity: 0;
+  --effect-glow: none;
+  --effect-glow-strong: none;
+  --selection-bg: color-mix(in srgb, var(--color-accent) 26%, var(--color-bg));
+  --selection-fg: var(--color-text);
 }
 
 [data-theme="hacker"] {
@@ -325,4 +369,32 @@
   --row-banner-height: 20px;
   --filter-bar-height: 40px;
   --filter-chips-height: 32px;
+
+  --color-confidence-high: var(--color-success);
+  --color-confidence-medium: var(--color-warning);
+  --color-confidence-low: var(--color-text-subtle);
+  --color-status-paused-fg: var(--color-accent);
+  --color-status-paused-bg: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+  --color-pill-bg: var(--color-surface-raised);
+  --color-pill-fg: var(--color-text);
+  --color-pill-border: var(--color-border-strong);
+  --color-banner-rotation-bg: color-mix(in srgb, var(--color-warning) 14%, var(--color-bg));
+  --color-banner-rotation-fg: var(--color-warning);
+  --color-banner-watch-error-bg: color-mix(in srgb, var(--color-destructive) 14%, var(--color-bg));
+  --color-banner-watch-error-fg: var(--color-destructive);
+  --shadow-menu: 0 0 22px color-mix(in srgb, var(--color-accent) 28%, transparent);
+  --shadow-panel: -10px 0 30px color-mix(in srgb, var(--color-accent) 12%, transparent);
+  --shadow-drawer: -18px 0 48px color-mix(in srgb, var(--color-accent) 24%, transparent);
+  --focus-ring: var(--color-accent);
+  --row-selected-bg: color-mix(in srgb, var(--color-accent) 18%, var(--color-bg));
+  --row-hover-bg: color-mix(in srgb, var(--color-accent) 9%, var(--color-bg));
+  --overlay-backdrop: color-mix(in srgb, var(--color-bg) 76%, transparent);
+  --drawer-border: 1px solid var(--color-border-strong);
+  --effect-scanline-opacity: 0.12;
+  --effect-grid-opacity: 0.08;
+  --effect-noise-opacity: 0.04;
+  --effect-glow: 0 0 10px color-mix(in srgb, var(--color-accent) 34%, transparent);
+  --effect-glow-strong: 0 0 18px color-mix(in srgb, var(--color-accent) 48%, transparent);
+  --selection-bg: color-mix(in srgb, var(--color-accent) 38%, var(--color-bg));
+  --selection-fg: var(--color-text);
 }

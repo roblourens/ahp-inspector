@@ -160,7 +160,7 @@ export const EventRow = memo(function EventRow({
         padding: "4px 8px",
         cursor: "pointer",
         background: isSelected
-          ? "var(--color-surface-raised)"
+          ? "var(--row-selected-bg)"
           : pairHighlight
             ? "color-mix(in srgb, var(--color-info) 14%, transparent)"
             : "transparent",

@@ -1,4 +1,4 @@
-import { type JSX, useCallback, useRef, useState } from "react";
+import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { usePersistEffect } from "../../persistence/persist-effect.js";
 import { isFiltersEmpty } from "../../state/filters.js";
 import { useFilteredRows, useGroupedItems } from "../../state/selectors.js";
@@ -12,6 +12,7 @@ import { type ConnectionHandle, connectLogStream } from "../../transport/sse-cli
 import type { SafeCandidate } from "../../types/safe-candidate.js";
 import { __APP_VERSION__ } from "../../version.js";
 import { WatchErrorBanner } from "../banners/WatchErrorBanner.js";
+import { DETAIL_DESKTOP_BREAKPOINT } from "../detail/detail-layout.js";
 import { DetailPanel } from "../detail/index.js";
 import { ActiveFilterChips, FilterBar } from "../filters/index.js";
 import { useSearch } from "../filters/useSearch.js";
@@ -21,6 +22,37 @@ import { TimelineRegion } from "../timeline/TimelineRegion.js";
 import { HeaderBar } from "./HeaderBar.js";
 import { SourceStrip } from "./SourceStrip.js";
 import { StatusBar } from "./StatusBar.js";
+
+
+function getIsDetailDesktop(): boolean {
+  if (typeof window === "undefined") return true;
+  if (typeof window.matchMedia === "function") {
+    return window.matchMedia(`(min-width: ${DETAIL_DESKTOP_BREAKPOINT}px)`).matches;
+  }
+  return window.innerWidth >= DETAIL_DESKTOP_BREAKPOINT;
+}
+
+function useIsDetailDesktop(): boolean {
+  const [isDesktop, setIsDesktop] = useState(getIsDetailDesktop);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const update = (): void => setIsDesktop(getIsDetailDesktop());
+    const query =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia(`(min-width: ${DETAIL_DESKTOP_BREAKPOINT}px)`)
+        : null;
+    query?.addEventListener?.("change", update);
+    window.addEventListener("resize", update);
+    update();
+    return () => {
+      query?.removeEventListener?.("change", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  return isDesktop;
+}
 
 function replaceLogStream(): ConnectionHandle {
   const previous = typeof window !== "undefined" ? window.__ahpStream : undefined;
@@ -42,8 +74,11 @@ export function AppShell(): JSX.Element {
   const grouping = useAppStore((s) => s.grouping);
   const detailWidth = useAppStore((s) => s.detailWidth);
   const selectedIdx = useAppStore((s) => s.selectedIdx);
+  const clearSelection = useAppStore((s) => s.clearSelection);
   const lastWatchError = useAppStore((s) => s.lastWatchError);
   const lastOpenRef = useAppStore((s) => s.lastOpenRef);
+  const isDetailDesktop = useIsDetailDesktop();
+  const closeDetailDrawer = useCallback((): void => clearSelection(), [clearSelection]);
 
   // Register debounced search effect
   useSearch();
@@ -136,9 +171,19 @@ export function AppShell(): JSX.Element {
   // Count group headers in groupedItems for StatusBar
   const groupCount = groupedItems.filter((i) => i.kind === "header").length;
 
+  useEffect(() => {
+    if (isDetailDesktop || selectedIdx === null) return;
+    function onKeyDown(event: KeyboardEvent): void {
+      if (event.key === "Escape") closeDetailDrawer();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [closeDetailDrawer, isDetailDesktop, selectedIdx]);
+
   return (
     <div
       data-testid="app-shell"
+      className="app-shell"
       style={{ display: "flex", flexDirection: "column", height: "100%" }}
     >
       <HeaderBar version={__APP_VERSION__} onSwitchLog={onToggleSwitchLog} />
@@ -156,22 +201,43 @@ export function AppShell(): JSX.Element {
       />
       <FilterBar searchInputRef={searchInputRef} />
       {hasActiveFilters && <ActiveFilterChips />}
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+      <div className="app-main" style={{ display: "flex", flex: 1, minHeight: 0 }}>
+        <div
+          className="timeline-pane"
+          style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0 }}
+        >
           {grouping !== "none" && stickyGroup && <StickyGroupBar topGroup={stickyGroup} />}
           <TimelineRegion searchInputRef={searchInputRef} onTopGroupChange={setStickyGroup} />
         </div>
-        <div
-          data-testid="detail-panel-wrapper"
-          style={{
-            flex: `0 0 ${detailWidth}px`,
-            minWidth: 0,
-            overflow: "hidden",
-          }}
-        >
-          <DetailPanel />
-        </div>
+        {isDetailDesktop && (
+          <div
+            data-testid="detail-panel-wrapper"
+            className="detail-rail"
+            style={{
+              flex: `0 0 ${detailWidth}px`,
+              minWidth: 0,
+              overflow: "hidden",
+            }}
+          >
+            <DetailPanel />
+          </div>
+        )}
       </div>
+      {!isDetailDesktop && selectedIdx !== null && (
+        <div className="detail-drawer-backdrop" data-testid="detail-drawer-backdrop">
+          <div className="detail-drawer" role="dialog" aria-label="Event detail" data-testid="detail-drawer">
+            <button
+              type="button"
+              className="detail-drawer-close"
+              onClick={closeDetailDrawer}
+              autoFocus
+            >
+              Close details
+            </button>
+            <DetailPanel showResizeHandle={false} />
+          </div>
+        </div>
+      )}
       <StatusBar
         connection={connection}
         eventCount={meta?.eventCount ?? 0}

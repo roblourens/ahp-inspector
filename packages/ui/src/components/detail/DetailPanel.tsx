@@ -30,6 +30,7 @@ import { DetailTabs } from "./DetailTabs.js";
 import { PrettyJsonView } from "./PrettyJsonView.js";
 import { PrivacyCaption } from "./PrivacyCaption.js";
 import { RawJsonView } from "./RawJsonView.js";
+import { DETAIL_MAX_WIDTH, DETAIL_MIN_WIDTH } from "./detail-layout.js";
 
 interface LoadState {
   status: "idle" | "loading" | "error" | "ok";
@@ -37,7 +38,11 @@ interface LoadState {
   error: string | null;
 }
 
-export function DetailPanel(): JSX.Element | null {
+interface DetailPanelProps {
+  showResizeHandle?: boolean;
+}
+
+export function DetailPanel({ showResizeHandle = true }: DetailPanelProps = {}): JSX.Element | null {
   const selectedIdx = useAppStore((s) => s.selectedIdx);
   const rows = useAppStore((s) => s.rows);
   const detailWidth = useAppStore((s) => s.detailWidth);
@@ -114,7 +119,14 @@ export function DetailPanel(): JSX.Element | null {
           overflow: "hidden",
         }}
       >
-        <DetailResizeHandle width={detailWidth} onResize={setDetailWidth} min={360} max={720} />
+        {showResizeHandle && (
+          <DetailResizeHandle
+            width={detailWidth}
+            onResize={setDetailWidth}
+            min={DETAIL_MIN_WIDTH}
+            max={DETAIL_MAX_WIDTH}
+          />
+        )}
         <div
           style={{
             flex: 1,
@@ -170,7 +182,14 @@ export function DetailPanel(): JSX.Element | null {
           overflow: "hidden",
         }}
       >
-        <DetailResizeHandle width={detailWidth} onResize={setDetailWidth} min={360} max={720} />
+        {showResizeHandle && (
+          <DetailResizeHandle
+            width={detailWidth}
+            onResize={setDetailWidth}
+            min={DETAIL_MIN_WIDTH}
+            max={DETAIL_MAX_WIDTH}
+          />
+        )}
         <div
           data-testid="detail-loading"
           style={{
@@ -208,7 +227,14 @@ export function DetailPanel(): JSX.Element | null {
           overflow: "hidden",
         }}
       >
-        <DetailResizeHandle width={detailWidth} onResize={setDetailWidth} min={360} max={720} />
+        {showResizeHandle && (
+          <DetailResizeHandle
+            width={detailWidth}
+            onResize={setDetailWidth}
+            min={DETAIL_MIN_WIDTH}
+            max={DETAIL_MAX_WIDTH}
+          />
+        )}
         <div
           data-testid="detail-error"
           style={{
@@ -247,7 +273,7 @@ export function DetailPanel(): JSX.Element | null {
               padding: "var(--space-2) var(--space-3)",
             }}
           >
-            Retry
+            Retry event details
           </button>
         </div>
       </aside>
@@ -282,7 +308,14 @@ export function DetailPanel(): JSX.Element | null {
         overflow: "hidden",
       }}
     >
-      <DetailResizeHandle width={detailWidth} onResize={setDetailWidth} min={360} max={720} />
+      {showResizeHandle && (
+          <DetailResizeHandle
+            width={detailWidth}
+            onResize={setDetailWidth}
+            min={DETAIL_MIN_WIDTH}
+            max={DETAIL_MAX_WIDTH}
+          />
+        )}
 
       {/* Auth failure banner */}
       {isAuthFailure && (

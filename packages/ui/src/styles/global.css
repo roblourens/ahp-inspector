@@ -118,3 +118,105 @@ body {
 .ahp-json-collapsed::before {
   content: "...";
 }
+
+
+.app-shell {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app-main,
+.timeline-pane,
+.timeline-list-shell {
+  min-width: 0;
+}
+
+.detail-rail {
+  box-shadow: var(--shadow-panel);
+}
+
+.detail-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  justify-content: flex-end;
+  background: var(--overlay-backdrop);
+}
+
+.detail-drawer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(88vw, 720px);
+  height: 100%;
+  background: var(--color-surface);
+  border-left: var(--drawer-border);
+  box-shadow: var(--shadow-drawer);
+}
+
+.detail-drawer > [data-testid="detail-panel"] {
+  flex: 1;
+  width: 100% !important;
+  border-left: 0 !important;
+}
+
+.detail-drawer-close {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 2;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  background: var(--color-chip-bg-active);
+  border: 1px solid var(--color-chip-border);
+  border-radius: 6px;
+  color: var(--color-chip-fg);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+}
+
+.filter-bar {
+  align-content: center;
+}
+
+.timeline-list-shell [role="row"] {
+  min-width: max-content;
+}
+
+@media (min-width: 1400px) {
+  .detail-drawer-backdrop {
+    display: none;
+  }
+}
+
+@media (max-width: 1399.98px) {
+  .app-main .detail-rail {
+    display: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .detail-drawer {
+    width: 100vw;
+  }
+
+  .filter-bar {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  .filter-bar {
+    height: auto !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .filter-bar {
+    flex-wrap: nowrap !important;
+  }
+}

@@ -1,5 +1,6 @@
 import type { EventRow, LatencyBand, Status } from "@ahp-viewer/core";
 import { create } from "zustand";
+import { DETAIL_DEFAULT_WIDTH, DETAIL_MAX_WIDTH, DETAIL_MIN_WIDTH } from "../components/detail/detail-layout.js";
 import { EMPTY_FILTERS, type FilterState } from "./filters.js";
 
 export type { FilterState } from "./filters.js";
@@ -158,7 +159,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
   grouping: "none",
   groupCollapsed: new Set<string>(),
   selectedDetail: null,
-  detailWidth: 420,
+  detailWidth: DETAIL_DEFAULT_WIDTH,
   // Phase 3 actions
   setSearchQuery: (q) => set({ searchQuery: q }),
   setSearchMatches: (matches) => set({ searchMatches: matches !== null ? new Set(matches) : null }),
@@ -174,7 +175,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
       return { groupCollapsed: next };
     }),
   setSelectedDetail: (d) => set({ selectedDetail: d }),
-  setDetailWidth: (px) => set({ detailWidth: Math.max(360, Math.min(720, px)) }),
+  setDetailWidth: (px) => set({ detailWidth: Math.max(DETAIL_MIN_WIDTH, Math.min(DETAIL_MAX_WIDTH, px)) }),
   // Phase 4 initial state
   livePaused: false,
   pendingBuffer: [],

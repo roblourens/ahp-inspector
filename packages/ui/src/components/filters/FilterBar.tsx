@@ -60,16 +60,17 @@ export function FilterBar({
   return (
     <div
       data-testid="filter-bar"
+      className="filter-bar"
       style={{
         display: "flex",
         alignItems: "center",
         gap: "var(--space-2)",
-        height: "var(--filter-bar-height)",
+        minHeight: "var(--filter-bar-height)",
         paddingLeft: "var(--space-3)",
         paddingRight: "var(--space-3)",
         background: "var(--color-surface)",
         borderBottom: "1px solid var(--color-border)",
-        flexWrap: "nowrap",
+        flexWrap: "wrap",
         overflow: "visible",
         position: "relative",
         zIndex: 1000,
