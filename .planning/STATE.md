@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: completed
-stopped_at: Completed 05-05-PLAN.md
-last_updated: "2026-05-08T05:22:51.763Z"
+milestone: v1.1
+milestone_name: Reducer-backed State Snapshots
+status: planning
+last_updated: "2026-05-08T14:36:16.395Z"
+last_activity: 2026-05-08
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 37
-  completed_plans: 37
-  percent: 100
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 15
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: AHP Log Viewer
@@ -18,18 +18,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Milestone v1.0 — Archived
+**Current Focus:** Milestone v1.1 — Reducer-backed State Snapshots
 
 ## Current Position
 
-Phase: all phases — **COMPLETE**
-Plan: 37 of 37
-
-- **Milestone:** v1
-- **Phase:** 05
-- **Plan:** 6 of 6
-- **Status:** v1.0 milestone archived — ready for next milestone planning
-- **Progress:** [██████████] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Requirements and roadmap defined
+Last activity: 2026-05-08 — Milestone v1.1 requirements and roadmap created
 
 ## Performance Metrics
 
@@ -55,6 +51,8 @@ Plan: 37 of 37
 | Phase 05 plans | 6 planned | 18 tasks | ready |
 | Phase 04.1 Pall | 11min | 16 tasks | 37 files |
 | Phase 05 Pall | 74min | 18 tasks | 50 files |
+| v1.1 requirements mapped | 25 / 25 |
+| v1.1 phases planned | 5 phases |
 
 ## Accumulated Context
 
@@ -103,6 +101,7 @@ Plan: 37 of 37
 - Plan 03-06: tabIndex={-1} on gap-banner and group-header role=row divs — biome useFocusableInteractive requires programmatic focusability; keyboard navigation managed at TimelineRegion level
 - Phase 05: Playwright browser UAT uses @playwright/test, starts the local CLI/server against copied synthetic fixtures, captures the committed screenshot matrix, and verifies no absolute path leakage in browser-visible text.
 - Phase 05: Responsive details use a desktop side rail at >=1400px and an overlay drawer below 1400px; theme choice remains global under `ahp-theme` while per-log preferences remain keyed by opaque logKey.
+- Milestone v1.1: reducer-backed state reconstruction should be implemented as server-side replay of canonical AHP snapshots/action envelopes, using synced protocol reducers from `../agent-host-protocol` and explicit confidence diagnostics for partial logs.
 
 ### Open TODOs
 
@@ -113,6 +112,8 @@ Plan: 37 of 37
 - None.
 
 ### Roadmap Evolution
+
+- 2026-05-08: Started v1.1 "Reducer-backed State Snapshots" with phases 6-10.
 
 - Phase 04.1 inserted after Phase 4 (URGENT): Timeline row information polish and real-log validation.
 - Phase 04.1 completed: ID-first timeline rows, Summary column, request/response pair highlighting, nested session/turn extraction, expanded Pretty JSON defaults, and privacy-safe real-log structural validation are in place.

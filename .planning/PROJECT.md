@@ -24,6 +24,18 @@ The v1.0 milestone delivered:
 
 Final gate passed: `pnpm test`, UI build, CLI build, typecheck, lint, E2E, state validation, roadmap analysis, and milestone integration re-audit.
 
+## Current Milestone: v1.1 Reducer-backed State Snapshots
+
+**Goal:** Reconstruct and inspect the actual AHP root/session/terminal state at selected log events by replaying canonical Agent Host Protocol reducers over captured JSON-RPC traffic.
+
+**Target features:**
+
+- Sync canonical AHP reducer/state/action code from the sibling `../agent-host-protocol` repo using a deterministic generated-package workflow similar to VS Code's sync script.
+- Build deterministic server-side state replay over snapshots, server action envelopes, reconnect replay, and client dispatch intent diagnostics.
+- Add a state-at-event API and UI inspector so users can click a message and see the reconstructed state at that point.
+- Let users pin and compare state points to reason about how state changed over time.
+- Surface confidence and diagnostics when logs are incomplete, missing a baseline snapshot, contain unknown actions, or only show client intent.
+
 ## Requirements
 
 ### Validated
@@ -39,7 +51,11 @@ Final gate passed: `pnpm test`, UI build, CLI build, typecheck, lint, E2E, state
 
 ### Active
 
-Fresh requirements for the next milestone should be created with `/gsd-new-milestone`.
+- [ ] Sync canonical AHP protocol reducer code into a generated local package and track the source commit.
+- [ ] Reconstruct root, session, and terminal state at selected event indexes using upstream reducers.
+- [ ] Clearly distinguish complete, partial, and unknown reconstructed state.
+- [ ] Expose reconstructed state through lazy server endpoints and a themed UI inspector.
+- [ ] Support pinned before/after state points for practical debugging.
 
 ### Future Candidates
 
@@ -65,6 +81,7 @@ VS Code can emit AHP traffic as JSONL logs. AHP Log Viewer treats the real JSONL
 - **Runtime:** Standalone local web app launched from the CLI.
 - **Future compatibility:** Host abstraction for discovery, watching, and reading so the same UI can later run in a VS Code webview.
 - **Protocol source:** Use `../agent-host-protocol` for AHP concepts, method/action/notification names, and schemas.
+- **Reducer source:** Use copied/generated protocol reducer files with source commit tracking rather than hand-rolled reducer logic.
 - **Log format:** Target real JSONL.
 - **Performance:** Large and growing logs must remain responsive through incremental parsing, indexing, and virtualization.
 - **Security/privacy:** Logs stay local; no telemetry, CDN assets, or outbound viewing dependencies.
@@ -82,6 +99,8 @@ VS Code can emit AHP traffic as JSONL logs. AHP Log Viewer treats the real JSONL
 | Use lazy server endpoints for raw detail/search | Keeps SSE rows compact and large-log rendering fast | ✓ Good |
 | Insert Phase 04.1 before theme work | Real-shaped row information needed to be correct before visual polish | ✓ Good |
 | Run milestone integration audit before archive | Caught and fixed paused-buffer, detail-cache, rotation, and pair-metadata gaps | ✓ Good |
+| Reconstruct state by replaying AHP reducers server-side | AHP state is defined by snapshots plus pure reducers, and logs contain the ordered traffic needed to replay them | — Pending |
+| Treat client dispatch requests as intent until server echo | Prevents rejected or unobserved client actions from corrupting reconstructed host state | — Pending |
 
 ## Archives
 
@@ -91,4 +110,4 @@ VS Code can emit AHP traffic as JSONL logs. AHP Log Viewer treats the real JSONL
 - milestone index: `.planning/MILESTONES.md`
 
 ---
-*Last updated: 2026-05-08 after v1.0 milestone*
+*Last updated: 2026-05-08 after starting v1.1 milestone*
