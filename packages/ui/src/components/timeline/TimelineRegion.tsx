@@ -1,3 +1,6 @@
+// biome-ignore-all lint/a11y/noStaticElementInteractions: TimelineRegion is a focusable scroll viewport — Space-key toggles live-pause (UI-SPEC §Keyboard) with editable-target guards inside.
+// biome-ignore-all lint/a11y/noNoninteractiveTabindex: region must be focusable to receive the Space-key shortcut without stealing focus from inputs inside it.
+
 import type { JSX, KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
 import { useCallback, useEffect, useRef } from "react";
 import { isFiltersEmpty } from "../../state/filters.js";
@@ -5,11 +8,11 @@ import { useFilteredRows, useGroupedItems } from "../../state/selectors.js";
 import { useAppStore } from "../../state/store.js";
 import { connectLogStream } from "../../transport/sse-client.js";
 import { RotationBanner } from "../banners/RotationBanner.js";
+import { NewEventsPill } from "../shell/NewEventsPill.js";
 import { DisconnectedBanner } from "../states/DisconnectedBanner.js";
 import { EmptyState } from "../states/EmptyState.js";
 import { LoadingState } from "../states/LoadingState.js";
 import { NoResultsBanner } from "../states/NoResultsBanner.js";
-import { NewEventsPill } from "../shell/NewEventsPill.js";
 import { TimelineList } from "./TimelineList.js";
 
 export interface TimelineRegionProps {

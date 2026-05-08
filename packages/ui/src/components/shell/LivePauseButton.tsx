@@ -3,8 +3,8 @@
 // the server is unaware. While paused, scroll is anchored and incoming rows
 // accumulate in the store's pendingBuffer + pendingNewCount counter.
 
-import type { JSX } from "react";
 import { Pause, Play } from "lucide-react";
+import type { JSX } from "react";
 import { useAppStore } from "../../state/store.js";
 
 export function LivePauseButton(): JSX.Element {

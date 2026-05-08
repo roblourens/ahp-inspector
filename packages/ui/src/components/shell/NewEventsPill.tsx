@@ -5,13 +5,7 @@
 
 import type { JSX } from "react";
 
-export function NewEventsPill({
-  count,
-  onClick,
-}: {
-  count: number;
-  onClick(): void;
-}): JSX.Element {
+export function NewEventsPill({ count, onClick }: { count: number; onClick(): void }): JSX.Element {
   const display = count >= 100 ? "99+" : count.toLocaleString();
   const noun = count === 1 ? "new event" : "new events";
   return (

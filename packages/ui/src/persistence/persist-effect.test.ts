@@ -165,13 +165,11 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
   });
 
   it("saveForLogKey throws QuotaExceededError → subsequent mutations no-op (disabled)", () => {
-    const spy = vi
-      .spyOn(persistenceModule, "persistPerLogPrefs")
-      .mockImplementation(() => {
-        const e = new Error("quota");
-        e.name = "QuotaExceededError";
-        throw e;
-      });
+    const spy = vi.spyOn(persistenceModule, "persistPerLogPrefs").mockImplementation(() => {
+      const e = new Error("quota");
+      e.name = "QuotaExceededError";
+      throw e;
+    });
 
     renderHook(() => usePersistEffect());
     useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0)] });
