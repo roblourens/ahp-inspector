@@ -18,6 +18,44 @@ node packages/cli/dist/index.js path/to/log.jsonl
 
 The CLI prints a loopback URL, opens the browser by default, and serves the UI locally from `127.0.0.1`.
 
+## Launching without a file
+
+You can run the viewer without specifying a log file:
+
+```sh
+ahp-viewer
+```
+
+The browser opens to a picker showing logs the viewer discovered automatically under `~/Library/Application Support/Code` (macOS), `%APPDATA%\Code` (Windows), and `~/.config/Code` (Linux). Pick a log to begin streaming, or paste an absolute path under "or open manually".
+
+## The log picker
+
+- **Confidence dot** — green (JSONL), amber (Legacy heuristic match), grey (unknown).
+- **Origin badge** — VS Code, VS Code Insiders, or Manual.
+- Each row shows the file basename, an origin chip, the time since last modification, and the file size.
+- Click "Refresh List" to rescan.
+
+The picker never reveals absolute paths; it shows only basenames and short context labels relative to the discovery root.
+
+## Live tail and pause
+
+The viewer streams new events as the file grows. Use the **Pause** button in the header to freeze the timeline; new events accumulate and a "<N> new events" pill appears at the bottom. Click the pill to flush the buffer and resume. Pause is local to the browser — the server keeps reading.
+
+The Space key toggles pause when focus is outside form fields.
+
+## Switching logs
+
+Click **Switch log…** at any time to open the same picker over the current view. Selecting a different log resets the timeline.
+
+## Persistence
+
+Filter selections, column visibility, expanded groups, and the currently-selected event are remembered per-log in your browser's localStorage. Reloading the page restores them. Up to 50 logs are remembered (least-recently-used logs are evicted).
+
+## Banners
+
+- **Log file rotated.** — Appears once when the active file rotates (truncate/rename). The viewer continues from the new file.
+- **Lost watch on log file.** — Appears if the OS dropped the file watcher. Click **Retry** to reconnect.
+
 ## Choose a theme
 
 Use the compact theme picker in the header to switch between **Dark**, **Light**, and **Hacker**. The selection is saved in the browser and applies to the timeline, filters, detail panel, and Pretty JSON syntax colors.
