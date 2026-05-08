@@ -86,6 +86,12 @@ export interface AppStateOptions {
    * working; Wave 2's session manager will inject a stable mtime-derived key.
    */
   readonly logKey?: string;
+  /**
+   * Optional file mtimeMs captured by the session manager at open time
+   * (Phase 4 D-16). Used to derive a stable logKey when `logKey` is not
+   * pre-supplied. When both are absent, AppState falls back to Date.now().
+   */
+  readonly initialMtimeMs?: number;
 }
 
 export interface AppState {
@@ -121,11 +127,12 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   const inferDir: (raw: unknown) => Direction = opts.directionInference ?? (() => "c2s");
 
   const handlePath = handle.path ?? handle.id;
+  const initialMtimeMs = opts.initialMtimeMs ?? Date.now();
   const meta: LogMeta = {
     filename: basename(handlePath),
     sizeBytes: handle.size ?? 0,
     startedAt: Date.now(),
-    logKey: opts.logKey ?? computeLogKey(handlePath, Date.now()),
+    logKey: opts.logKey ?? computeLogKey(handlePath, initialMtimeMs),
   };
 
   const rows: EventRow[] = [];

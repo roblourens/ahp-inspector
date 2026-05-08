@@ -7,6 +7,13 @@ export { hostGuardMiddleware } from "./host-guard.js";
 export { computeLogKey } from "./log-key.js";
 export type { LogServerHandle, LogServerOptions } from "./log-server.js";
 export { startLogServer } from "./log-server.js";
+export type {
+  ActiveSession,
+  CreateLogSessionManagerOpts,
+  LogSessionManager,
+  SessionOpenErrorCode,
+} from "./session-manager.js";
+export { createLogSessionManager, SessionOpenError } from "./session-manager.js";
 export { registerLogRoutes } from "./sse-routes.js";
 export type { StaticUiOptions } from "./static-ui.js";
 export { registerStaticUi } from "./static-ui.js";
