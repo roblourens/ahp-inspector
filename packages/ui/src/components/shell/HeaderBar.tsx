@@ -10,11 +10,9 @@ import {
 } from "../../theme/theme.js";
 import { __APP_VERSION__ } from "../../version.js";
 import { LivePauseButton } from "./LivePauseButton.js";
-import { SwitchLogButton } from "./SwitchLogButton.js";
 
 interface HeaderBarProps {
   version: string;
-  onSwitchLog?: () => void;
 }
 
 function readTheme(): ThemeId {
@@ -22,7 +20,7 @@ function readTheme(): ThemeId {
   return attr === "light" || attr === "hacker" ? attr : "dark";
 }
 
-export function HeaderBar({ version, onSwitchLog }: HeaderBarProps): JSX.Element {
+export function HeaderBar({ version }: HeaderBarProps): JSX.Element {
   const [theme, setThemeState] = useState<ThemeId>(readTheme);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement>(null);
@@ -92,7 +90,6 @@ export function HeaderBar({ version, onSwitchLog }: HeaderBarProps): JSX.Element
       <span style={{ fontWeight: 600 }}>AHP Log Viewer</span>
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
         <LivePauseButton />
-        {onSwitchLog && <SwitchLogButton onClick={onSwitchLog} />}
         <div ref={themeMenuRef} style={{ position: "relative" }}>
           <button
             type="button"

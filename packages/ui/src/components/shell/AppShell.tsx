@@ -192,7 +192,7 @@ export function AppShell(): JSX.Element {
       className="app-shell"
       style={{ display: "flex", flexDirection: "column", height: "100%" }}
     >
-      <HeaderBar version={__APP_VERSION__} onSwitchLog={onToggleSwitchLog} />
+      <HeaderBar version={__APP_VERSION__} />
       {lastWatchError && (
         <WatchErrorBanner
           code={lastWatchError.code}
@@ -204,6 +204,7 @@ export function AppShell(): JSX.Element {
         filename={meta?.filename ?? null}
         eventCount={meta?.eventCount ?? 0}
         sessionCount={meta?.sessionCount ?? 0}
+        onSwitchLog={onToggleSwitchLog}
       />
       <FilterBar searchInputRef={searchInputRef} />
       {hasActiveFilters && <ActiveFilterChips />}

@@ -47,14 +47,19 @@ export function LogPickerPanel({
       aria-label="Switch log"
       style={{
         position: "fixed",
+        // Drop below the 40px HeaderBar; FilterBar (z-index 1000) sits below it
+        // in the document, so the picker must use a higher z-index than the
+        // FilterBar to fully cover the search row underneath. Otherwise the
+        // FilterBar's search input paints on top of this header.
         top: 40,
         left: 0,
         right: 0,
-        maxHeight: "60vh",
+        maxHeight: "calc(100vh - 40px)",
         overflowY: "auto",
-        zIndex: 800,
+        zIndex: 1200,
         background: "var(--color-surface)",
         borderBottom: "1px solid var(--color-border-strong)",
+        boxShadow: "var(--shadow-menu)",
         padding: "var(--space-4)",
       }}
     >
@@ -63,7 +68,9 @@ export function LogPickerPanel({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: "var(--space-3)",
+          marginBottom: "var(--space-4)",
+          paddingBottom: "var(--space-3)",
+          borderBottom: "1px solid var(--color-border)",
         }}
       >
         <h2
@@ -76,25 +83,7 @@ export function LogPickerPanel({
         >
           Switch log
         </h2>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          style={{
-            height: 28,
-            padding: "0 var(--space-3)",
-            background: "transparent",
-            border: "1px solid var(--color-border)",
-            borderRadius: 4,
-            color: "var(--color-text)",
-            cursor: "pointer",
-          }}
-        >
-          ✕
-        </button>
-      </header>
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
           <button
             type="button"
             onClick={onRefresh}
@@ -110,9 +99,27 @@ export function LogPickerPanel({
               fontSize: "var(--text-ui-muted-size)",
             }}
           >
-            {isLoading ? "Refreshing…" : "Refresh List"}
+            {isLoading ? "Refreshing…" : "Refresh"}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              height: 28,
+              padding: "0 var(--space-3)",
+              background: "transparent",
+              border: "1px solid var(--color-border)",
+              borderRadius: 4,
+              color: "var(--color-text)",
+              cursor: "pointer",
+            }}
+          >
+            ✕
           </button>
         </div>
+      </header>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
         <CandidateList candidates={candidates} onSelect={onSelect} />
         <div
           style={{

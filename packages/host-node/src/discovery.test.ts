@@ -38,15 +38,15 @@ describe("discoverVsCodeLogs", () => {
       roots: [{ origin: "vscode", dir: stableRoot }],
     });
     expect(truncated).toBe(false);
-    // 2 launch sessions × (1 jsonl + 1 legacy log) = 4 candidates.
-    expect(candidates.length).toBe(4);
+    // 2 launch sessions × 1 jsonl = 2 candidates (legacy .log files are ignored).
+    expect(candidates.length).toBe(2);
     // Highest confidence first.
     expect(candidates[0]?.confidence).toBe("high");
     expect(candidates[0]?.label).toMatch(/\.jsonl$/);
     // Newest launch first within tier.
     expect(candidates[0]?.label).toContain("20260407T223530");
-    // Legacy logs come after jsonls.
-    expect(candidates.at(-1)?.confidence).toBe("low");
+    // No legacy .log entries should leak through.
+    expect(candidates.every((c) => c.label.endsWith(".jsonl"))).toBe(true);
   });
 
   it("returns opaque 32-hex ids and no absolute paths in candidate fields", async () => {

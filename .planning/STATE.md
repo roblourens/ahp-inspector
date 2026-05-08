@@ -145,5 +145,12 @@ Last activity: 2026-05-08 -- Phase 10 verified complete
 **Next action:** `/gsd-complete-milestone` when ready to archive v1.1
 **Stopped at:** Completed 10-03-PLAN.md; ready for v1.1 milestone verification
 
+## Quick Tasks Completed
+
+| Date | Slug | Summary |
+|------|------|---------|
+| 2026-05-08 | discover-oss-dev-jsonl | Discover Code OSS dev AHP JSONL logs under `~/.vscode-oss-agents-dev/logs`; drop legacy `agenthost.*.log` matching. |
+| 2026-05-08 | tail-follow-and-picker-polish | Tail-follow timeline auto-scroll, clickable filename opens picker (removed Switch Log button), picker rows show left-aligned time, no `.jsonl` extension, no JSONL badge. |
+
 ---
 *State initialized: 2026-05-06*
