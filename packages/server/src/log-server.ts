@@ -17,6 +17,7 @@ import { registerSearchRoutes } from "./search-routes.js";
 import type { LogSessionManager } from "./session-manager.js";
 import { registerSessionRoutes } from "./session-routes.js";
 import { registerLogRoutes } from "./sse-routes.js";
+import { registerStateRoutes } from "./state-routes.js";
 import { registerStaticUi } from "./static-ui.js";
 
 const HOSTNAME = "127.0.0.1" as const;
@@ -51,6 +52,7 @@ export function startLogServer(opts: LogServerOptions): Promise<LogServerHandle>
   registerLogRoutes(app, sessions);
   registerDetailRoutes(app, sessions);
   registerSearchRoutes(app, sessions);
+  registerStateRoutes(app, sessions);
   registerSessionRoutes(app, sessions);
   if (opts.uiDistDir) registerStaticUi(app, opts.uiDistDir);
 
