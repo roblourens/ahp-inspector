@@ -10,16 +10,26 @@ export interface Disposable {
 
 /** A discovered candidate log file the host knows about. */
 export interface LogCandidate {
-  /** Stable identifier the host can later open (path on Node, opaque on web). */
+  /** Opaque, server-issued id. On Node = sha256(absPath).slice(0,32). NEVER an absolute path (D-05). */
   readonly id: string;
-  /** Human-readable label for the picker UI. */
+  /** Basename-only display label for the picker UI. */
   readonly label: string;
   /** When the host last saw the file modified, epoch ms. */
   readonly mtimeMs: number;
   /** File size in bytes, when known. */
   readonly sizeBytes: number;
-  /** Origin tag — e.g. "vscode-stable", "vscode-insiders", "manual". */
+  /** Origin tag — "vscode", "vscode-insiders", "manual". */
   readonly origin: string;
+  /** Confidence tier (Phase 4): "high" = canonical AHP JSONL, "medium" = AHP-named JSONL, "low" = legacy/agenthost.log. */
+  readonly confidence: "high" | "medium" | "low";
+  /** Optional breadcrumb (e.g. "20260407T223530 / window1 / exthost / GitHub.copilot-chat"); never an abs path. */
+  readonly contextLabel?: string;
+}
+
+/** Result of a discovery walk; `truncated:true` indicates caps were hit. */
+export interface DiscoveryResult {
+  readonly candidates: readonly LogCandidate[];
+  readonly truncated: boolean;
 }
 
 /** Opaque handle returned by the host adapter once a log is open. */
@@ -35,9 +45,18 @@ export interface LogHandle {
  * directly; the server/CLI wires one in.
  */
 export interface HostAdapter {
-  discoverLogs(): Promise<LogCandidate[]>;
+  discoverLogs(): Promise<DiscoveryResult>;
   openLog(path: string): Promise<LogHandle>;
-  watchLog(handle: LogHandle, onChunk: (bytes: Uint8Array) => void): Disposable;
+  watchLog(
+    handle: LogHandle,
+    sinkOrChunk:
+      | ((bytes: Uint8Array) => void)
+      | {
+          onChunk(bytes: Uint8Array, byteOffset: number): void;
+          onReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
+          onError(err: Error, fatal: boolean): void;
+        },
+  ): Disposable;
   close(handle: LogHandle): Promise<void>;
 }
 
@@ -50,7 +69,7 @@ export interface HostMessageDiscoverRequest {
 export interface HostMessageDiscoverResponse {
   readonly kind: "discover/response";
   readonly requestId: string;
-  readonly candidates: readonly LogCandidate[];
+  readonly result: DiscoveryResult;
 }
 export interface HostMessageOpenRequest {
   readonly kind: "open/request";

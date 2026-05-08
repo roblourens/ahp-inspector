@@ -6,7 +6,7 @@
 import type { Status } from "@ahp-viewer/core";
 import type { AhpEvent } from "@ahp-viewer/shared";
 import type { Hono } from "hono";
-import type { AppState } from "./app-state.js";
+import type { LogSessionManager } from "./session-manager.js";
 
 export type DetailResponse = {
   event: AhpEvent;
@@ -16,21 +16,25 @@ export type DetailResponse = {
   pairIdx: number | null;
 };
 
-export function registerDetailRoutes(app: Hono, appState: AppState): void {
+export function registerDetailRoutes(app: Hono, sessions: LogSessionManager): void {
   app.get("/api/log/event/:idx", (c) => {
+    const a = sessions.current();
+    if (!a) {
+      return c.json({ code: "no-active-log" }, 409);
+    }
     const raw = c.req.param("idx");
     const idx = Number(raw);
     // T-03-01-03: validate idx before any store access
     if (!Number.isInteger(idx) || idx < 0) {
       return c.json({ error: "invalid idx" }, 400);
     }
-    const event = appState.eventAt(idx);
+    const event = a.appState.eventAt(idx);
     if (!event) {
       return c.json({ error: "not found" }, 404);
     }
-    const correlatorData = appState.correlatorDataFor(idx);
+    const correlatorData = a.appState.correlatorDataFor(idx);
     const pairIdx = correlatorData.pairIdx;
-    const pair = pairIdx !== null ? (appState.eventAt(pairIdx) ?? null) : null;
+    const pair = pairIdx !== null ? (a.appState.eventAt(pairIdx) ?? null) : null;
     const response: DetailResponse = {
       event,
       pair,

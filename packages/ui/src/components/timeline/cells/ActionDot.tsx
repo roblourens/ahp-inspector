@@ -15,7 +15,9 @@ export function ActionDot({ family }: { family: ActionFamily | null }): JSX.Elem
     <span
       data-testid="action-dot"
       data-family={family}
-      title={`Action family: ${family}`}
+      role="img"
+      aria-label={`Action row family: ${family}`}
+      title={`Action row family: ${family}. Only action events show this marker.`}
       style={{
         display: "inline-block",
         width: 6,

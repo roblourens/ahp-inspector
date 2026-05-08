@@ -28,7 +28,7 @@ Planning artifacts live in `.planning/`:
 - `.planning/STATE.md` — current phase state
 - `.planning/research/` — stack, features, architecture, pitfalls, and summary research
 
-Current focus: Phase 1 — Core Foundations. The next GSD step is `/gsd-plan-phase 1`.
+Current focus: Phase 4 — Live Tail, Discovery, and Persistence. The next GSD step is `/gsd-plan-phase 4`.
 
 # Engineering Constraints
 

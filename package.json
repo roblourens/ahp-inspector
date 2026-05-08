@@ -2,8 +2,20 @@
   "name": "ahp-viewer",
   "version": "0.1.0",
   "private": true,
+  "description": "Local-first GUI for exploring Agent Host Protocol JSONL traffic logs.",
   "type": "module",
   "packageManager": "pnpm@9.15.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roblourens/ahp-viewer.git"
+  },
+  "keywords": [
+    "agent-host-protocol",
+    "jsonl",
+    "json-rpc",
+    "log-viewer",
+    "developer-tools"
+  ],
   "engines": {
     "node": ">=22"
   },
@@ -13,7 +25,9 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "start:fixture": "pnpm -F @ahp-viewer/ui build && pnpm exec tsx packages/cli/src/index.ts test/fixtures/phase3-mini.jsonl",
+    "start:long": "pnpm -F @ahp-viewer/ui build && pnpm exec tsx packages/cli/src/index.ts test/fixtures/long-realistic-ahp.jsonl"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.14",

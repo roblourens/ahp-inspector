@@ -17,10 +17,10 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 ### Log Ingestion
 
 - [x] **INGEST-01**: User can open an AHP JSONL log by passing a file path to the CLI.
-- [ ] **INGEST-02**: User can discover likely VS Code / Copilot AHP log files from the app and select one to view.
-- [ ] **INGEST-03**: User can manually open a log file when auto-discovery misses it.
-- [ ] **INGEST-04**: User can watch a selected log as new JSONL entries are appended without reparsing the entire file.
-- [ ] **INGEST-05**: User can pause and resume live following without losing their place in the log.
+- [x] **INGEST-02**: User can discover likely VS Code / Copilot AHP log files from the app and select one to view.
+- [x] **INGEST-03**: User can manually open a log file when auto-discovery misses it.
+- [x] **INGEST-04**: User can watch a selected log as new JSONL entries are appended without reparsing the entire file.
+- [x] **INGEST-05**: User can pause and resume live following without losing their place in the log.
 - [x] **INGEST-06**: User can see clear parse-error rows for malformed JSONL lines while valid neighboring entries still load.
 - [x] **INGEST-07**: Developer can use the current human-readable sample log as a fixture through a legacy parser adapter without coupling the main event model to that format.
 
@@ -55,7 +55,7 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 - [x] **SEARCH-02**: User can filter by direction, event kind, method, action type, session, turn, status/error state, and time range.
 - [x] **SEARCH-03**: Search and filters update the visible timeline without blocking typing or live tailing.
 - [x] **SEARCH-04**: User can clear filters quickly and see active filters at a glance.
-- [ ] **SEARCH-05**: Search and filter state persists for the current log where appropriate.
+- [x] **SEARCH-05**: Search and filter state persists for the current log where appropriate.
 
 ### Themes and Polish
 
@@ -118,10 +118,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUND-03 | Phase 1 | Complete |
 | FOUND-04 | Phase 1 | Complete |
 | INGEST-01 | Phase 2 | Complete |
-| INGEST-02 | Phase 4 | Pending |
-| INGEST-03 | Phase 4 | Pending |
-| INGEST-04 | Phase 4 | Pending |
-| INGEST-05 | Phase 4 | Pending |
+| INGEST-02 | Phase 4 | Complete |
+| INGEST-03 | Phase 4 | Complete |
+| INGEST-04 | Phase 4 | Complete |
+| INGEST-05 | Phase 4 | Complete |
 | INGEST-06 | Phase 2 | Complete |
 | INGEST-07 | Phase 1 | Complete |
 | EVENT-01 | Phase 1 | Complete |
@@ -144,7 +144,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEARCH-02 | Phase 3 | Complete |
 | SEARCH-03 | Phase 3 | Complete |
 | SEARCH-04 | Phase 3 | Complete |
-| SEARCH-05 | Phase 4 | Pending |
+| SEARCH-05 | Phase 4 | Complete |
 | THEME-01 | Phase 5 | Pending |
 | THEME-02 | Phase 5 | Pending |
 | THEME-03 | Phase 5 | Pending |
@@ -173,4 +173,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-05-06*
-*Last updated: 2026-05-07 after Phase 1 completion*
+*Last updated: 2026-05-08 after Phase 4 completion*

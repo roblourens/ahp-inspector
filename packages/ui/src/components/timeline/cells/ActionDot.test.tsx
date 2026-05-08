@@ -20,6 +20,9 @@ describe("ActionDot — UI-SPEC §5.4", () => {
     render(<ActionDot family={family} />);
     const el = screen.getByTestId("action-dot");
     expect(el.getAttribute("data-family")).toBe(family);
-    expect(el.getAttribute("title")).toBe(`Action family: ${family}`);
+    expect(el.getAttribute("aria-label")).toBe(`Action row family: ${family}`);
+    expect(el.getAttribute("title")).toBe(
+      `Action row family: ${family}. Only action events show this marker.`,
+    );
   });
 });

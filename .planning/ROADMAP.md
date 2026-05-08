@@ -13,7 +13,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 - [x] **Phase 1: Core Foundations** - Project scaffolding, canonical event model, JSONL + sample parsers, EventStore, host adapter boundary (completed 2026-05-07)
 - [x] **Phase 2: Vertical Slice — CLI, Server, Timeline** - Open a JSONL file from the CLI and render an information-dense virtualized timeline in the browser (completed 2026-05-07)
 - [x] **Phase 3: Detail, Search, and Filtering** - Inspect events deeply, search and filter responsively, group by session/turn (completed 2026-05-07)
-- [ ] **Phase 4: Live Tail, Discovery, and Persistence** - Auto-discover VS Code logs, watch growing files, pause/resume, persist filter state per log
+- [x] **Phase 4: Live Tail, Discovery, and Persistence** - Auto-discover VS Code logs, watch growing files, pause/resume, persist filter state per log (completed 2026-05-08)
 - [ ] **Phase 5: Themes, Polish, and Verification** - Light/dark/hacker themes via design tokens, responsive layout, full UI + E2E test coverage
 
 ## Phase Details
@@ -95,7 +95,15 @@ Plans:
   3. The selected log is watched incrementally — new appended JSONL lines appear in the timeline without reparsing the whole file.
   4. User can pause and resume live following without losing their selection or scroll position.
   5. Search and filter state persists for the current log across reloads where appropriate.
-**Plans**: TBD
+**Plans**: 8 plans
+- [x] 04-00-PLAN.md — Foundation: logKey, SsePayload extensions, WatchSink, store fields, persistence module skeleton, tokens
+- [x] 04-01-PLAN.md — Discovery: bounded walk + scoring + opaque IDs in host-node
+- [x] 04-02-PLAN.md — TailReader hardened to WatchSink (shrink/rename/error → SSE rotation/watch-error)
+- [x] 04-03-PLAN.md — LogSessionManager + /api/sessions/* routes + log-reset SSE + CLI no-file launch
+- [x] 04-04-PLAN.md — Picker UI components: NoActiveLogState, CandidateList/Row, ManualOpenInput, LogPickerPanel
+- [x] 04-05-PLAN.md — Wiring: sessions HTTP client, SSE rotation/watch-error/log-reset handlers, App + AppShell + HeaderBar
+- [x] 04-06-PLAN.md — Pause/resume + per-log persistence: LivePauseButton, NewEventsPill, usePersistEffect
+- [x] 04-07-PLAN.md — Vertical slice integration test, USER_GUIDE updates, UAT screenshots
 **UI hint**: yes
 
 ### Phase 5: Themes, Polish, and Verification
@@ -118,7 +126,7 @@ Plans:
 | 1. Core Foundations | 3/3 | Complete    | 2026-05-07 |
 | 2. Vertical Slice — CLI, Server, Timeline | 7/7 | Complete | 2026-05-07 |
 | 3. Detail, Search, and Filtering | 7/7 | Complete   | 2026-05-07 |
-| 4. Live Tail, Discovery, and Persistence | 0/0 | Not started | - |
+| 4. Live Tail, Discovery, and Persistence | 8/8 | Complete | 2026-05-08 |
 | 5. Themes, Polish, and Verification | 0/0 | Not started | - |
 
 ---

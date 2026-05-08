@@ -15,6 +15,13 @@ export function ParseErrorRow({
   onClick: () => void;
   style?: CSSProperties;
 }): JSX.Element {
+  const cellStyle: CSSProperties = {
+    minWidth: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  };
+
   return (
     <div
       role="row"
@@ -46,11 +53,16 @@ export function ParseErrorRow({
         style={{
           width: 2,
           height: "100%",
+          overflow: "hidden",
           background:
             "repeating-linear-gradient(45deg, var(--color-destructive) 0 2px, transparent 2px 6px)",
         }}
       />
-      <div role="gridcell" className="mono" style={{ color: "var(--color-destructive)" }}>
+      <div
+        role="gridcell"
+        className="mono"
+        style={{ ...cellStyle, color: "var(--color-destructive)" }}
+      >
         {`BAD · line ${row.lineIndex ?? "?"} · ${row.parseErrorReason ?? "unknown"}`}
       </div>
     </div>

@@ -47,6 +47,8 @@ function visualFor(
       return { glyph: "●", dotColor: "var(--color-destructive)", label: "Disconnected" };
     case "no-server":
       return { glyph: "●", dotColor: "var(--color-destructive)", label: "No server" };
+    case "no-log":
+      return { glyph: "○", dotColor: "var(--color-text-subtle)", label: "No log selected" };
   }
 }
 

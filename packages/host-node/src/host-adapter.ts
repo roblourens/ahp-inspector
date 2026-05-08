@@ -8,9 +8,9 @@
 
 import { accessSync, constants, statSync } from "node:fs";
 import { basename, resolve as pathResolve } from "node:path";
-import type { Disposable, HostAdapter, LogCandidate, LogHandle } from "@ahp-viewer/shared";
+import type { DiscoveryResult, Disposable, HostAdapter, LogHandle } from "@ahp-viewer/shared";
 import { discoverVsCodeLogs } from "./discovery.js";
-import { TailReader } from "./tail-reader.js";
+import { type ChunkSink, chunkSinkToWatchSink, TailReader, type WatchSink } from "./tail-reader.js";
 
 /** Node-side LogHandle extension — adds the resolved path + observed size. */
 export interface NodeLogHandle extends LogHandle {
@@ -19,7 +19,7 @@ export interface NodeLogHandle extends LogHandle {
 }
 
 export class NodeHostAdapter implements HostAdapter {
-  async discoverLogs(): Promise<LogCandidate[]> {
+  async discoverLogs(): Promise<DiscoveryResult> {
     return discoverVsCodeLogs();
   }
 
@@ -42,27 +42,23 @@ export class NodeHostAdapter implements HostAdapter {
     return { id: resolved, path: resolved, size: stat.size };
   }
 
-  watchLog(handle: LogHandle, onChunk: (bytes: Uint8Array) => void): Disposable {
+  watchLog(handle: LogHandle, sinkOrChunk: WatchSink | ChunkSink): Disposable {
     const node = handle as NodeLogHandle;
     if (typeof node.path !== "string") {
       throw new Error("watchLog: handle missing path (must be a NodeLogHandle)");
     }
+    const sink: WatchSink =
+      typeof sinkOrChunk === "function" ? chunkSinkToWatchSink(sinkOrChunk) : sinkOrChunk;
     const reader = new TailReader(node.path);
     let stopped = false;
-    const stop = () => {
+    const stop = (): void => {
       if (stopped) return;
       stopped = true;
-      reader.dispose();
+      void reader.dispose();
     };
-    void reader
-      .readInitial(onChunk)
-      .then(() => {
-        if (!stopped) reader.startWatch(onChunk);
-      })
-      .catch(() => {
-        // Initial read failure — best-effort: leave reader disposed.
-        stop();
-      });
+    void reader.readInitial(sink).then(() => {
+      if (!stopped) reader.startWatch(sink);
+    });
     return { dispose: stop };
   }
 

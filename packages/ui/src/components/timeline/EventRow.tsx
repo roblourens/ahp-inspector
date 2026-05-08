@@ -20,11 +20,33 @@ export interface EventRowProps {
   searchQuery?: string;
 }
 
+export const TIMELINE_GRID_COLUMNS = "2px 96px 16px 44px 240px 132px 72px 64px 72px 96px 1fr";
+
+const cellStyle: CSSProperties = {
+  minWidth: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
 function railColor(row: EventRowData, isSelected: boolean): string {
   if (isSelected) return "var(--color-accent)";
   if (row.status === "orphan" || row.status === "unmatched") return "var(--color-warning)";
   if (row.status === "error") return "var(--color-destructive)";
   return "transparent";
+}
+
+function primaryLabel(row: EventRowData): string | null {
+  if (row.kind === "action") return row.actionType ?? row.method;
+  return row.method ?? row.actionType;
+}
+
+function primaryLabelTitle(row: EventRowData): string {
+  const label = primaryLabel(row);
+  if (row.kind === "action" && row.method && row.actionType) {
+    return `${row.actionType} (${row.method})`;
+  }
+  return label ?? "";
 }
 
 /**
@@ -70,6 +92,9 @@ export const EventRow = memo(function EventRow({
   style,
   searchQuery = "",
 }: EventRowProps): JSX.Element {
+  const label = primaryLabel(row);
+  const labelTitle = primaryLabelTitle(row);
+
   return (
     <div
       role="row"
@@ -86,7 +111,7 @@ export const EventRow = memo(function EventRow({
       data-testid={`row-${row.idx}`}
       style={{
         display: "grid",
-        gridTemplateColumns: "2px 96px 16px 44px 220px 64px 48px 64px 72px 96px 1fr",
+        gridTemplateColumns: TIMELINE_GRID_COLUMNS,
         alignItems: "center",
         height: "var(--row-height)",
         padding: "4px 8px",
@@ -98,12 +123,12 @@ export const EventRow = memo(function EventRow({
       <div
         role="gridcell"
         data-testid="row-rail"
-        style={{ width: 2, height: "100%", background: railColor(row, isSelected) }}
+        style={{ ...cellStyle, width: 2, height: "100%", background: railColor(row, isSelected) }}
       />
-      <div role="gridcell" className="ts">
+      <div role="gridcell" className="ts" style={cellStyle}>
         {row.tsFmt}
       </div>
-      <div role="gridcell">
+      <div role="gridcell" style={cellStyle}>
         {row.isAuthFailure ? (
           <ShieldAlert
             size={14}
@@ -114,40 +139,50 @@ export const EventRow = memo(function EventRow({
           <DirectionGlyph direction={row.dir} />
         )}
       </div>
-      <div role="gridcell">
+      <div role="gridcell" style={cellStyle}>
         <KindTag kind={row.kindTag} />
       </div>
-      <div role="gridcell" className="method" title={row.method ?? row.actionType ?? ""}>
+      <div
+        role="gridcell"
+        className="method"
+        title={labelTitle}
+        style={{
+          ...cellStyle,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
         <ActionDot family={row.actionFamily} />
         <span
           style={{
             marginLeft: row.actionFamily ? 4 : 0,
-            fontWeight: row.method ? 600 : 400,
+            fontWeight: label ? 600 : 400,
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            display: "block",
           }}
         >
-          {row.method
-            ? highlightMatches(row.method, searchQuery)
-            : row.actionType
-              ? highlightMatches(row.actionType, searchQuery)
-              : "—"}
+          {label ? highlightMatches(label, searchQuery) : "—"}
         </span>
       </div>
-      <div role="gridcell" className="id" title={row.sessionId ?? ""}>
+      <div role="gridcell" className="id" title={row.sessionId ?? ""} style={cellStyle}>
         {row.sessionShort ?? "—"}
       </div>
-      <div role="gridcell" className="id" title={row.turnId ?? ""}>
+      <div role="gridcell" className="id" title={row.turnId ?? ""} style={cellStyle}>
         {row.turnShort ?? "—"}
       </div>
-      <div role="gridcell">
+      <div role="gridcell" style={cellStyle}>
         <StatusCell status={row.status} />
       </div>
-      <div role="gridcell">
+      <div role="gridcell" style={cellStyle}>
         <LatencyCell ms={row.latencyMs} band={row.latencyBand} />
       </div>
-      <div role="gridcell" className="id">
+      <div role="gridcell" className="id" style={cellStyle}>
         {row.keyId ?? "—"}
       </div>
-      <div role="gridcell">
+      <div role="gridcell" style={cellStyle}>
         <PayloadPreview text={row.payloadPreview} />
       </div>
     </div>

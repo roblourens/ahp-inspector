@@ -89,6 +89,10 @@ importers:
       hono:
         specifier: ^4.12.18
         version: 4.12.18
+    devDependencies:
+      '@ahp-viewer/host-node':
+        specifier: workspace:*
+        version: link:../host-node
 
   packages/shared:
     dependencies:

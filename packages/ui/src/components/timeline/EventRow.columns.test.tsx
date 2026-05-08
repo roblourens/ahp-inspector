@@ -51,6 +51,54 @@ describe("EventRow — UI-SPEC §7.2 11 columns", () => {
     expect(screen.getByText('{"hello":"world"}')).toBeTruthy();
   });
 
+  it("shows the action type as the primary label for action envelopes", () => {
+    render(
+      <EventRow
+        row={{
+          ...baseRow,
+          kind: "action",
+          kindTag: "ACT",
+          method: "action",
+          actionType: "session/delta",
+        }}
+        isSelected={false}
+        onClick={() => {}}
+      />,
+    );
+
+    expect(screen.getByText("session/delta")).toBeTruthy();
+  });
+
+  it("keeps long action labels on one truncated line", () => {
+    render(
+      <EventRow
+        row={{
+          ...baseRow,
+          kind: "action",
+          kindTag: "ACT",
+          method: "action",
+          actionType: "session/toolCallContentChanged",
+        }}
+        isSelected={false}
+        onClick={() => {}}
+      />,
+    );
+
+    const methodCell = screen.getByTitle("session/toolCallContentChanged (action)");
+    expect(methodCell.style.whiteSpace).toBe("nowrap");
+    expect(methodCell.style.overflow).toBe("hidden");
+    expect(screen.getByText("session/toolCallContentChanged")).toBeTruthy();
+  });
+
+  it("prevents every timeline column from wrapping", () => {
+    render(<EventRow row={baseRow} isSelected={false} onClick={() => {}} />);
+    for (const cell of screen.getAllByRole("gridcell")) {
+      expect(cell.style.whiteSpace).toBe("nowrap");
+      expect(cell.style.overflow).toBe("hidden");
+      expect(cell.style.textOverflow).toBe("ellipsis");
+    }
+  });
+
   it("sets role=row + aria-rowindex + aria-selected", () => {
     render(<EventRow row={{ ...baseRow, idx: 4 }} isSelected onClick={() => {}} />);
     const row = screen.getByRole("row");

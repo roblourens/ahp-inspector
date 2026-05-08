@@ -1,5 +1,6 @@
 // biome-ignore-all lint/a11y/useSemanticElements: virtualized grid uses divs for absolute positioning.
 
+import { formatSessionShort } from "@ahp-viewer/core";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import type { CSSProperties, JSX } from "react";
 
@@ -33,7 +34,9 @@ export function GroupHeaderRow({
   virtualStyle,
 }: GroupHeaderRowProps): JSX.Element {
   const label =
-    level === "session" ? `Session ${sessionId.slice(-8)}` : `↳ Turn ${(turnId ?? "").slice(-6)}`;
+    level === "session"
+      ? `Session ${formatSessionShort(sessionId)}`
+      : `↳ Turn ${(turnId ?? "").slice(-6)}`;
 
   const ariaLabel = isCollapsed ? `Expand ${label}` : `Collapse ${label}`;
 

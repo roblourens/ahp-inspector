@@ -24,6 +24,7 @@ import {
   type LogHandle,
   makeParseErrorEvent,
 } from "@ahp-viewer/shared";
+import { computeLogKey } from "./log-key.js";
 import { SearchIndex } from "./search-index.js";
 
 /** Server-side log metadata. NEVER carries absolute paths (T-02-03). */
@@ -32,6 +33,12 @@ export interface LogMeta {
   readonly filename: string;
   readonly sizeBytes: number;
   readonly startedAt: number;
+  /**
+   * Stable, opaque identifier for this log (D-16). 32-char lowercase hex
+   * derived from sha256(absPath + initial mtimeMs). Used by the UI to scope
+   * per-log persistence; never reveals the underlying path.
+   */
+  readonly logKey: string;
 }
 
 /** Discriminated union of every payload AppState emits to subscribers. */
@@ -51,7 +58,10 @@ export type SsePayload =
     }
   | { kind: "ping" }
   | { kind: "bye" }
-  | { kind: "error"; code: string; message: string };
+  | { kind: "error"; code: string; message: string }
+  | { kind: "rotation"; newSize: number; reason: "shrink" | "rename" }
+  | { kind: "watch-error"; code: "read-error" | "watch-fatal"; message: string }
+  | { kind: "log-reset" };
 
 export type Listener = (payload: SsePayload) => void;
 
@@ -70,6 +80,18 @@ export interface AppStateOptions {
   readonly flushIntervalMs?: number;
   /** Default 30_000ms. Used by Correlator.flush. */
   readonly unmatchedTimeoutMs?: number;
+  /**
+   * Optional pre-computed logKey (Phase 4 D-16). When omitted, AppState falls
+   * back to `computeLogKey(handlePath, Date.now())` so existing CLI/tests keep
+   * working; Wave 2's session manager will inject a stable mtime-derived key.
+   */
+  readonly logKey?: string;
+  /**
+   * Optional file mtimeMs captured by the session manager at open time
+   * (Phase 4 D-16). Used to derive a stable logKey when `logKey` is not
+   * pre-supplied. When both are absent, AppState falls back to Date.now().
+   */
+  readonly initialMtimeMs?: number;
 }
 
 export interface AppState {
@@ -105,10 +127,12 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   const inferDir: (raw: unknown) => Direction = opts.directionInference ?? (() => "c2s");
 
   const handlePath = handle.path ?? handle.id;
+  const initialMtimeMs = opts.initialMtimeMs ?? Date.now();
   const meta: LogMeta = {
     filename: basename(handlePath),
     sizeBytes: handle.size ?? 0,
     startedAt: Date.now(),
+    logKey: opts.logKey ?? computeLogKey(handlePath, initialMtimeMs),
   };
 
   const rows: EventRow[] = [];
@@ -204,35 +228,55 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   });
 
   // Ingest loop.
-  const watcher = opts.host.watchLog(handle, (chunk: Uint8Array) => {
-    const text = decoder.decode(chunk, { stream: true });
-    // Detect CRLF vs LF so byteOffset stays byte-accurate for Windows logs.
-    // The LineSplitter strips the '\r', so we add the extra byte here if needed.
-    const newlineSize = text.includes("\r\n") ? 2 : 1;
-    let lines: string[];
-    try {
-      lines = splitter.push(text);
-    } catch (err) {
+  const watcher = opts.host.watchLog(handle, {
+    onChunk(chunk: Uint8Array, _byteOffset: number) {
+      const text = decoder.decode(chunk, { stream: true });
+      // Detect CRLF vs LF so byteOffset stays byte-accurate for Windows logs.
+      // The LineSplitter strips the '\r', so we add the extra byte here if needed.
+      const newlineSize = text.includes("\r\n") ? 2 : 1;
+      let lines: string[];
+      try {
+        lines = splitter.push(text);
+      } catch (err) {
+        emit({
+          kind: "error",
+          code: "parse-overflow",
+          message: (err as Error).message,
+        });
+        return;
+      }
+      for (const line of lines) {
+        const byteLength = Buffer.byteLength(line, "utf8");
+        const ts = Date.now();
+        const parsed = parseLine(line, byteOffset, byteLength);
+        const dir: Direction = parsed.error ? "c2s" : inferDir(parsed.raw);
+        const m = { seq, ts, tsRaw: String(ts), dir, byteOffset, byteLength };
+        const ev = parsed.error
+          ? makeParseErrorEvent(m, parsed.error.reason, parsed.text)
+          : normalize(parsed.raw, m);
+        store.append(ev);
+        seq += 1;
+        byteOffset += byteLength + newlineSize; // +1 LF or +2 CRLF
+      }
+    },
+    onReset(info) {
+      // Reset parser-side accounting; do NOT mutate store/rows — UI drops on
+      // rotation frame. seq is intentionally NOT reset (T-04-02-04 accepted).
+      try {
+        splitter.reset();
+      } catch {
+        /* defensive */
+      }
+      byteOffset = 0;
+      emit({ kind: "rotation", newSize: info.newSize, reason: info.reason });
+    },
+    onError(err, fatal) {
       emit({
-        kind: "error",
-        code: "parse-overflow",
-        message: (err as Error).message,
+        kind: "watch-error",
+        code: fatal ? "watch-fatal" : "read-error",
+        message: err.message,
       });
-      return;
-    }
-    for (const line of lines) {
-      const byteLength = Buffer.byteLength(line, "utf8");
-      const ts = Date.now();
-      const parsed = parseLine(line, byteOffset, byteLength);
-      const dir: Direction = parsed.error ? "c2s" : inferDir(parsed.raw);
-      const m = { seq, ts, tsRaw: String(ts), dir, byteOffset, byteLength };
-      const ev = parsed.error
-        ? makeParseErrorEvent(m, parsed.error.reason, parsed.text)
-        : normalize(parsed.raw, m);
-      store.append(ev);
-      seq += 1;
-      byteOffset += byteLength + newlineSize; // +1 LF or +2 CRLF
-    }
+    },
   });
 
   function runFlush(nowMs?: number): void {

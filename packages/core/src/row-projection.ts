@@ -102,6 +102,19 @@ export function formatTs(ms: number): string {
   )}`;
 }
 
+export function formatSessionShort(sessionId: string): string {
+  const parts = sessionId.split(/[/:]+/).filter(Boolean);
+  let label = parts.at(-1) ?? sessionId;
+  label = label.replace(/^session[-_:]?/i, "");
+  label = label.replace(/[-_]\d{4}[-_]\d{2}[-_]\d{2}$/u, "");
+
+  if (/^[0-9a-f]{16,}$/iu.test(label)) return label.slice(-8);
+  const uuidFirstSegment = label.match(/^[0-9a-f]{8}(?=-[0-9a-f]{4}-)/iu)?.[0];
+  if (uuidFirstSegment) return uuidFirstSegment;
+  if (label.length <= 18) return label;
+  return `${label.slice(0, 17)}…`;
+}
+
 export function payloadPreviewOf(raw: unknown): string {
   if (raw === undefined || raw === null) return "";
   let src: unknown = raw;
@@ -169,7 +182,7 @@ export function projectRow(
     actionType: event.actionType,
     actionFamily: actionFamilyFor(event.kind, event.actionType),
     sessionId: session,
-    sessionShort: session ? session.slice(-8) : null,
+    sessionShort: session ? formatSessionShort(session) : null,
     turnId: turn,
     turnShort: turn ? turn.slice(-6) : null,
     keyId: idStr ? (idStr.length > 12 ? idStr.slice(0, 12) : idStr) : null,

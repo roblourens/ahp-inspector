@@ -79,6 +79,7 @@ beforeEach(() => {
     connection: "connecting",
     selectedIdx: null,
     meta: null,
+    logKey: null,
   });
   FakeEventSource.instances = [];
 });
@@ -102,10 +103,11 @@ describe("connectLogStream — snapshot lifecycle", () => {
     expect(useAppStore.getState().connection).toBe("connecting");
 
     es.emit("snapshot-begin", {
-      meta: { filename: "demo.jsonl", sizeBytes: 0, startedAt: 0 },
+      meta: { filename: "demo.jsonl", sizeBytes: 0, startedAt: 0, logKey: "log-key-1" },
       total: 3,
     });
     expect(useAppStore.getState().meta?.filename).toBe("demo.jsonl");
+    expect(useAppStore.getState().logKey).toBe("log-key-1");
 
     es.emit("snapshot-chunk", { rows: [row(0), row(1)], from: 0 });
     // Rows MUST NOT appear in the store mid-snapshot.
@@ -212,11 +214,7 @@ describe("connectLogStream — connection lifecycle", () => {
     es.fireError();
     expect(useAppStore.getState().connection).toBe("connected");
     es.emit("bye", {});
-    // bye still flips to disconnected (server told us we're done) — this is
-    // OK because we initiated close. The contract is "no reconnect storm",
-    // not "ignore explicit server bye". The handle.close() guarantee is that
-    // *errors* after explicit close don't bounce the UI between states.
-    // We assert only that close() did call es.close() once already.
+    expect(useAppStore.getState().connection).toBe("connected");
     expect(es.closed).toBe(true);
   });
 });

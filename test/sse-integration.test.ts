@@ -9,6 +9,7 @@ import { resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { type AppState, createAppState } from "../packages/server/src/app-state.js";
 import { type LogServerHandle, startLogServer } from "../packages/server/src/log-server.js";
+import type { ActiveSession, LogSessionManager } from "../packages/server/src/session-manager.js";
 import type {
   Direction,
   Disposable,
@@ -17,17 +18,43 @@ import type {
   LogHandle,
 } from "../packages/shared/src/index.js";
 
+function fakeSessions(appState: AppState): LogSessionManager {
+  const active: ActiveSession = { logKey: appState.meta.logKey, appState };
+  return {
+    current: () => active,
+    open: async () => active,
+    close: async () => {},
+    onChange: () => () => {},
+    dispose: async () => {},
+  };
+}
+
 interface FakeHost extends HostAdapter {
   push(text: string): void;
 }
 
 function makeFakeHost(path: string): FakeHost {
-  let sink: ((bytes: Uint8Array) => void) | null = null;
+  type WatchSinkObj = {
+    onChunk(bytes: Uint8Array, byteOffset: number): void;
+    onReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
+    onError(err: Error, fatal: boolean): void;
+  };
+  let sink: WatchSinkObj | null = null;
+  let offset = 0;
   return {
     discoverLogs: async (): Promise<LogCandidate[]> => [],
     openLog: async (_p: string): Promise<LogHandle> => ({ id: path }),
-    watchLog: (_h, onChunk) => {
-      sink = onChunk;
+    watchLog: (_h, sinkOrChunk) => {
+      if (typeof sinkOrChunk === "function") {
+        const fn = sinkOrChunk;
+        sink = {
+          onChunk: (bytes) => fn(bytes),
+          onReset: () => {},
+          onError: () => {},
+        };
+      } else {
+        sink = sinkOrChunk as WatchSinkObj;
+      }
       return {
         dispose: () => {
           sink = null;
@@ -37,7 +64,9 @@ function makeFakeHost(path: string): FakeHost {
     close: async () => {},
     push(text) {
       if (!sink) throw new Error("watchLog not subscribed");
-      sink(new TextEncoder().encode(text));
+      const bytes = new TextEncoder().encode(text);
+      sink.onChunk(bytes, offset);
+      offset += bytes.byteLength;
     },
   };
 }
@@ -182,7 +211,7 @@ describe("SSE log stream", () => {
     host.push(`${requestLine}\n`);
     for (const l of remaining) host.push(`${l}\n`);
 
-    handle = await startLogServer({ appState, port: 0, version: "0.1.0" });
+    handle = await startLogServer({ sessions: fakeSessions(appState), port: 0, version: "0.1.0" });
 
     const c = await openSseClient({
       port: handle.port,

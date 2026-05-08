@@ -51,7 +51,7 @@ function GroupTogglePopover({ value, onChange, onClose }: GroupTogglePopoverProp
         position: "absolute",
         top: "calc(100% + 4px)",
         right: 0,
-        zIndex: 200,
+        zIndex: 1100,
         background: "var(--color-surface-raised)",
         border: "1px solid var(--color-border-strong)",
         borderRadius: 6,
@@ -119,6 +119,7 @@ export function GroupToggleChip({ value, onChange }: GroupToggleChipProps): JSX.
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         onClick={() => setIsOpen((o) => !o)}
+        onMouseDown={(event) => event.stopPropagation()}
         style={{
           display: "inline-flex",
           alignItems: "center",

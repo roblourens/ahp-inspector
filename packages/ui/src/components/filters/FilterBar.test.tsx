@@ -66,10 +66,13 @@ describe("FilterBar", () => {
     expect(screen.getByTestId("filter-bar")).toBeTruthy();
   });
 
-  it("renders SearchInput with placeholder", () => {
+  it("renders a prominent SearchInput with placeholder and shortcut hint", () => {
     render(<FilterBar />);
-    const input = screen.getByPlaceholderText("Search method, id, session, payload…");
+    expect(screen.getByText("Search")).toBeTruthy();
+    const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
     expect(input).toBeTruthy();
+    expect(input.getAttribute("aria-label")).toBe("Search all events");
+    expect(screen.getByTitle("Press / to focus search")).toBeTruthy();
   });
 
   it("renders all 8 facet chips", () => {
@@ -101,12 +104,59 @@ describe("FilterBar", () => {
     expect(screen.getByRole("listbox")).toBeTruthy();
   });
 
+  it("closes an open facet popover when its chip is clicked again", () => {
+    render(<FilterBar />);
+    const dirChip = screen.getByRole("button", { name: /Dir/i });
+    fireEvent.click(dirChip);
+    expect(screen.getByRole("listbox")).toBeTruthy();
+
+    fireEvent.mouseDown(dirChip);
+    fireEvent.click(dirChip);
+
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("does not clip facet popovers behind the timeline", () => {
+    render(<FilterBar />);
+    const bar = screen.getByTestId("filter-bar");
+    expect(bar.style.overflow).toBe("visible");
+    expect(bar.style.position).toBe("relative");
+    expect(Number(bar.style.zIndex)).toBeGreaterThan(0);
+  });
+
+  it("uses readable labels for long session facet values", () => {
+    useAppStore.setState({
+      rows: [
+        makeRow({
+          sessionId: "copilot:/session/frontend-polish-2026-05-07",
+          sessionShort: "frontend-polish",
+        }),
+      ],
+    });
+    render(<FilterBar />);
+    fireEvent.click(screen.getByRole("button", { name: /Session/i }));
+
+    expect(screen.getByText("frontend-polish")).toBeTruthy();
+  });
+
   it("clicking GroupToggleChip opens a popover with grouping options", () => {
     render(<FilterBar />);
     const groupBtn = screen.getByRole("button", { name: /Group:/i });
     fireEvent.click(groupBtn);
     expect(screen.getByRole("radio", { name: "Session" })).toBeTruthy();
     expect(screen.getByRole("radio", { name: /Session \+ Turn/i })).toBeTruthy();
+  });
+
+  it("closes the grouping popover when GroupToggleChip is clicked again", () => {
+    render(<FilterBar />);
+    const groupBtn = screen.getByRole("button", { name: /Group:/i });
+    fireEvent.click(groupBtn);
+    expect(screen.getByRole("radio", { name: "Session" })).toBeTruthy();
+
+    fireEvent.mouseDown(groupBtn);
+    fireEvent.click(groupBtn);
+
+    expect(screen.queryByRole("radio", { name: "Session" })).toBeNull();
   });
 
   it("selecting a grouping mode dispatches setGrouping", () => {

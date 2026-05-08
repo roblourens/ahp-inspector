@@ -7,7 +7,7 @@ body,
   height: 100%;
   margin: 0;
 }
-html[data-theme="dark"] body {
+body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
@@ -15,6 +15,7 @@ html[data-theme="dark"] body {
   line-height: 20px;
   font-weight: var(--weight-regular);
   -webkit-font-smoothing: antialiased;
+  color-scheme: var(--color-scheme);
 }
 .mono,
 .ts,
@@ -23,6 +24,16 @@ html[data-theme="dark"] body {
 .method,
 .preview {
   font-family: var(--font-mono);
+}
+.ts,
+.latency,
+.id,
+.method,
+.preview {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .ts,
 .latency {
@@ -56,4 +67,54 @@ html[data-theme="dark"] body {
   .detail-rail {
     display: none;
   }
+}
+
+.ahp-json-container {
+  color: var(--color-text);
+}
+.ahp-json-child {
+  margin-left: var(--space-4);
+}
+.ahp-json-label,
+.ahp-json-clickable-label {
+  color: var(--color-json-key);
+}
+.ahp-json-clickable-label {
+  cursor: pointer;
+}
+.ahp-json-string {
+  color: var(--color-json-string);
+}
+.ahp-json-number {
+  color: var(--color-json-number);
+}
+.ahp-json-boolean {
+  color: var(--color-json-boolean);
+}
+.ahp-json-null,
+.ahp-json-other {
+  color: var(--color-json-null);
+}
+.ahp-json-punctuation,
+.ahp-json-expander,
+.ahp-json-collapsed {
+  color: var(--color-json-punctuation);
+}
+.ahp-json-expander {
+  cursor: pointer;
+  display: inline-block;
+  width: 1.5ch;
+  user-select: none;
+}
+.ahp-json-expander::before {
+  content: "+";
+}
+.ahp-json-expander[aria-expanded="true"]::before {
+  content: "-";
+}
+.ahp-json-collapsed {
+  cursor: pointer;
+}
+.ahp-json-collapsed::before {
+  content: "...";
 }

@@ -52,11 +52,11 @@ function makeEventRow(overrides: Partial<EventRowData> = {}): EventRowData {
 describe("GroupHeaderRow", () => {
   afterEach(() => cleanup());
 
-  it("renders session label with last 8 chars of sessionId", () => {
+  it("renders a readable session label", () => {
     render(
       <GroupHeaderRow
         level="session"
-        sessionId="session-abc12345"
+        sessionId="copilot:/session/frontend-polish-2026-05-07"
         count={10}
         durationMs={1234}
         isCollapsed={false}
@@ -64,11 +64,7 @@ describe("GroupHeaderRow", () => {
         virtualStyle={{}}
       />,
     );
-    // sessionId.slice(-8) = "bc12345" but sessionId "session-abc12345".slice(-8) = "bc12345"
-    // Actually "session-abc12345" has 16 chars, slice(-8) = "bc12345" — wait:
-    // "session-abc12345" = s,e,s,s,i,o,n,-,a,b,c,1,2,3,4,5 = 16 chars
-    // slice(-8) = "abc12345" — last 8 chars: a,b,c,1,2,3,4,5
-    expect(screen.getByText(/Session abc12345/)).toBeTruthy();
+    expect(screen.getByText(/Session frontend-polish/)).toBeTruthy();
   });
 
   it("renders turn label with ↳ Turn and last 6 chars of turnId", () => {

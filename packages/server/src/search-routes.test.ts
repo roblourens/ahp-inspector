@@ -10,6 +10,18 @@ import { describe, expect, it } from "vitest";
 import type { AppState, LogMeta } from "./app-state.js";
 import { SearchIndex } from "./search-index.js";
 import { registerSearchRoutes } from "./search-routes.js";
+import type { ActiveSession, LogSessionManager } from "./session-manager.js";
+
+function fakeSessions(appState: AppState): LogSessionManager {
+  const active: ActiveSession = { logKey: appState.meta.logKey, appState };
+  return {
+    current: () => active,
+    open: async () => active,
+    close: async () => {},
+    onChange: () => () => {},
+    dispose: async () => {},
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Minimal AhpEvent factory for tests
@@ -116,7 +128,12 @@ function makeSearchAppState(entries: Array<{ method: string }>): AppState {
     if (!e) continue;
     si.append(makeEvent({ seq: i, method: e.method }));
   }
-  const meta: LogMeta = { filename: "test.log", sizeBytes: 0, startedAt: 0 };
+  const meta: LogMeta = {
+    filename: "test.log",
+    sizeBytes: 0,
+    startedAt: 0,
+    logKey: "0".repeat(32),
+  };
   return {
     meta,
     searchIndex: si,
@@ -136,7 +153,7 @@ function makeSearchAppState(entries: Array<{ method: string }>): AppState {
 describe("GET /api/log/search", () => {
   function buildApp(entries: Array<{ method: string }>): Hono {
     const app = new Hono();
-    registerSearchRoutes(app, makeSearchAppState(entries));
+    registerSearchRoutes(app, fakeSessions(makeSearchAppState(entries)));
     return app;
   }
 

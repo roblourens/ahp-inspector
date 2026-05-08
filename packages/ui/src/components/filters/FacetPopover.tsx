@@ -39,7 +39,10 @@ export function FacetPopover({
   }, [onClose]);
 
   const filtered = query
-    ? options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
+    ? options.filter((o) => {
+        const q = query.toLowerCase();
+        return o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q);
+      })
     : options;
   const visible = filtered.slice(0, MAX_VISIBLE);
   const overflow = filtered.length - visible.length;
@@ -61,7 +64,7 @@ export function FacetPopover({
         position: "absolute",
         top: "calc(100% + 4px)",
         left: 0,
-        zIndex: 200,
+        zIndex: 1100,
         background: "var(--color-surface-raised)",
         border: "1px solid var(--color-border-strong)",
         borderRadius: 6,
@@ -117,6 +120,7 @@ export function FacetPopover({
       {visible.map((opt) => (
         <label
           key={opt.value}
+          title={opt.value}
           style={{
             display: "flex",
             alignItems: "center",

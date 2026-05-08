@@ -94,8 +94,11 @@ describe("NodeHostAdapter", () => {
     expect(total).toBeGreaterThan(initialBytes);
   }, 3000);
 
-  it("discoverVsCodeLogs returns [] in Phase 1", async () => {
-    const cands = await adapter.discoverLogs();
-    expect(cands).toEqual([]);
+  it("discoverVsCodeLogs returns a DiscoveryResult shape", async () => {
+    const result = await adapter.discoverLogs();
+    expect(result).toHaveProperty("candidates");
+    expect(result).toHaveProperty("truncated");
+    expect(Array.isArray(result.candidates)).toBe(true);
+    expect(typeof result.truncated).toBe("boolean");
   });
 });

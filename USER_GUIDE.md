@@ -18,9 +18,63 @@ node packages/cli/dist/index.js path/to/log.jsonl
 
 The CLI prints a loopback URL, opens the browser by default, and serves the UI locally from `127.0.0.1`.
 
+## Launching without a file
+
+You can run the viewer without specifying a log file:
+
+```sh
+ahp-viewer
+```
+
+The browser opens to a picker showing logs the viewer discovered automatically under the standard VS Code log roots for macOS, Windows, and Linux. Pick a log to begin streaming, or paste a local log file path under "or open manually".
+
+![No active log picker](screenshots/phase4/01-no-active-log.png)
+
+## The log picker
+
+- **Confidence dot** — green (JSONL), amber (Legacy heuristic match), grey (unknown).
+- **Origin badge** — VS Code, VS Code Insiders, or Manual.
+- Each row shows the file basename, an origin chip, the time since last modification, and the file size.
+- Click "Refresh List" to rescan.
+
+The picker never reveals absolute paths; it shows only basenames and short context labels relative to the discovery root.
+
+![No candidates hint](screenshots/phase4/02-no-candidates-hint.png)
+
+## Live tail and pause
+
+The viewer streams new events as the file grows. Use the **Pause** button in the header to freeze the timeline; new events accumulate and a "<N> new events" pill appears at the bottom. Click the pill to flush the buffer and resume. Pause is local to the browser — the server keeps reading.
+
+The Space key toggles pause when focus is outside form fields.
+
+![Paused live tail with new events pill](screenshots/phase4/07-new-events-pill.png)
+
+## Switching logs
+
+Click **Switch log** at any time to open the same picker over the current view. Selecting a different log resets the timeline.
+
+![Switch log panel](screenshots/phase4/08-switch-log-panel.png)
+
+## Persistence
+
+Filter selections, column visibility, expanded groups, and the currently-selected event are remembered per-log in your browser's localStorage. Reloading the page restores them. Up to 50 logs are remembered (least-recently-used logs are evicted).
+
+## Banners
+
+- **Log rotated — reloading from new file.** — Appears once when the active file rotates (truncate/rename). The viewer continues from the new file.
+- **Watch error: file read error** or **Watch error: watcher stopped** — Appears if the OS file watcher reports a safe error code. Click **Retry Connection** to reconnect or **Reopen log** to reopen the active file.
+
+![Rotation banner](screenshots/phase4/09-rotation-banner.png)
+
+## Choose a theme
+
+Use the compact theme picker in the header to switch between **Dark**, **Light**, and **Hacker**. The selection is saved in the browser and applies to the timeline, filters, detail panel, and Pretty JSON syntax colors.
+
+![Hacker theme with column labels](screenshots/phase3-hacker-theme-columns.png)
+
 ## Read the timeline
 
-The main timeline is a dense, virtualized grid. Each row shows timestamp, direction, kind, method/action type, session, turn, status, latency, key ID, and a short payload preview. Direction arrows (`→`/`←`), kind tags (`REQ`, `RES`, `ACT`, `BAD`), status pills, and row rails help scan traffic quickly.
+The main timeline is a dense, virtualized grid with fixed column labels. Each row shows timestamp, direction, kind, method/action type, session, turn, status, latency, key ID, and a short payload preview. Direction arrows (`→`/`←`), kind tags (`REQ`, `RES`, `ACT`, `BAD`), status pills, and row rails help scan traffic quickly.
 
 ![Large timeline](screenshots/phase2-uat-fixed-large.png)
 
@@ -48,7 +102,7 @@ If the log stream disconnects after data has loaded, the viewer keeps the last r
 
 ## Current limitations
 
-Phase 2 provides the vertical slice: CLI launch, local server, SSE stream, virtualized timeline, and state handling. Live discovery (tail-mode) and full light/dark/hacker theme switching are planned for later phases.
+The current standalone app opens one log at a time. Multi-log comparison, export workflows, advanced dashboards, and VS Code extension packaging are deferred.
 
 ## Searching events
 
@@ -72,7 +126,7 @@ Click any of the **8 facet chips** in the filter bar to open a popover with the 
 | **Kind** | Event kind (`request` / `response` / `action` / `protocol-notification`) |
 | **Method** | RPC method name |
 | **Action** | Action type family |
-| **Session** | Session ID (last 8 chars shown) |
+| **Session** | Session ID, shortened into a readable label when possible |
 | **Turn** | Turn ID (last 6 chars shown) |
 | **Status** | Correlation status (`ok` / `error` / `timeout` / pending) |
 | **Time** | Time range (from / to) |
@@ -93,7 +147,7 @@ Use the **Group: None** toggle (right end of the filter bar) to restructure the 
 | Mode | Effect |
 |------|--------|
 | **None** | Flat chronological order (default) |
-| **Session** | One group header per session; shows session label (last 8 chars), event count, and duration |
+| **Session** | One group header per session; shows a readable session label, event count, and duration |
 | **Session + Turn** | Nested sub-headers per turn inside each session |
 
 Group headers are visual-only rows — keyboard navigation (Up/Down/Home/End) moves through event rows only, skipping headers.
@@ -125,7 +179,7 @@ The top of the panel shows the core AHP fields in a structured strip with colore
 
 ### Pretty vs Raw tab
 
-- **Pretty** — expandable JSON tree rendered by react-json-view-lite. Payloads larger than 256 KB show a truncation warning.
+- **Pretty** — expandable JSON tree rendered by react-json-view-lite. Click a node label or its +/- marker to collapse or expand it. Payloads larger than 256 KB show a truncation warning.
 - **Raw** — monospace `<pre>` block containing the full raw JSON for copy-paste.
 
 ![Detail panel Raw JSON view](screenshots/phase3-detail-raw.png)
@@ -157,4 +211,3 @@ A brief **"Copied N chars"** toast appears at the bottom-right to confirm the cl
 | `Esc` | Clear search → clear filters → deselect row (in sequence) |
 
 ![/ key focuses the search input](screenshots/phase3-keyboard.png)
-

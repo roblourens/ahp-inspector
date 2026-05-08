@@ -1,8 +1,15 @@
-import { type JSX, useEffect } from "react";
+import { type JSX, useCallback, useEffect, useState } from "react";
 import { AppShell } from "./components/shell/AppShell.js";
+import { NoActiveLogState } from "./components/states/NoActiveLogState.js";
 import { ServerNotRunningState } from "./components/states/ServerNotRunningState.js";
 import { useAppStore } from "./state/store.js";
+import {
+  fetchCandidates,
+  openSessionByCandidate,
+  openSessionByPath,
+} from "./transport/sessions-client.js";
 import { type ConnectionHandle, connectLogStream } from "./transport/sse-client.js";
+import type { SafeCandidate } from "./types/safe-candidate.js";
 
 declare global {
   interface Window {
@@ -10,17 +17,46 @@ declare global {
   }
 }
 
+function replaceLogStream(): ConnectionHandle {
+  const previous = typeof window !== "undefined" ? window.__ahpStream : undefined;
+  previous?.close();
+  const handle = connectLogStream();
+  if (typeof window !== "undefined") window.__ahpStream = handle;
+  return handle;
+}
+
 export function App(): JSX.Element {
   const connection = useAppStore((s) => s.connection);
+  const [candidates, setCandidates] = useState<readonly SafeCandidate[]>([]);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
 
+  const refreshCandidates = useCallback(async (): Promise<void> => {
+    setLoadingCandidates(true);
+    try {
+      const list = await fetchCandidates();
+      setCandidates(list);
+    } catch {
+      setCandidates([]);
+    } finally {
+      setLoadingCandidates(false);
+    }
+  }, []);
+
+  // Probe meta first; on 503 / network-down → no-server.
+  // On 204 → no-log + load discovery candidates.
+  // On 200 → open SSE stream.
   useEffect(() => {
-    // Probe meta first; on 503 / network-down, route to the no-server state
-    // (Plan 02-04 ServerNotRunningState). On success, open the SSE stream.
     let cancelled = false;
     let handle: ConnectionHandle | null = null;
-    fetch("/api/log/meta").then(
-      (r) => {
+    const probe = async (): Promise<void> => {
+      try {
+        const r = await fetch("/api/log/meta");
         if (cancelled) return;
+        if (r.status === 204) {
+          useAppStore.getState().setConnection("no-log");
+          await refreshCandidates();
+          return;
+        }
         const contentType = r.headers.get("content-type") ?? "";
         if (!r.ok || !contentType.toLowerCase().includes("application/json")) {
           useAppStore.getState().setConnection("no-server");
@@ -28,20 +64,43 @@ export function App(): JSX.Element {
         }
         handle = connectLogStream();
         if (typeof window !== "undefined") window.__ahpStream = handle;
-      },
-      () => {
+      } catch {
         if (!cancelled) useAppStore.getState().setConnection("no-server");
-      },
-    );
-    return () => {
-      cancelled = true;
-      if (handle) handle.close();
-      if (typeof window !== "undefined") {
-        delete window.__ahpStream;
       }
     };
+    void probe();
+    return () => {
+      cancelled = true;
+      handle?.close();
+      if (typeof window !== "undefined") delete window.__ahpStream;
+    };
+  }, [refreshCandidates]);
+
+  const onSelect = useCallback(async (id: string): Promise<void> => {
+    const result = await openSessionByCandidate(id);
+    useAppStore.getState().setLogKey(result.active.logKey);
+    useAppStore.getState().setLastOpenRef({ kind: "candidate", id });
+    replaceLogStream();
+  }, []);
+
+  const onOpenPath = useCallback(async (path: string): Promise<void> => {
+    const result = await openSessionByPath(path);
+    useAppStore.getState().setLogKey(result.active.logKey);
+    useAppStore.getState().setLastOpenRef({ kind: "path", path });
+    replaceLogStream();
   }, []);
 
   if (connection === "no-server") return <ServerNotRunningState />;
+  if (connection === "no-log") {
+    return (
+      <NoActiveLogState
+        candidates={candidates}
+        isLoading={loadingCandidates}
+        onSelect={(id) => void onSelect(id)}
+        onOpenPath={onOpenPath}
+        onRefresh={() => void refreshCandidates()}
+      />
+    );
+  }
   return <AppShell />;
 }

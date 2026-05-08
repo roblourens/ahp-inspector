@@ -13,6 +13,7 @@ export {
   actionFamilyFor,
   bandFor,
   dirGlyphFor,
+  formatSessionShort,
   formatTs,
   kindTagFor,
   payloadPreviewOf,
