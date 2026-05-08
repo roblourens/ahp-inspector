@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { StateConfidenceBadge } from "./StateConfidenceBadge.js";
+import { comparePinnedStatePoints } from "./state-compare.js";
 import { MAX_PINNED_STATE_POINTS, type PinnedStatePoint } from "./state-pins.js";
 
 interface PinnedStatePanelProps {
@@ -13,6 +14,8 @@ export function PinnedStatePanel({
   onRemove,
   onClear,
 }: PinnedStatePanelProps): JSX.Element {
+  const comparison = getComparison(points);
+
   return (
     <section className="pinned-state-panel" aria-label="Pinned state points">
       <div className="pinned-state-header">
@@ -65,7 +68,71 @@ export function PinnedStatePanel({
           ))}
         </ul>
       )}
+      {comparison && (
+        <section className="state-comparison" aria-label="Pinned comparison">
+          <div className="state-comparison-header">
+            <h4>Pinned comparison</h4>
+            <StateConfidenceBadge
+              confidence={comparison.confidence}
+              label="Comparison confidence"
+            />
+          </div>
+          <div className="state-comparison-points">
+            <ComparisonPoint label="From" point={comparison.from} />
+            <ComparisonPoint label="To" point={comparison.to} />
+          </div>
+          {comparison.confidence !== "complete" && (
+            <p className="state-comparison-warning">
+              Comparison may be incomplete because at least one pinned state is not complete.
+            </p>
+          )}
+          {comparison.same ? (
+            <p className="state-comparison-empty">No top-level changes detected.</p>
+          ) : (
+            <div className="state-comparison-paths">
+              <span className="state-section-label">Changed top-level paths</span>
+              <ul>
+                {comparison.changedPaths.map((path) => (
+                  <li key={path}>{path}</li>
+                ))}
+              </ul>
+              {comparison.overflowCount > 0 && <p>{`and ${comparison.overflowCount} more`}</p>}
+            </div>
+          )}
+        </section>
+      )}
     </section>
+  );
+}
+
+function getComparison(points: readonly PinnedStatePoint[]) {
+  if (points.length !== MAX_PINNED_STATE_POINTS) {
+    return null;
+  }
+
+  const [from, to] = points;
+  if (!from || !to) {
+    return null;
+  }
+
+  return comparePinnedStatePoints(from, to);
+}
+
+function ComparisonPoint({
+  label,
+  point,
+}: {
+  readonly label: "From" | "To";
+  readonly point: PinnedStatePoint;
+}): JSX.Element {
+  return (
+    <div>
+      <span className="state-section-label">{`${label} #${point.targetIndex}`}</span>
+      <span>{point.eventLabel}</span>
+      <span>
+        {point.resourceKind} <span className="state-resource-uri">{point.resourceUri}</span>
+      </span>
+    </div>
   );
 }
 

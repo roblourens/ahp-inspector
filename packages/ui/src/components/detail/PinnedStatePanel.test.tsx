@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { StateAtSelectedResource } from "../../transport/state-client.js";
 import { PinnedStatePanel } from "./PinnedStatePanel.js";
@@ -127,14 +127,82 @@ describe("PinnedStatePanel", () => {
     expect(onRemove).toHaveBeenCalledOnce();
     expect(onClear).toHaveBeenCalledOnce();
   });
+
+  it("hides comparison until exactly two pins exist", () => {
+    const { rerender } = render(
+      <PinnedStatePanel points={[]} onRemove={vi.fn()} onClear={vi.fn()} />,
+    );
+
+    expect(screen.queryByText("Pinned comparison")).not.toBeInTheDocument();
+
+    rerender(
+      <PinnedStatePanel
+        points={[createPin(7, "copilot:/session/1")]}
+        onRemove={vi.fn()}
+        onClear={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByText("Pinned comparison")).not.toBeInTheDocument();
+  });
+
+  it("renders comparison metadata and changed top-level paths for two pins", () => {
+    render(
+      <PinnedStatePanel
+        points={[
+          createPin(7, "copilot:/session/1", { summary: "before", stable: true }),
+          createPin(8, "copilot:/session/1", { summary: "after", stable: true }),
+        ]}
+        onRemove={vi.fn()}
+        onClear={vi.fn()}
+      />,
+    );
+
+    const comparison = screen.getByRole("region", { name: "Pinned comparison" });
+    expect(within(comparison).getByText("Pinned comparison")).toBeInTheDocument();
+    expect(within(comparison).getByText("From #7")).toBeInTheDocument();
+    expect(within(comparison).getByText("To #8")).toBeInTheDocument();
+    expect(within(comparison).getAllByText("session")).toHaveLength(2);
+    expect(within(comparison).getAllByText("copilot:/session/1")).toHaveLength(2);
+    expect(within(comparison).getByText("Comparison confidence")).toBeInTheDocument();
+    expect(within(comparison).getByText("Changed top-level paths")).toBeInTheDocument();
+    expect(within(comparison).getByText("summary")).toBeInTheDocument();
+  });
+
+  it("renders no-change text and incomplete comparison warning", () => {
+    render(
+      <PinnedStatePanel
+        points={[
+          createPin(7, "copilot:/session/1", { summary: "same" }),
+          createPin(8, "copilot:/session/1", { summary: "same" }, "partial"),
+        ]}
+        onRemove={vi.fn()}
+        onClear={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("No top-level changes detected.")).toBeInTheDocument();
+    expect(screen.getByText(/Comparison may be incomplete/)).toBeInTheDocument();
+  });
 });
 
-function createPin(targetIndex: number, resourceUri: string, state: unknown = { ok: true }) {
+function createPin(
+  targetIndex: number,
+  resourceUri: string,
+  state: unknown = { ok: true },
+  confidence: StateAtSelectedResource["confidence"] = "complete",
+) {
   return createPinnedStatePoint({
     logKey: "log-A",
     targetIndex,
     eventLabel: `event-${targetIndex}`,
     eventTimestamp: 1000 + targetIndex,
-    resource: { ...baseResource, uri: resourceUri, lastAppliedEventIdx: targetIndex, state },
+    resource: {
+      ...baseResource,
+      uri: resourceUri,
+      confidence,
+      lastAppliedEventIdx: targetIndex,
+      state,
+    },
   });
 }
