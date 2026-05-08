@@ -92,6 +92,11 @@ function makeDetailAppState(
         status: entry?.status ?? "n/a",
       };
     },
+    stateAtIndex: (targetIndex: number) => ({
+      totalEvents: entries.length,
+      result: { targetIndex, resources: [], intents: [], diagnostics: [] },
+      cache: { hit: false, size: 0, maxEntries: 25 },
+    }),
     dispose: async () => {},
   };
 }
@@ -225,6 +230,11 @@ describe("GET /api/log/search (via detail test file)", () => {
       runFlush: () => {},
       eventAt: (i) => (i === 0 ? ev : null),
       correlatorDataFor: () => ({ pairIdx: null, latencyMs: null, status: "n/a" }),
+      stateAtIndex: (targetIndex: number) => ({
+        totalEvents: 1,
+        result: { targetIndex, resources: [], intents: [], diagnostics: [] },
+        cache: { hit: false, size: 0, maxEntries: 25 },
+      }),
       dispose: async () => {},
     };
     const app = new Hono();

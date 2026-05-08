@@ -19,6 +19,7 @@
     "@hono/node-server": "^1.13.7"
   },
   "devDependencies": {
-    "@ahp-viewer/host-node": "workspace:*"
+    "@ahp-viewer/host-node": "workspace:*",
+    "@ahp-viewer/protocol": "workspace:*"
   }
 }

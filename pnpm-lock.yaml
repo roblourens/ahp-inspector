@@ -104,6 +104,9 @@ importers:
       '@ahp-viewer/host-node':
         specifier: workspace:*
         version: link:../host-node
+      '@ahp-viewer/protocol':
+        specifier: workspace:*
+        version: link:../protocol
 
   packages/shared:
     dependencies:

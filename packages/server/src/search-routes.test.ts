@@ -142,6 +142,11 @@ function makeSearchAppState(entries: Array<{ method: string }>): AppState {
     runFlush: () => {},
     eventAt: () => null,
     correlatorDataFor: () => ({ pairIdx: null, latencyMs: null, status: "n/a" }),
+    stateAtIndex: (targetIndex: number) => ({
+      totalEvents: entries.length,
+      result: { targetIndex, resources: [], intents: [], diagnostics: [] },
+      cache: { hit: false, size: 0, maxEntries: 25 },
+    }),
     dispose: async () => {},
   };
 }

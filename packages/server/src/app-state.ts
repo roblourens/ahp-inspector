@@ -26,6 +26,7 @@ import {
 } from "@ahp-viewer/shared";
 import { computeLogKey } from "./log-key.js";
 import { SearchIndex } from "./search-index.js";
+import { StateReplayIndex, type StateReplayIndexResult } from "./state-replay-index.js";
 
 /** Server-side log metadata. NEVER carries absolute paths (T-02-03). */
 export interface LogMeta {
@@ -117,12 +118,18 @@ export interface AppState {
     latencyMs: number | null;
     status: Status;
   };
+  stateAtIndex(targetIndex: number): AppStateStateAtResult;
   dispose(): Promise<void>;
+}
+
+export interface AppStateStateAtResult extends StateReplayIndexResult {
+  readonly totalEvents: number;
 }
 
 export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   const handle = (await opts.host.openLog(opts.file)) as MaybeNodeLogHandle;
   const store = new EventStore();
+  const stateReplay = new StateReplayIndex(store, 25);
   const correlator = new Correlator(store);
   const splitter = new LineSplitter();
   const decoder = new TextDecoder("utf-8");
@@ -287,6 +294,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       }
       byteOffset = 0;
       store.reset();
+      stateReplay.reset();
       correlator.reset();
       rows.length = 0;
       searchIdx.reset();
@@ -363,9 +371,13 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
         status: correlator.statusOf(idx),
       };
     },
+    stateAtIndex(targetIndex: number) {
+      return { ...stateReplay.stateAtIndex(targetIndex), totalEvents: store.size() };
+    },
     async dispose() {
       if (disposed) return;
       disposed = true;
+      stateReplay.reset();
       if (flushTimer) clearInterval(flushTimer);
       try {
         watcher.dispose();
