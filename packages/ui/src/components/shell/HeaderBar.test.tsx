@@ -41,6 +41,60 @@ describe("HeaderBar theme switcher", () => {
     );
   });
 
+  it("applies and persists every theme and returns focus to the picker", () => {
+    render(<HeaderBar version="0.1.0" />);
+    const picker = screen.getByRole("button", { name: "Theme picker (Dark)" });
+
+    for (const [label, id] of [
+      ["Light", "light"],
+      ["Hacker", "hacker"],
+      ["Dark", "dark"],
+    ] as const) {
+      fireEvent.click(picker);
+      fireEvent.click(screen.getByRole("menuitemradio", { name: label }));
+      expect(document.documentElement.getAttribute("data-theme")).toBe(id);
+      expect(localStorage.getItem("ahp-theme")).toBe(id);
+      expect(screen.queryByRole("menu")).toBeNull();
+      expect(picker).toHaveFocus();
+    }
+  });
+
+  it("uses UI-SPEC accessible labels, title, radio state, and keyboard closing", () => {
+    render(<HeaderBar version="0.1.0" />);
+    const picker = screen.getByRole("button", { name: "Theme picker (Dark)" });
+    expect(picker).toHaveAttribute("title", "Theme: Dark");
+
+    fireEvent.click(picker);
+    expect(screen.getByRole("menu", { name: "Theme" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitemradio", { name: "Dark" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+
+    fireEvent.keyDown(screen.getByRole("menuitemradio", { name: "Dark" }), { key: "ArrowDown" });
+    expect(screen.getByRole("menuitemradio", { name: "Light" })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole("menuitemradio", { name: "Light" }), { key: "End" });
+    expect(screen.getByRole("menuitemradio", { name: "Hacker" })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole("menuitemradio", { name: "Hacker" }), { key: "Home" });
+    expect(screen.getByRole("menuitemradio", { name: "Dark" })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole("menuitemradio", { name: "Dark" }), { key: "Escape" });
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(picker).toHaveFocus();
+  });
+
+  it("closes the theme menu on outside click", () => {
+    render(
+      <div>
+        <HeaderBar version="0.1.0" />
+        <button type="button">Outside</button>
+      </div>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /theme picker/i }));
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByRole("button", { name: "Outside" }));
+    expect(screen.queryByRole("menu")).toBeNull();
+  });
+
   it("closes the theme menu when the picker is clicked again", () => {
     render(<HeaderBar version="0.1.0" />);
     const picker = screen.getByRole("button", { name: /theme picker/i });

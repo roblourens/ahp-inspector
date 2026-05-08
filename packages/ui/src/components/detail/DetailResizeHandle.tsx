@@ -9,6 +9,7 @@
  */
 import type { JSX, KeyboardEvent, MouseEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
+import { DETAIL_KEYBOARD_STEP } from "./detail-layout.js";
 
 interface DetailResizeHandleProps {
   width: number;
@@ -73,10 +74,10 @@ export function DetailResizeHandle({
   function handleKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
     if (e.key === "ArrowLeft") {
       e.preventDefault();
-      onResize(clamp(width + 16));
+      onResize(clamp(width + DETAIL_KEYBOARD_STEP));
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
-      onResize(clamp(width - 16));
+      onResize(clamp(width - DETAIL_KEYBOARD_STEP));
     }
   }
 

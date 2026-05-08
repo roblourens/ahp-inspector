@@ -1,176 +1,108 @@
-# Requirements: AHP Log Viewer
+# Requirements: AHP Log Viewer v1.1
 
-**Defined:** 2026-05-06
+**Defined:** 2026-05-08  
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
 
-## v1 Requirements
+## v1.1 Requirements
 
-Requirements for the first useful standalone release. Each maps to roadmap phases.
+Requirements for reducer-backed state reconstruction.
 
-### Project Foundation
+### Protocol Sync
 
-- [x] **FOUND-01**: Developer can install dependencies and run a standalone local AHP Log Viewer from the CLI.
-- [x] **FOUND-02**: The codebase separates portable core logic, Node/local host capabilities, server transport, CLI entrypoint, and browser UI so the UI can later run in a VS Code webview.
-- [x] **FOUND-03**: The app uses `../agent-host-protocol` as the source of truth for AHP method, action, notification, and schema concepts instead of inventing protocol definitions.
-- [x] **FOUND-04**: The app enforces a local-only security posture with no telemetry, no CDN assets, and no outbound network dependencies for viewing logs.
+- [ ] **SYNC-01**: Developer can sync canonical AHP TypeScript protocol files from `../agent-host-protocol` into a generated local package.
+- [ ] **SYNC-02**: Synced protocol files include reducers, state, actions, action-origin, messages, commands, notifications, errors, and version registry.
+- [ ] **SYNC-03**: The app records the source AHP commit for synced protocol files and exposes it in developer-facing diagnostics.
+- [ ] **SYNC-04**: Existing imports use the generated protocol package instead of stale or hand-rolled protocol definitions.
 
-### Log Ingestion
+### Replay Engine
 
-- [x] **INGEST-01**: User can open an AHP JSONL log by passing a file path to the CLI.
-- [x] **INGEST-02**: User can discover likely VS Code / Copilot AHP log files from the app and select one to view.
-- [x] **INGEST-03**: User can manually open a log file when auto-discovery misses it.
-- [x] **INGEST-04**: User can watch a selected log as new JSONL entries are appended without reparsing the entire file.
-- [x] **INGEST-05**: User can pause and resume live following without losing their place in the log.
-- [x] **INGEST-06**: User can see clear parse-error rows for malformed JSONL lines while valid neighboring entries still load.
-- [x] **INGEST-07**: Developer can use the current human-readable sample log as a fixture through a legacy parser adapter without coupling the main event model to that format.
+- [ ] **REPLAY-01**: The app can reconstruct AHP root state at a selected event index from snapshots and server action envelopes.
+- [ ] **REPLAY-02**: The app can reconstruct AHP session state at a selected event index from snapshots and session-scoped action envelopes.
+- [ ] **REPLAY-03**: The app can reconstruct AHP terminal state at a selected event index from snapshots and terminal-scoped action envelopes.
+- [ ] **REPLAY-04**: Replay uses event timestamps for reducer-derived time values so repeated runs are deterministic.
+- [ ] **REPLAY-05**: Client dispatch requests are shown as intent but do not mutate reconstructed state unless accepted through server action envelopes.
+- [ ] **REPLAY-06**: Reconnect replay responses apply embedded action envelopes in order.
 
-### Event Model and Correlation
+### State Confidence and Diagnostics
 
-- [x] **EVENT-01**: Each JSONL entry is normalized into a canonical event model with timestamp, direction, kind, method or action type, IDs, optional session/turn/tool identifiers, sequence data, raw payload, and parse status.
-- [x] **EVENT-02**: Requests, responses, notifications, state actions, protocol notifications, errors, and parse errors are classified consistently.
-- [x] **EVENT-03**: Request and response pairs are correlated using a bidirectional JSON-RPC-safe key that preserves session, direction, id value, and id type.
-- [x] **EVENT-04**: Correlated request rows show response status and latency when the matching response arrives.
-- [x] **EVENT-05**: Unmatched, orphaned, failed, and malformed events are visually distinguishable.
-- [x] **EVENT-06**: Server sequence gaps and authentication failures can be detected and surfaced when present in the event stream.
+- [ ] **CONF-01**: Every reconstructed state result reports confidence as complete, partial, or unknown.
+- [ ] **CONF-02**: State results explain missing baseline snapshots, server sequence gaps, unknown actions, ignored client intent, and parse errors that affect confidence.
+- [ ] **CONF-03**: Log switch, live tail, pause/resume, and rotation reset state replay caches consistently with existing event/search/detail state.
 
-### Timeline UI
+### Inspector UI
 
-- [x] **TIME-01**: User sees a virtualized, information-dense timeline that remains responsive on large logs.
-- [x] **TIME-02**: Each timeline row displays the most important scan fields: timestamp, direction, kind, method/action type, status, latency, session, turn, relevant IDs, and a short payload preview.
-- [x] **TIME-03**: Timeline rows use clear visual encoding for direction, event kind, success/error state, action taxonomy, and latency severity.
-- [x] **TIME-04**: User can select rows with mouse or keyboard and keep context while navigating through results.
-- [x] **TIME-05**: User can toggle session/turn grouping to understand AHP traffic as a story instead of only a flat stream.
-- [x] **TIME-06**: User sees useful empty, loading, no-results, parse-error, and disconnected states.
+- [ ] **STATE-01**: User can request "state at this point" from a selected timeline row or detail panel.
+- [ ] **STATE-02**: User can choose among reconstructed root/session/terminal resources available at the selected point.
+- [ ] **STATE-03**: User can inspect reconstructed state in themed summary, Pretty JSON, and Raw JSON views.
+- [ ] **STATE-04**: User sees confidence and replay diagnostics next to the reconstructed state.
+- [ ] **STATE-05**: User can copy reconstructed state or a concise state summary.
 
-### Event Detail
+### Comparison
 
-- [x] **DETAIL-01**: User can expand or select an event to inspect details without breaking timeline virtualization.
-- [x] **DETAIL-02**: Detail view shows normalized summary fields, correlation metadata, and the full raw JSON payload.
-- [x] **DETAIL-03**: Detail view supports folded pretty JSON, raw JSON text, syntax highlighting, truncation for huge payloads, and copy actions.
-- [x] **DETAIL-04**: Detail view highlights AHP-specific fields such as session, turn, tool call, action type, serverSeq, origin, request id, error code, and notification type when present.
-
-### Search and Filtering
-
-- [x] **SEARCH-01**: User can run fast free-text search across method, action type, IDs, session, turn, error text, and payload text.
-- [x] **SEARCH-02**: User can filter by direction, event kind, method, action type, session, turn, status/error state, and time range.
-- [x] **SEARCH-03**: Search and filters update the visible timeline without blocking typing or live tailing.
-- [x] **SEARCH-04**: User can clear filters quickly and see active filters at a glance.
-- [x] **SEARCH-05**: Search and filter state persists for the current log where appropriate.
-
-### Themes and Polish
-
-- [ ] **THEME-01**: User can switch between polished light, dark, and hacker themes.
-- [ ] **THEME-02**: Themes are implemented through design tokens so future VS Code theme integration does not require a UI rewrite.
-- [ ] **THEME-03**: Hacker mode has a distinct intentional aesthetic, not just green text on a dark background.
-- [ ] **THEME-04**: Theme choice and key viewer preferences persist across app reloads.
-- [ ] **THEME-05**: The UI is responsive from laptop width to ultra-wide displays.
+- [ ] **COMPARE-01**: User can pin at least two state points from the timeline.
+- [ ] **COMPARE-02**: User can compare pinned state points with clear event metadata and changed top-level paths.
+- [ ] **COMPARE-03**: Comparison preserves local-only privacy and never sends state outside the local viewer.
 
 ### Verification
 
-- [x] **VERIFY-01**: Parser and normalizer tests cover valid JSONL, malformed lines, partial trailing lines, CRLF/BOM handling, large payloads, request/response correlation, and the legacy sample adapter.
-- [ ] **VERIFY-02**: UI tests cover timeline rendering, row selection, detail view, filtering/search, theme switching, empty states, and parse-error states.
-- [ ] **VERIFY-03**: End-to-end tests exercise opening a fixture log, filtering/searching, expanding event details, and following appended events.
-- [x] **VERIFY-04**: Fixture logs are scrubbed so committed test data does not contain tokens or private prompt/output content.
+- [ ] **VERIFY-01**: Reducer replay is covered by parity fixtures based on `../agent-host-protocol/types/test-cases/reducers`.
+- [ ] **VERIFY-02**: Integration tests cover state reconstruction from synthetic JSONL with subscribe/reconnect snapshots and action envelopes.
+- [ ] **VERIFY-03**: Browser E2E covers opening a log, selecting a row, viewing state, pinning two points, and seeing confidence diagnostics.
+- [ ] **VERIFY-04**: Large-log tests confirm state-at-index lookup remains responsive and does not inflate timeline SSE payloads.
 
-## v2 Requirements
+## Future Requirements
 
-Deferred to future release. Tracked but not in current roadmap.
+### Advanced State Analysis
 
-### VS Code Extension
-
-- **EXT-01**: User can open AHP Log Viewer as a VS Code extension/webview.
-- **EXT-02**: VS Code extension host uses the same UI and core model as the standalone app, swapping only the host adapter.
-- **EXT-03**: Webview state persists through VS Code reloads using VS Code webview state APIs.
-
-### Advanced Analysis
-
-- **ADV-01**: User can open and compare multiple log files at once.
-- **ADV-02**: User can save named searches and filter presets.
-- **ADV-03**: User can bookmark, annotate, or share references to important events.
-- **ADV-04**: User can export filtered subsets as JSONL or reports.
-- **ADV-05**: User can view aggregate dashboards for methods, latency, errors, sessions, and action volume.
-- **ADV-06**: User can use a Wireshark-style advanced filter language.
-- **ADV-07**: User can diff two sessions or two log ranges.
-- **ADV-08**: User can validate payloads against the full AHP JSON schemas and see schema errors.
+- **FUTURE-01**: User can scrub continuously through timeline rows with live state updates.
+- **FUTURE-02**: User can view a deep semantic diff for arbitrary nested state paths.
+- **FUTURE-03**: User can compare reconstructed state across multiple log files.
+- **FUTURE-04**: User can export selected state snapshots or diffs.
 
 ## Out of Scope
 
-Explicitly excluded. Documented to prevent scope creep.
-
 | Feature | Reason |
 |---------|--------|
-| Editing or replaying protocol traffic | v1 is an observer/debugger; mutation changes the safety model and product scope |
-| Remote hosted log viewing | Logs can contain sensitive tokens, prompts, paths, and model output; local-first is core to trust |
-| Telemetry, analytics, CDN fonts, or external AI explanations | Violates the local-only privacy posture for sensitive logs |
-| Full VS Code extension packaging in v1 | Standalone app is the fastest path; extension compatibility is handled through architecture |
-| Custom filter DSL in v1 | Basic search and faceted filters are enough for v1 and avoid premature complexity |
-| Multi-file workspace in v1 | Single-log excellence is required before comparison workflows |
-| Tight coupling to the current human-readable log sample | VS Code can emit real JSONL; the sample adapter is only a development bridge |
+| Editing or replaying protocol traffic | Viewer remains an observer/debugger, not a protocol mutator. |
+| Treating partial reconstructed state as authoritative truth | Logs can start mid-stream or omit snapshots; confidence must remain explicit. |
+| External AI explanation of state | Violates local-only/no-outbound posture. |
+| Full semantic diff for every protocol field | Useful but larger than the first reducer-backed milestone. |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 1 | Complete |
-| FOUND-02 | Phase 1 | Complete |
-| FOUND-03 | Phase 1 | Complete |
-| FOUND-04 | Phase 1 | Complete |
-| INGEST-01 | Phase 2 | Complete |
-| INGEST-02 | Phase 4 | Complete |
-| INGEST-03 | Phase 4 | Complete |
-| INGEST-04 | Phase 4 | Complete |
-| INGEST-05 | Phase 4 | Complete |
-| INGEST-06 | Phase 2 | Complete |
-| INGEST-07 | Phase 1 | Complete |
-| EVENT-01 | Phase 1 | Complete |
-| EVENT-02 | Phase 1 | Complete |
-| EVENT-03 | Phase 1 | Complete |
-| EVENT-04 | Phase 2 | Complete |
-| EVENT-05 | Phase 2 | Complete |
-| EVENT-06 | Phase 3 | Complete |
-| TIME-01 | Phase 2 | Complete |
-| TIME-02 | Phase 2 | Complete |
-| TIME-03 | Phase 2 | Complete |
-| TIME-04 | Phase 3 | Complete |
-| TIME-05 | Phase 3 | Complete |
-| TIME-06 | Phase 2 | Complete |
-| DETAIL-01 | Phase 3 | Complete |
-| DETAIL-02 | Phase 3 | Complete |
-| DETAIL-03 | Phase 3 | Complete |
-| DETAIL-04 | Phase 3 | Complete |
-| SEARCH-01 | Phase 3 | Complete |
-| SEARCH-02 | Phase 3 | Complete |
-| SEARCH-03 | Phase 3 | Complete |
-| SEARCH-04 | Phase 3 | Complete |
-| SEARCH-05 | Phase 4 | Complete |
-| THEME-01 | Phase 5 | Pending |
-| THEME-02 | Phase 5 | Pending |
-| THEME-03 | Phase 5 | Pending |
-| THEME-04 | Phase 5 | Pending |
-| THEME-05 | Phase 5 | Pending |
-| VERIFY-01 | Phase 1 | Complete |
-| VERIFY-02 | Phase 5 | Pending |
-| VERIFY-03 | Phase 5 | Pending |
-| VERIFY-04 | Phase 1 | Complete |
-| EXT-01 | v2 | Deferred |
-| EXT-02 | v2 | Deferred |
-| EXT-03 | v2 | Deferred |
-| ADV-01 | v2 | Deferred |
-| ADV-02 | v2 | Deferred |
-| ADV-03 | v2 | Deferred |
-| ADV-04 | v2 | Deferred |
-| ADV-05 | v2 | Deferred |
-| ADV-06 | v2 | Deferred |
-| ADV-07 | v2 | Deferred |
-| ADV-08 | v2 | Deferred |
+| SYNC-01 | Phase 6 | Pending |
+| SYNC-02 | Phase 6 | Pending |
+| SYNC-03 | Phase 6 | Pending |
+| SYNC-04 | Phase 6 | Pending |
+| REPLAY-01 | Phase 7 | Pending |
+| REPLAY-02 | Phase 7 | Pending |
+| REPLAY-03 | Phase 7 | Pending |
+| REPLAY-04 | Phase 7 | Pending |
+| REPLAY-05 | Phase 7 | Pending |
+| REPLAY-06 | Phase 7 | Pending |
+| CONF-01 | Phase 8 | Pending |
+| CONF-02 | Phase 8 | Pending |
+| CONF-03 | Phase 8 | Pending |
+| STATE-01 | Phase 9 | Pending |
+| STATE-02 | Phase 9 | Pending |
+| STATE-03 | Phase 9 | Pending |
+| STATE-04 | Phase 9 | Pending |
+| STATE-05 | Phase 9 | Pending |
+| COMPARE-01 | Phase 10 | Pending |
+| COMPARE-02 | Phase 10 | Pending |
+| COMPARE-03 | Phase 10 | Pending |
+| VERIFY-01 | Phase 6 | Pending |
+| VERIFY-02 | Phase 8 | Pending |
+| VERIFY-03 | Phase 10 | Pending |
+| VERIFY-04 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 41 total
-- Mapped to phases: 41
-- Unmapped: 0 ✓
+
+- v1.1 requirements: 25 total
+- Mapped to phases: 25
+- Unmapped: 0
 
 ---
-*Requirements defined: 2026-05-06*
-*Last updated: 2026-05-08 after Phase 4 completion*
+*Requirements defined: 2026-05-08 after v1.1 milestone start*

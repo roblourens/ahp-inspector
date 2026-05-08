@@ -38,6 +38,7 @@ export class TailReader {
   #watcher: FSWatcher | null = null;
   #disposed = false;
   #readInFlight = false;
+  #readAgainAfterCurrent = false;
   #unlinkPending = false;
 
   constructor(path: string) {
@@ -76,7 +77,7 @@ export class TailReader {
     const watcher = chokidarWatch(this.#path, {
       persistent: true,
       ignoreInitial: true,
-      awaitWriteFinish: false,
+      awaitWriteFinish: { stabilityThreshold: 100, pollInterval: 10 },
     });
     this.#watcher = watcher;
 
@@ -102,7 +103,10 @@ export class TailReader {
   }
 
   async #onChange(sink: WatchSink): Promise<void> {
-    if (this.#readInFlight) return;
+    if (this.#readInFlight) {
+      this.#readAgainAfterCurrent = true;
+      return;
+    }
     this.#readInFlight = true;
     try {
       let nextSize: number;
@@ -122,6 +126,10 @@ export class TailReader {
       this.#lastOffset = nextSize;
     } finally {
       this.#readInFlight = false;
+      if (this.#readAgainAfterCurrent && !this.#disposed) {
+        this.#readAgainAfterCurrent = false;
+        void this.#onChange(sink);
+      }
     }
   }
 

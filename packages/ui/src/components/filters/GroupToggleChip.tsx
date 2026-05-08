@@ -56,7 +56,7 @@ function GroupTogglePopover({ value, onChange, onClose }: GroupTogglePopoverProp
         border: "1px solid var(--color-border-strong)",
         borderRadius: 6,
         minWidth: 160,
-        boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+        boxShadow: "var(--shadow-menu)",
         display: "flex",
         flexDirection: "column",
         padding: "var(--space-1) 0",

@@ -78,7 +78,7 @@ export function TimeRangePopover({
         border: "1px solid var(--color-border-strong)",
         borderRadius: 6,
         minWidth: 240,
-        boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+        boxShadow: "var(--shadow-menu)",
         display: "flex",
         flexDirection: "column",
         gap: "var(--space-2)",

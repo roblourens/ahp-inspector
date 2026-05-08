@@ -1,162 +1,139 @@
 # Roadmap: AHP Log Viewer
 
-**Created:** 2026-05-06
-**Granularity:** standard
-**Coverage:** 41/41 v1 requirements mapped ✓
+**Created:** 2026-05-06  
+**Current milestone:** v1.1 Reducer-backed State Snapshots
+**Archive:** `.planning/milestones/v1.0-ROADMAP.md`
 
 ## Vision
 
-Make AHP traffic understandable at a glance while preserving fast access to exact raw event details — delivered first as a polished standalone local web app, with architecture that lets the same UI later run inside a VS Code webview.
+Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
+
+## Milestones
+
+- **v1.0 Initial MVP** — shipped 2026-05-08. Delivered standalone local viewing, JSONL ingestion, virtualized timeline, detail/search/filtering, live discovery/tail/persistence, row polish, three themes, and full verification.
+- **v1.1 Reducer-backed State Snapshots** — planned. Reconstruct root/session/terminal state at selected log events by replaying canonical AHP reducers over snapshots and server action envelopes.
 
 ## Phases
 
-- [x] **Phase 1: Core Foundations** - Project scaffolding, canonical event model, JSONL + sample parsers, EventStore, host adapter boundary (completed 2026-05-07)
-- [x] **Phase 2: Vertical Slice — CLI, Server, Timeline** - Open a JSONL file from the CLI and render an information-dense virtualized timeline in the browser (completed 2026-05-07)
-- [x] **Phase 3: Detail, Search, and Filtering** - Inspect events deeply, search and filter responsively, group by session/turn (completed 2026-05-07)
-- [x] **Phase 4: Live Tail, Discovery, and Persistence** - Auto-discover VS Code logs, watch growing files, pause/resume, persist filter state per log (completed 2026-05-08)
-- [ ] **Phase 5: Themes, Polish, and Verification** - Light/dark/hacker themes via design tokens, responsive layout, full UI + E2E test coverage
+<details>
+<summary>v1.0 Initial MVP (Phases 1-5 plus inserted Phase 04.1) — SHIPPED 2026-05-08</summary>
 
-## Phase Details
+- [x] Phase 1: Core Foundations — 3/3 plans complete
+- [x] Phase 2: Vertical Slice — CLI, Server, Timeline — 7/7 plans complete
+- [x] Phase 3: Detail, Search, and Filtering — 7/7 plans complete
+- [x] Phase 4: Live Tail, Discovery, and Persistence — 8/8 plans complete
+- [x] Phase 04.1: Timeline row information polish and real-log validation — 6/6 plans complete
+- [x] Phase 5: Themes, Polish, and Verification — 6/6 plans complete
 
-### Phase 1: Core Foundations
-**Goal**: Establish a clean architecture with a canonical AHP event model, working parsers, an in-memory EventStore, and a host adapter boundary that keeps Node-only capabilities out of the UI.
-**Depends on**: Nothing (first phase)
-**Requirements**: FOUND-01, FOUND-02, FOUND-03, FOUND-04, INGEST-07, EVENT-01, EVENT-02, EVENT-03, VERIFY-01, VERIFY-04
-**Success Criteria** (what must be TRUE):
-  1. Developer can clone the repo, install dependencies, and run a CLI entrypoint that boots the local app shell with no outbound network calls or CDN assets.
-  2. A JSONL parser converts raw lines into a canonical event model (timestamp, direction, kind, method/action, IDs, session/turn, sequence, raw payload, parse status) sourced conceptually from `../agent-host-protocol`.
-  3. A legacy adapter parses the current human-readable sample log into the same canonical model without leaking its format into the core.
-  4. Request/response correlation produces a JSON-RPC-safe bidirectional key that preserves session, direction, id value, and id type.
-  5. Parser/normalizer tests cover valid JSONL, malformed lines, partial trailing lines, CRLF/BOM, large payloads, correlation, and the legacy adapter — using scrubbed fixture logs.
-**Plans**: 3 plans
-- [x] 01-01-PLAN.md — Workspace + tooling scaffold + Wave 0 boundary/security/fixture-scrub tests
-- [x] 01-02-PLAN.md — Shared AHP/event/host contracts + JSONL parser + normalizer + legacy adapter
-- [x] 01-03-PLAN.md — EventStore + Correlator + NodeHostAdapter + Hono health server + CLI entry
-**UI hint**: no
+Full phase details are archived in `.planning/milestones/v1.0-ROADMAP.md`.
 
-### Phase 2: Vertical Slice — CLI, Server, Timeline
-**Goal**: A user can run the CLI against a JSONL log and see an information-dense, virtualized timeline of AHP events in the browser, with correlation status visible.
-**Depends on**: Phase 1
-**Requirements**: INGEST-01, INGEST-06, EVENT-04, EVENT-05, TIME-01, TIME-02, TIME-03, TIME-06
-**Success Criteria** (what must be TRUE):
-  1. User can pass a JSONL file path to the CLI and a local server serves the viewer in their browser, streaming events to the UI over an SSE-style transport.
-  2. The browser renders a virtualized timeline that stays smooth and responsive on logs of tens of thousands of events.
-  3. Each row shows timestamp, direction, kind, method/action type, status, latency, session, turn, key IDs, and a short payload preview.
-  4. Visual encoding makes direction, event kind, success vs error, action taxonomy, and latency severity readable at a glance, and unmatched / orphaned / failed / malformed events stand out.
-  5. Empty, loading, no-results, parse-error, and disconnected states render with informative content instead of blank screens.
-**Plans**: 7 plans
-- [x] 02-00-PLAN.md — Wave 0: boundary/security guardrails, @ahp-viewer/ui skeleton + jsdom, vendored fonts, EventRow projection contract
-- [x] 02-01-PLAN.md — AppState + Projector + SSE routes + CSP/Host-guard middleware
-- [x] 02-02-PLAN.md — UI foundations: tokens / fonts / global CSS / Zustand store / app shell chrome / TimelineRegion stub / hex-literal guard
-- [x] 02-03-PLAN.md — Timeline cells: DirectionGlyph / KindTag / ActionDot / StatusCell / LatencyCell / PayloadPreview (+ tests)
-- [x] 02-04-PLAN.md — Wave 2: Five screen-level states + EventRow / ParseErrorRow / TimelineList virtualization + TimelineRegion (replaces 02-02 stub) + App.tsx state routing
-- [x] 02-05-PLAN.md — Wave 2: CLI launch path, browser open, error copy, --port validation, structural direction inference
-- [x] 02-06-PLAN.md — Wave 3: SSE client wiring + static-UI mount + vertical-slice gate test
-**UI hint**: yes
+</details>
 
-### Phase 3: Detail, Search, and Filtering
-**Goal**: A user can pick any event, inspect it deeply, and slice the timeline by free-text search and faceted filters without losing responsiveness.
-**Depends on**: Phase 2
-**Requirements**: TIME-04, TIME-05, DETAIL-01, DETAIL-02, DETAIL-03, DETAIL-04, SEARCH-01, SEARCH-02, SEARCH-03, SEARCH-04, EVENT-06
-**Success Criteria** (what must be TRUE):
-  1. User can select rows with mouse or keyboard and open a detail view that shows summary fields, correlation metadata, and the full raw JSON without breaking timeline virtualization.
-  2. Detail view supports folded pretty JSON, raw JSON text, syntax highlighting, truncation for huge payloads, and copy actions, and highlights AHP-specific fields (session, turn, tool call, action type, serverSeq, origin, request id, error code, notification type) when present.
-  3. User can run free-text search across method, action type, IDs, session, turn, error text, and payload text, and combine it with filters for direction, kind, method, action type, session, turn, status, and time range.
-  4. Search and filter changes update the visible timeline without blocking typing, with active filters visible at a glance and a clear-all action.
-  5. User can toggle session/turn grouping to read traffic as a story; server sequence gaps and authentication failures are surfaced when present.
-**Plans**: 7 plans
+### Phase 6: Protocol reducer sync foundation
+
+**Goal:** Pull canonical AHP reducer/state/action code into this repo through a deterministic generated package.
+
+**Depends on:** v1.0 archive
+**Requirements:** SYNC-01, SYNC-02, SYNC-03, SYNC-04, VERIFY-01
+
 Plans:
-**Wave 1**
-- [x] 03-00-PLAN.md — Wave 0: Foundation (security allowlist, EventRow extension, Phase 3 tokens, test scaffold)
-- [x] 03-01-PLAN.md — Wave 1a: Detail + Search backend endpoints (GET /api/log/event/:idx + GET /api/log/search)
-- [x] 03-02-PLAN.md — Wave 1b: Store extensions, FilterState, selectors, performance gate (parallel)
 
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 03-03-PLAN.md — Wave 2a: Filter bar UI — FacetChips, GroupToggle, ActiveChips, NoResultsState
-- [x] 03-04-PLAN.md — Wave 2b: Detail panel UI — DetailPanel, AhpFieldStrip, PrettyJsonView, CopyMenu (parallel)
+- [ ] 06-01: Add generated `@ahp-viewer/protocol` package and sync script based on VS Code's AHP sync workflow.
+- [ ] 06-02: Switch protocol imports away from stale sibling `file:` dependency behavior.
+- [ ] 06-03: Add reducer parity fixtures and source-commit diagnostics.
 
-**Wave 3** *(blocked on Wave 2 completion)*
-- [x] 03-05-PLAN.md — Wave 3: Search client + grouping + App assembly (AppShell wiring, TimelineList polymorphic)
+**Success criteria:**
 
-**Wave 4** *(blocked on Wave 3 completion)*
-- [x] 03-06-PLAN.md — Wave 4: Phase 3 gate test + browser UAT + USER_GUIDE update
+- Protocol files can be regenerated from `../agent-host-protocol` with a single command.
+- The synced source commit is recorded and test-visible.
+- Reducer fixture parity passes in this repo.
 
-**Cross-cutting constraints:**
-- No raw #hex literals in any component file
-**UI hint**: yes
+### Phase 7: Deterministic replay engine
 
-### Phase 4: Live Tail, Discovery, and Persistence
-**Goal**: The viewer feels like a live tool — it finds VS Code logs on its own, follows them as they grow, and remembers per-log context.
-**Depends on**: Phase 3
-**Requirements**: INGEST-02, INGEST-03, INGEST-04, INGEST-05, SEARCH-05
-**Success Criteria** (what must be TRUE):
-  1. From the app, user can see auto-discovered likely VS Code / Copilot AHP log files and pick one to open.
-  2. User can manually open any log file when auto-discovery misses it.
-  3. The selected log is watched incrementally — new appended JSONL lines appear in the timeline without reparsing the whole file.
-  4. User can pause and resume live following without losing their selection or scroll position.
-  5. Search and filter state persists for the current log across reloads where appropriate.
-**Plans**: 8 plans
-- [x] 04-00-PLAN.md — Foundation: logKey, SsePayload extensions, WatchSink, store fields, persistence module skeleton, tokens
-- [x] 04-01-PLAN.md — Discovery: bounded walk + scoring + opaque IDs in host-node
-- [x] 04-02-PLAN.md — TailReader hardened to WatchSink (shrink/rename/error → SSE rotation/watch-error)
-- [x] 04-03-PLAN.md — LogSessionManager + /api/sessions/* routes + log-reset SSE + CLI no-file launch
-- [x] 04-04-PLAN.md — Picker UI components: NoActiveLogState, CandidateList/Row, ManualOpenInput, LogPickerPanel
-- [x] 04-05-PLAN.md — Wiring: sessions HTTP client, SSE rotation/watch-error/log-reset handlers, App + AppShell + HeaderBar
-- [x] 04-06-PLAN.md — Pause/resume + per-log persistence: LivePauseButton, NewEventsPill, usePersistEffect
-- [x] 04-07-PLAN.md — Vertical slice integration test, USER_GUIDE updates, UAT screenshots
-**UI hint**: yes
+**Goal:** Build pure reducer replay that reconstructs root, session, and terminal state from canonical events.
 
-### Phase 04.1: Timeline row information polish and real-log validation (INSERTED)
+**Depends on:** Phase 6
+**Requirements:** REPLAY-01, REPLAY-02, REPLAY-03, REPLAY-04, REPLAY-05, REPLAY-06
 
-**Goal:** Polish the core timeline row information model using a real AHP JSONL fixture before theme work begins, so the app presents the right fields in the right places and request/response relationships are easier to follow.
-**Requirements**: EVENT-01, EVENT-03, EVENT-04, EVENT-05, TIME-02, TIME-03, TIME-04, DETAIL-03, DETAIL-04, VERIFY-02, VERIFY-03, VERIFY-04
-**Depends on:** Phase 4
-**Success Criteria** (what must be TRUE):
-  1. Timeline column order starts with the event/request ID column, and status is removed as a standalone column while error rows remain clearly annotated.
-  2. Selecting a request row highlights the correlated response row, and request/response highlighting remains stable while navigating/searching/filtering.
-  3. Session and turn columns populate correctly from real AHP JSONL where those values exist, and empty values are explainable only when the source event lacks them.
-  4. The row payload preview is replaced by per-event parsed summary text that shows the most useful fields for methods/actions/notifications/tools/deltas/resources instead of generic JSON.
-  5. Detail Pretty JSON starts expanded by default, while the full raw/sidebar detail remains available.
-  6. The action-row marker either communicates useful taxonomy or is removed/replaced so users are not shown confusing `family unknown` UI.
-  7. The real fixture at `~/ahp-2026-05-08T03-02-25-575Z-ssh-macbook-air.jsonl` is copied/scrubbed into the repo if safe and used for tests/UAT validation.
-**Plans**:
-- [x] 04.1-00-PLAN.md — Fixture safety and privacy scrub guard
-- [x] 04.1-01-PLAN.md — Parser/core/server row contract: nested extraction, summaries, pair metadata, patches
-- [x] 04.1-02-PLAN.md — Timeline row UI: ID-first columns, Summary cell, error badges, action marker removal
-- [x] 04.1-03-PLAN.md — Pair highlight behavior and Pretty JSON expanded default
-- [x] 04.1-04-PLAN.md — Safe real-log structural validation and Phase 04.1 vertical-slice coverage (completed 2026-05-08)
-- [x] 04.1-05-PLAN.md — UAT screenshots, docs, Phase 4 regression, and final gate
-**UI hint**: yes
+Plans:
 
-### Phase 5: Themes, Polish, and Verification
-**Goal**: Ship a polished v1 — three distinctive themes wired through design tokens, a layout that scales from laptop to ultra-wide, and tests that protect the experience.
-**Depends on**: Phase 04.1
-**Requirements**: THEME-01, THEME-02, THEME-03, THEME-04, THEME-05, VERIFY-02, VERIFY-03
-**Success Criteria** (what must be TRUE):
-  1. User can switch between polished light, dark, and hacker themes from the UI; theme choice and key viewer preferences persist across reloads.
-  2. Themes are implemented through design tokens with no hard-coded color values in components, leaving room for future VS Code theme integration.
-  3. Hacker mode has an intentional, distinctive aesthetic beyond green-on-black.
-  4. The UI remains usable and visually balanced from typical laptop widths up to ultra-wide displays.
-  5. UI tests cover timeline rendering, row selection, detail view, filtering/search, theme switching, empty states, and parse-error states; E2E tests cover opening a fixture log, filtering/searching, expanding details, and following appended events.
-**Plans**:
-- [ ] 05-00-PLAN.md — Guardrails, Playwright setup, and theme/token validation tests
-- [ ] 05-01-PLAN.md — Responsive shell and overlay detail drawer layout
-- [ ] 05-02-PLAN.md — Theme token polish and hacker CRT effects
-- [ ] 05-03-PLAN.md — Theme persistence and picker interaction hardening
-- [ ] 05-04-PLAN.md — Integrated fixture coverage for VERIFY-02
-- [ ] 05-05-PLAN.md — Playwright browser UAT, screenshots, docs, and final verification
-**UI hint**: yes
+- [ ] 07-01: Model replay resources, snapshots, action-envelope application, and diagnostics.
+- [ ] 07-02: Implement deterministic reducer execution with event-time `Date.now()` behavior.
+- [ ] 07-03: Handle subscribe/initialize/reconnect snapshots, reconnect action replay, and ignored client intent.
+
+**Success criteria:**
+
+- Replaying the same log to the same index produces stable state.
+- Root/session/terminal reducers are selected correctly.
+- Client dispatch intent is visible but does not mutate canonical state.
+
+### Phase 8: Server state-at-index API and cache integration
+
+**Goal:** Integrate replay with `AppState` and expose lazy state-at-event endpoints.
+
+**Depends on:** Phase 7
+**Requirements:** CONF-01, CONF-02, CONF-03, VERIFY-02
+
+Plans:
+
+- [ ] 08-01: Add `StateReplayIndex` lifecycle beside EventStore, Correlator, SearchIndex, and timeline rows.
+- [ ] 08-02: Add `/api/state-at` endpoint with resource selection, confidence, diagnostics, and cache scoping.
+- [ ] 08-03: Cover log switch, live append, pause/resume, rotation reset, and large-log lookup behavior.
+
+**Success criteria:**
+
+- Selected-index state fetches do not inflate SSE row payloads.
+- State replay resets correctly on log switch and rotation.
+- Missing baselines/gaps/unknown actions are visible in diagnostics.
+
+### Phase 9: State inspector UI
+
+**Goal:** Let users click a timeline event and inspect reconstructed state at that point.
+
+**Depends on:** Phase 8
+**Requirements:** STATE-01, STATE-02, STATE-03, STATE-04, STATE-05
+
+Plans:
+
+- [ ] 09-01: Add state-at-this-point action in the timeline/detail flow.
+- [ ] 09-02: Add resource selector and themed state summary/Pretty/Raw views.
+- [ ] 09-03: Add confidence and diagnostics UI with copy actions.
+
+**Success criteria:**
+
+- State inspection fits the existing detail drawer/rail UX.
+- Light, dark, and hacker themes cover all new state UI.
+- Partial/unknown state cannot be mistaken for authoritative complete state.
+
+### Phase 10: Pinned comparison and milestone verification
+
+**Goal:** Support before/after state reasoning and verify the full reducer-backed workflow.
+
+**Depends on:** Phase 9
+**Requirements:** COMPARE-01, COMPARE-02, COMPARE-03, VERIFY-03, VERIFY-04
+
+Plans:
+
+- [ ] 10-01: Add pinned state points with event metadata and resource context.
+- [ ] 10-02: Add basic comparison with changed top-level paths and clear confidence labels.
+- [ ] 10-03: Add E2E/large-log verification and refresh user-facing docs/screenshots.
+
+**Success criteria:**
+
+- Users can pin two points and understand what changed between them.
+- Browser E2E covers state inspection, pinning, comparison, and diagnostics.
+- Local-only privacy posture is preserved.
 
 ## Progress
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Core Foundations | 3/3 | Complete    | 2026-05-07 |
-| 2. Vertical Slice — CLI, Server, Timeline | 7/7 | Complete | 2026-05-07 |
-| 3. Detail, Search, and Filtering | 7/7 | Complete   | 2026-05-07 |
-| 4. Live Tail, Discovery, and Persistence | 8/8 | Complete | 2026-05-08 |
-| 4.1 Timeline row information polish and real-log validation | 6/6 | Complete | 2026-05-08 |
-| 5. Themes, Polish, and Verification | 0/6 | Planned | - |
+| Milestone | Phases | Plans | Status | Completed |
+|-----------|--------|-------|--------|-----------|
+| v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
+| v1.1 Reducer-backed State Snapshots | 0/5 | 0/15 | Planned | — |
+
+## Next
+
+Plan and execute Phase 6 with `/gsd-plan-phase 6`.
 
 ---
-*Roadmap created: 2026-05-06*
+*Roadmap updated after v1.1 milestone start: 2026-05-08*

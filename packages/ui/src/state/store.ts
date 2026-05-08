@@ -1,5 +1,10 @@
 import type { EventRow, LatencyBand, Status } from "@ahp-viewer/core";
 import { create } from "zustand";
+import {
+  DETAIL_DEFAULT_WIDTH,
+  DETAIL_MAX_WIDTH,
+  DETAIL_MIN_WIDTH,
+} from "../components/detail/detail-layout.js";
 import { EMPTY_FILTERS, type FilterState } from "./filters.js";
 
 export type { FilterState } from "./filters.js";
@@ -88,6 +93,17 @@ export interface AppStoreState {
   resetForLogSwitch(): void;
 }
 
+function patchRow(row: EventRow, update: PatchUpdate): EventRow {
+  return {
+    ...row,
+    status: update.status,
+    latencyMs: update.latencyMs,
+    latencyBand: update.latencyBand,
+    ...(update.summary !== undefined ? { summary: update.summary } : {}),
+    ...(update.pairIdx !== undefined ? { pairIdx: update.pairIdx } : {}),
+  };
+}
+
 function deriveSessionCount(rows: EventRow[]): number {
   const s = new Set<string>();
   for (const r of rows) if (r.sessionId) s.add(r.sessionId);
@@ -132,20 +148,19 @@ export const useAppStore = create<AppStoreState>((set) => ({
   applyPatch: (updates) =>
     set((s) => {
       const next = s.rows.slice();
+      const pendingNext = s.pendingBuffer.slice();
       for (const u of updates) {
         const prev = next[u.idx];
         if (prev) {
-          next[u.idx] = {
-            ...prev,
-            status: u.status,
-            latencyMs: u.latencyMs,
-            latencyBand: u.latencyBand,
-            ...(u.summary !== undefined ? { summary: u.summary } : {}),
-            ...(u.pairIdx !== undefined ? { pairIdx: u.pairIdx } : {}),
-          };
+          next[u.idx] = patchRow(prev, u);
+        }
+        const pendingIndex = pendingNext.findIndex((row) => row.idx === u.idx);
+        if (pendingIndex !== -1) {
+          const pendingPrev = pendingNext[pendingIndex];
+          if (pendingPrev) pendingNext[pendingIndex] = patchRow(pendingPrev, u);
         }
       }
-      return { rows: next };
+      return { rows: next, pendingBuffer: pendingNext };
     }),
   setConnection: (connection) => set({ connection }),
   setMeta: (meta) => set({ meta }),
@@ -158,7 +173,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
   grouping: "none",
   groupCollapsed: new Set<string>(),
   selectedDetail: null,
-  detailWidth: 420,
+  detailWidth: DETAIL_DEFAULT_WIDTH,
   // Phase 3 actions
   setSearchQuery: (q) => set({ searchQuery: q }),
   setSearchMatches: (matches) => set({ searchMatches: matches !== null ? new Set(matches) : null }),
@@ -174,7 +189,8 @@ export const useAppStore = create<AppStoreState>((set) => ({
       return { groupCollapsed: next };
     }),
   setSelectedDetail: (d) => set({ selectedDetail: d }),
-  setDetailWidth: (px) => set({ detailWidth: Math.max(360, Math.min(720, px)) }),
+  setDetailWidth: (px) =>
+    set({ detailWidth: Math.max(DETAIL_MIN_WIDTH, Math.min(DETAIL_MAX_WIDTH, px)) }),
   // Phase 4 initial state
   livePaused: false,
   pendingBuffer: [],

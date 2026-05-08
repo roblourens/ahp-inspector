@@ -2,7 +2,11 @@ import type { EventRow } from "@ahp-viewer/core";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useAppStore } from "./store.js";
 
-function row(idx: number, sessionId: string | null = null): EventRow {
+function row(
+  idx: number,
+  sessionId: string | null = null,
+  kind: EventRow["kind"] = "request",
+): EventRow {
   return {
     idx,
     seq: idx,
@@ -10,8 +14,8 @@ function row(idx: number, sessionId: string | null = null): EventRow {
     tsFmt: "00:00:00.000",
     dir: "c2s",
     dirGlyph: "→",
-    kind: "request",
-    kindTag: "REQ",
+    kind,
+    kindTag: kind === "response" ? "RES" : "REQ",
     method: null,
     actionType: null,
     actionFamily: null,
@@ -36,6 +40,7 @@ describe("useAppStore", () => {
     s.setMeta(null);
     s.selectIdx(null);
     s.setConnection("connecting");
+    useAppStore.setState({ livePaused: false, pendingBuffer: [], pendingNewCount: 0 });
   });
 
   it("setRows replaces and updates meta when meta exists", () => {
@@ -83,6 +88,37 @@ describe("useAppStore", () => {
     if (!r) throw new Error("expected patched row");
     expect(r.summary).toBe("doThing result ok=true");
     expect(r.pairIdx).toBe(1);
+  });
+
+  it("applyPatch updates rows buffered while live follow is paused before flush", () => {
+    const s = useAppStore.getState();
+    s.setRows([]);
+    s.setLivePaused(true);
+
+    s.appendRows([row(0)], 0);
+    s.appendRows([row(1, null, "response")], 1);
+    s.applyPatch([
+      {
+        idx: 0,
+        status: "ok",
+        latencyMs: 42,
+        latencyBand: "fast",
+        summary: "initialize response ok=true",
+        pairIdx: 1,
+      },
+    ]);
+    s.setLivePaused(false);
+    s.flushPendingBuffer();
+
+    const request = useAppStore.getState().rows[0];
+    if (!request) throw new Error("expected flushed request row");
+    expect(request.status).toBe("ok");
+    expect(request.latencyMs).toBe(42);
+    expect(request.latencyBand).toBe("fast");
+    expect(request.summary).toBe("initialize response ok=true");
+    expect(request.pairIdx).toBe(1);
+    expect(useAppStore.getState().pendingBuffer).toHaveLength(0);
+    expect(useAppStore.getState().pendingNewCount).toBe(0);
   });
 
   it("selectIdx and clearSelection", () => {

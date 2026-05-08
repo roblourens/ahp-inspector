@@ -24,9 +24,11 @@ import { AhpFieldStrip } from "./AhpFieldStrip.js";
 import { AuthFailureBanner } from "./AuthFailureBanner.js";
 import { CopyMenu } from "./CopyMenu.js";
 import { CopyToast } from "./CopyToast.js";
+import { DetailCorrelation } from "./DetailCorrelation.js";
 import { DetailResizeHandle } from "./DetailResizeHandle.js";
 import { DetailSummary } from "./DetailSummary.js";
 import { DetailTabs } from "./DetailTabs.js";
+import { DETAIL_MAX_WIDTH, DETAIL_MIN_WIDTH } from "./detail-layout.js";
 import { PrettyJsonView } from "./PrettyJsonView.js";
 import { PrivacyCaption } from "./PrivacyCaption.js";
 import { RawJsonView } from "./RawJsonView.js";
@@ -37,8 +39,15 @@ interface LoadState {
   error: string | null;
 }
 
-export function DetailPanel(): JSX.Element | null {
+interface DetailPanelProps {
+  showResizeHandle?: boolean;
+}
+
+export function DetailPanel({
+  showResizeHandle = true,
+}: DetailPanelProps = {}): JSX.Element | null {
   const selectedIdx = useAppStore((s) => s.selectedIdx);
+  const logKey = useAppStore((s) => s.logKey);
   const rows = useAppStore((s) => s.rows);
   const detailWidth = useAppStore((s) => s.detailWidth);
   const setDetailWidth = useAppStore((s) => s.setDetailWidth);
@@ -53,7 +62,7 @@ export function DetailPanel(): JSX.Element | null {
   const retryKey = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
 
-  const load = useCallback(async (idx: number) => {
+  const load = useCallback(async (idx: number, activeLogKey: string | null) => {
     // Abort any prior in-flight request (T-03-04-04)
     if (abortRef.current) {
       abortRef.current.abort();
@@ -64,7 +73,7 @@ export function DetailPanel(): JSX.Element | null {
     setLoadState({ status: "loading", detail: null, error: null });
 
     try {
-      const detail = await fetchEvent(idx, controller.signal);
+      const detail = await fetchEvent(idx, controller.signal, activeLogKey);
       if (controller.signal.aborted) return;
       if (detail === null) {
         setLoadState({ status: "error", detail: null, error: `Event #${idx} not found (404)` });
@@ -84,16 +93,16 @@ export function DetailPanel(): JSX.Element | null {
       if (abortRef.current) abortRef.current.abort();
       return;
     }
-    void load(selectedIdx);
+    void load(selectedIdx, logKey);
     return () => {
       if (abortRef.current) abortRef.current.abort();
     };
-  }, [selectedIdx, load]);
+  }, [selectedIdx, logKey, load]);
 
   function handleRetry() {
     if (selectedIdx !== null) {
       retryKey.current += 1;
-      void load(selectedIdx);
+      void load(selectedIdx, logKey);
     }
   }
 
@@ -110,11 +119,18 @@ export function DetailPanel(): JSX.Element | null {
           display: "flex",
           flexDirection: "column",
           background: "var(--color-surface)",
-          borderLeft: "1px solid var(--color-border-strong)",
+          borderLeft: showResizeHandle ? "1px solid var(--color-border-strong)" : "0",
           overflow: "hidden",
         }}
       >
-        <DetailResizeHandle width={detailWidth} onResize={setDetailWidth} min={360} max={720} />
+        {showResizeHandle && (
+          <DetailResizeHandle
+            width={detailWidth}
+            onResize={setDetailWidth}
+            min={DETAIL_MIN_WIDTH}
+            max={DETAIL_MAX_WIDTH}
+          />
+        )}
         <div
           style={{
             flex: 1,
@@ -166,11 +182,18 @@ export function DetailPanel(): JSX.Element | null {
           display: "flex",
           flexDirection: "column",
           background: "var(--color-surface)",
-          borderLeft: "1px solid var(--color-border-strong)",
+          borderLeft: showResizeHandle ? "1px solid var(--color-border-strong)" : "0",
           overflow: "hidden",
         }}
       >
-        <DetailResizeHandle width={detailWidth} onResize={setDetailWidth} min={360} max={720} />
+        {showResizeHandle && (
+          <DetailResizeHandle
+            width={detailWidth}
+            onResize={setDetailWidth}
+            min={DETAIL_MIN_WIDTH}
+            max={DETAIL_MAX_WIDTH}
+          />
+        )}
         <div
           data-testid="detail-loading"
           style={{
@@ -204,11 +227,18 @@ export function DetailPanel(): JSX.Element | null {
           display: "flex",
           flexDirection: "column",
           background: "var(--color-surface)",
-          borderLeft: "1px solid var(--color-border-strong)",
+          borderLeft: showResizeHandle ? "1px solid var(--color-border-strong)" : "0",
           overflow: "hidden",
         }}
       >
-        <DetailResizeHandle width={detailWidth} onResize={setDetailWidth} min={360} max={720} />
+        {showResizeHandle && (
+          <DetailResizeHandle
+            width={detailWidth}
+            onResize={setDetailWidth}
+            min={DETAIL_MIN_WIDTH}
+            max={DETAIL_MAX_WIDTH}
+          />
+        )}
         <div
           data-testid="detail-error"
           style={{
@@ -247,7 +277,7 @@ export function DetailPanel(): JSX.Element | null {
               padding: "var(--space-2) var(--space-3)",
             }}
           >
-            Retry
+            Retry event details
           </button>
         </div>
       </aside>
@@ -259,6 +289,7 @@ export function DetailPanel(): JSX.Element | null {
   if (!detail) return null;
 
   const event = detail.event as AhpEvent;
+  const pairEvent = detail.pair as AhpEvent | null;
   const row = selectedIdx !== null ? (rows[selectedIdx] ?? null) : null;
   const isAuthFailure = row?.isAuthFailure ?? false;
 
@@ -278,11 +309,18 @@ export function DetailPanel(): JSX.Element | null {
         display: "flex",
         flexDirection: "column",
         background: "var(--color-surface)",
-        borderLeft: "1px solid var(--color-border-strong)",
+        borderLeft: showResizeHandle ? "1px solid var(--color-border-strong)" : "0",
         overflow: "hidden",
       }}
     >
-      <DetailResizeHandle width={detailWidth} onResize={setDetailWidth} min={360} max={720} />
+      {showResizeHandle && (
+        <DetailResizeHandle
+          width={detailWidth}
+          onResize={setDetailWidth}
+          min={DETAIL_MIN_WIDTH}
+          max={DETAIL_MAX_WIDTH}
+        />
+      )}
 
       {/* Auth failure banner */}
       {isAuthFailure && (
@@ -295,6 +333,16 @@ export function DetailPanel(): JSX.Element | null {
 
       {/* Summary */}
       <DetailSummary event={event} latencyMs={liveLatencyMs} status={liveStatus} />
+
+      {/* Correlation metadata */}
+      <DetailCorrelation
+        currentIdx={selectedIdx}
+        event={event}
+        pairEvent={pairEvent}
+        pairIdx={detail.pairIdx}
+        latencyMs={liveLatencyMs}
+        status={liveStatus}
+      />
 
       {/* AHP field strip */}
       {row && <AhpFieldStrip row={row} rawEvent={event} />}
@@ -312,7 +360,8 @@ export function DetailPanel(): JSX.Element | null {
         <DetailTabs active={activeTab} onChange={setActiveTab} />
         <CopyMenu
           event={event}
-          pairEvent={detail.pair as AhpEvent | null}
+          pairEvent={pairEvent}
+          pairIdx={detail.pairIdx}
           latencyMs={liveLatencyMs}
           status={liveStatus}
           onCopy={(msg, ok) => setToast({ message: msg, kind: ok ? "success" : "error" })}

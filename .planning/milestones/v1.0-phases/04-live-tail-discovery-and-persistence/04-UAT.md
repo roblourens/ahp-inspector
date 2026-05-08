@@ -1,7 +1,7 @@
 ---
 phase: 04-live-tail-discovery-and-persistence
 plan: 07
-status: approved
+status: passed
 captured: 2026-05-08
 viewport: 1440x900
 tooling: Playwright browser automation from session workspace
@@ -57,4 +57,4 @@ rotation, and watch-error surfaces against the built local app.
 
 ## Approval
 
-Approved for Phase 4 execution completion.
+Passed for Phase 4 execution completion.

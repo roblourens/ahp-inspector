@@ -26,7 +26,7 @@
 // Maps to VALIDATION 04-W6-01.
 
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
-import { appendFile, mkdir, mkdtemp, rm, truncate, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import * as http from "node:http";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -489,9 +489,9 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
       while (Date.now() < deadline) {
         let next: Frame;
         try {
-          next = await c.next(2000);
+          next = await c.next(500);
         } catch {
-          break;
+          continue;
         }
         assertNoAbsPath(next.data);
         if (next.event === "log-reset") sawLogReset = true;
@@ -520,9 +520,9 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
     }
   }, 20_000);
 
-  // ── 7. Rotation simulation → rotation SSE frame ───────────────────────────
+  // ── 7. Rotation simulation → rotation SSE frame + new file append at 0 ────
 
-  it("truncating the active file emits a rotation SSE frame", async () => {
+  it("replacing the active file with non-empty content emits rotation then append from 0", async () => {
     // Ensure we're back on a known active log; reopen the second log
     // explicitly so we know which file to truncate.
     const reopen = await postJson<{ active: { meta: { filename: string } } }>(
@@ -543,12 +543,19 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
       }
       assertNoAbsPath(frame.data);
 
-      // Truncate the underlying file → TailReader detects shrink → onReset.
+      // Replace the underlying file with smaller non-empty content → TailReader
+      // detects shrink → onReset, then reads the replacement range.
       // (The CLI session manager mapped secondId to its absolute path; we
       // know the path from the fixture builder.)
-      await truncate(fx.fileB, 0);
+      const freshLine = `${JSON.stringify({
+        jsonrpc: "2.0",
+        method: "notify/fresh-rotation",
+        params: { marker: "fresh-only" },
+      })}\n`;
+      await writeFile(fx.fileB, freshLine);
 
       let sawRotation = false;
+      let appendFrom: number | null = null;
       const deadline = Date.now() + 4000;
       while (Date.now() < deadline) {
         let next: Frame;
@@ -560,10 +567,38 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
         assertNoAbsPath(next.data);
         if (next.event === "rotation") {
           sawRotation = true;
+          continue;
+        }
+        if (sawRotation && next.event === "append") {
+          const payload = JSON.parse(next.data) as { from: number; rows: unknown[] };
+          appendFrom = payload.from;
+          expect(payload.rows).toHaveLength(1);
           break;
         }
       }
-      expect(sawRotation, "expected rotation SSE frame after file truncate").toBe(true);
+      expect(sawRotation, "expected rotation SSE frame after file replacement").toBe(true);
+      expect(appendFrom, "expected post-rotation append to start at 0").toBe(0);
+
+      const detail = await getJson<{ event: { raw?: unknown } }>(port, "/api/log/event/0");
+      expect(detail.status).toBe(200);
+      expect(JSON.stringify(detail.body?.event.raw)).toContain("fresh-only");
+      expect(detail.text).not.toContain("sess-20260108T100000");
+
+      const searchOld = await getJson<{ matches: number[]; total: number }>(
+        port,
+        "/api/log/search?q=initialize",
+      );
+      expect(searchOld.status).toBe(200);
+      expect(searchOld.body?.matches).toEqual([]);
+      expect(searchOld.body?.total).toBe(0);
+
+      const searchFresh = await getJson<{ matches: number[]; total: number }>(
+        port,
+        "/api/log/search?q=fresh-only",
+      );
+      expect(searchFresh.status).toBe(200);
+      expect(searchFresh.body?.matches).toEqual([0]);
+      expect(searchFresh.body?.total).toBe(1);
     } finally {
       c.close();
     }

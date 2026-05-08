@@ -84,6 +84,6 @@ describe("NoActiveLogState", () => {
       />,
     );
     expect(screen.getByText(/or open manually/i)).toBeTruthy();
-    expect(screen.getByPlaceholderText(/absolute\/path/i)).toBeTruthy();
+    expect(screen.getByPlaceholderText(/log file path/i)).toBeTruthy();
   });
 });

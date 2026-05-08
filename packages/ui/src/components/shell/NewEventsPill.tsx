@@ -25,7 +25,7 @@ export function NewEventsPill({ count, onClick }: { count: number; onClick(): vo
         color: "var(--color-text)",
         border: "1px solid var(--color-pill-border)",
         borderRadius: 14,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+        boxShadow: "var(--shadow-menu)",
         cursor: "pointer",
         fontWeight: 600,
         fontSize: "var(--text-row-size)",

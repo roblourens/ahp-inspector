@@ -3,7 +3,7 @@ phase: 2
 slug: vertical-slice-cli-server-timeline
 status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-07
 ---
 

@@ -170,3 +170,35 @@ describe("AppShell — Plan 04-05 wiring", () => {
     expect(screen.queryByTestId("rotation-banner")).toBeNull();
   });
 });
+
+describe("AppShell — responsive detail layout", () => {
+  function setViewportWidth(width: number): void {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: width });
+    window.dispatchEvent(new Event("resize"));
+  }
+
+  it("renders desktop detail side rail at 1400px and above", () => {
+    setViewportWidth(1440);
+    useAppStore.setState({ selectedIdx: 0 });
+    render(<AppShell />);
+    expect(screen.getByTestId("detail-panel-wrapper")).toBeInTheDocument();
+    expect(screen.queryByTestId("detail-drawer")).toBeNull();
+  });
+
+  it("renders selected details in an overlay drawer below 1400px", () => {
+    setViewportWidth(1366);
+    useAppStore.setState({ selectedIdx: 0 });
+    render(<AppShell />);
+    expect(screen.queryByTestId("detail-panel-wrapper")).toBeNull();
+    expect(screen.getByTestId("detail-drawer")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Close details" })).toBeInTheDocument();
+  });
+
+  it("closes the drawer with Escape", () => {
+    setViewportWidth(1366);
+    useAppStore.setState({ selectedIdx: 0 });
+    render(<AppShell />);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(useAppStore.getState().selectedIdx).toBeNull();
+  });
+});

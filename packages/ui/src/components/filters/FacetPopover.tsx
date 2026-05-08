@@ -72,7 +72,7 @@ export function FacetPopover({
         maxWidth: 320,
         maxHeight: 320,
         overflowY: "auto",
-        boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+        boxShadow: "var(--shadow-menu)",
         display: "flex",
         flexDirection: "column",
       }}

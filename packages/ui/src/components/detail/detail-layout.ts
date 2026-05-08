@@ -1,0 +1,5 @@
+export const DETAIL_MIN_WIDTH = 360;
+export const DETAIL_DEFAULT_WIDTH = 420;
+export const DETAIL_MAX_WIDTH = 720;
+export const DETAIL_DESKTOP_BREAKPOINT = 1400;
+export const DETAIL_KEYBOARD_STEP = 16;

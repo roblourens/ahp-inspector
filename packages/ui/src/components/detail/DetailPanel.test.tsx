@@ -5,7 +5,7 @@
 
 import type { EventRow } from "@ahp-viewer/core";
 import type { AhpEvent } from "@ahp-viewer/shared";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useAppStore } from "../../state/store.js";
 import type { DetailResponse } from "../../transport/http-client.js";
@@ -94,6 +94,7 @@ afterEach(() => {
     connection: "connecting",
     selectedIdx: null,
     meta: null,
+    logKey: null,
     selectedDetail: null,
     detailWidth: 420,
   });
@@ -143,6 +144,90 @@ describe("DetailPanel — populated state", () => {
     // Tab strip has Pretty and Raw tabs
     expect(screen.getByRole("tab", { name: /pretty/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /raw/i })).toBeInTheDocument();
+  });
+
+  it("renders visible correlation metadata for paired request/response details", async () => {
+    const request = makeEvent({
+      id: "req-42",
+      idType: "string",
+      method: "tools/call",
+      sessionId: "sess-1",
+      turnId: "turn-1",
+    });
+    const response = makeEvent({
+      seq: 3,
+      dir: "s2c",
+      kind: "response",
+      method: null,
+      id: "req-42",
+      idType: "string",
+      sessionId: "sess-1",
+      turnId: "turn-1",
+      raw: { jsonrpc: "2.0", id: "req-42", result: { ok: true } },
+    });
+    vi.mocked(fetchEvent).mockResolvedValue(
+      makeDetailResponse({
+        event: request,
+        pair: response,
+        pairIdx: 3,
+        status: "ok",
+        latencyMs: 32,
+      }),
+    );
+    useAppStore.setState({
+      selectedIdx: 0,
+      rows: [makeRow({ status: "ok", latencyMs: 32, keyId: "req-42" })],
+    });
+    render(<DetailPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("detail-correlation")).toBeInTheDocument();
+    });
+    const correlation = screen.getByTestId("detail-correlation");
+    expect(correlation).toHaveTextContent("Correlation");
+    expect(correlation).toHaveTextContent("pair idx #3");
+    expect(correlation).toHaveTextContent("status ok");
+    expect(correlation).toHaveTextContent("latency 32ms");
+    expect(correlation).toHaveTextContent("This event #0 · request · tools/call");
+    expect(correlation).toHaveTextContent("Pair #3 · response · response");
+    expect(correlation).toHaveTextContent("id req-42 (string)");
+    expect(correlation).toHaveTextContent("session sess-1");
+    expect(correlation).toHaveTextContent("turn turn-1");
+  });
+
+  it("does not render correlation metadata for unpaired details", async () => {
+    vi.mocked(fetchEvent).mockResolvedValue(makeDetailResponse({ pair: null, pairIdx: null }));
+    useAppStore.setState({ selectedIdx: 0, rows: [makeRow()] });
+    render(<DetailPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("detail-summary")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("detail-correlation")).toBeNull();
+    expect(screen.queryByText("Correlation")).toBeNull();
+  });
+
+  it("passes the current log key so idx cache entries do not cross log switches", async () => {
+    vi.mocked(fetchEvent).mockResolvedValue(makeDetailResponse());
+    useAppStore.setState({
+      selectedIdx: 0,
+      logKey: "log-A",
+      rows: [makeRow()],
+    });
+    render(<DetailPanel />);
+
+    await waitFor(() => {
+      expect(fetchEvent).toHaveBeenCalledWith(0, expect.any(AbortSignal), "log-A");
+    });
+
+    vi.mocked(fetchEvent).mockClear();
+    act(() => {
+      useAppStore.setState({ logKey: "log-B" });
+    });
+
+    await waitFor(() => {
+      expect(fetchEvent).toHaveBeenCalledWith(0, expect.any(AbortSignal), "log-B");
+    });
   });
 
   it("T-03-04-01: renders <script> payload as escaped text (no XSS)", async () => {

@@ -27,6 +27,10 @@ export class SearchIndex {
     this.#haystack.push(entry);
   }
 
+  reset(): void {
+    this.#haystack.length = 0;
+  }
+
   scan(q: string, limit: number): { matches: number[]; truncated: boolean } {
     const matches: number[] = [];
     const matchAll = q === "";

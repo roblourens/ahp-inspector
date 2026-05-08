@@ -254,4 +254,51 @@ describe("AppState rotation/watch-error propagation (Phase 4 INGEST-04)", () => 
     const ev0 = state.eventAt(0);
     expect(ev0?.byteOffset).toBe(0);
   });
+
+  it("rotation clears rows and indexes before ingesting a non-empty replacement file", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/x.log",
+      flushIntervalMs: 0,
+      directionInference: (raw): "c2s" | "s2c" => {
+        const r = raw as { result?: unknown; error?: unknown };
+        return r && (r.result !== undefined || r.error !== undefined) ? "s2c" : "c2s";
+      },
+    });
+    const captured: SsePayload[] = [];
+    state.subscribe((p) => captured.push(p));
+
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "oldMethod", params: {} })}\n`);
+    expect(state.snapshot().rows).toHaveLength(1);
+    expect(state.searchIndex.scan("oldmethod", 10).matches).toEqual([0]);
+
+    host.triggerReset({ newSize: 128, reason: "shrink" });
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 1, result: { fresh: true } })}\n`);
+
+    const rotationIdx = captured.findIndex((p) => p.kind === "rotation");
+    expect(rotationIdx).toBeGreaterThanOrEqual(0);
+    const appendAfterRotation = captured.slice(rotationIdx + 1).find((p) => p.kind === "append");
+    expect(appendAfterRotation).toBeTruthy();
+    if (!appendAfterRotation || appendAfterRotation.kind !== "append") {
+      throw new Error("expected append after rotation");
+    }
+    expect(appendAfterRotation.from).toBe(0);
+    expect(appendAfterRotation.rows).toHaveLength(1);
+
+    const rows = state.snapshot().rows;
+    expect(rows).toHaveLength(1);
+    expect(Object.keys(rows)).toEqual(["0"]);
+    expect(rows[0]?.idx).toBe(0);
+    expect(rows[0]?.summary).toContain("result");
+
+    expect(state.eventAt(1)).toBeNull();
+    expect(state.searchIndex.scan("oldmethod", 10).matches).toEqual([]);
+    expect(state.searchIndex.scan("fresh", 10).matches).toEqual([0]);
+    expect(state.correlatorDataFor(0)).toMatchObject({
+      pairIdx: null,
+      latencyMs: null,
+      status: "n/a",
+    });
+  });
 });

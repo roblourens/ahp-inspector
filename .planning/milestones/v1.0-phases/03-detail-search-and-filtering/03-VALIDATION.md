@@ -1,9 +1,9 @@
 ---
 phase: 03
 slug: detail-search-and-filtering
-status: draft
+status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-07
 ---
 
