@@ -108,6 +108,29 @@
   --row-banner-height: 20px;
   --filter-bar-height: 40px;
   --filter-chips-height: 32px;
+
+  /* ── Phase 4: Candidate picker ─────────────────────────────────── */
+  --candidate-row-height: 36px;
+  --color-confidence-high: var(--color-success);
+  --color-confidence-medium: var(--color-warning);
+  --color-confidence-low: var(--color-text-subtle);
+
+  /* ── Phase 4: Live pause indicator ─────────────────────────────── */
+  --color-status-paused-fg: var(--color-accent);
+  --color-status-paused-bg: color-mix(in srgb, var(--color-accent) 15%, var(--color-surface));
+
+  /* ── Phase 4: NewEventsPill ────────────────────────────────────── */
+  --color-pill-bg: var(--color-surface-raised);
+  --color-pill-fg: var(--color-text);
+  --color-pill-border: var(--color-border-strong);
+
+  /* ── Phase 4: Rotation banner ──────────────────────────────────── */
+  --color-banner-rotation-bg: color-mix(in srgb, var(--color-warning) 12%, var(--color-bg));
+  --color-banner-rotation-fg: var(--color-warning);
+
+  /* ── Phase 4: Watch-error banner ───────────────────────────────── */
+  --color-banner-watch-error-bg: color-mix(in srgb, var(--color-destructive) 12%, var(--color-bg));
+  --color-banner-watch-error-fg: var(--color-destructive);
 }
 
 [data-theme="light"] {

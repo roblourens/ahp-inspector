@@ -9,6 +9,17 @@ const CHUNK_BYTES = 256 * 1024;
 
 export type ChunkSink = (bytes: Uint8Array) => void;
 
+/**
+ * Phase 4 (Wave 0): forward declaration of the rich watch sink. TailReader
+ * adopts it in Wave 1; the existing function-based `ChunkSink` keeps the
+ * Phase 2 callsite compiling until then.
+ */
+export interface WatchSink {
+  onChunk(bytes: Uint8Array, byteOffset: number): void;
+  onReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
+  onError(err: Error, fatal: boolean): void;
+}
+
 export class TailReader {
   readonly #path: string;
   #lastOffset = 0;

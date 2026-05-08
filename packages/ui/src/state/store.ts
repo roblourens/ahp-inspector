@@ -17,7 +17,12 @@ export interface DetailData {
   pairIdx: number | null;
 }
 
-export type Connection = "connecting" | "connected" | "disconnected" | "no-server";
+export type Connection =
+  | "connecting"
+  | "connected"
+  | "disconnected"
+  | "no-server"
+  | "no-log";
 
 export interface MetaSummary {
   filename: string;
@@ -64,6 +69,18 @@ export interface AppStoreState {
   detailWidth: number;
   setSelectedDetail(d: DetailData | null): void;
   setDetailWidth(px: number): void;
+  // Phase 4: live tail
+  livePaused: boolean;
+  pendingNewCount: number;
+  followLatest: boolean;
+  lastWatchError: { code: "read-error" | "watch-fatal"; message: string } | null;
+  logKey: string | null;
+  setLivePaused(p: boolean): void;
+  clearPendingNewCount(): void;
+  setLastWatchError(e: { code: "read-error" | "watch-fatal"; message: string } | null): void;
+  setLogKey(k: string | null): void;
+  resetForRotation(): void;
+  resetForLogSwitch(): void;
 }
 
 function deriveSessionCount(rows: EventRow[]): number {
@@ -96,6 +113,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
         meta: s.meta
           ? { ...s.meta, eventCount: next.length, sessionCount: deriveSessionCount(next) }
           : s.meta,
+        ...(s.livePaused ? { pendingNewCount: s.pendingNewCount + newRows.length } : {}),
       };
     }),
   applyPatch: (updates) =>
@@ -142,4 +160,34 @@ export const useAppStore = create<AppStoreState>((set) => ({
     }),
   setSelectedDetail: (d) => set({ selectedDetail: d }),
   setDetailWidth: (px) => set({ detailWidth: Math.max(360, Math.min(720, px)) }),
+  // Phase 4 initial state
+  livePaused: false,
+  pendingNewCount: 0,
+  followLatest: true,
+  lastWatchError: null,
+  logKey: null,
+  // Phase 4 actions
+  setLivePaused: (p) => set({ livePaused: p }),
+  clearPendingNewCount: () => set({ pendingNewCount: 0 }),
+  setLastWatchError: (e) => set({ lastWatchError: e }),
+  setLogKey: (k) => set({ logKey: k }),
+  resetForRotation: () =>
+    set({
+      rows: [],
+      selectedIdx: null,
+      selectedDetail: null,
+      searchMatches: null,
+      pendingNewCount: 0,
+    }),
+  resetForLogSwitch: () =>
+    set({
+      rows: [],
+      selectedIdx: null,
+      selectedDetail: null,
+      searchMatches: null,
+      pendingNewCount: 0,
+      meta: null,
+      logKey: null,
+      lastWatchError: null,
+    }),
 }));
