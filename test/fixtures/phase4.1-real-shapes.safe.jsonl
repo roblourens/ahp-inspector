@@ -1,4 +1,4 @@
-{"jsonrpc":"2.0","id":1001,"method":"resourceList","params":{"session":{"uri":"ahp-session://safe-session-alpha"},"turn":{"id":"turn-alpha-000001"},"uri":"file://workspace/safe-resource.md","resources":[{"uri":"file://workspace/safe-resource.md"}]}}
+{"jsonrpc":"2.0","id":1001,"method":"resourceList","params":{"uri":"file://workspace/safe-resource.md","resources":[{"uri":"file://workspace/safe-resource.md"}]}}
 {"jsonrpc":"2.0","id":1001,"result":{"resources":[{"uri":"file://workspace/safe-resource.md","kind":"file"}],"summary":"safe resource list"}}
 {"jsonrpc":"2.0","id":"turn-fetch-1","method":"turnFetch","params":{"sessionId":"safe-session-beta","turnId":"turn-beta-000002","limit":2}}
 {"jsonrpc":"2.0","id":"turn-fetch-1","error":{"code":-32001,"message":"safe synthetic failure"}}
