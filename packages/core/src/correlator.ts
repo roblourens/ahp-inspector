@@ -60,6 +60,19 @@ export class Correlator {
     }
   }
 
+  /**
+   * Clear derived correlation state while keeping the EventStore subscription.
+   * Used after log rotation so new-file events cannot pair with stale pending
+   * requests/responses from the previous file and row indices restart at 0.
+   */
+  reset(): void {
+    this.#pendingRequests.clear();
+    this.#pendingResponses.clear();
+    this.pairIdx.length = 0;
+    this.latencyMs.length = 0;
+    this.status.length = 0;
+  }
+
   dispose(): void {
     this.#unsubscribe();
     this.#pendingRequests.clear();

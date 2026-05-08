@@ -54,6 +54,31 @@ export class EventStore {
     return this.events[idx];
   }
 
+  /**
+   * Clear all stored events and derived indices without notifying append
+   * subscribers. Used when a tailed log rotates: subscribers receive the
+   * explicit rotation frame, and subsequent appends must start from idx 0.
+   */
+  reset(): void {
+    this.seq.length = 0;
+    this.ts.length = 0;
+    this.tsRaw.length = 0;
+    this.kind.length = 0;
+    this.dir.length = 0;
+    this.method.length = 0;
+    this.id.length = 0;
+    this.idType.length = 0;
+    this.sessionId.length = 0;
+    this.actionType.length = 0;
+    this.serverSeq.length = 0;
+    this.byteOffset.length = 0;
+    this.byteLength.length = 0;
+    this.events.length = 0;
+    this.byKind.clear();
+    this.byDir.clear();
+    this.byMethod.clear();
+  }
+
   append(ev: AhpEvent): number {
     const idx = this.events.length;
     this.events.push(ev);

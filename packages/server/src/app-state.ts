@@ -276,14 +276,21 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       }
     },
     onReset(info) {
-      // Reset parser-side accounting; do NOT mutate store/rows — UI drops on
-      // rotation frame. seq is intentionally NOT reset (T-04-02-04 accepted).
+      // Rotation is a full logical log reset: clear all server-side row/detail/
+      // search/correlation indexes before TailReader reads the replacement file.
+      // This guarantees post-rotation append frames start at from: 0, while seq
+      // is intentionally NOT reset (T-04-02-04 accepted).
       try {
         splitter.reset();
       } catch {
         /* defensive */
       }
       byteOffset = 0;
+      store.reset();
+      correlator.reset();
+      rows.length = 0;
+      searchIdx.reset();
+      lastSeenServerSeq.clear();
       emit({ kind: "rotation", newSize: info.newSize, reason: info.reason });
     },
     onError(err, fatal) {
