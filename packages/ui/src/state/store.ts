@@ -66,6 +66,7 @@ export interface AppStoreState {
   setDetailWidth(px: number): void;
   // Phase 4: live tail
   livePaused: boolean;
+  pendingBuffer: EventRow[];
   pendingNewCount: number;
   followLatest: boolean;
   lastWatchError: { code: "read-error" | "watch-fatal"; message: string } | null;
@@ -74,6 +75,7 @@ export interface AppStoreState {
   lastOpenRef: { kind: "candidate"; id: string } | { kind: "path"; path: string } | null;
   setLivePaused(p: boolean): void;
   clearPendingNewCount(): void;
+  flushPendingBuffer(): void;
   setLastWatchError(e: { code: "read-error" | "watch-fatal"; message: string } | null): void;
   setLogKey(k: string | null): void;
   setRotationNotice(v: boolean): void;
@@ -104,6 +106,15 @@ export const useAppStore = create<AppStoreState>((set) => ({
     })),
   appendRows: (newRows, from) =>
     set((s) => {
+      // Phase 4 D-13: while live-paused, incoming rows accumulate in a hidden
+      // buffer + counter instead of mutating visible rows. NewEventsPill flushes
+      // them when the user clicks "Resume Following".
+      if (s.livePaused) {
+        return {
+          pendingBuffer: s.pendingBuffer.concat(newRows),
+          pendingNewCount: s.pendingNewCount + newRows.length,
+        };
+      }
       const next = s.rows.slice();
       for (let i = 0; i < newRows.length; i++) {
         const row = newRows[i];
@@ -114,7 +125,6 @@ export const useAppStore = create<AppStoreState>((set) => ({
         meta: s.meta
           ? { ...s.meta, eventCount: next.length, sessionCount: deriveSessionCount(next) }
           : s.meta,
-        ...(s.livePaused ? { pendingNewCount: s.pendingNewCount + newRows.length } : {}),
       };
     }),
   applyPatch: (updates) =>
@@ -163,6 +173,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
   setDetailWidth: (px) => set({ detailWidth: Math.max(360, Math.min(720, px)) }),
   // Phase 4 initial state
   livePaused: false,
+  pendingBuffer: [],
   pendingNewCount: 0,
   followLatest: true,
   lastWatchError: null,
@@ -172,6 +183,21 @@ export const useAppStore = create<AppStoreState>((set) => ({
   // Phase 4 actions
   setLivePaused: (p) => set({ livePaused: p }),
   clearPendingNewCount: () => set({ pendingNewCount: 0 }),
+  flushPendingBuffer: () =>
+    set((s) => {
+      if (s.pendingBuffer.length === 0) {
+        return { pendingNewCount: 0 };
+      }
+      const next = s.rows.concat(s.pendingBuffer);
+      return {
+        rows: next,
+        pendingBuffer: [],
+        pendingNewCount: 0,
+        meta: s.meta
+          ? { ...s.meta, eventCount: next.length, sessionCount: deriveSessionCount(next) }
+          : s.meta,
+      };
+    }),
   setLastWatchError: (e) => set({ lastWatchError: e }),
   setLogKey: (k) => set({ logKey: k }),
   setRotationNotice: (v) => set({ rotationNotice: v }),
@@ -182,6 +208,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
       selectedIdx: null,
       selectedDetail: null,
       searchMatches: null,
+      pendingBuffer: [],
       pendingNewCount: 0,
     }),
   resetForLogSwitch: () =>
@@ -190,6 +217,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
       selectedIdx: null,
       selectedDetail: null,
       searchMatches: null,
+      pendingBuffer: [],
       pendingNewCount: 0,
       meta: null,
       logKey: null,
