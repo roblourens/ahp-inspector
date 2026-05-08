@@ -9,15 +9,24 @@ const VAR: Record<NonNullable<ActionFamily>, string> = {
   unknown: "--action-unknown",
 };
 
+const LABEL: Partial<Record<NonNullable<ActionFamily>, string>> = {
+  text: "Text action",
+  "tool-call": "Tool call",
+  "tool-result": "Tool result",
+  status: "Status action",
+};
+
 export function ActionDot({ family }: { family: ActionFamily | null }): JSX.Element | null {
-  if (family == null) return null;
+  if (family == null || family === "unknown") return null;
+  const label = LABEL[family];
+  if (!label) return null;
   return (
     <span
       data-testid="action-dot"
       data-family={family}
       role="img"
-      aria-label={`Action row family: ${family}`}
-      title={`Action row family: ${family}. Only action events show this marker.`}
+      aria-label={label}
+      title={label}
       style={{
         display: "inline-block",
         width: 6,

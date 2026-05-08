@@ -5,12 +5,10 @@ import type { EventRow as EventRowData } from "@ahp-viewer/core";
 import { ShieldAlert } from "lucide-react";
 import type { CSSProperties, JSX } from "react";
 import { memo } from "react";
-import { ActionDot } from "./cells/ActionDot.js";
 import { DirectionGlyph } from "./cells/DirectionGlyph.js";
 import { KindTag } from "./cells/KindTag.js";
 import { LatencyCell } from "./cells/LatencyCell.js";
-import { PayloadPreview } from "./cells/PayloadPreview.js";
-import { StatusCell } from "./cells/StatusCell.js";
+import { SummaryCell } from "./cells/SummaryCell.js";
 
 export interface EventRowProps {
   row: EventRowData;
@@ -20,7 +18,8 @@ export interface EventRowProps {
   searchQuery?: string;
 }
 
-export const TIMELINE_GRID_COLUMNS = "2px 96px 16px 44px 240px 132px 72px 64px 72px 96px 1fr";
+export const TIMELINE_GRID_COLUMNS =
+  "4px 96px 96px 16px 44px 220px 132px 72px 72px minmax(240px, 1fr)";
 
 const cellStyle: CSSProperties = {
   minWidth: 0,
@@ -31,8 +30,8 @@ const cellStyle: CSSProperties = {
 
 function railColor(row: EventRowData, isSelected: boolean): string {
   if (isSelected) return "var(--color-accent)";
+  if (row.status === "error" || row.isAuthFailure) return "var(--color-destructive)";
   if (row.status === "orphan" || row.status === "unmatched") return "var(--color-warning)";
-  if (row.status === "error") return "var(--color-destructive)";
   return "transparent";
 }
 
@@ -47,6 +46,30 @@ function primaryLabelTitle(row: EventRowData): string {
     return `${row.actionType} (${row.method})`;
   }
   return label ?? "";
+}
+
+function statusBadge(row: EventRowData): { text: string; title: string; tone: "error" | "warning" } | null {
+  if (row.isAuthFailure) {
+    return { text: "AUTH", title: "Authentication failure", tone: "error" };
+  }
+  if (row.status === "error") {
+    return { text: "ERR", title: "Error response", tone: "error" };
+  }
+  if (row.status === "unmatched") {
+    return {
+      text: "TIMEOUT",
+      title: "Request timed out before a response was observed",
+      tone: "warning",
+    };
+  }
+  if (row.status === "orphan") {
+    return {
+      text: "ORPHAN",
+      title: "Response could not be paired with a visible request",
+      tone: "warning",
+    };
+  }
+  return null;
 }
 
 /**
@@ -94,12 +117,16 @@ export const EventRow = memo(function EventRow({
 }: EventRowProps): JSX.Element {
   const label = primaryLabel(row);
   const labelTitle = primaryLabelTitle(row);
+  const badge = statusBadge(row);
 
   return (
     <div
       role="row"
       aria-rowindex={row.idx + 1}
       aria-selected={isSelected}
+      aria-label={`${row.keyId ?? "no id"} ${row.tsFmt} ${row.dir} ${row.kindTag} ${label ?? "no event"}${
+        badge ? ` ${badge.text}` : ""
+      }`}
       onClick={onClick}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -109,6 +136,7 @@ export const EventRow = memo(function EventRow({
       }}
       tabIndex={isSelected ? 0 : -1}
       data-testid={`row-${row.idx}`}
+      data-selected={isSelected ? "true" : undefined}
       style={{
         display: "grid",
         gridTemplateColumns: TIMELINE_GRID_COLUMNS,
@@ -120,11 +148,10 @@ export const EventRow = memo(function EventRow({
         ...style,
       }}
     >
-      <div
-        role="gridcell"
-        data-testid="row-rail"
-        style={{ ...cellStyle, width: 2, height: "100%", background: railColor(row, isSelected) }}
-      />
+      <div role="gridcell" data-testid="row-rail" style={{ ...cellStyle, width: 4, height: "100%", background: railColor(row, isSelected) }} />
+      <div role="gridcell" className="id" style={cellStyle}>
+        {row.keyId ?? "—"}
+      </div>
       <div role="gridcell" className="ts" style={cellStyle}>
         {row.tsFmt}
       </div>
@@ -133,6 +160,7 @@ export const EventRow = memo(function EventRow({
           <ShieldAlert
             size={14}
             data-testid="auth-fail-glyph"
+            aria-label="Authentication failure"
             style={{ color: "var(--color-auth-fail-rail)", display: "block" }}
           />
         ) : (
@@ -150,12 +178,27 @@ export const EventRow = memo(function EventRow({
           ...cellStyle,
           display: "flex",
           alignItems: "center",
+          gap: "var(--space-1)",
         }}
       >
-        <ActionDot family={row.actionFamily} />
+        {badge ? (
+          <span
+            data-testid="row-status-badge"
+            title={badge.title}
+            aria-label={badge.title}
+            style={{
+              color:
+                badge.tone === "error" ? "var(--color-destructive)" : "var(--color-warning)",
+              fontSize: "var(--text-ui-muted-size)",
+              fontWeight: 600,
+              flexShrink: 0,
+            }}
+          >
+            {badge.text}
+          </span>
+        ) : null}
         <span
           style={{
-            marginLeft: row.actionFamily ? 4 : 0,
             fontWeight: label ? 600 : 400,
             minWidth: 0,
             overflow: "hidden",
@@ -174,16 +217,10 @@ export const EventRow = memo(function EventRow({
         {row.turnShort ?? "—"}
       </div>
       <div role="gridcell" style={cellStyle}>
-        <StatusCell status={row.status} />
-      </div>
-      <div role="gridcell" style={cellStyle}>
         <LatencyCell ms={row.latencyMs} band={row.latencyBand} />
       </div>
-      <div role="gridcell" className="id" style={cellStyle}>
-        {row.keyId ?? "—"}
-      </div>
       <div role="gridcell" style={cellStyle}>
-        <PayloadPreview text={row.payloadPreview} />
+        <SummaryCell text={row.summary} />
       </div>
     </div>
   );

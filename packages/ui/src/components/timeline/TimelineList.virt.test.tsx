@@ -28,6 +28,8 @@ function makeRow(i: number): EventRowData {
     latencyMs: null,
     latencyBand: null,
     payloadPreview: "",
+    summary: `ping id=${i}`,
+    pairIdx: null,
     parseErrorReason: null,
     lineIndex: i + 1,
     errorCode: null,
@@ -108,8 +110,10 @@ describe("TimelineList — virtualization", () => {
     const grid = screen.getByRole("grid");
     expect(grid.getAttribute("aria-rowcount")).toBe(String(ROWS));
     expect(screen.getByTestId("timeline-column-header")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Request or event ID" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Time" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Payload" })).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Status" })).toBeNull();
+    expect(screen.getByRole("columnheader", { name: "Parsed event summary" })).toBeInTheDocument();
 
     const rendered = await screen.findAllByRole("row");
     expect(rendered.length).toBeGreaterThanOrEqual(1);

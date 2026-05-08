@@ -26,6 +26,8 @@ const base: EventRowData = {
   latencyMs: null,
   latencyBand: null,
   payloadPreview: "",
+  summary: "initialize details unavailable",
+  pairIdx: null,
   parseErrorReason: null,
   lineIndex: 1,
   errorCode: null,
@@ -42,6 +44,7 @@ describe("EventRow — rail color logic", () => {
   it("orphan status → warning rail", () => {
     render(<EventRow row={{ ...base, status: "orphan" }} isSelected={false} onClick={() => {}} />);
     expect(railBg()).toContain("var(--color-warning)");
+    expect(screen.getByText("ORPHAN")).toBeTruthy();
   });
 
   it("unmatched status → warning rail", () => {
@@ -49,11 +52,13 @@ describe("EventRow — rail color logic", () => {
       <EventRow row={{ ...base, status: "unmatched" }} isSelected={false} onClick={() => {}} />,
     );
     expect(railBg()).toContain("var(--color-warning)");
+    expect(screen.getByText("TIMEOUT")).toBeTruthy();
   });
 
   it("error status → destructive rail", () => {
     render(<EventRow row={{ ...base, status: "error" }} isSelected={false} onClick={() => {}} />);
     expect(railBg()).toContain("var(--color-destructive)");
+    expect(screen.getByText("ERR")).toBeTruthy();
   });
 
   it("selected → accent rail (overrides status)", () => {

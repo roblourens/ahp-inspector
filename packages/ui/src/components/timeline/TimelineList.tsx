@@ -19,16 +19,15 @@ const ITEM_HEIGHT = {
 
 const COLUMN_LABELS = [
   { key: "rail", label: "", ariaLabel: "row state" },
+  { key: "id", label: "ID", ariaLabel: "Request or event ID" },
   { key: "time", label: "Time", ariaLabel: "Time" },
   { key: "direction", label: "Dir", ariaLabel: "Direction" },
   { key: "kind", label: "Kind", ariaLabel: "Kind" },
   { key: "event", label: "Event", ariaLabel: "Event" },
   { key: "session", label: "Session", ariaLabel: "Session" },
   { key: "turn", label: "Turn", ariaLabel: "Turn" },
-  { key: "status", label: "Status", ariaLabel: "Status" },
   { key: "latency", label: "Latency", ariaLabel: "Latency" },
-  { key: "id", label: "ID", ariaLabel: "ID" },
-  { key: "payload", label: "Payload", ariaLabel: "Payload" },
+  { key: "summary", label: "Summary", ariaLabel: "Parsed event summary" },
 ] as const;
 
 function getItemKindKey(item: VirtualItem): keyof typeof ITEM_HEIGHT {
