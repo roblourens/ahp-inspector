@@ -5,7 +5,7 @@
 
 import type { EventRow } from "@ahp-viewer/core";
 import type { AhpEvent } from "@ahp-viewer/shared";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useAppStore } from "../../state/store.js";
 import type { DetailResponse } from "../../transport/http-client.js";
@@ -94,6 +94,7 @@ afterEach(() => {
     connection: "connecting",
     selectedIdx: null,
     meta: null,
+    logKey: null,
     selectedDetail: null,
     detailWidth: 420,
   });
@@ -143,6 +144,29 @@ describe("DetailPanel — populated state", () => {
     // Tab strip has Pretty and Raw tabs
     expect(screen.getByRole("tab", { name: /pretty/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /raw/i })).toBeInTheDocument();
+  });
+
+  it("passes the current log key so idx cache entries do not cross log switches", async () => {
+    vi.mocked(fetchEvent).mockResolvedValue(makeDetailResponse());
+    useAppStore.setState({
+      selectedIdx: 0,
+      logKey: "log-A",
+      rows: [makeRow()],
+    });
+    render(<DetailPanel />);
+
+    await waitFor(() => {
+      expect(fetchEvent).toHaveBeenCalledWith(0, expect.any(AbortSignal), "log-A");
+    });
+
+    vi.mocked(fetchEvent).mockClear();
+    act(() => {
+      useAppStore.setState({ logKey: "log-B" });
+    });
+
+    await waitFor(() => {
+      expect(fetchEvent).toHaveBeenCalledWith(0, expect.any(AbortSignal), "log-B");
+    });
   });
 
   it("T-03-04-01: renders <script> payload as escaped text (no XSS)", async () => {

@@ -46,6 +46,7 @@ export function DetailPanel({
   showResizeHandle = true,
 }: DetailPanelProps = {}): JSX.Element | null {
   const selectedIdx = useAppStore((s) => s.selectedIdx);
+  const logKey = useAppStore((s) => s.logKey);
   const rows = useAppStore((s) => s.rows);
   const detailWidth = useAppStore((s) => s.detailWidth);
   const setDetailWidth = useAppStore((s) => s.setDetailWidth);
@@ -60,7 +61,7 @@ export function DetailPanel({
   const retryKey = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
 
-  const load = useCallback(async (idx: number) => {
+  const load = useCallback(async (idx: number, activeLogKey: string | null) => {
     // Abort any prior in-flight request (T-03-04-04)
     if (abortRef.current) {
       abortRef.current.abort();
@@ -71,7 +72,7 @@ export function DetailPanel({
     setLoadState({ status: "loading", detail: null, error: null });
 
     try {
-      const detail = await fetchEvent(idx, controller.signal);
+      const detail = await fetchEvent(idx, controller.signal, activeLogKey);
       if (controller.signal.aborted) return;
       if (detail === null) {
         setLoadState({ status: "error", detail: null, error: `Event #${idx} not found (404)` });
@@ -91,16 +92,16 @@ export function DetailPanel({
       if (abortRef.current) abortRef.current.abort();
       return;
     }
-    void load(selectedIdx);
+    void load(selectedIdx, logKey);
     return () => {
       if (abortRef.current) abortRef.current.abort();
     };
-  }, [selectedIdx, load]);
+  }, [selectedIdx, logKey, load]);
 
   function handleRetry() {
     if (selectedIdx !== null) {
       retryKey.current += 1;
-      void load(selectedIdx);
+      void load(selectedIdx, logKey);
     }
   }
 

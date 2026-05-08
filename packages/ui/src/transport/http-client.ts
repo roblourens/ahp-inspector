@@ -22,55 +22,62 @@ export interface DetailResponse {
   pairIdx: number | null;
 }
 
-// Simple LRU-16 cache keyed by event idx.
+// Simple LRU-16 cache keyed by active log + event idx.
 const MAX_CACHE = 16;
-const cache = new Map<number, DetailResponse>();
-const cacheOrder: number[] = [];
+type EventCacheKey = string;
+const cache = new Map<EventCacheKey, DetailResponse>();
+const cacheOrder: EventCacheKey[] = [];
 
-function cacheGet(idx: number): DetailResponse | undefined {
-  const cached = cache.get(idx);
+function cacheKey(logKey: string | null | undefined, idx: number): EventCacheKey {
+  return JSON.stringify([logKey ?? null, idx]);
+}
+
+function cacheGet(key: EventCacheKey): DetailResponse | undefined {
+  const cached = cache.get(key);
   if (cached !== undefined) {
-    const existing = cacheOrder.indexOf(idx);
+    const existing = cacheOrder.indexOf(key);
     if (existing !== -1) {
       cacheOrder.splice(existing, 1);
-      cacheOrder.push(idx);
+      cacheOrder.push(key);
     }
   }
   return cached;
 }
 
-function cacheSet(idx: number, data: DetailResponse): void {
-  if (cache.has(idx)) {
-    cacheOrder.splice(cacheOrder.indexOf(idx), 1);
-    cacheOrder.push(idx);
-    cache.set(idx, data);
+function cacheSet(key: EventCacheKey, data: DetailResponse): void {
+  if (cache.has(key)) {
+    cacheOrder.splice(cacheOrder.indexOf(key), 1);
+    cacheOrder.push(key);
+    cache.set(key, data);
     return;
   }
   if (cacheOrder.length >= MAX_CACHE) {
     const evict = cacheOrder.shift();
     if (evict !== undefined) cache.delete(evict);
   }
-  cacheOrder.push(idx);
-  cache.set(idx, data);
+  cacheOrder.push(key);
+  cache.set(key, data);
 }
 
 /**
  * Fetch event details from GET /api/log/event/:idx.
  * Returns null on 404, throws on other HTTP errors.
- * Caches last 16 responses by idx.
+ * Caches last 16 responses by active log key + idx.
  */
 export async function fetchEvent(
   idx: number,
   signal?: AbortSignal,
+  logKey?: string | null,
 ): Promise<DetailResponse | null> {
-  const cached = cacheGet(idx);
+  const key = cacheKey(logKey, idx);
+  const cached = cacheGet(key);
   if (cached) return cached;
   const init: RequestInit = signal !== undefined ? { signal } : {};
   const resp = await fetch(`/api/log/event/${idx}`, init);
   if (resp.status === 404) return null;
   if (!resp.ok) throw new Error(`Failed to load event: ${resp.status}`);
   const data: DetailResponse = (await resp.json()) as DetailResponse;
-  cacheSet(idx, data);
+  cacheSet(key, data);
   return data;
 }
 
