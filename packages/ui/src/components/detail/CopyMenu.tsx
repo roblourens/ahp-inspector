@@ -16,6 +16,7 @@ import { type JSX, useEffect, useRef, useState } from "react";
 interface CopyMenuProps {
   event: AhpEvent;
   pairEvent: AhpEvent | null;
+  pairIdx: number | null;
   latencyMs: number | null;
   status: Status;
   onCopy(msg: string, ok: boolean): void;
@@ -41,6 +42,25 @@ function fmtTs(ts: number): string {
   return `${hh}:${mm}:${ss}.${ms}`;
 }
 
+function eventLabel(event: AhpEvent): string {
+  return event.method ?? event.actionType ?? event.kind;
+}
+
+function idLabel(event: AhpEvent): string | null {
+  if (event.id === null) return null;
+  return `${String(event.id)} (${event.idType})`;
+}
+
+function appendEventContext(prefix: string, event: AhpEvent): string {
+  let out = `${prefix}=${directionWord(event.dir)} ${event.kind} ${eventLabel(event)}`;
+  const id = idLabel(event);
+  if (id) out += ` id=${id}`;
+  if (event.sessionId) out += ` session=${event.sessionId}`;
+  if (event.turnId) out += ` turn=${event.turnId}`;
+  if (event.toolCallId) out += ` tool=${event.toolCallId}`;
+  return `${out}\n`;
+}
+
 async function copyText(text: string): Promise<void> {
   try {
     await navigator.clipboard.writeText(text);
@@ -61,7 +81,13 @@ async function copyText(text: string): Promise<void> {
   }
 }
 
-function buildSummary(event: AhpEvent, latencyMs: number | null, status: Status): string {
+function buildSummary(
+  event: AhpEvent,
+  pairEvent: AhpEvent | null,
+  pairIdx: number | null,
+  latencyMs: number | null,
+  status: Status,
+): string {
   const ts = fmtTs(event.ts);
   const dir = directionWord(event.dir);
   const method = event.method ?? event.actionType ?? "—";
@@ -70,13 +96,21 @@ function buildSummary(event: AhpEvent, latencyMs: number | null, status: Status)
   if (event.sessionId) summary += `session=${event.sessionId}\n`;
   if (event.turnId) summary += `turn=${event.turnId}\n`;
   if (event.serverSeq !== null) summary += `serverSeq=${event.serverSeq}\n`;
+  if (pairEvent) {
+    summary += `correlation=paired`;
+    if (pairIdx !== null) summary += ` pairIdx=${pairIdx}`;
+    summary += ` status=${status} latency=${latencyMs !== null ? `${latencyMs}ms` : "—"}\n`;
+    summary += appendEventContext("current", event);
+    summary += appendEventContext("pair", pairEvent);
+  }
 
   return summary;
 }
 
 export function CopyMenu({
   event,
-  pairEvent: _pairEvent,
+  pairEvent,
+  pairIdx,
   latencyMs,
   status,
   onCopy,
@@ -130,7 +164,7 @@ export function CopyMenu({
     },
     {
       label: "Copy summary",
-      action: () => buildSummary(event, latencyMs, status),
+      action: () => buildSummary(event, pairEvent, pairIdx, latencyMs, status),
     },
   ];
 

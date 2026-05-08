@@ -24,6 +24,7 @@ import { AhpFieldStrip } from "./AhpFieldStrip.js";
 import { AuthFailureBanner } from "./AuthFailureBanner.js";
 import { CopyMenu } from "./CopyMenu.js";
 import { CopyToast } from "./CopyToast.js";
+import { DetailCorrelation } from "./DetailCorrelation.js";
 import { DetailResizeHandle } from "./DetailResizeHandle.js";
 import { DetailSummary } from "./DetailSummary.js";
 import { DetailTabs } from "./DetailTabs.js";
@@ -288,6 +289,7 @@ export function DetailPanel({
   if (!detail) return null;
 
   const event = detail.event as AhpEvent;
+  const pairEvent = detail.pair as AhpEvent | null;
   const row = selectedIdx !== null ? (rows[selectedIdx] ?? null) : null;
   const isAuthFailure = row?.isAuthFailure ?? false;
 
@@ -332,6 +334,16 @@ export function DetailPanel({
       {/* Summary */}
       <DetailSummary event={event} latencyMs={liveLatencyMs} status={liveStatus} />
 
+      {/* Correlation metadata */}
+      <DetailCorrelation
+        currentIdx={selectedIdx}
+        event={event}
+        pairEvent={pairEvent}
+        pairIdx={detail.pairIdx}
+        latencyMs={liveLatencyMs}
+        status={liveStatus}
+      />
+
       {/* AHP field strip */}
       {row && <AhpFieldStrip row={row} rawEvent={event} />}
 
@@ -348,7 +360,8 @@ export function DetailPanel({
         <DetailTabs active={activeTab} onChange={setActiveTab} />
         <CopyMenu
           event={event}
-          pairEvent={detail.pair as AhpEvent | null}
+          pairEvent={pairEvent}
+          pairIdx={detail.pairIdx}
           latencyMs={liveLatencyMs}
           status={liveStatus}
           onCopy={(msg, ok) => setToast({ message: msg, kind: ok ? "success" : "error" })}
