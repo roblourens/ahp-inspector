@@ -269,9 +269,7 @@ describe("AppState rotation/watch-error propagation (Phase 4 INGEST-04)", () => 
     const captured: SsePayload[] = [];
     state.subscribe((p) => captured.push(p));
 
-    host.push(
-      `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "oldMethod", params: {} })}\n`,
-    );
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "oldMethod", params: {} })}\n`);
     expect(state.snapshot().rows).toHaveLength(1);
     expect(state.searchIndex.scan("oldmethod", 10).matches).toEqual([0]);
 
