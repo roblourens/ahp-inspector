@@ -76,9 +76,9 @@ Plans:
 
 Plans:
 
-- [ ] 08-01: Add `StateReplayIndex` lifecycle beside EventStore, Correlator, SearchIndex, and timeline rows.
-- [ ] 08-02: Add `/api/state-at` endpoint with resource selection, confidence, diagnostics, and cache scoping.
-- [ ] 08-03: Cover log switch, live append, pause/resume, rotation reset, and large-log lookup behavior.
+- [x] 08-01: Add `StateReplayIndex` lifecycle beside EventStore, Correlator, SearchIndex, and timeline rows.
+- [x] 08-02: Add `/api/state-at` endpoint with resource selection, confidence, diagnostics, and cache scoping.
+- [x] 08-03: Cover log switch, live append, pause/resume, rotation reset, and large-log lookup behavior.
 
 **Success criteria:**
 
@@ -129,11 +129,11 @@ Plans:
 | Milestone | Phases | Plans | Status | Completed |
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
-| v1.1 Reducer-backed State Snapshots | 2/5 | 6/15 | In progress | — |
+| v1.1 Reducer-backed State Snapshots | 3/5 | 9/15 | In progress | — |
 
 ## Next
 
-Plan and execute Phase 8 with `/gsd-plan-phase 8`.
+Plan Phase 9 state inspector UI with `/gsd-plan-phase 9`.
 
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*

@@ -4,14 +4,14 @@ milestone: v1.1
 milestone_name: milestone
 status: executing
 stopped_at: Milestone v1.0 archived
-last_updated: "2026-05-08T16:32:29.206Z"
-last_activity: 2026-05-08 -- Phase 08 execution started
+last_updated: "2026-05-08"
+last_activity: 2026-05-08 -- Phase 08 completed and verified
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 9
-  completed_plans: 6
-  percent: 67
+  completed_phases: 3
+  total_plans: 15
+  completed_plans: 9
+  percent: 60
 ---
 
 # State: AHP Log Viewer
@@ -19,14 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 08 — server-state-at-index-api-and-cache-integration
+**Current Focus:** Phase 09 — state-inspector-ui
 
 ## Current Position
 
-Phase: 08 (server-state-at-index-api-and-cache-integration) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 08
-Last activity: 2026-05-08 -- Phase 08 execution started
+Phase: 09 (state-inspector-ui) — READY TO PLAN
+Plan: none yet
+Status: Phase 08 complete; Phase 09 ready for planning
+Last activity: 2026-05-08 -- Phase 08 completed and verified
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Last activity: 2026-05-08 -- Phase 08 execution started
 | v1.1 phases planned | 5 phases |
 | Phase 06 plans | 3 complete | 8 tasks | validated |
 | Phase 07 plans | 3 complete | 9 tasks | validated |
+| Phase 08 plans | 3 complete | 8 tasks | validated |
 
 ## Accumulated Context
 
@@ -103,6 +104,9 @@ Last activity: 2026-05-08 -- Phase 08 execution started
 - Plan 03-06: return null over <></> for early-return JSX components; requires JSX.Element|null return type annotation; satisfies biome noUselessFragments
 - Plan 03-06: tabIndex={-1} on gap-banner and group-header role=row divs — biome useFocusableInteractive requires programmatic focusability; keyboard navigation managed at TimelineRegion level
 - Phase 05: Playwright browser UAT uses @playwright/test, starts the local CLI/server against copied synthetic fixtures, captures the committed screenshot matrix, and verifies no absolute path leakage in browser-visible text.
+- Phase 08: reconstructed state is lazy-only: `/api/state-at` reads through `AppState.stateAtIndex`, while SSE rows never include replay resources, diagnostics, intents, cache, or state fields.
+- Phase 08: `StateReplayIndex` is exact-index LRU cache scoped per `AppState`; it survives live append for historical exact indexes and resets on rotation/dispose/log switch.
+- Phase 08: `/api/state-at` defaults to metadata-only resources and returns full state only for exact `resourceKind` + `resourceUri` selections, with confidence, diagnostics, intents, and cache metadata.
 - Phase 05: Responsive details use a desktop side rail at >=1400px and an overlay drawer below 1400px; theme choice remains global under `ahp-theme` while per-log preferences remain keyed by opaque logKey.
 - Phase 06: `@ahp-viewer/protocol` is a generated workspace package synced from sibling `../agent-host-protocol/types` via `pnpm sync:ahp`; generated files carry a DO NOT EDIT banner and source commit metadata.
 - Phase 06: Parser code imports canonical `ActionEnvelope` / `ProtocolNotification` directly from `@ahp-viewer/protocol`; `@ahp-viewer/shared/ahp` remains only as compatibility aliases for old I-prefixed names.

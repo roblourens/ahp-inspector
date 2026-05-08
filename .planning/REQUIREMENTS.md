@@ -25,9 +25,9 @@ Requirements for reducer-backed state reconstruction.
 
 ### State Confidence and Diagnostics
 
-- [ ] **CONF-01**: Every reconstructed state result reports confidence as complete, partial, or unknown.
-- [ ] **CONF-02**: State results explain missing baseline snapshots, server sequence gaps, unknown actions, ignored client intent, and parse errors that affect confidence.
-- [ ] **CONF-03**: Log switch, live tail, pause/resume, and rotation reset state replay caches consistently with existing event/search/detail state.
+- [x] **CONF-01**: Every reconstructed state result reports confidence as complete, partial, or unknown.
+- [x] **CONF-02**: State results explain missing baseline snapshots, server sequence gaps, unknown actions, ignored client intent, and parse errors that affect confidence.
+- [x] **CONF-03**: Log switch, live tail, pause/resume, and rotation reset state replay caches consistently with existing event/search/detail state.
 
 ### Inspector UI
 
@@ -46,7 +46,7 @@ Requirements for reducer-backed state reconstruction.
 ### Verification
 
 - [x] **VERIFY-01**: Reducer replay is covered by parity fixtures based on `../agent-host-protocol/types/test-cases/reducers`.
-- [ ] **VERIFY-02**: Integration tests cover state reconstruction from synthetic JSONL with subscribe/reconnect snapshots and action envelopes.
+- [x] **VERIFY-02**: Integration tests cover state reconstruction from synthetic JSONL with subscribe/reconnect snapshots and action envelopes.
 - [ ] **VERIFY-03**: Browser E2E covers opening a log, selecting a row, viewing state, pinning two points, and seeing confidence diagnostics.
 - [ ] **VERIFY-04**: Large-log tests confirm state-at-index lookup remains responsive and does not inflate timeline SSE payloads.
 
@@ -82,9 +82,9 @@ Requirements for reducer-backed state reconstruction.
 | REPLAY-04 | Phase 7 | Done |
 | REPLAY-05 | Phase 7 | Done |
 | REPLAY-06 | Phase 7 | Done |
-| CONF-01 | Phase 8 | Pending |
-| CONF-02 | Phase 8 | Pending |
-| CONF-03 | Phase 8 | Pending |
+| CONF-01 | Phase 8 | Done |
+| CONF-02 | Phase 8 | Done |
+| CONF-03 | Phase 8 | Done |
 | STATE-01 | Phase 9 | Pending |
 | STATE-02 | Phase 9 | Pending |
 | STATE-03 | Phase 9 | Pending |
@@ -94,7 +94,7 @@ Requirements for reducer-backed state reconstruction.
 | COMPARE-02 | Phase 10 | Pending |
 | COMPARE-03 | Phase 10 | Pending |
 | VERIFY-01 | Phase 6 | Done |
-| VERIFY-02 | Phase 8 | Pending |
+| VERIFY-02 | Phase 8 | Done |
 | VERIFY-03 | Phase 10 | Pending |
 | VERIFY-04 | Phase 10 | Pending |
 
