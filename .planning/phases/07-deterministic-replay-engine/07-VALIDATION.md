@@ -84,3 +84,14 @@ pnpm test && pnpm typecheck && pnpm lint
 - Reconnect replay embedded action envelopes apply in response array order.
 - Reconnect snapshot responses replace/install baselines.
 - No Phase 8-10 files or concepts are implemented.
+
+## Final Validation Result
+
+Passed on 2026-05-08:
+
+```bash
+pnpm test -- packages/core/src/replay.test.ts
+pnpm test
+pnpm typecheck
+pnpm lint
+```

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Reducer-backed State Snapshots
 status: in_progress
-last_updated: "2026-05-08T14:36:16.395Z"
+last_updated: "2026-05-08T16:10:19.000Z"
 last_activity: 2026-05-08
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 15
-  completed_plans: 3
-  percent: 20
+  completed_plans: 6
+  percent: 40
 ---
 
 # State: AHP Log Viewer
@@ -22,10 +22,10 @@ progress:
 
 ## Current Position
 
-Phase: 6 complete; Phase 7 next
-Plan: 06-01 through 06-03 complete
-Status: Protocol reducer sync foundation implemented and validated
-Last activity: 2026-05-08 — Phase 6 synced canonical AHP reducers/types into @ahp-viewer/protocol and added parity validation
+Phase: 7 complete; Phase 8 next
+Plan: 07-01 through 07-03 complete
+Status: Deterministic replay engine implemented and validated
+Last activity: 2026-05-08 — Phase 7 added pure reducer-backed replay in @ahp-viewer/core with deterministic event-time reducer execution, diagnostics, reconnect handling, and client intent capture
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Last activity: 2026-05-08 — Phase 6 synced canonical AHP reducers/types into @
 | v1.1 requirements mapped | 25 / 25 |
 | v1.1 phases planned | 5 phases |
 | Phase 06 plans | 3 complete | 8 tasks | validated |
+| Phase 07 plans | 3 complete | 9 tasks | validated |
 
 ## Accumulated Context
 

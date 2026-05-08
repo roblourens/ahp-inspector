@@ -57,9 +57,9 @@ Plans:
 
 Plans:
 
-- [ ] 07-01: Model replay resources, snapshots, action-envelope application, and diagnostics.
-- [ ] 07-02: Implement deterministic reducer execution with event-time `Date.now()` behavior.
-- [ ] 07-03: Handle subscribe/initialize/reconnect snapshots, reconnect action replay, and ignored client intent.
+- [x] 07-01: Model replay resources, snapshots, action-envelope application, and diagnostics.
+- [x] 07-02: Implement deterministic reducer execution with event-time `Date.now()` behavior.
+- [x] 07-03: Handle subscribe/initialize/reconnect snapshots, reconnect action replay, and ignored client intent.
 
 **Success criteria:**
 
@@ -129,11 +129,11 @@ Plans:
 | Milestone | Phases | Plans | Status | Completed |
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
-| v1.1 Reducer-backed State Snapshots | 0/5 | 0/15 | Planned | — |
+| v1.1 Reducer-backed State Snapshots | 2/5 | 6/15 | In progress | — |
 
 ## Next
 
-Plan and execute Phase 6 with `/gsd-plan-phase 6`.
+Plan and execute Phase 8 with `/gsd-plan-phase 8`.
 
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*
