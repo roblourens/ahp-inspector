@@ -8,7 +8,7 @@
 
 import { accessSync, constants, statSync } from "node:fs";
 import { basename, resolve as pathResolve } from "node:path";
-import type { Disposable, HostAdapter, LogCandidate, LogHandle } from "@ahp-viewer/shared";
+import type { Disposable, DiscoveryResult, HostAdapter, LogHandle } from "@ahp-viewer/shared";
 import { discoverVsCodeLogs } from "./discovery.js";
 import { TailReader } from "./tail-reader.js";
 
@@ -19,7 +19,7 @@ export interface NodeLogHandle extends LogHandle {
 }
 
 export class NodeHostAdapter implements HostAdapter {
-  async discoverLogs(): Promise<LogCandidate[]> {
+  async discoverLogs(): Promise<DiscoveryResult> {
     return discoverVsCodeLogs();
   }
 
