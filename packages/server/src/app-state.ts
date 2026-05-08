@@ -52,10 +52,12 @@ export type SsePayload =
       updates: Array<{
         idx: number;
         status: Status;
-        latencyMs: number | null;
-        latencyBand: LatencyBand | null;
-      }>;
-    }
+         latencyMs: number | null;
+         latencyBand: LatencyBand | null;
+         summary: string;
+         pairIdx: number | null;
+       }>;
+     }
   | { kind: "ping" }
   | { kind: "bye" }
   | { kind: "error"; code: string; message: string }
@@ -174,6 +176,9 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
         ? (rawRec.error as Record<string, unknown>)
         : null;
     const errorCode = typeof errRec?.code === "number" ? (errRec.code as number) : null;
+    const pairIdx = correlator.pairOf(idx);
+    const pairEvent = pairIdx !== null ? store.at(pairIdx) : null;
+    const pairMethod = pairEvent?.method ?? null;
     const isAuthFailure =
       (ev.kind === "response" && errorCode === -32007) ||
       ((ev.kind === "protocol-notification" || ev.kind === "server-notification") &&
@@ -184,9 +189,11 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       serverSeq: evSeq,
       gapBefore,
       isAuthFailure,
+      pairIdx,
+      pairMethod,
     };
 
-    return projectRow(ev, idx, status, latency, extras);
+    return projectRow(ev, idx, status, latency, extras, pairMethod);
   }
 
   // Subscribe AFTER the Correlator so the correlator updates first and our
@@ -211,16 +218,19 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       status: Status;
       latencyMs: number | null;
       latencyBand: LatencyBand | null;
+      summary: string;
+      pairIdx: number | null;
     }> = [];
     for (let i = 0; i < range.from; i++) {
       const prev = rows[i];
       if (!prev) continue;
       const status = correlator.statusOf(i);
       const latencyMs = correlator.latencyOf(i);
-      if (prev.status !== status || prev.latencyMs !== latencyMs) {
+      const pairIdx = correlator.pairOf(i);
+      if (prev.status !== status || prev.latencyMs !== latencyMs || prev.pairIdx !== pairIdx) {
         const latencyBand = bandFor(latencyMs);
-        rows[i] = { ...prev, status, latencyMs, latencyBand };
-        updates.push({ idx: i, status, latencyMs, latencyBand });
+        rows[i] = { ...prev, status, latencyMs, latencyBand, pairIdx };
+        updates.push({ idx: i, status, latencyMs, latencyBand, summary: prev.summary, pairIdx });
       }
     }
     if (newRows.length > 0) emit({ kind: "append", rows: newRows, from: range.from });
@@ -287,16 +297,19 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       status: Status;
       latencyMs: number | null;
       latencyBand: LatencyBand | null;
+      summary: string;
+      pairIdx: number | null;
     }> = [];
     for (let i = 0; i < store.size(); i++) {
       const prev = rows[i];
       if (!prev) continue;
       const status = correlator.statusOf(i);
       const latencyMs = correlator.latencyOf(i);
-      if (prev.status !== status || prev.latencyMs !== latencyMs) {
+      const pairIdx = correlator.pairOf(i);
+      if (prev.status !== status || prev.latencyMs !== latencyMs || prev.pairIdx !== pairIdx) {
         const latencyBand = bandFor(latencyMs);
-        rows[i] = { ...prev, status, latencyMs, latencyBand };
-        updates.push({ idx: i, status, latencyMs, latencyBand });
+        rows[i] = { ...prev, status, latencyMs, latencyBand, pairIdx };
+        updates.push({ idx: i, status, latencyMs, latencyBand, summary: prev.summary, pairIdx });
       }
     }
     if (updates.length > 0) emit({ kind: "patch", updates });

@@ -143,4 +143,62 @@ describe("normalize (EVENT-02 classification)", () => {
     );
     expect(ev.sessionId).toBe("u://1");
   });
+
+  it.each([
+    ["params.action.session", { action: { session: "safe-action-session" } }, "safe-action-session"],
+    [
+      "params.action.sessionId",
+      { action: { sessionId: "safe-action-session-id" } },
+      "safe-action-session-id",
+    ],
+    [
+      "params.action.session.uri",
+      { action: { session: { uri: "ahp-session://safe-action-uri" } } },
+      "ahp-session://safe-action-uri",
+    ],
+    [
+      "params.notification.session",
+      { notification: { session: "safe-notification-session" } },
+      "safe-notification-session",
+    ],
+    [
+      "params.notification.sessionId",
+      { notification: { sessionId: "safe-notification-session-id" } },
+      "safe-notification-session-id",
+    ],
+  ])("extracts nested session from %s", (_name, params, expected) => {
+    const ev = normalize({ jsonrpc: "2.0", method: "action", params }, meta(0, "s2c"));
+    expect(ev.sessionId).toBe(expected);
+  });
+
+  it.each([
+    ["params.action.turnId", { action: { turnId: "turn-action-1" } }, "turn-action-1"],
+    ["params.action.turn.id", { action: { turn: { id: "turn-action-2" } } }, "turn-action-2"],
+    [
+      "params.notification.turnId",
+      { notification: { turnId: "turn-notification-1" } },
+      "turn-notification-1",
+    ],
+    [
+      "params.notification.turn.id",
+      { notification: { turn: { id: "turn-notification-2" } } },
+      "turn-notification-2",
+    ],
+  ])("extracts nested turn from %s", (_name, params, expected) => {
+    const ev = normalize({ jsonrpc: "2.0", method: "action", params }, meta(0, "s2c"));
+    expect(ev.turnId).toBe(expected);
+  });
+
+  it("returns null for malformed nested session and turn values", () => {
+    const ev = normalize(
+      {
+        jsonrpc: "2.0",
+        method: "action",
+        params: { action: { session: { uri: 1 }, sessionId: 2, turnId: false, turn: "bad" } },
+      },
+      meta(0, "s2c"),
+    );
+    expect(ev.sessionId).toBeNull();
+    expect(ev.turnId).toBeNull();
+  });
 });

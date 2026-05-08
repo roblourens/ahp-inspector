@@ -30,6 +30,8 @@ export interface PatchUpdate {
   status: Status;
   latencyMs: number | null;
   latencyBand: LatencyBand | null;
+  summary?: string;
+  pairIdx?: number | null;
 }
 
 export interface AppStoreState {
@@ -138,6 +140,8 @@ export const useAppStore = create<AppStoreState>((set) => ({
             status: u.status,
             latencyMs: u.latencyMs,
             latencyBand: u.latencyBand,
+            ...(u.summary !== undefined ? { summary: u.summary } : {}),
+            ...(u.pairIdx !== undefined ? { pairIdx: u.pairIdx } : {}),
           };
         }
       }

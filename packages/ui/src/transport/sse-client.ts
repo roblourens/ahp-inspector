@@ -35,6 +35,8 @@ interface PatchPayload {
     status: Status;
     latencyMs: number | null;
     latencyBand: LatencyBand | null;
+    summary?: string;
+    pairIdx?: number | null;
   }>;
 }
 

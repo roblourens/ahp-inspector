@@ -14,9 +14,21 @@ function asString(v: unknown): string | null {
   return typeof v === "string" ? v : null;
 }
 
-export function extractSessionId(_method: string | null, params: unknown): string | null {
-  const p = paramsObject(params);
-  if (!p) return null;
+function objectChild(parent: Record<string, unknown>, key: "action" | "notification"): Record<string, unknown> | null {
+  const child = parent[key];
+  return typeof child === "object" && child !== null ? (child as Record<string, unknown>) : null;
+}
+
+function candidateObjects(p: Record<string, unknown>): Record<string, unknown>[] {
+  const out = [p];
+  const action = objectChild(p, "action");
+  if (action) out.push(action);
+  const notification = objectChild(p, "notification");
+  if (notification) out.push(notification);
+  return out;
+}
+
+function sessionFromObject(p: Record<string, unknown>): string | null {
   const session = p.session;
   if (typeof session === "string") return session;
   if (typeof session === "object" && session !== null) {
@@ -26,15 +38,33 @@ export function extractSessionId(_method: string | null, params: unknown): strin
   return asString(p.sessionId);
 }
 
-export function extractTurnId(_method: string | null, params: unknown): string | null {
-  const p = paramsObject(params);
-  if (!p) return null;
+function turnFromObject(p: Record<string, unknown>): string | null {
   const fromTop = asString(p.turnId);
   if (fromTop) return fromTop;
   const turn = p.turn;
   if (typeof turn === "object" && turn !== null) {
     const id = (turn as Record<string, unknown>).id;
     if (typeof id === "string") return id;
+  }
+  return null;
+}
+
+export function extractSessionId(_method: string | null, params: unknown): string | null {
+  const p = paramsObject(params);
+  if (!p) return null;
+  for (const candidate of candidateObjects(p)) {
+    const session = sessionFromObject(candidate);
+    if (session) return session;
+  }
+  return null;
+}
+
+export function extractTurnId(_method: string | null, params: unknown): string | null {
+  const p = paramsObject(params);
+  if (!p) return null;
+  for (const candidate of candidateObjects(p)) {
+    const turn = turnFromObject(candidate);
+    if (turn) return turn;
   }
   return null;
 }
@@ -51,8 +81,14 @@ export function extractToolCallId(_method: string | null, params: unknown): stri
   }
   const action = p.action;
   if (typeof action === "object" && action !== null) {
-    const id = (action as Record<string, unknown>).toolCallId;
+    const actionRec = action as Record<string, unknown>;
+    const id = actionRec.toolCallId;
     if (typeof id === "string") return id;
+    const nested = actionRec.toolCall;
+    if (typeof nested === "object" && nested !== null) {
+      const nestedId = (nested as Record<string, unknown>).id;
+      if (typeof nestedId === "string") return nestedId;
+    }
   }
   return null;
 }

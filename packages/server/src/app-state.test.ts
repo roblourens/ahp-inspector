@@ -142,8 +142,13 @@ describe("createAppState", () => {
     if (!upd) throw new Error("expected patch update for row 0");
     expect(upd.status).toBe("ok");
     expect(upd.latencyMs).not.toBeNull();
+    expect(upd.pairIdx).toBe(1);
     if (upd.latencyMs === null) throw new Error("expected latency");
     expect(upd.latencyMs).toBeGreaterThanOrEqual(0);
+    const rows = state.snapshot().rows;
+    expect(rows[0]?.pairIdx).toBe(1);
+    expect(rows[1]?.pairIdx).toBe(0);
+    expect(rows[1]?.summary).toBe("doThing result ok=true");
   });
 
   it("flips a pending request to 'unmatched' on flush after the timeout", async () => {
