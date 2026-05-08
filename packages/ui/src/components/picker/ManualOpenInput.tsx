@@ -56,7 +56,7 @@ export function ManualOpenInput({
           value={path}
           onChange={(e) => setPath(e.target.value)}
           maxLength={MAX_PATH_LEN}
-          placeholder="/absolute/path/to/log.jsonl"
+          placeholder="Paste a log file path"
           disabled={disabled || busy}
           aria-invalid={error !== null}
           aria-describedby={error ? errorId : undefined}

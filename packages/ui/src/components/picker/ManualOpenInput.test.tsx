@@ -8,7 +8,7 @@ describe("ManualOpenInput", () => {
   it("calls onOpen with the typed path on submit", async () => {
     const onOpen = vi.fn().mockResolvedValue(undefined);
     render(<ManualOpenInput onOpen={onOpen} />);
-    const input = screen.getByPlaceholderText(/absolute\/path/i) as HTMLInputElement;
+    const input = screen.getByPlaceholderText(/paste a log file path/i) as HTMLInputElement;
     fireEvent.change(input, { target: { value: "/tmp/log.jsonl" } });
     fireEvent.click(screen.getByRole("button", { name: /Open Log/i }));
     await waitFor(() => expect(onOpen).toHaveBeenCalledWith("/tmp/log.jsonl"));
@@ -17,7 +17,7 @@ describe("ManualOpenInput", () => {
   it("submits on Enter inside the input", async () => {
     const onOpen = vi.fn().mockResolvedValue(undefined);
     render(<ManualOpenInput onOpen={onOpen} />);
-    const input = screen.getByPlaceholderText(/absolute\/path/i) as HTMLInputElement;
+    const input = screen.getByPlaceholderText(/paste a log file path/i) as HTMLInputElement;
     fireEvent.change(input, { target: { value: "/tmp/x.jsonl" } });
     const form = input.closest("form");
     if (!form) throw new Error("form not found");
@@ -28,7 +28,7 @@ describe("ManualOpenInput", () => {
   it("rejects paths > 4096 chars without calling onOpen", async () => {
     const onOpen = vi.fn();
     render(<ManualOpenInput onOpen={onOpen} />);
-    const input = screen.getByPlaceholderText(/absolute\/path/i) as HTMLInputElement;
+    const input = screen.getByPlaceholderText(/paste a log file path/i) as HTMLInputElement;
     // Bypass maxLength via direct value mutation (simulate paste-bypass).
     input.removeAttribute("maxLength");
     fireEvent.change(input, { target: { value: `/${"a".repeat(5000)}` } });
@@ -45,7 +45,7 @@ describe("ManualOpenInput", () => {
       .fn()
       .mockRejectedValue(Object.assign(new Error("err"), { code: "not-found" }));
     render(<ManualOpenInput onOpen={onOpen} />);
-    const input = screen.getByPlaceholderText(/absolute\/path/i) as HTMLInputElement;
+    const input = screen.getByPlaceholderText(/paste a log file path/i) as HTMLInputElement;
     fireEvent.change(input, { target: { value: typed } });
     fireEvent.click(screen.getByRole("button", { name: /Open Log/i }));
     const alert = await screen.findByRole("alert");
@@ -57,7 +57,7 @@ describe("ManualOpenInput", () => {
   it("falls back to generic copy on unknown error code", async () => {
     const onOpen = vi.fn().mockRejectedValue(Object.assign(new Error("?"), { code: "weird-code" }));
     render(<ManualOpenInput onOpen={onOpen} />);
-    fireEvent.change(screen.getByPlaceholderText(/absolute\/path/i), {
+    fireEvent.change(screen.getByPlaceholderText(/paste a log file path/i), {
       target: { value: "/tmp/x" },
     });
     fireEvent.click(screen.getByRole("button", { name: /Open Log/i }));
