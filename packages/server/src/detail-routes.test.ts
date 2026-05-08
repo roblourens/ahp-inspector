@@ -60,6 +60,7 @@ function makeDetailAppState(
     filename: "test.log",
     sizeBytes: 0,
     startedAt: 0,
+    logKey: "0".repeat(32),
   };
   // We store the absolute path only to verify it doesn't leak into responses.
   void absolutePath;
@@ -203,7 +204,7 @@ describe("GET /api/log/search (via detail test file)", () => {
     const ev = makeEvent({ seq: 0, method: "initialize" });
     const si = new SearchIndex();
     si.append(ev);
-    const meta: LogMeta = { filename: "t.log", sizeBytes: 0, startedAt: 0 };
+    const meta: LogMeta = { filename: "t.log", sizeBytes: 0, startedAt: 0, logKey: "0".repeat(32) };
     const appState: AppState = {
       meta,
       searchIndex: si,

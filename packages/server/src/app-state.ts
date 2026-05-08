@@ -24,6 +24,7 @@ import {
   type LogHandle,
   makeParseErrorEvent,
 } from "@ahp-viewer/shared";
+import { computeLogKey } from "./log-key.js";
 import { SearchIndex } from "./search-index.js";
 
 /** Server-side log metadata. NEVER carries absolute paths (T-02-03). */
@@ -32,6 +33,12 @@ export interface LogMeta {
   readonly filename: string;
   readonly sizeBytes: number;
   readonly startedAt: number;
+  /**
+   * Stable, opaque identifier for this log (D-16). 32-char lowercase hex
+   * derived from sha256(absPath + initial mtimeMs). Used by the UI to scope
+   * per-log persistence; never reveals the underlying path.
+   */
+  readonly logKey: string;
 }
 
 /** Discriminated union of every payload AppState emits to subscribers. */
@@ -51,7 +58,10 @@ export type SsePayload =
     }
   | { kind: "ping" }
   | { kind: "bye" }
-  | { kind: "error"; code: string; message: string };
+  | { kind: "error"; code: string; message: string }
+  | { kind: "rotation"; newSize: number; reason: "shrink" | "rename" }
+  | { kind: "watch-error"; code: "read-error" | "watch-fatal"; message: string }
+  | { kind: "log-reset" };
 
 export type Listener = (payload: SsePayload) => void;
 
@@ -70,6 +80,12 @@ export interface AppStateOptions {
   readonly flushIntervalMs?: number;
   /** Default 30_000ms. Used by Correlator.flush. */
   readonly unmatchedTimeoutMs?: number;
+  /**
+   * Optional pre-computed logKey (Phase 4 D-16). When omitted, AppState falls
+   * back to `computeLogKey(handlePath, Date.now())` so existing CLI/tests keep
+   * working; Wave 2's session manager will inject a stable mtime-derived key.
+   */
+  readonly logKey?: string;
 }
 
 export interface AppState {
@@ -109,6 +125,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     filename: basename(handlePath),
     sizeBytes: handle.size ?? 0,
     startedAt: Date.now(),
+    logKey: opts.logKey ?? computeLogKey(handlePath, Date.now()),
   };
 
   const rows: EventRow[] = [];

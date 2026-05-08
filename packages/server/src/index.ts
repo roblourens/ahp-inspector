@@ -4,6 +4,7 @@ export { CSP_VALUE, cspMiddleware } from "./csp.js";
 export type { HealthServerHandle, HealthServerOptions } from "./health-server.js";
 export { startHealthServer } from "./health-server.js";
 export { hostGuardMiddleware } from "./host-guard.js";
+export { computeLogKey } from "./log-key.js";
 export type { LogServerHandle, LogServerOptions } from "./log-server.js";
 export { startLogServer } from "./log-server.js";
 export { registerLogRoutes } from "./sse-routes.js";
