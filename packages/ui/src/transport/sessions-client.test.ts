@@ -80,7 +80,7 @@ describe("sessions-client", () => {
   });
 
   describe("openSessionByCandidate", () => {
-    it("posts {candidateId} JSON body and resolves on 200", async () => {
+    it("posts {id} JSON body and resolves on 200", async () => {
       const fetchMock = vi
         .fn()
         .mockResolvedValue(mkResponse({ ok: true, status: 200, json: { ok: true } }));
@@ -94,7 +94,7 @@ describe("sessions-client", () => {
         }),
       );
       const callInit = fetchMock.mock.calls[0]?.[1] as FetchInit;
-      expect(JSON.parse(callInit.body ?? "{}")).toEqual({ candidateId: "cand-123" });
+      expect(JSON.parse(callInit.body ?? "{}")).toEqual({ id: "cand-123" });
     });
 
     it("throws SessionOpenError carrying server `code` on 4xx", async () => {

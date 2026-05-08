@@ -58,6 +58,6 @@ async function postOpen(body: unknown): Promise<void> {
 }
 
 export const openSessionByCandidate = (candidateId: string): Promise<void> =>
-  postOpen({ candidateId });
+  postOpen({ id: candidateId });
 
 export const openSessionByPath = (path: string): Promise<void> => postOpen({ path });
