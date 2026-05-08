@@ -75,6 +75,8 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
+  packages/protocol: {}
+
   packages/server:
     dependencies:
       '@ahp-viewer/core':

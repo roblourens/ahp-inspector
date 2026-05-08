@@ -20,6 +20,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "sync:ahp": "tsx scripts/sync-agent-host-protocol.ts",
     "test": "vitest run",
     "test:changed": "vitest run --changed",
     "lint": "biome check .",
