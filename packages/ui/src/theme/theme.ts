@@ -25,7 +25,10 @@ export function applyTheme(theme: ThemeId, root: Element = document.documentElem
   root.setAttribute("data-theme", theme);
 }
 
-export function persistTheme(theme: ThemeId, storage: Pick<Storage, "setItem"> = localStorage): void {
+export function persistTheme(
+  theme: ThemeId,
+  storage: Pick<Storage, "setItem"> = localStorage,
+): void {
   try {
     storage.setItem(THEME_STORAGE_KEY, theme);
   } catch {

@@ -1,10 +1,13 @@
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
-import { mkdtemp, rm, writeFile, appendFile } from "node:fs/promises";
+import { appendFile, mkdtemp, rm, writeFile } from "node:fs/promises";
 import * as http from "node:http";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { PHASE5_APPENDED_EVENT, PHASE5_BASE_JSONL } from "../packages/ui/src/test-fixtures/phase5-log.js";
+import {
+  PHASE5_APPENDED_EVENT,
+  PHASE5_BASE_JSONL,
+} from "../packages/ui/src/test-fixtures/phase5-log.js";
 
 const CLI_ENTRY = resolve("packages/cli/src/index.ts");
 const TSX_BIN = resolve("node_modules/.bin/tsx");
@@ -58,9 +61,8 @@ function waitForPort(proc: CliProc, timeoutMs = 10_000): Promise<number> {
 
 function requestJson<T>(port: number, path: string): Promise<T> {
   return new Promise((resolveJson, reject) => {
-    http.get(
-      { host: "127.0.0.1", port, path, headers: { Host: `127.0.0.1:${port}` } },
-      (res) => {
+    http
+      .get({ host: "127.0.0.1", port, path, headers: { Host: `127.0.0.1:${port}` } }, (res) => {
         let body = "";
         res.setEncoding("utf8");
         res.on("data", (chunk: string) => {
@@ -76,8 +78,8 @@ function requestJson<T>(port: number, path: string): Promise<T> {
           expect(body).not.toMatch(/[A-Za-z]:\\\\/);
           resolveJson(JSON.parse(body) as T);
         });
-      },
-    ).on("error", reject);
+      })
+      .on("error", reject);
   });
 }
 

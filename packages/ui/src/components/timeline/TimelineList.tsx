@@ -131,7 +131,13 @@ export function TimelineList({
     <div
       data-testid="timeline-list-shell"
       className="timeline-list-shell"
-      style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, minWidth: 0 }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+        minWidth: 0,
+      }}
     >
       <div
         role="row"
@@ -173,7 +179,13 @@ export function TimelineList({
         aria-label="AHP event timeline"
         aria-rowcount={items.length}
         data-testid="timeline-list"
-        style={{ flex: 1, minHeight: 0, overflow: "auto", background: "var(--color-bg)", minWidth: 0 }}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflow: "auto",
+          background: "var(--color-bg)",
+          minWidth: 0,
+        }}
       >
         <div style={{ height: v.getTotalSize(), position: "relative", minWidth: "max-content" }}>
           {v.getVirtualItems().map((vi) => {

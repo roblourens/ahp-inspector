@@ -23,7 +23,6 @@ import { HeaderBar } from "./HeaderBar.js";
 import { SourceStrip } from "./SourceStrip.js";
 import { StatusBar } from "./StatusBar.js";
 
-
 function getIsDetailDesktop(): boolean {
   if (typeof window === "undefined") return true;
   if (typeof window.matchMedia === "function") {
@@ -167,9 +166,16 @@ export function AppShell(): JSX.Element {
 
   // Ref to SearchInput's <input> element for "/" keyboard shortcut
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const drawerCloseRef = useRef<HTMLButtonElement | null>(null);
 
   // Count group headers in groupedItems for StatusBar
   const groupCount = groupedItems.filter((i) => i.kind === "header").length;
+
+  useEffect(() => {
+    if (!isDetailDesktop && selectedIdx !== null) {
+      drawerCloseRef.current?.focus();
+    }
+  }, [isDetailDesktop, selectedIdx]);
 
   useEffect(() => {
     if (isDetailDesktop || selectedIdx === null) return;
@@ -225,12 +231,17 @@ export function AppShell(): JSX.Element {
       </div>
       {!isDetailDesktop && selectedIdx !== null && (
         <div className="detail-drawer-backdrop" data-testid="detail-drawer-backdrop">
-          <div className="detail-drawer" role="dialog" aria-label="Event detail" data-testid="detail-drawer">
+          <div
+            className="detail-drawer"
+            role="dialog"
+            aria-label="Event detail"
+            data-testid="detail-drawer"
+          >
             <button
               type="button"
               className="detail-drawer-close"
+              ref={drawerCloseRef}
               onClick={closeDetailDrawer}
-              autoFocus
             >
               Close details
             </button>

@@ -41,13 +41,15 @@ describe("HeaderBar theme switcher", () => {
     );
   });
 
-
-
   it("applies and persists every theme and returns focus to the picker", () => {
     render(<HeaderBar version="0.1.0" />);
     const picker = screen.getByRole("button", { name: "Theme picker (Dark)" });
 
-    for (const [label, id] of [["Light", "light"], ["Hacker", "hacker"], ["Dark", "dark"]] as const) {
+    for (const [label, id] of [
+      ["Light", "light"],
+      ["Hacker", "hacker"],
+      ["Dark", "dark"],
+    ] as const) {
       fireEvent.click(picker);
       fireEvent.click(screen.getByRole("menuitemradio", { name: label }));
       expect(document.documentElement.getAttribute("data-theme")).toBe(id);

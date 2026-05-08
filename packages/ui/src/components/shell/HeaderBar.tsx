@@ -1,7 +1,13 @@
 import { Check, ChevronDown, Palette } from "lucide-react";
 import type { JSX, KeyboardEvent } from "react";
 import { useEffect, useRef, useState } from "react";
-import { applyTheme, labelForTheme, persistTheme, THEMES, type ThemeId } from "../../theme/theme.js";
+import {
+  applyTheme,
+  labelForTheme,
+  persistTheme,
+  THEMES,
+  type ThemeId,
+} from "../../theme/theme.js";
 import { __APP_VERSION__ } from "../../version.js";
 import { LivePauseButton } from "./LivePauseButton.js";
 import { SwitchLogButton } from "./SwitchLogButton.js";
@@ -154,7 +160,9 @@ export function HeaderBar({ version, onSwitchLog }: HeaderBarProps): JSX.Element
                     type="button"
                     role="menuitemradio"
                     aria-checked={active}
-                    ref={(node) => { optionRefs.current[index] = node; }}
+                    ref={(node) => {
+                      optionRefs.current[index] = node;
+                    }}
                     onClick={() => setTheme(option.id)}
                     onKeyDown={(event) => handleOptionKeyDown(event, index)}
                     style={{

@@ -223,3 +223,25 @@ A brief **"Copied N chars"** toast appears at the bottom-right to confirm the cl
 | `Esc` | Clear search → clear filters → deselect row (in sequence) |
 
 ![/ key focuses the search input](screenshots/phase3-keyboard.png)
+
+
+## Phase 5 Theme and Responsive Polish
+
+Use the compact **Theme picker** in the header to switch between Dark, Light, and Hacker. The picker intentionally keeps the raw theme words inside the menu so the top-level UI stays compact. The selected theme persists in `localStorage["ahp-theme"]` and is separate from per-log viewer preferences.
+
+Screenshots from the Phase 5 browser UAT matrix:
+
+- Dark desktop: `screenshots/phase5/01-dark-desktop.png`
+- Light desktop: `screenshots/phase5/02-light-desktop.png`
+- Hacker desktop: `screenshots/phase5/03-hacker-desktop.png`
+- Dark laptop drawer: `screenshots/phase5/04-laptop-drawer-dark.png`
+- Hacker laptop drawer: `screenshots/phase5/05-laptop-drawer-hacker.png`
+- Narrow light flow: `screenshots/phase5/06-narrow-light.png`
+- Wide dark layout: `screenshots/phase5/07-wide-dark.png`
+- Ultra-wide hacker layout: `screenshots/phase5/08-ultrawide-hacker.png`
+- Empty/no-results light state: `screenshots/phase5/09-empty-light.png`
+- Error/parse-state hacker view: `screenshots/phase5/10-errors-hacker.png`
+
+At widths below 1400px, selecting a row opens event details in a right-side overlay drawer with a **Close details** control. At desktop widths, details remain a resizable right rail. Search, filters, Pretty JSON, Raw JSON, pair highlighting, and live appended events continue to work in all themes.
+
+Privacy note: raw payloads can contain sensitive prompt, token, path, or model-output data. The viewer stays local-only and test screenshots use scrubbed synthetic fixtures, but inspect real raw payloads before sharing screenshots.

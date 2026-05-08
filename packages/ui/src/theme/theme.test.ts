@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
-import { applyTheme, isThemeId, persistTheme, readStoredTheme, THEME_STORAGE_KEY } from "./theme.js";
+import {
+  applyTheme,
+  isThemeId,
+  persistTheme,
+  readStoredTheme,
+  THEME_STORAGE_KEY,
+} from "./theme.js";
 
 describe("theme helpers", () => {
   it("validates known theme ids", () => {
@@ -18,7 +24,13 @@ describe("theme helpers", () => {
   });
 
   it("falls back to dark when storage throws", () => {
-    expect(readStoredTheme({ getItem: () => { throw new Error("blocked"); } })).toBe("dark");
+    expect(
+      readStoredTheme({
+        getItem: () => {
+          throw new Error("blocked");
+        },
+      }),
+    ).toBe("dark");
   });
 
   it("applies and persists themes while ignoring write errors", () => {
@@ -30,6 +42,12 @@ describe("theme helpers", () => {
     persistTheme("light", { setItem });
     expect(setItem).toHaveBeenCalledWith(THEME_STORAGE_KEY, "light");
 
-    expect(() => persistTheme("dark", { setItem: () => { throw new Error("quota"); } })).not.toThrow();
+    expect(() =>
+      persistTheme("dark", {
+        setItem: () => {
+          throw new Error("quota");
+        },
+      }),
+    ).not.toThrow();
   });
 });

@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { relative, join } from "node:path";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const SRC_DIR = new URL("../", import.meta.url).pathname;
@@ -19,7 +19,11 @@ function walk(dir: string): string[] {
     if (s.isDirectory()) {
       out.push(...walk(full));
     } else if (s.isFile()) {
-      if ((full.endsWith(".ts") || full.endsWith(".tsx")) && !full.endsWith(".test.ts") && !full.endsWith(".test.tsx")) {
+      if (
+        (full.endsWith(".ts") || full.endsWith(".tsx")) &&
+        !full.endsWith(".test.ts") &&
+        !full.endsWith(".test.tsx")
+      ) {
         out.push(full);
       }
     }

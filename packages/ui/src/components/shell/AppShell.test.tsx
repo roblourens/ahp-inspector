@@ -171,7 +171,6 @@ describe("AppShell — Plan 04-05 wiring", () => {
   });
 });
 
-
 describe("AppShell — responsive detail layout", () => {
   function setViewportWidth(width: number): void {
     Object.defineProperty(window, "innerWidth", { configurable: true, value: width });

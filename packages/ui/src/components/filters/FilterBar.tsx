@@ -70,8 +70,6 @@ export function FilterBar({
         paddingRight: "var(--space-3)",
         background: "var(--color-surface)",
         borderBottom: "1px solid var(--color-border)",
-        flexWrap: "wrap",
-        overflow: "visible",
         position: "relative",
         zIndex: 1000,
       }}

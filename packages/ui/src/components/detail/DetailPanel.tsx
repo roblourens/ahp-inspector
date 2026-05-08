@@ -27,10 +27,10 @@ import { CopyToast } from "./CopyToast.js";
 import { DetailResizeHandle } from "./DetailResizeHandle.js";
 import { DetailSummary } from "./DetailSummary.js";
 import { DetailTabs } from "./DetailTabs.js";
+import { DETAIL_MAX_WIDTH, DETAIL_MIN_WIDTH } from "./detail-layout.js";
 import { PrettyJsonView } from "./PrettyJsonView.js";
 import { PrivacyCaption } from "./PrivacyCaption.js";
 import { RawJsonView } from "./RawJsonView.js";
-import { DETAIL_MAX_WIDTH, DETAIL_MIN_WIDTH } from "./detail-layout.js";
 
 interface LoadState {
   status: "idle" | "loading" | "error" | "ok";
@@ -42,7 +42,9 @@ interface DetailPanelProps {
   showResizeHandle?: boolean;
 }
 
-export function DetailPanel({ showResizeHandle = true }: DetailPanelProps = {}): JSX.Element | null {
+export function DetailPanel({
+  showResizeHandle = true,
+}: DetailPanelProps = {}): JSX.Element | null {
   const selectedIdx = useAppStore((s) => s.selectedIdx);
   const rows = useAppStore((s) => s.rows);
   const detailWidth = useAppStore((s) => s.detailWidth);
@@ -115,7 +117,7 @@ export function DetailPanel({ showResizeHandle = true }: DetailPanelProps = {}):
           display: "flex",
           flexDirection: "column",
           background: "var(--color-surface)",
-          borderLeft: "1px solid var(--color-border-strong)",
+          borderLeft: showResizeHandle ? "1px solid var(--color-border-strong)" : "0",
           overflow: "hidden",
         }}
       >
@@ -178,7 +180,7 @@ export function DetailPanel({ showResizeHandle = true }: DetailPanelProps = {}):
           display: "flex",
           flexDirection: "column",
           background: "var(--color-surface)",
-          borderLeft: "1px solid var(--color-border-strong)",
+          borderLeft: showResizeHandle ? "1px solid var(--color-border-strong)" : "0",
           overflow: "hidden",
         }}
       >
@@ -223,7 +225,7 @@ export function DetailPanel({ showResizeHandle = true }: DetailPanelProps = {}):
           display: "flex",
           flexDirection: "column",
           background: "var(--color-surface)",
-          borderLeft: "1px solid var(--color-border-strong)",
+          borderLeft: showResizeHandle ? "1px solid var(--color-border-strong)" : "0",
           overflow: "hidden",
         }}
       >
@@ -304,18 +306,18 @@ export function DetailPanel({ showResizeHandle = true }: DetailPanelProps = {}):
         display: "flex",
         flexDirection: "column",
         background: "var(--color-surface)",
-        borderLeft: "1px solid var(--color-border-strong)",
+        borderLeft: showResizeHandle ? "1px solid var(--color-border-strong)" : "0",
         overflow: "hidden",
       }}
     >
       {showResizeHandle && (
-          <DetailResizeHandle
-            width={detailWidth}
-            onResize={setDetailWidth}
-            min={DETAIL_MIN_WIDTH}
-            max={DETAIL_MAX_WIDTH}
-          />
-        )}
+        <DetailResizeHandle
+          width={detailWidth}
+          onResize={setDetailWidth}
+          min={DETAIL_MIN_WIDTH}
+          max={DETAIL_MAX_WIDTH}
+        />
+      )}
 
       {/* Auth failure banner */}
       {isAuthFailure && (

@@ -1,7 +1,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const cssPath = existsSync("src/styles/tokens.css") ? "src/styles/tokens.css" : "packages/ui/src/styles/tokens.css";
+const cssPath = existsSync("src/styles/tokens.css")
+  ? "src/styles/tokens.css"
+  : "packages/ui/src/styles/tokens.css";
 const css = readFileSync(cssPath, "utf8");
 
 export const REQUIRED_THEME_TOKENS = [
@@ -81,20 +83,20 @@ function blockFor(selector: string): string {
 }
 
 describe("theme token blocks", () => {
-  it.each([":root,\n[data-theme=\"dark\"]", "[data-theme=\"light\"]", "[data-theme=\"hacker\"]"])(
-    "%s exposes the baseline semantic tokens",
-    (selector) => {
-      const block = blockFor(selector);
-      const missing = REQUIRED_THEME_TOKENS.filter((token) => !block.includes(`${token}:`));
-      expect(missing).toEqual([]);
-    },
-  );
+  it.each([
+    ':root,\n[data-theme="dark"]',
+    '[data-theme="light"]',
+    '[data-theme="hacker"]',
+  ])("%s exposes the baseline semantic tokens", (selector) => {
+    const block = blockFor(selector);
+    const missing = REQUIRED_THEME_TOKENS.filter((token) => !block.includes(`${token}:`));
+    expect(missing).toEqual([]);
+  });
 });
-
 
 describe("hacker effect token bounds", () => {
   it("keeps CRT effect opacity within UI-SPEC limits", () => {
-    const block = blockFor("[data-theme=\"hacker\"]");
+    const block = blockFor('[data-theme="hacker"]');
     const valueFor = (token: string): number => {
       const match = block.match(new RegExp(`${token}:\\s*([0-9.]+)`));
       return Number(match?.[1] ?? Number.NaN);

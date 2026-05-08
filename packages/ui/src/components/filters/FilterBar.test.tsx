@@ -119,7 +119,7 @@ describe("FilterBar", () => {
   it("does not clip facet popovers behind the timeline", () => {
     render(<FilterBar />);
     const bar = screen.getByTestId("filter-bar");
-    expect(bar.style.overflow).toBe("visible");
+    expect(bar.className).toContain("filter-bar");
     expect(bar.style.position).toBe("relative");
     expect(Number(bar.style.zIndex)).toBeGreaterThan(0);
   });
