@@ -28,6 +28,8 @@ function makeRow(i: number): EventRowData {
     latencyMs: null,
     latencyBand: null,
     payloadPreview: "",
+    summary: `ping id=${i}`,
+    pairIdx: null,
     parseErrorReason: null,
     lineIndex: i + 1,
     errorCode: null,
@@ -108,11 +110,62 @@ describe("TimelineList — virtualization", () => {
     const grid = screen.getByRole("grid");
     expect(grid.getAttribute("aria-rowcount")).toBe(String(ROWS));
     expect(screen.getByTestId("timeline-column-header")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Request or event ID" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Time" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Payload" })).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Status" })).toBeNull();
+    expect(screen.getByRole("columnheader", { name: "Parsed event summary" })).toBeInTheDocument();
 
     const rendered = await screen.findAllByRole("row");
     expect(rendered.length).toBeGreaterThanOrEqual(1);
     expect(rendered.length).toBeLessThan(100);
+  });
+
+  it("highlights a visible correlated response for the selected request", async () => {
+    const request = { ...makeRow(0), kind: "request" as const, pairIdx: 1 };
+    const response = {
+      ...makeRow(1),
+      kind: "response" as const,
+      kindTag: "RES" as const,
+      pairIdx: 0,
+    };
+    const rows = [request, response];
+    render(
+      <div style={{ height: 400 }}>
+        <TimelineList
+          items={rows.map((r) => ({ kind: "row", rowIdx: r.idx }))}
+          rows={rows}
+          selectedIdx={0}
+          onSelect={() => {}}
+        />
+      </div>,
+    );
+    expect(await screen.findByTestId("row-1")).toHaveAttribute("data-pair-highlight", "response");
+    expect(screen.getByTestId("row-0")).toHaveAttribute("data-selected", "true");
+  });
+
+  it("marks selected response when its correlated request is hidden by filters", async () => {
+    const request = { ...makeRow(0), kind: "request" as const, pairIdx: 1 };
+    const response = {
+      ...makeRow(1),
+      kind: "response" as const,
+      kindTag: "RES" as const,
+      pairIdx: 0,
+    };
+    const rows = [request, response];
+    render(
+      <div style={{ height: 400 }}>
+        <TimelineList
+          items={[{ kind: "row", rowIdx: 1 }]}
+          rows={rows}
+          selectedIdx={1}
+          onSelect={() => {}}
+        />
+      </div>,
+    );
+    const selected = await screen.findByTestId("row-1");
+    expect(selected).toHaveAttribute("data-pair-hidden", "request");
+    expect(selected.getAttribute("aria-label")).toContain(
+      "Correlated request is hidden by current filters",
+    );
   });
 });

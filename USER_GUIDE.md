@@ -74,9 +74,19 @@ Use the compact theme picker in the header to switch between **Dark**, **Light**
 
 ## Read the timeline
 
-The main timeline is a dense, virtualized grid with fixed column labels. Each row shows timestamp, direction, kind, method/action type, session, turn, status, latency, key ID, and a short payload preview. Direction arrows (`→`/`←`), kind tags (`REQ`, `RES`, `ACT`, `BAD`), status pills, and row rails help scan traffic quickly.
+The main timeline is a dense, virtualized grid with fixed column labels. Rows now scan from left to right as **ID → Time → Dir → Kind → Event → Session → Turn → Latency → Summary**. The standalone Status column was removed; error and warning states remain visible through the row rail and inline badges such as `ERR`, `AUTH`, `TIMEOUT`, and `ORPHAN`.
+
+The **Summary** column replaces the old generic payload preview. It shows event-specific parsed text such as `resourceList uri=safe-resource.md`, `delta "..."`, `tool call readFile ...`, `tool result ...`, or `error -32001: ...`. Session and Turn columns populate when those values are present in the JSONL, including nested action/notification shapes.
+
+Selecting a request row highlights its correlated response when that response is visible. Selecting a response highlights its request. If filtering hides the pair, the selected row carries accessible copy explaining that the correlated request or response is hidden by current filters.
 
 ![Large timeline](screenshots/phase2-uat-fixed-large.png)
+
+![Phase 04.1 ID-first row and Summary column](screenshots/phase4.1/01-column-order-summary.png)
+
+![Phase 04.1 request to response highlight](screenshots/phase4.1/02-request-response-highlight.png)
+
+![Phase 04.1 populated session and turn columns](screenshots/phase4.1/05-session-turn-populated.png)
 
 Large logs stay virtualized; a 50,000-line synthetic JSONL log renders only the visible rows while scrolling.
 
@@ -179,10 +189,12 @@ The top of the panel shows the core AHP fields in a structured strip with colore
 
 ### Pretty vs Raw tab
 
-- **Pretty** — expandable JSON tree rendered by react-json-view-lite. Click a node label or its +/- marker to collapse or expand it. Payloads larger than 256 KB show a truncation warning.
+- **Pretty** — expandable JSON tree rendered by react-json-view-lite. It opens expanded by default through the useful AHP nesting levels so fields under `params`, `action`, `notification`, tool calls, and results are immediately visible. Click a node label or its +/- marker to collapse or expand it. Payloads larger than 256 KB show a truncation warning.
 - **Raw** — monospace `<pre>` block containing the full raw JSON for copy-paste.
 
 ![Detail panel Raw JSON view](screenshots/phase3-detail-raw.png)
+
+![Phase 04.1 Pretty JSON expanded by default](screenshots/phase4.1/07-pretty-json-expanded.png)
 
 ### Copy menu
 

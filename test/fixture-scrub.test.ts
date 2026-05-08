@@ -11,11 +11,22 @@ generateAll();
 
 const FORBIDDEN: Array<[string, RegExp]> = [
   ["bearer-token", /Bearer\s+\S+/],
+  ["authorization-header", /Authorization\s*[:=]/i],
   ["openai-key", /sk-[A-Za-z0-9]{20,}/],
   ["github-pat", /ghp_[A-Za-z0-9]{20,}/],
   ["jwt", /eyJ[A-Za-z0-9_-]{20,}\./],
+  ["private-mac-path", /\/Users\//],
+  ["private-linux-path", /\/home\//],
+  ["private-windows-path", /[A-Za-z]:\\/],
   ["password", /password\s*[:=]\s*\S+/i],
   ["api-key", /api[_-]?key\s*[:=]\s*\S+/i],
+  ["token-like-key", /\b(?:token|secret|cookie)\b\s*[:=]\s*\S+/i],
+  ["email", /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i],
+  ["real-log-host", /\b(?:ssh-macbook-air|macbook-air|roblou)\b/i],
+  [
+    "prompt-output-sentinel",
+    /\b(?:prompt|completion|model output|assistant output|user message)\b/i,
+  ],
 ];
 
 function listFixtures(): string[] {

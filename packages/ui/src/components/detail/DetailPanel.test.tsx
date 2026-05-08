@@ -74,6 +74,8 @@ function makeRow(overrides: Partial<EventRow> = {}): EventRow {
     latencyMs: null,
     latencyBand: null,
     payloadPreview: "{}",
+    summary: "tools/list details unavailable",
+    pairIdx: null,
     parseErrorReason: null,
     lineIndex: null,
     errorCode: null,

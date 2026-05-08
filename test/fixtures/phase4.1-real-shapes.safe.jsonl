@@ -1,0 +1,11 @@
+{"jsonrpc":"2.0","id":1001,"method":"resourceList","params":{"uri":"file://workspace/safe-resource.md","resources":[{"uri":"file://workspace/safe-resource.md"}]}}
+{"jsonrpc":"2.0","id":1001,"result":{"resources":[{"uri":"file://workspace/safe-resource.md","kind":"file"}],"summary":"safe resource list"}}
+{"jsonrpc":"2.0","id":"turn-fetch-1","method":"turnFetch","params":{"sessionId":"safe-session-beta","turnId":"turn-beta-000002","limit":2}}
+{"jsonrpc":"2.0","id":"turn-fetch-1","error":{"code":-32001,"message":"safe synthetic failure"}}
+{"jsonrpc":"2.0","method":"action","params":{"serverSeq":11,"action":{"type":"delta","sessionId":"safe-session-gamma","turnId":"turn-gamma-000003","delta":"Synthetic assistant delta for row summary validation."}}}
+{"jsonrpc":"2.0","method":"action","params":{"serverSeq":12,"action":{"type":"toolCall","session":"safe-session-delta","turn":{"id":"turn-delta-000004"},"toolCallId":"tool-call-safe-1","toolName":"readFile","args":{"path":"safe-resource.md","limit":20,"preview":true}}}}
+{"jsonrpc":"2.0","method":"action","params":{"serverSeq":13,"action":{"type":"toolResult","sessionId":"safe-session-delta","turnId":"turn-delta-000004","toolCallId":"tool-call-safe-1","toolName":"readFile","result":{"ok":true,"lineCount":3}}}}
+{"jsonrpc":"2.0","method":"notification","params":{"notification":{"type":"progress","sessionId":"safe-session-epsilon","turn":{"id":"turn-epsilon-000005"},"message":"Safe progress update"}}}
+{"jsonrpc":"2.0","method":"action","params":{"serverSeq":14,"action":{"type":"mysterySafeAction","note":"safe unknown action fallback"}}}
+{"jsonrpc":"2.0","method":"log","params":{"message":"safe internal log entry without session"}}
+not valid json for safe parse error

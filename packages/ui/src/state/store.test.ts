@@ -66,6 +66,25 @@ describe("useAppStore", () => {
     expect(r.latencyBand).toBe("fast");
   });
 
+  it("applyPatch updates summary and pairIdx when present", () => {
+    const s = useAppStore.getState();
+    s.setRows([row(0), row(1)]);
+    s.applyPatch([
+      {
+        idx: 0,
+        status: "ok",
+        latencyMs: 12,
+        latencyBand: "fast",
+        summary: "doThing result ok=true",
+        pairIdx: 1,
+      },
+    ]);
+    const r = useAppStore.getState().rows[0];
+    if (!r) throw new Error("expected patched row");
+    expect(r.summary).toBe("doThing result ok=true");
+    expect(r.pairIdx).toBe(1);
+  });
+
   it("selectIdx and clearSelection", () => {
     const s = useAppStore.getState();
     s.selectIdx(3);

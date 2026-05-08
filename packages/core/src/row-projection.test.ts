@@ -153,6 +153,8 @@ describe("projectRow() — request paired (latency bands)", () => {
     expect(row.latencyMs).toBe(42);
     expect(row.latencyBand).toBe("fast");
     expect(row.payloadPreview).toBe('{"v":1}');
+    expect(row.summary).toBe("initialize v=1");
+    expect(row.pairIdx).toBeNull();
     expect(row.parseErrorReason).toBeNull();
     expect(row.lineIndex).toBeNull();
   });
@@ -163,6 +165,125 @@ describe("projectRow() — request paired (latency bands)", () => {
   it("critical band for latency=2500", () => {
     const row = projectRow(mkEvent(), 0, "ok", 2500);
     expect(row.latencyBand).toBe("critical");
+  });
+});
+
+describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
+  it("projects pairIdx when supplied", () => {
+    const row = projectRow(mkEvent(), 0, "ok", 12, {
+      errorCode: null,
+      serverSeq: null,
+      gapBefore: false,
+      isAuthFailure: false,
+      pairIdx: 1,
+    });
+    expect(row.pairIdx).toBe(1);
+  });
+
+  it("summarizes correlated success responses with the request method", () => {
+    const row = projectRow(
+      mkEvent({
+        kind: "response",
+        method: null,
+        raw: { jsonrpc: "2.0", id: 1, result: { ok: true, count: 2 } },
+      }),
+      1,
+      "ok",
+      12,
+      {
+        errorCode: null,
+        serverSeq: null,
+        gapBefore: false,
+        isAuthFailure: false,
+        pairIdx: 0,
+      },
+      "resourceList",
+    );
+    expect(row.summary).toBe("resourceList result ok=true count=2");
+  });
+
+  it("summarizes error responses", () => {
+    const row = projectRow(
+      mkEvent({
+        kind: "response",
+        method: null,
+        raw: { jsonrpc: "2.0", id: 1, error: { code: -32001, message: "safe failure" } },
+      }),
+      1,
+      "error",
+      null,
+    );
+    expect(row.summary).toBe("error -32001: safe failure");
+  });
+
+  it("summarizes resourceList URI using a safe label", () => {
+    const row = projectRow(
+      mkEvent({
+        method: "resourceList",
+        raw: {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "resourceList",
+          params: { uri: "file://safe/doc.md" },
+        },
+      }),
+      0,
+      "pending",
+      null,
+    );
+    expect(row.summary).toBe("resourceList uri=doc.md");
+  });
+
+  it("summarizes delta and tool actions", () => {
+    const delta = projectRow(
+      mkEvent({
+        kind: "action",
+        method: "action",
+        actionType: "delta",
+        raw: {
+          jsonrpc: "2.0",
+          method: "action",
+          params: { action: { type: "delta", delta: "hello" } },
+        },
+      }),
+      0,
+      "n/a",
+      null,
+    );
+    expect(delta.summary).toBe('delta "hello"');
+
+    const tool = projectRow(
+      mkEvent({
+        kind: "action",
+        method: "action",
+        actionType: "toolCall",
+        toolCallId: "tc-safe",
+        raw: {
+          jsonrpc: "2.0",
+          method: "action",
+          params: {
+            action: { type: "toolCall", toolName: "readFile", args: { path: "safe.md", limit: 5 } },
+          },
+        },
+      }),
+      0,
+      "n/a",
+      null,
+    );
+    expect(tool.summary).toBe("tool call readFile path=safe.md limit=5");
+  });
+
+  it("caps summary text at 160 chars", () => {
+    const row = projectRow(
+      mkEvent({
+        method: "say",
+        raw: { jsonrpc: "2.0", id: 1, method: "say", params: { text: "x".repeat(300) } },
+      }),
+      0,
+      "pending",
+      null,
+    );
+    expect(row.summary?.length).toBeLessThanOrEqual(160);
   });
 });
 

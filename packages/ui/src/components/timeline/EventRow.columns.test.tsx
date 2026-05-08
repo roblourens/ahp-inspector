@@ -26,6 +26,8 @@ const baseRow: EventRowData = {
   latencyMs: 42,
   latencyBand: "fast",
   payloadPreview: '{"hello":"world"}',
+  summary: "initialize hello=world",
+  pairIdx: null,
   parseErrorReason: null,
   lineIndex: 1,
   errorCode: null,
@@ -34,21 +36,20 @@ const baseRow: EventRowData = {
   isAuthFailure: false,
 };
 
-describe("EventRow — UI-SPEC §7.2 11 columns", () => {
-  it("renders all 11 columns in source order with expected text", () => {
+describe("EventRow — UI-SPEC §04.1 columns", () => {
+  it("renders ID-first columns with summary and no standalone status cell", () => {
     render(<EventRow row={baseRow} isSelected={false} onClick={() => {}} />);
     const cells = screen.getAllByRole("gridcell");
-    expect(cells.length).toBe(11);
+    expect(cells.length).toBe(10);
 
+    expect(cells[1]?.textContent).toBe("1");
     expect(screen.getByText("12:34:56.789")).toBeTruthy();
     expect(screen.getByText("initialize")).toBeTruthy();
     expect(screen.getByText("aaaaaaaa")).toBeTruthy();
     expect(screen.getByText("bbbbbb")).toBeTruthy();
-    expect(screen.getByText("2xx")).toBeTruthy();
+    expect(screen.queryByText("2xx")).toBeNull();
     expect(screen.getByText("42ms")).toBeTruthy();
-    // keyId column: "1"
-    expect(screen.getByText("1")).toBeTruthy();
-    expect(screen.getByText('{"hello":"world"}')).toBeTruthy();
+    expect(screen.getByTestId("row-summary").textContent).toBe("initialize hello=world");
   });
 
   it("shows the action type as the primary label for action envelopes", () => {
@@ -104,5 +105,26 @@ describe("EventRow — UI-SPEC §7.2 11 columns", () => {
     const row = screen.getByRole("row");
     expect(row.getAttribute("aria-rowindex")).toBe("5");
     expect(row.getAttribute("aria-selected")).toBe("true");
+    expect(row.getAttribute("data-selected")).toBe("true");
+  });
+
+  it("does not expose action family marker copy", () => {
+    render(
+      <EventRow
+        row={{
+          ...baseRow,
+          kind: "action",
+          kindTag: "ACT",
+          method: "action",
+          actionType: "mysterySafeAction",
+          actionFamily: "unknown",
+          summary: "action mysterySafeAction",
+        }}
+        isSelected={false}
+        onClick={() => {}}
+      />,
+    );
+    expect(screen.queryByTestId("action-dot")).toBeNull();
+    expect(document.body.textContent).not.toMatch(/family unknown|Action row family/i);
   });
 });
