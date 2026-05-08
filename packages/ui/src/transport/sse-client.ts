@@ -107,6 +107,30 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   const onPing = (): void => {
     /* heartbeat — no store mutation */
   };
+  const onRotation = (): void => {
+    useAppStore.getState().setRotationNotice(true);
+    useAppStore.getState().resetForRotation();
+    snapshotRows = [];
+  };
+  const onWatchError = (ev: Event): void => {
+    try {
+      const data = JSON.parse((ev as MessageEvent).data) as {
+        code?: "read-error" | "watch-fatal";
+        message?: string;
+      };
+      const code = data.code === "watch-fatal" ? "watch-fatal" : "read-error";
+      useAppStore.getState().setLastWatchError({
+        code,
+        message: typeof data.message === "string" ? data.message : "",
+      });
+    } catch {
+      useAppStore.getState().setLastWatchError({ code: "read-error", message: "" });
+    }
+  };
+  const onLogReset = (): void => {
+    useAppStore.getState().resetForLogSwitch();
+    snapshotRows = [];
+  };
   const onBye = (): void => {
     graceful = true;
     try {
@@ -134,6 +158,9 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   es.addEventListener("append", onAppend);
   es.addEventListener("patch", onPatch);
   es.addEventListener("ping", onPing);
+  es.addEventListener("rotation", onRotation);
+  es.addEventListener("watch-error", onWatchError);
+  es.addEventListener("log-reset", onLogReset);
   es.addEventListener("bye", onBye);
   es.onerror = onError;
 

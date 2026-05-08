@@ -70,10 +70,16 @@ export interface AppStoreState {
   followLatest: boolean;
   lastWatchError: { code: "read-error" | "watch-fatal"; message: string } | null;
   logKey: string | null;
+  rotationNotice: boolean;
+  lastOpenRef: { kind: "candidate"; id: string } | { kind: "path"; path: string } | null;
   setLivePaused(p: boolean): void;
   clearPendingNewCount(): void;
   setLastWatchError(e: { code: "read-error" | "watch-fatal"; message: string } | null): void;
   setLogKey(k: string | null): void;
+  setRotationNotice(v: boolean): void;
+  setLastOpenRef(
+    ref: { kind: "candidate"; id: string } | { kind: "path"; path: string } | null,
+  ): void;
   resetForRotation(): void;
   resetForLogSwitch(): void;
 }
@@ -161,11 +167,15 @@ export const useAppStore = create<AppStoreState>((set) => ({
   followLatest: true,
   lastWatchError: null,
   logKey: null,
+  rotationNotice: false,
+  lastOpenRef: null,
   // Phase 4 actions
   setLivePaused: (p) => set({ livePaused: p }),
   clearPendingNewCount: () => set({ pendingNewCount: 0 }),
   setLastWatchError: (e) => set({ lastWatchError: e }),
   setLogKey: (k) => set({ logKey: k }),
+  setRotationNotice: (v) => set({ rotationNotice: v }),
+  setLastOpenRef: (ref) => set({ lastOpenRef: ref }),
   resetForRotation: () =>
     set({
       rows: [],
@@ -184,5 +194,6 @@ export const useAppStore = create<AppStoreState>((set) => ({
       meta: null,
       logKey: null,
       lastWatchError: null,
+      rotationNotice: false,
     }),
 }));
