@@ -8,7 +8,7 @@
 
 import { accessSync, constants, statSync } from "node:fs";
 import { basename, resolve as pathResolve } from "node:path";
-import type { Disposable, DiscoveryResult, HostAdapter, LogHandle } from "@ahp-viewer/shared";
+import type { DiscoveryResult, Disposable, HostAdapter, LogHandle } from "@ahp-viewer/shared";
 import { discoverVsCodeLogs } from "./discovery.js";
 import { TailReader } from "./tail-reader.js";
 

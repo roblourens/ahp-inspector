@@ -1,7 +1,7 @@
 // AppState integration test — drives ingestion through a fake HostAdapter
 // and verifies snapshot/append/patch/unmatched semantics + basename meta.
 
-import type { Disposable, DiscoveryResult, HostAdapter, LogHandle } from "@ahp-viewer/shared";
+import type { DiscoveryResult, Disposable, HostAdapter, LogHandle } from "@ahp-viewer/shared";
 import { afterEach, describe, expect, it } from "vitest";
 import { type AppState, createAppState, type SsePayload } from "./app-state.js";
 

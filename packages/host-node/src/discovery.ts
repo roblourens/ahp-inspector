@@ -150,10 +150,17 @@ export async function discoverVsCodeLogs(opts: DiscoverOptions = {}): Promise<Di
         break;
       }
       const launchDir = join(root.dir, launch.name);
-      await walkBounded(launchDir, launchDir, MAX_DEPTH_BELOW_LAUNCH, root.origin, collected, () => {
-        stats++;
-        return overBudget();
-      });
+      await walkBounded(
+        launchDir,
+        launchDir,
+        MAX_DEPTH_BELOW_LAUNCH,
+        root.origin,
+        collected,
+        () => {
+          stats++;
+          return overBudget();
+        },
+      );
     }
   }
 
@@ -211,13 +218,17 @@ export async function discoverVsCodeLogs(opts: DiscoverOptions = {}): Promise<Di
       const sc = score(name, st.mtimeMs, st.size, absDir);
       const id = makeId(abs);
       idToPath.set(id, abs);
+      // Legacy agenthost.*.log files are pinned to "low" per CONTEXT D-03 —
+      // they are useful as a fallback but never canonical AHP traffic.
+      const isLegacy = FILENAME_RE_LEGACY_AGENTHOST.test(name);
+      const confidence = isLegacy ? "low" : tier(sc);
       sink.push({
         id,
         label: basename(abs),
         mtimeMs: st.mtimeMs,
         sizeBytes: st.size,
         origin,
-        confidence: tier(sc),
+        confidence,
         contextLabel: makeContextLabel(abs, launchDir),
       });
       if (sink.length >= MAX_RESULTS * 4) {
