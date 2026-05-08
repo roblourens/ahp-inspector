@@ -51,6 +51,21 @@ export const REQUIRED_THEME_TOKENS = [
   "--color-json-boolean",
   "--color-json-null",
   "--color-json-punctuation",
+  "--shadow-menu",
+  "--shadow-panel",
+  "--shadow-drawer",
+  "--focus-ring",
+  "--row-selected-bg",
+  "--row-hover-bg",
+  "--overlay-backdrop",
+  "--drawer-border",
+  "--effect-scanline-opacity",
+  "--effect-grid-opacity",
+  "--effect-noise-opacity",
+  "--effect-glow",
+  "--effect-glow-strong",
+  "--selection-bg",
+  "--selection-fg",
 ] as const;
 
 function escapeRegExp(value: string): string {
@@ -73,4 +88,18 @@ describe("theme token blocks", () => {
       expect(missing).toEqual([]);
     },
   );
+});
+
+
+describe("hacker effect token bounds", () => {
+  it("keeps CRT effect opacity within UI-SPEC limits", () => {
+    const block = blockFor("[data-theme=\"hacker\"]");
+    const valueFor = (token: string): number => {
+      const match = block.match(new RegExp(`${token}:\\s*([0-9.]+)`));
+      return Number(match?.[1] ?? Number.NaN);
+    };
+    expect(valueFor("--effect-scanline-opacity")).toBeLessThanOrEqual(0.14);
+    expect(valueFor("--effect-grid-opacity")).toBeLessThanOrEqual(0.1);
+    expect(valueFor("--effect-noise-opacity")).toBeLessThanOrEqual(0.06);
+  });
 });

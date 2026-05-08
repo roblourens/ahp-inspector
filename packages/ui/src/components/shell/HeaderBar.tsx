@@ -129,7 +129,7 @@ export function HeaderBar({ version, onSwitchLog }: HeaderBarProps): JSX.Element
                 background: "var(--color-surface-raised)",
                 border: "1px solid var(--color-border-strong)",
                 borderRadius: 6,
-                boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+                boxShadow: "var(--shadow-menu)",
               }}
             >
               {THEMES.map((option) => {
@@ -151,6 +151,7 @@ export function HeaderBar({ version, onSwitchLog }: HeaderBarProps): JSX.Element
                       background: active ? "var(--color-chip-bg-active)" : "transparent",
                       border: "none",
                       color: active ? "var(--color-text)" : "var(--color-text-muted)",
+                      boxShadow: active ? "inset 3px 0 0 var(--color-accent)" : "none",
                       cursor: "pointer",
                       fontFamily: "var(--font-sans)",
                       fontSize: "var(--text-ui-muted-size)",
