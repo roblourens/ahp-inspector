@@ -6,11 +6,21 @@ import { describe, expect, it } from "vitest";
 import { CLI_MINI, spawnCli, spawnCliRaw, waitForExit, waitForLine } from "./cli-test-helpers.js";
 
 describe("ahp-viewer CLI errors (Plan 02-05)", () => {
-  it("Case A: no file → log file not found + Usage, exit 1", async () => {
-    const { code, stderr } = await spawnCli([]);
-    expect(code).toBe(1);
-    expect(stderr).toMatch(/Error: log file not found:/);
-    expect(stderr).toMatch(/Usage: ahp-viewer <path-to-log\.jsonl>/);
+  it("Case A: no file → server launches into no-active-log state (Plan 04-03 D-01)", async () => {
+    // Phase 04-03 D-01/D-08 changed CLI to allow no-file launch. The CLI now
+    // starts the server and prints a "no log file selected" hint instead of
+    // failing. We invoke with --no-open and kill it after the banner appears.
+    const proc = spawnCliRaw(["--no-open", "--port", "0"]);
+    try {
+      const banner = await waitForLine(
+        proc,
+        /AHP Log Viewer running at http:\/\/127\.0\.0\.1:\d+/,
+      );
+      expect(banner).toMatch(/127\.0\.0\.1/);
+    } finally {
+      proc.child.kill("SIGTERM");
+      await waitForExit(proc.child);
+    }
   }, 10_000);
 
   it("Case B: non-existent file → log file not found {abs path}, exit 1", async () => {
@@ -18,7 +28,7 @@ describe("ahp-viewer CLI errors (Plan 02-05)", () => {
     const { code, stderr } = await spawnCli([path]);
     expect(code).toBe(1);
     expect(stderr).toMatch(new RegExp(`Error: log file not found: ${path.replace(/\./g, "\\.")}`));
-    expect(stderr).toMatch(/Usage: ahp-viewer <path-to-log\.jsonl>/);
+    expect(stderr).toMatch(/Usage: ahp-viewer \[path-to-log\.jsonl\]/);
   }, 10_000);
 
   it("Case C: invalid --port 70000 → invalid --port value copy, exit 1", async () => {

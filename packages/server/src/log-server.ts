@@ -43,14 +43,15 @@ export interface LogServerHandle {
 }
 
 export function startLogServer(opts: LogServerOptions): Promise<LogServerHandle> {
+  const { sessions } = opts;
   const app = new Hono();
   app.use("*", hostGuardMiddleware);
   app.use("*", cspMiddleware);
   app.get("/health", (c) => c.json({ status: "ok", version: opts.version }));
-  registerLogRoutes(app, opts.sessions);
-  registerDetailRoutes(app, opts.sessions);
-  registerSearchRoutes(app, opts.sessions);
-  registerSessionRoutes(app, opts.sessions);
+  registerLogRoutes(app, sessions);
+  registerDetailRoutes(app, sessions);
+  registerSearchRoutes(app, sessions);
+  registerSessionRoutes(app, sessions);
   if (opts.uiDistDir) registerStaticUi(app, opts.uiDistDir);
 
   return new Promise<LogServerHandle>((resolve, reject) => {

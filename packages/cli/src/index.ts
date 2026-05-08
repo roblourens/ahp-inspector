@@ -10,11 +10,11 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
-import { NodeHostAdapter } from "@ahp-viewer/host-node";
+import { NodeHostAdapter, resolveCandidateId } from "@ahp-viewer/host-node";
 import {
-  type AppState,
-  createAppState,
+  createLogSessionManager,
   type LogServerHandle,
+  type LogSessionManager,
   startLogServer,
 } from "@ahp-viewer/server";
 import { Command } from "commander";
@@ -91,51 +91,50 @@ function parsePort(value: string): number {
 const program = new Command()
   .name("ahp-viewer")
   .version(VERSION)
-  .argument("[file]", "AHP JSONL log file path")
+  .argument("[file]", "AHP JSONL log file path (optional — omit to launch into the discovery picker)")
   .option("--port <n>", "local server port (0 = ephemeral)", "5173")
   .option("--no-open", "do not auto-open the default browser")
   .action(async (file: string | undefined, opts: { port: string; open: boolean }) => {
-    if (!file) {
-      fail(`Error: log file not found: <missing>\nUsage: ahp-viewer <path-to-log.jsonl>`);
-    }
-    const absPath = resolvePath(file);
-    let stat: ReturnType<typeof statSync>;
-    try {
-      stat = statSync(absPath);
-    } catch (err) {
-      const e = err as NodeJS.ErrnoException;
-      if (e.code === "ENOENT") {
-        fail(`Error: log file not found: ${absPath}\nUsage: ahp-viewer <path-to-log.jsonl>`);
-      }
-      fail(`Error: cannot read ${absPath}: ${e.message}\nCheck file permissions.`);
-    }
-    if (!stat.isFile()) {
-      fail(`Error: log file not found: ${absPath}\nUsage: ahp-viewer <path-to-log.jsonl>`);
-    }
-
     const port = parsePort(opts.port);
-
     const host = new NodeHostAdapter();
-    let appState: AppState;
-    try {
-      appState = await createAppState({
-        host,
-        file: absPath,
-        directionInference: classifyDirection,
-      });
-    } catch (err) {
-      const e = err as NodeJS.ErrnoException;
-      if (e.code === "EACCES" || e.code === "EPERM") {
+    const sessions: LogSessionManager = createLogSessionManager({
+      host,
+      resolveCandidateId,
+      directionInference: classifyDirection,
+    });
+
+    let absPath: string | undefined;
+    if (file) {
+      absPath = resolvePath(file);
+      let stat: ReturnType<typeof statSync>;
+      try {
+        stat = statSync(absPath);
+      } catch (err) {
+        const e = err as NodeJS.ErrnoException;
+        if (e.code === "ENOENT") {
+          fail(`Error: log file not found: ${absPath}\nUsage: ahp-viewer [path-to-log.jsonl]`);
+        }
         fail(`Error: cannot read ${absPath}: ${e.message}\nCheck file permissions.`);
       }
-      fail(`Error: cannot read ${absPath}: ${(e as Error).message}\nCheck file permissions.`);
+      if (!stat.isFile()) {
+        fail(`Error: log file not found: ${absPath}\nUsage: ahp-viewer [path-to-log.jsonl]`);
+      }
+      try {
+        await sessions.open({ path: absPath });
+      } catch (err) {
+        const e = err as { code?: string; message?: string };
+        await sessions.dispose().catch(() => undefined);
+        fail(
+          `Error: cannot open ${absPath}: ${e.message ?? "unknown"}\nCheck file permissions.`,
+        );
+      }
     }
 
     let serverHandle: LogServerHandle;
     const uiDistDir = locateUiDist();
     try {
       const serverOpts: Parameters<typeof startLogServer>[0] = {
-        appState,
+        sessions,
         port,
         version: VERSION,
         ...(uiDistDir ? { uiDistDir } : {}),
@@ -143,9 +142,11 @@ const program = new Command()
       serverHandle = await startLogServer(serverOpts);
     } catch (err) {
       const e = err as NodeJS.ErrnoException;
-      await appState.dispose().catch(() => undefined);
+      await sessions.dispose().catch(() => undefined);
       if (e.code === "EADDRINUSE") {
-        fail(`Error: port ${port} is in use. Try: ahp-viewer --port ${port + 1} ${absPath}`);
+        fail(
+          `Error: port ${port} is in use. Try: ahp-viewer --port ${port + 1}${file ? ` ${file}` : ""}`,
+        );
       }
       fail(`Error: failed to start server: ${e.message}`);
     }
@@ -154,9 +155,15 @@ const program = new Command()
     // in startLogServer) + the bound port. NEVER from user-supplied input.
     // T-02-05b: open() only ever receives this loopback URL.
     const url = `http://127.0.0.1:${serverHandle.port}`;
-    process.stdout.write(
-      `AHP Log Viewer running at ${url}\nOpening browser…\nWatching ${absPath}\n`,
-    );
+    if (absPath) {
+      process.stdout.write(
+        `AHP Log Viewer running at ${url}\nOpening browser…\nWatching ${absPath}\n`,
+      );
+    } else {
+      process.stdout.write(
+        `AHP Log Viewer running at ${url}\nOpening browser…\n(No log file selected — use the picker to discover or open a log.)\n`,
+      );
+    }
 
     if (opts.open !== false) {
       try {
@@ -171,7 +178,7 @@ const program = new Command()
       if (shuttingDown) return;
       shuttingDown = true;
       try {
-        await appState.dispose();
+        await sessions.dispose();
       } catch {
         // ignore — best-effort
       }
