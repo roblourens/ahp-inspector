@@ -95,7 +95,15 @@ Plans:
   3. The selected log is watched incrementally — new appended JSONL lines appear in the timeline without reparsing the whole file.
   4. User can pause and resume live following without losing their selection or scroll position.
   5. Search and filter state persists for the current log across reloads where appropriate.
-**Plans**: TBD
+**Plans**: 8 plans
+- [ ] 04-00-PLAN.md — Foundation: logKey, SsePayload extensions, WatchSink, store fields, persistence module skeleton, tokens
+- [ ] 04-01-PLAN.md — Discovery: bounded walk + scoring + opaque IDs in host-node
+- [ ] 04-02-PLAN.md — TailReader hardened to WatchSink (shrink/rename/error → SSE rotation/watch-error)
+- [ ] 04-03-PLAN.md — LogSessionManager + /api/sessions/* routes + log-reset SSE + CLI no-file launch
+- [ ] 04-04-PLAN.md — Picker UI components: NoActiveLogState, CandidateList/Row, ManualOpenInput, LogPickerPanel
+- [ ] 04-05-PLAN.md — Wiring: sessions HTTP client, SSE rotation/watch-error/log-reset handlers, App + AppShell + HeaderBar
+- [ ] 04-06-PLAN.md — Pause/resume + per-log persistence: LivePauseButton, NewEventsPill, usePersistEffect
+- [ ] 04-07-PLAN.md — Vertical slice integration test, USER_GUIDE updates, UAT screenshots
 **UI hint**: yes
 
 ### Phase 5: Themes, Polish, and Verification
