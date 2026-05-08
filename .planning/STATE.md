@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planned
-stopped_at: Phase 5 planned
-last_updated: "2026-05-08T03:14:56.000Z"
+stopped_at: Phase 04.1 planned
+last_updated: "2026-05-08T03:32:27.822Z"
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 4
-  total_plans: 31
+  total_plans: 37
   completed_plans: 25
-  percent: 81
+  percent: 68
 ---
 
 # State: AHP Log Viewer
@@ -18,24 +18,24 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 05 — themes-polish-and-verification
+**Current Focus:** Phase 04.1 — timeline-row-information-polish-and-real-log-validation
 
 ## Current Position
 
-Phase: 05 (themes-polish-and-verification) — **PLANNED**
+Phase: 04.1 (timeline-row-information-polish-and-real-log-validation) — **PLANNED**
 Plan: 0 of 6 (ready to execute)
 
 - **Milestone:** v1
-- **Phase:** 5
+- **Phase:** 04.1
 - **Plan:** 0 of 6
 - **Status:** Ready to execute
-- **Progress:** [████████░░] 81%
+- **Progress:** [███████░░░] 68%
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases complete | 4 / 5 |
+| Phases complete | 4 / 6 |
 | v1 requirements mapped | 41 / 41 |
 | v1 requirements validated | 23 / 41 |
 | Phase 02 P01 | 30min | 2 tasks | 12 files |
@@ -51,6 +51,7 @@ Plan: 0 of 6 (ready to execute)
 | Phase 03 P04 | 15min | 3 tasks | 17 files |
 | Phase 03 P05 | 14min | 2 tasks | 15 files |
 | Phase 03 P06 | 15min | 2 tasks | 29 files |
+| Phase 04.1 plans | 6 planned | 16 tasks | ready |
 | Phase 05 plans | 6 planned | 18 tasks | ready |
 
 ## Accumulated Context
@@ -101,17 +102,22 @@ Plan: 0 of 6 (ready to execute)
 
 ### Open TODOs
 
-- Phase 05: Execute 6 approved plans for themes, polish, responsive layout, and verification coverage.
+- Phase 04.1: Execute 6 approved plans for timeline row information polish and real-log validation before Phase 5.
+- Phase 05: Execute 6 approved plans for themes, polish, responsive layout, and verification coverage after Phase 04.1.
 
 ### Blockers
 
 - None.
 
+### Roadmap Evolution
+
+- Phase 04.1 inserted after Phase 4 (URGENT): Timeline row information polish and real-log validation.
+
 ## Session Continuity
 
 **Last session:** 2026-05-07T22:22:18.117Z
-**Next action:** `/gsd-execute-phase 5`
-**Stopped at:** Phase 5 planned
+**Next action:** `/gsd-execute-phase 04.1`
+**Stopped at:** Phase 04.1 planned
 
 ---
 *State initialized: 2026-05-06*

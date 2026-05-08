@@ -106,9 +106,31 @@ Plans:
 - [x] 04-07-PLAN.md — Vertical slice integration test, USER_GUIDE updates, UAT screenshots
 **UI hint**: yes
 
+### Phase 04.1: Timeline row information polish and real-log validation (INSERTED)
+
+**Goal:** Polish the core timeline row information model using a real AHP JSONL fixture before theme work begins, so the app presents the right fields in the right places and request/response relationships are easier to follow.
+**Requirements**: EVENT-01, EVENT-03, EVENT-04, EVENT-05, TIME-02, TIME-03, TIME-04, DETAIL-03, DETAIL-04, VERIFY-02, VERIFY-03, VERIFY-04
+**Depends on:** Phase 4
+**Success Criteria** (what must be TRUE):
+  1. Timeline column order starts with the event/request ID column, and status is removed as a standalone column while error rows remain clearly annotated.
+  2. Selecting a request row highlights the correlated response row, and request/response highlighting remains stable while navigating/searching/filtering.
+  3. Session and turn columns populate correctly from real AHP JSONL where those values exist, and empty values are explainable only when the source event lacks them.
+  4. The row payload preview is replaced by per-event parsed summary text that shows the most useful fields for methods/actions/notifications/tools/deltas/resources instead of generic JSON.
+  5. Detail Pretty JSON starts expanded by default, while the full raw/sidebar detail remains available.
+  6. The action-row marker either communicates useful taxonomy or is removed/replaced so users are not shown confusing `family unknown` UI.
+  7. The real fixture at `~/ahp-2026-05-08T03-02-25-575Z-ssh-macbook-air.jsonl` is copied/scrubbed into the repo if safe and used for tests/UAT validation.
+**Plans**:
+- [ ] 04.1-00-PLAN.md — Fixture safety and privacy scrub guard
+- [ ] 04.1-01-PLAN.md — Parser/core/server row contract: nested extraction, summaries, pair metadata, patches
+- [ ] 04.1-02-PLAN.md — Timeline row UI: ID-first columns, Summary cell, error badges, action marker removal
+- [ ] 04.1-03-PLAN.md — Pair highlight behavior and Pretty JSON expanded default
+- [ ] 04.1-04-PLAN.md — Safe real-log structural validation and Phase 04.1 vertical-slice coverage
+- [ ] 04.1-05-PLAN.md — UAT screenshots, docs, Phase 4 regression, and final gate
+**UI hint**: yes
+
 ### Phase 5: Themes, Polish, and Verification
 **Goal**: Ship a polished v1 — three distinctive themes wired through design tokens, a layout that scales from laptop to ultra-wide, and tests that protect the experience.
-**Depends on**: Phase 4
+**Depends on**: Phase 04.1
 **Requirements**: THEME-01, THEME-02, THEME-03, THEME-04, THEME-05, VERIFY-02, VERIFY-03
 **Success Criteria** (what must be TRUE):
   1. User can switch between polished light, dark, and hacker themes from the UI; theme choice and key viewer preferences persist across reloads.
@@ -133,6 +155,7 @@ Plans:
 | 2. Vertical Slice — CLI, Server, Timeline | 7/7 | Complete | 2026-05-07 |
 | 3. Detail, Search, and Filtering | 7/7 | Complete   | 2026-05-07 |
 | 4. Live Tail, Discovery, and Persistence | 8/8 | Complete | 2026-05-08 |
+| 4.1 Timeline row information polish and real-log validation | 0/6 | Planned | - |
 | 5. Themes, Polish, and Verification | 0/6 | Planned | - |
 
 ---
