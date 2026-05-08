@@ -23,7 +23,10 @@ const FORBIDDEN: Array<[string, RegExp]> = [
   ["token-like-key", /\b(?:token|secret|cookie)\b\s*[:=]\s*\S+/i],
   ["email", /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i],
   ["real-log-host", /\b(?:ssh-macbook-air|macbook-air|roblou)\b/i],
-  ["prompt-output-sentinel", /\b(?:prompt|completion|model output|assistant output|user message)\b/i],
+  [
+    "prompt-output-sentinel",
+    /\b(?:prompt|completion|model output|assistant output|user message)\b/i,
+  ],
 ];
 
 function listFixtures(): string[] {

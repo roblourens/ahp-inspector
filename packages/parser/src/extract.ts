@@ -14,7 +14,10 @@ function asString(v: unknown): string | null {
   return typeof v === "string" ? v : null;
 }
 
-function objectChild(parent: Record<string, unknown>, key: "action" | "notification"): Record<string, unknown> | null {
+function objectChild(
+  parent: Record<string, unknown>,
+  key: "action" | "notification",
+): Record<string, unknown> | null {
   const child = parent[key];
   return typeof child === "object" && child !== null ? (child as Record<string, unknown>) : null;
 }

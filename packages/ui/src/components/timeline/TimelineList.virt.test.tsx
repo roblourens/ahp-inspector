@@ -121,9 +121,14 @@ describe("TimelineList — virtualization", () => {
   });
 
   it("highlights a visible correlated response for the selected request", async () => {
-    const rows = [makeRow(0), makeRow(1)];
-    rows[0] = { ...rows[0], kind: "request", pairIdx: 1 };
-    rows[1] = { ...rows[1], kind: "response", kindTag: "RES", pairIdx: 0 };
+    const request = { ...makeRow(0), kind: "request" as const, pairIdx: 1 };
+    const response = {
+      ...makeRow(1),
+      kind: "response" as const,
+      kindTag: "RES" as const,
+      pairIdx: 0,
+    };
+    const rows = [request, response];
     render(
       <div style={{ height: 400 }}>
         <TimelineList
@@ -139,12 +144,22 @@ describe("TimelineList — virtualization", () => {
   });
 
   it("marks selected response when its correlated request is hidden by filters", async () => {
-    const rows = [makeRow(0), makeRow(1)];
-    rows[0] = { ...rows[0], kind: "request", pairIdx: 1 };
-    rows[1] = { ...rows[1], kind: "response", kindTag: "RES", pairIdx: 0 };
+    const request = { ...makeRow(0), kind: "request" as const, pairIdx: 1 };
+    const response = {
+      ...makeRow(1),
+      kind: "response" as const,
+      kindTag: "RES" as const,
+      pairIdx: 0,
+    };
+    const rows = [request, response];
     render(
       <div style={{ height: 400 }}>
-        <TimelineList items={[{ kind: "row", rowIdx: 1 }]} rows={rows} selectedIdx={1} onSelect={() => {}} />
+        <TimelineList
+          items={[{ kind: "row", rowIdx: 1 }]}
+          rows={rows}
+          selectedIdx={1}
+          onSelect={() => {}}
+        />
       </div>,
     );
     const selected = await screen.findByTestId("row-1");

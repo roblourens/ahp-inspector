@@ -220,7 +220,12 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
     const row = projectRow(
       mkEvent({
         method: "resourceList",
-        raw: { jsonrpc: "2.0", id: 1, method: "resourceList", params: { uri: "file://safe/doc.md" } },
+        raw: {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "resourceList",
+          params: { uri: "file://safe/doc.md" },
+        },
       }),
       0,
       "pending",
@@ -235,7 +240,11 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
         kind: "action",
         method: "action",
         actionType: "delta",
-        raw: { jsonrpc: "2.0", method: "action", params: { action: { type: "delta", delta: "hello" } } },
+        raw: {
+          jsonrpc: "2.0",
+          method: "action",
+          params: { action: { type: "delta", delta: "hello" } },
+        },
       }),
       0,
       "n/a",
@@ -252,7 +261,9 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
         raw: {
           jsonrpc: "2.0",
           method: "action",
-          params: { action: { type: "toolCall", toolName: "readFile", args: { path: "safe.md", limit: 5 } } },
+          params: {
+            action: { type: "toolCall", toolName: "readFile", args: { path: "safe.md", limit: 5 } },
+          },
         },
       }),
       0,
@@ -272,7 +283,7 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
       "pending",
       null,
     );
-    expect(row.summary.length).toBeLessThanOrEqual(160);
+    expect(row.summary?.length).toBeLessThanOrEqual(160);
   });
 });
 

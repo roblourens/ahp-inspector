@@ -145,7 +145,11 @@ describe("normalize (EVENT-02 classification)", () => {
   });
 
   it.each([
-    ["params.action.session", { action: { session: "safe-action-session" } }, "safe-action-session"],
+    [
+      "params.action.session",
+      { action: { session: "safe-action-session" } },
+      "safe-action-session",
+    ],
     [
       "params.action.sessionId",
       { action: { sessionId: "safe-action-session-id" } },

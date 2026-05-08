@@ -15,7 +15,12 @@ describe("ActionDot — UI-SPEC §5.4", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it.each(["text", "tool-call", "tool-result", "status"] as const)("renders useful dot for %s", (family) => {
+  it.each([
+    "text",
+    "tool-call",
+    "tool-result",
+    "status",
+  ] as const)("renders useful dot for %s", (family) => {
     render(<ActionDot family={family} />);
     const el = screen.getByTestId("action-dot");
     expect(el.getAttribute("data-family")).toBe(family);

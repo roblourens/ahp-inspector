@@ -52,12 +52,12 @@ export type SsePayload =
       updates: Array<{
         idx: number;
         status: Status;
-         latencyMs: number | null;
-         latencyBand: LatencyBand | null;
-         summary: string;
-         pairIdx: number | null;
-       }>;
-     }
+        latencyMs: number | null;
+        latencyBand: LatencyBand | null;
+        summary?: string;
+        pairIdx: number | null;
+      }>;
+    }
   | { kind: "ping" }
   | { kind: "bye" }
   | { kind: "error"; code: string; message: string }
@@ -190,7 +190,6 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       gapBefore,
       isAuthFailure,
       pairIdx,
-      pairMethod,
     };
 
     return projectRow(ev, idx, status, latency, extras, pairMethod);
@@ -218,7 +217,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       status: Status;
       latencyMs: number | null;
       latencyBand: LatencyBand | null;
-      summary: string;
+      summary?: string;
       pairIdx: number | null;
     }> = [];
     for (let i = 0; i < range.from; i++) {
@@ -230,7 +229,14 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       if (prev.status !== status || prev.latencyMs !== latencyMs || prev.pairIdx !== pairIdx) {
         const latencyBand = bandFor(latencyMs);
         rows[i] = { ...prev, status, latencyMs, latencyBand, pairIdx };
-        updates.push({ idx: i, status, latencyMs, latencyBand, summary: prev.summary, pairIdx });
+        updates.push({
+          idx: i,
+          status,
+          latencyMs,
+          latencyBand,
+          ...(prev.summary !== undefined ? { summary: prev.summary } : {}),
+          pairIdx,
+        });
       }
     }
     if (newRows.length > 0) emit({ kind: "append", rows: newRows, from: range.from });
@@ -297,7 +303,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       status: Status;
       latencyMs: number | null;
       latencyBand: LatencyBand | null;
-      summary: string;
+      summary?: string;
       pairIdx: number | null;
     }> = [];
     for (let i = 0; i < store.size(); i++) {
@@ -309,7 +315,14 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       if (prev.status !== status || prev.latencyMs !== latencyMs || prev.pairIdx !== pairIdx) {
         const latencyBand = bandFor(latencyMs);
         rows[i] = { ...prev, status, latencyMs, latencyBand, pairIdx };
-        updates.push({ idx: i, status, latencyMs, latencyBand, summary: prev.summary, pairIdx });
+        updates.push({
+          idx: i,
+          status,
+          latencyMs,
+          latencyBand,
+          ...(prev.summary !== undefined ? { summary: prev.summary } : {}),
+          pairIdx,
+        });
       }
     }
     if (updates.length > 0) emit({ kind: "patch", updates });

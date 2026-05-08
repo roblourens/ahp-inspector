@@ -2,7 +2,11 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { DiscoveryResult, Disposable, HostAdapter, LogHandle } from "@ahp-viewer/shared";
 import { afterEach, describe, expect, it } from "vitest";
-import { type AppState, createAppState, type SsePayload } from "../packages/server/src/app-state.js";
+import {
+  type AppState,
+  createAppState,
+  type SsePayload,
+} from "../packages/server/src/app-state.js";
 
 const SAFE_FIXTURE = resolve("test/fixtures/phase4.1-real-shapes.safe.jsonl");
 
@@ -113,19 +117,24 @@ describe("Phase 04.1 vertical slice — safe real-shaped row polish fixture", ()
     expect(sessionRow?.turnShort).toBe("000003");
 
     expect(rows.some((row) => row.summary === "error -32001: safe synthetic failure")).toBe(true);
-    expect(rows.some((row) => row.summary.startsWith('delta "Synthetic assistant delta'))).toBe(true);
+    expect(rows.some((row) => row.summary.startsWith('delta "Synthetic assistant delta'))).toBe(
+      true,
+    );
     expect(rows.some((row) => row.summary.startsWith("tool call readFile"))).toBe(true);
     expect(rows.some((row) => row.summary.startsWith("tool result readFile"))).toBe(true);
     expect(
       rows.some(
-        (row) => row.summary.startsWith("notification progress") || row.summary.startsWith("status "),
+        (row) =>
+          row.summary.startsWith("notification progress") || row.summary.startsWith("status "),
       ),
     ).toBe(true);
-    expect(rows.some((row) => row.kind === "parse-error" && row.summary.startsWith("parse error line"))).toBe(
-      true,
-    );
+    expect(
+      rows.some((row) => row.kind === "parse-error" && row.summary.startsWith("parse error line")),
+    ).toBe(true);
 
-    const hiddenVisibleIdxs = new Set(rows.filter((row) => row.idx !== request.pairIdx).map((row) => row.idx));
+    const hiddenVisibleIdxs = new Set(
+      rows.filter((row) => row.idx !== request.pairIdx).map((row) => row.idx),
+    );
     expect(request.pairIdx !== null && !hiddenVisibleIdxs.has(request.pairIdx)).toBe(true);
 
     const detailEvent = state.eventAt(request.idx);

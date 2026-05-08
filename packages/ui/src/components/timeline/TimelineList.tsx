@@ -224,7 +224,7 @@ export function TimelineList({
             // kind === "row"
             const row = rows[item.rowIdx];
             if (!row) return null;
-             const isSelected = row.idx === selectedIdx;
+            const isSelected = row.idx === selectedIdx;
             const pairHighlight =
               selectedPairIdx !== null && row.idx === selectedPairIdx && selectedPairVisible
                 ? row.kind === "response"
@@ -253,13 +253,13 @@ export function TimelineList({
               <EventRow
                 key={row.idx}
                 row={row}
-                 isSelected={isSelected}
-                 onClick={() => onSelect(row.idx)}
-                 searchQuery={searchQuery}
-                 pairHighlight={pairHighlight}
-                 pairHidden={pairHidden}
-                 style={style}
-               />
+                isSelected={isSelected}
+                onClick={() => onSelect(row.idx)}
+                searchQuery={searchQuery}
+                pairHighlight={pairHighlight}
+                pairHidden={pairHidden}
+                style={style}
+              />
             );
           })}
         </div>

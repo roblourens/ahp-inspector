@@ -31,8 +31,8 @@ export interface EventRow {
   readonly latencyMs: number | null;
   readonly latencyBand: LatencyBand | null;
   readonly payloadPreview: string;
-  readonly summary: string;
-  readonly pairIdx: number | null;
+  readonly summary?: string;
+  readonly pairIdx?: number | null;
   // Parse-error specifics; null/empty for ok events.
   readonly parseErrorReason: string | null;
   readonly lineIndex: number | null; // 1-based source line; from seq+1
@@ -140,7 +140,10 @@ function objectRecord(v: unknown): Record<string, unknown> | null {
   return typeof v === "object" && v !== null ? (v as Record<string, unknown>) : null;
 }
 
-function childRecord(parent: Record<string, unknown> | null, key: string): Record<string, unknown> | null {
+function childRecord(
+  parent: Record<string, unknown> | null,
+  key: string,
+): Record<string, unknown> | null {
   if (!parent) return null;
   return objectRecord(parent[key]);
 }

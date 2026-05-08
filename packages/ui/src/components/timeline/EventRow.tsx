@@ -50,7 +50,9 @@ function primaryLabelTitle(row: EventRowData): string {
   return label ?? "";
 }
 
-function statusBadge(row: EventRowData): { text: string; title: string; tone: "error" | "warning" } | null {
+function statusBadge(
+  row: EventRowData,
+): { text: string; title: string; tone: "error" | "warning" } | null {
   if (row.isAuthFailure) {
     return { text: "AUTH", title: "Authentication failure", tone: "error" };
   }
@@ -165,7 +167,11 @@ export const EventRow = memo(function EventRow({
         ...style,
       }}
     >
-      <div role="gridcell" data-testid="row-rail" style={{ ...cellStyle, width: 4, height: "100%", background: railColor(row, isSelected) }} />
+      <div
+        role="gridcell"
+        data-testid="row-rail"
+        style={{ ...cellStyle, width: 4, height: "100%", background: railColor(row, isSelected) }}
+      />
       <div role="gridcell" className="id" style={cellStyle}>
         {row.keyId ?? "—"}
       </div>
@@ -202,10 +208,8 @@ export const EventRow = memo(function EventRow({
           <span
             data-testid="row-status-badge"
             title={badge.title}
-            aria-label={badge.title}
             style={{
-              color:
-                badge.tone === "error" ? "var(--color-destructive)" : "var(--color-warning)",
+              color: badge.tone === "error" ? "var(--color-destructive)" : "var(--color-warning)",
               fontSize: "var(--text-ui-muted-size)",
               fontWeight: 600,
               flexShrink: 0,
@@ -237,7 +241,7 @@ export const EventRow = memo(function EventRow({
         <LatencyCell ms={row.latencyMs} band={row.latencyBand} />
       </div>
       <div role="gridcell" style={cellStyle}>
-        <SummaryCell text={row.summary} />
+        <SummaryCell text={row.summary ?? row.payloadPreview} />
       </div>
     </div>
   );
