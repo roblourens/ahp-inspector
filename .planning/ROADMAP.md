@@ -97,7 +97,7 @@ Plans:
 
 - [x] 09-01: Add state-at-this-point action in the timeline/detail flow.
 - [x] 09-02: Add resource selector and themed state summary/Pretty/Raw views.
-- [ ] 09-03: Add confidence and diagnostics UI with copy actions.
+- [x] 09-03: Add confidence and diagnostics UI with copy actions.
 
 **Success criteria:**
 
@@ -129,11 +129,11 @@ Plans:
 | Milestone | Phases | Plans | Status | Completed |
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
-| v1.1 Reducer-backed State Snapshots | 3/5 | 11/15 | In progress | — |
+| v1.1 Reducer-backed State Snapshots | 3/5 | 12/15 | In progress | — |
 
 ## Next
 
-Execute Phase 9 plan 09-03: confidence, diagnostics, and copy actions.
+Verify Phase 9 state inspector UI, then plan Phase 10.
 
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*

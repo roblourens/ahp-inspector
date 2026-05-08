@@ -1,8 +1,12 @@
 import { Loader2 } from "lucide-react";
 import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { fetchStateAt, type StateAtSuccessResponse } from "../../transport/state-client.js";
+import { CopyToast } from "./CopyToast.js";
 import { PrettyJsonView } from "./PrettyJsonView.js";
 import { RawJsonView } from "./RawJsonView.js";
+import { StateConfidenceBadge } from "./StateConfidenceBadge.js";
+import { StateCopyMenu } from "./StateCopyMenu.js";
+import { StateDiagnosticsPanel } from "./StateDiagnosticsPanel.js";
 import {
   chooseDefaultResource,
   type SelectableStateResource,
@@ -44,6 +48,7 @@ export function StateInspectorPanel({ idx, logKey }: StateInspectorPanelProps): 
   const [selectedLoadState, setSelectedLoadState] =
     useState<SelectedLoadState>(IDLE_SELECTED_STATE);
   const [stateTab, setStateTab] = useState<StateTab>("summary");
+  const [toast, setToast] = useState<{ message: string; kind: "success" | "error" } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const selectedAbortRef = useRef<AbortController | null>(null);
   const requestKey = `${idx}\u0000${logKey ?? ""}`;
@@ -65,6 +70,11 @@ export function StateInspectorPanel({ idx, logKey }: StateInspectorPanelProps): 
         });
         if (controller.signal.aborted) return;
         if (data?.selectedResource) {
+          setLoadState((current) =>
+            current.status === "ok"
+              ? { status: "ok", data: { ...data, resources: current.data.resources }, error: null }
+              : { status: "ok", data, error: null },
+          );
           setSelectedLoadState({ status: "ok", data: data.selectedResource, error: null });
         } else {
           setSelectedLoadState({
@@ -206,13 +216,26 @@ export function StateInspectorPanel({ idx, logKey }: StateInspectorPanelProps): 
                 />
               )}
               <SelectedStateViews
+                targetIndex={loadState.data.targetIndex}
                 loadState={selectedLoadState}
                 activeTab={stateTab}
                 onTabChange={setStateTab}
+                onCopy={(message, ok) => setToast({ message, kind: ok ? "success" : "error" })}
+              />
+              <StateDiagnosticsPanel
+                aggregateDiagnostics={loadState.data.diagnostics}
+                selectedDiagnostics={
+                  selectedLoadState.status === "ok" ? selectedLoadState.data.diagnostics : []
+                }
+                intents={loadState.data.intents}
+                cache={loadState.data.cache}
               />
             </>
           )}
         </div>
+      )}
+      {toast && (
+        <CopyToast key={toast.message + Date.now()} message={toast.message} kind={toast.kind} />
       )}
     </section>
   );
@@ -221,6 +244,7 @@ export function StateInspectorPanel({ idx, logKey }: StateInspectorPanelProps): 
 function StateMetadataSummary({ data }: { readonly data: StateAtSuccessResponse }): JSX.Element {
   return (
     <div data-testid="state-inspector-metadata" className="state-metadata-summary">
+      <StateConfidenceBadge confidence={data.confidence} label="Aggregate confidence" />
       <dl>
         <dt>Target</dt>
         <dd>#{data.targetIndex}</dd>
@@ -234,13 +258,17 @@ function StateMetadataSummary({ data }: { readonly data: StateAtSuccessResponse 
 }
 
 function SelectedStateViews({
+  targetIndex,
   loadState,
   activeTab,
   onTabChange,
+  onCopy,
 }: {
+  readonly targetIndex: number;
   readonly loadState: SelectedLoadState;
   readonly activeTab: StateTab;
   readonly onTabChange: (tab: StateTab) => void;
+  readonly onCopy: (message: string, ok: boolean) => void;
 }): JSX.Element | null {
   if (loadState.status === "idle") return null;
   if (loadState.status === "loading") {
@@ -262,6 +290,10 @@ function SelectedStateViews({
   const resource = loadState.data;
   return (
     <div className="state-view-shell" data-testid="state-view-shell">
+      <div className="state-view-header">
+        <StateConfidenceBadge confidence={resource.confidence} label="Selected resource" />
+        <StateCopyMenu targetIndex={targetIndex} resource={resource} onCopy={onCopy} />
+      </div>
       <div className="state-tabs" role="tablist" aria-label="Reconstructed state views">
         {(["summary", "pretty", "raw"] as const).map((tab) => (
           <button

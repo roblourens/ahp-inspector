@@ -72,7 +72,7 @@ const selectedResponse: StateAtSuccessResponse = {
 
 afterEach(() => {
   cleanup();
-  vi.clearAllMocks();
+  vi.resetAllMocks();
 });
 
 describe("StateInspectorPanel", () => {
@@ -250,6 +250,92 @@ describe("StateInspectorPanel", () => {
     expect(screen.getByTestId("pretty-json-view")).toHaveTextContent("sessionId");
     fireEvent.click(screen.getByRole("tab", { name: /raw json/i }));
     expect(screen.getByTestId("raw-json-view")).toHaveTextContent('"sessionId": "session-1"');
+  });
+
+  it("shows aggregate and selected-resource confidence plus replay diagnostics", async () => {
+    const aggregateDiagnostic = {
+      code: "missing-baseline",
+      severity: "warning" as const,
+      eventIdx: 2,
+      message: "No earlier root snapshot was observed.",
+    };
+    const selectedDiagnostic = {
+      code: "unknown-action",
+      severity: "error" as const,
+      eventIdx: 6,
+      message: "Reducer could not apply action type mystery.action.",
+    };
+    vi.mocked(fetchStateAt)
+      .mockResolvedValueOnce({
+        ...metadataResponse,
+        confidence: "partial",
+        diagnostics: [aggregateDiagnostic],
+        intents: [
+          {
+            eventIdx: 5,
+            ts: 1,
+            clientSeq: 11,
+            actionType: "mystery.action",
+            resource: { kind: "session", uri: "copilot:/session/1" },
+            ignored: true,
+            acceptedByServerSeq: null,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        ...metadataResponse,
+        confidence: "partial",
+        diagnostics: [aggregateDiagnostic],
+        intents: [],
+        cache: { hit: true, size: 2, maxEntries: 25 },
+        selectedResource: {
+          ...sessionResource,
+          confidence: "unknown",
+          diagnostics: [selectedDiagnostic],
+          state: { partial: true },
+        },
+      });
+    render(<StateInspectorPanel idx={7} logKey="log-A" />);
+
+    fireEvent.click(screen.getByRole("button", { name: /state at this point/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Aggregate confidence/)).toBeInTheDocument();
+      expect(screen.getAllByText(/Selected resource/).length).toBeGreaterThan(0);
+    });
+    expect(screen.getByText("Partial")).toBeInTheDocument();
+    expect(screen.getByText("Unknown")).toBeInTheDocument();
+    expect(screen.getByText(/State cannot be treated as authoritative/)).toBeInTheDocument();
+    expect(screen.getByText("missing-baseline")).toBeInTheDocument();
+    expect(screen.getByText("unknown-action")).toBeInTheDocument();
+    expect(screen.getByLabelText("Replay diagnostics")).toHaveTextContent("cache hit");
+  });
+
+  it("copies selected resource summary and shows copy feedback", async () => {
+    const written: string[] = [];
+    Object.defineProperty(navigator, "clipboard", {
+      value: {
+        writeText: vi.fn(async (text: string) => {
+          written.push(text);
+        }),
+      },
+      configurable: true,
+    });
+    vi.mocked(fetchStateAt)
+      .mockResolvedValueOnce(metadataResponse)
+      .mockResolvedValueOnce(selectedResponse);
+    render(<StateInspectorPanel idx={7} logKey="log-A" />);
+
+    fireEvent.click(screen.getByRole("button", { name: /state at this point/i }));
+    await screen.findByTestId("state-summary-view");
+    fireEvent.click(screen.getByRole("button", { name: /copy state/i }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /copy state summary/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("copy-toast")).toHaveTextContent(/Copied/);
+    });
+    expect(written[0]).toContain("target=#7");
+    expect(written[0]).toContain("resource=session copilot:/session/1");
   });
 
   it("aborts and resets in-flight state lookup when idx changes", async () => {
