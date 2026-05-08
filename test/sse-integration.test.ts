@@ -10,12 +10,27 @@ import { afterEach, describe, expect, it } from "vitest";
 import { type AppState, createAppState } from "../packages/server/src/app-state.js";
 import { type LogServerHandle, startLogServer } from "../packages/server/src/log-server.js";
 import type {
+  ActiveSession,
+  LogSessionManager,
+} from "../packages/server/src/session-manager.js";
+import type {
   Direction,
   Disposable,
   HostAdapter,
   LogCandidate,
   LogHandle,
 } from "../packages/shared/src/index.js";
+
+function fakeSessions(appState: AppState): LogSessionManager {
+  const active: ActiveSession = { logKey: appState.meta.logKey, appState };
+  return {
+    current: () => active,
+    open: async () => active,
+    close: async () => {},
+    onChange: () => () => {},
+    dispose: async () => {},
+  };
+}
 
 interface FakeHost extends HostAdapter {
   push(text: string): void;
@@ -199,7 +214,7 @@ describe("SSE log stream", () => {
     host.push(`${requestLine}\n`);
     for (const l of remaining) host.push(`${l}\n`);
 
-    handle = await startLogServer({ appState, port: 0, version: "0.1.0" });
+    handle = await startLogServer({ sessions: fakeSessions(appState), port: 0, version: "0.1.0" });
 
     const c = await openSseClient({
       port: handle.port,

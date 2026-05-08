@@ -14,6 +14,7 @@ export type {
   SessionOpenErrorCode,
 } from "./session-manager.js";
 export { createLogSessionManager, SessionOpenError } from "./session-manager.js";
+export { registerSessionRoutes } from "./session-routes.js";
 export { registerLogRoutes } from "./sse-routes.js";
 export type { StaticUiOptions } from "./static-ui.js";
 export { registerStaticUi } from "./static-ui.js";

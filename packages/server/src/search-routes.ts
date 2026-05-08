@@ -3,13 +3,17 @@
 // T-03-01-01: no regex from user input; T-03-01-02: result count hard-capped.
 
 import type { Hono } from "hono";
-import type { AppState } from "./app-state.js";
+import type { LogSessionManager } from "./session-manager.js";
 
 const MAX_QUERY_LEN = 256;
 const MAX_RESULTS = 5000;
 
-export function registerSearchRoutes(app: Hono, appState: AppState): void {
+export function registerSearchRoutes(app: Hono, sessions: LogSessionManager): void {
   app.get("/api/log/search", (c) => {
+    const a = sessions.current();
+    if (!a) {
+      return c.json({ code: "no-active-log" }, 409);
+    }
     const rawQ = c.req.query("q") ?? "";
     // T-03-01-01: lowercase + slice to cap length before scan (no regex)
     const q = rawQ.toLowerCase().slice(0, MAX_QUERY_LEN);
@@ -19,7 +23,7 @@ export function registerSearchRoutes(app: Hono, appState: AppState): void {
       Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : MAX_RESULTS,
       MAX_RESULTS,
     );
-    const { matches, truncated } = appState.searchIndex.scan(q, limit);
+    const { matches, truncated } = a.appState.searchIndex.scan(q, limit);
     return c.json({ matches, total: matches.length, truncated });
   });
 }

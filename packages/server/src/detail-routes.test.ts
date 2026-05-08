@@ -8,7 +8,19 @@ import { describe, expect, it } from "vitest";
 import type { AppState, LogMeta } from "./app-state.js";
 import { type DetailResponse, registerDetailRoutes } from "./detail-routes.js";
 import { SearchIndex } from "./search-index.js";
+import type { ActiveSession, LogSessionManager } from "./session-manager.js";
 import { registerSearchRoutes } from "./search-routes.js";
+
+function fakeSessions(appState: AppState): LogSessionManager {
+  const active: ActiveSession = { logKey: appState.meta.logKey, appState };
+  return {
+    current: () => active,
+    open: async () => active,
+    close: async () => {},
+    onChange: () => () => {},
+    dispose: async () => {},
+  };
+}
 
 // ---------------------------------------------------------------------------
 // AhpEvent factory (same helper pattern as search-routes.test.ts)
@@ -91,7 +103,7 @@ function makeDetailAppState(
 describe("GET /api/log/event/:idx", () => {
   function buildApp(entries: MockEntry[]): Hono {
     const app = new Hono();
-    registerDetailRoutes(app, makeDetailAppState(entries));
+    registerDetailRoutes(app, fakeSessions(makeDetailAppState(entries)));
     return app;
   }
 
@@ -187,7 +199,7 @@ describe("GET /api/log/event/:idx", () => {
       absolutePath,
     );
     const app = new Hono();
-    registerDetailRoutes(app, appState);
+    registerDetailRoutes(app, fakeSessions(appState));
     const res = await app.request("/api/log/event/0");
     const bodyText = await res.text();
     expect(bodyText).not.toContain(absolutePath);
@@ -216,8 +228,9 @@ describe("GET /api/log/search (via detail test file)", () => {
       dispose: async () => {},
     };
     const app = new Hono();
-    registerDetailRoutes(app, appState);
-    registerSearchRoutes(app, appState);
+    const sessions = fakeSessions(appState);
+    registerDetailRoutes(app, sessions);
+    registerSearchRoutes(app, sessions);
 
     const res = await app.request("/api/log/search?q=initialize");
     expect(res.status).toBe(200);

@@ -6,21 +6,23 @@
 //   - cspMiddleware        → CSP + nosniff + no-referrer (T-02-04b)
 //   - GET /health          → liveness probe
 //   - registerLogRoutes    → /api/log/meta + /api/log/stream
+//   - registerSessionRoutes → /api/sessions/{discover,open,close,active}
 
 import { type ServerType, serve } from "@hono/node-server";
 import { Hono } from "hono";
-import type { AppState } from "./app-state.js";
 import { cspMiddleware } from "./csp.js";
 import { registerDetailRoutes } from "./detail-routes.js";
 import { hostGuardMiddleware } from "./host-guard.js";
 import { registerSearchRoutes } from "./search-routes.js";
+import type { LogSessionManager } from "./session-manager.js";
+import { registerSessionRoutes } from "./session-routes.js";
 import { registerLogRoutes } from "./sse-routes.js";
 import { registerStaticUi } from "./static-ui.js";
 
 const HOSTNAME = "127.0.0.1" as const;
 
 export interface LogServerOptions {
-  readonly appState: AppState;
+  readonly sessions: LogSessionManager;
   /** Bind port. Pass 0 for an ephemeral port. */
   readonly port: number;
   /** Version string returned by GET /health. */
@@ -45,9 +47,10 @@ export function startLogServer(opts: LogServerOptions): Promise<LogServerHandle>
   app.use("*", hostGuardMiddleware);
   app.use("*", cspMiddleware);
   app.get("/health", (c) => c.json({ status: "ok", version: opts.version }));
-  registerLogRoutes(app, opts.appState);
-  registerDetailRoutes(app, opts.appState);
-  registerSearchRoutes(app, opts.appState);
+  registerLogRoutes(app, opts.sessions);
+  registerDetailRoutes(app, opts.sessions);
+  registerSearchRoutes(app, opts.sessions);
+  registerSessionRoutes(app, opts.sessions);
   if (opts.uiDistDir) registerStaticUi(app, opts.uiDistDir);
 
   return new Promise<LogServerHandle>((resolve, reject) => {

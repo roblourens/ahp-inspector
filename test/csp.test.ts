@@ -7,11 +7,26 @@ import { type AppState, createAppState } from "../packages/server/src/app-state.
 import { CSP_VALUE } from "../packages/server/src/csp.js";
 import { type LogServerHandle, startLogServer } from "../packages/server/src/log-server.js";
 import type {
+  ActiveSession,
+  LogSessionManager,
+} from "../packages/server/src/session-manager.js";
+import type {
   Disposable,
   HostAdapter,
   LogCandidate,
   LogHandle,
 } from "../packages/shared/src/index.js";
+
+function fakeSessions(appState: AppState): LogSessionManager {
+  const active: ActiveSession = { logKey: appState.meta.logKey, appState };
+  return {
+    current: () => active,
+    open: async () => active,
+    close: async () => {},
+    onChange: () => () => {},
+    dispose: async () => {},
+  };
+}
 
 function makeFakeHost(path: string): HostAdapter {
   return {
@@ -79,7 +94,7 @@ describe("log-server CSP + Host guard", () => {
       file: "/private/tmp/some-dir/example.log",
       flushIntervalMs: 0,
     });
-    handle = await startLogServer({ appState, port: 0, version: "0.1.0" });
+    handle = await startLogServer({ sessions: fakeSessions(appState), port: 0, version: "0.1.0" });
     return handle;
   }
 
