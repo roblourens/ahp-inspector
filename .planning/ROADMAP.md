@@ -129,11 +129,11 @@ Plans:
 | Milestone | Phases | Plans | Status | Completed |
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
-| v1.1 Reducer-backed State Snapshots | 3/5 | 12/15 | In progress | — |
+| v1.1 Reducer-backed State Snapshots | 4/5 | 12/15 | In progress | — |
 
 ## Next
 
-Verify Phase 9 state inspector UI, then plan Phase 10.
+Plan Phase 10 pinned comparison and milestone verification.
 
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*
