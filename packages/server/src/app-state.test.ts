@@ -89,6 +89,14 @@ function initializeRootSnapshotResponse(id = 1): string {
   })}\n`;
 }
 
+function expectNoReplayFields(json: string): void {
+  expect(json).not.toContain('"resources"');
+  expect(json).not.toContain('"diagnostics"');
+  expect(json).not.toContain('"intents"');
+  expect(json).not.toContain('"cache"');
+  expect(json).not.toContain('"state":{');
+}
+
 describe("createAppState", () => {
   let state: AppState | undefined;
 
@@ -273,6 +281,31 @@ describe("createAppState", () => {
     await state.dispose();
     await state.dispose();
     state = undefined;
+  });
+
+  it("Calling stateAtIndex does not emit SSE payloads or add replay resources diagnostics intents cache state fields", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/x.log",
+      flushIntervalMs: 0,
+      directionInference: ahpDirection,
+    });
+    const captured: SsePayload[] = [];
+    state.subscribe((p) => captured.push(p));
+
+    host.push(initializeRequest());
+    host.push(initializeRootSnapshotResponse());
+    const appendPayloads = captured.filter((p) => p.kind === "append");
+    for (const append of appendPayloads) {
+      expectNoReplayFields(JSON.stringify(append.rows));
+    }
+    captured.length = 0;
+
+    state.stateAtIndex(1);
+
+    expect(captured).toEqual([]);
+    expectNoReplayFields(JSON.stringify(state.snapshot().rows));
   });
 });
 
