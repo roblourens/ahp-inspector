@@ -116,7 +116,13 @@ Plans:
   3. Hacker mode has an intentional, distinctive aesthetic beyond green-on-black.
   4. The UI remains usable and visually balanced from typical laptop widths up to ultra-wide displays.
   5. UI tests cover timeline rendering, row selection, detail view, filtering/search, theme switching, empty states, and parse-error states; E2E tests cover opening a fixture log, filtering/searching, expanding details, and following appended events.
-**Plans**: TBD
+**Plans**:
+- [ ] 05-00-PLAN.md — Guardrails, Playwright setup, and theme/token validation tests
+- [ ] 05-01-PLAN.md — Responsive shell and overlay detail drawer layout
+- [ ] 05-02-PLAN.md — Theme token polish and hacker CRT effects
+- [ ] 05-03-PLAN.md — Theme persistence and picker interaction hardening
+- [ ] 05-04-PLAN.md — Integrated fixture coverage for VERIFY-02
+- [ ] 05-05-PLAN.md — Playwright browser UAT, screenshots, docs, and final verification
 **UI hint**: yes
 
 ## Progress
@@ -127,7 +133,7 @@ Plans:
 | 2. Vertical Slice — CLI, Server, Timeline | 7/7 | Complete | 2026-05-07 |
 | 3. Detail, Search, and Filtering | 7/7 | Complete   | 2026-05-07 |
 | 4. Live Tail, Discovery, and Persistence | 8/8 | Complete | 2026-05-08 |
-| 5. Themes, Polish, and Verification | 0/0 | Not started | - |
+| 5. Themes, Polish, and Verification | 0/6 | Planned | - |
 
 ---
 *Roadmap created: 2026-05-06*
