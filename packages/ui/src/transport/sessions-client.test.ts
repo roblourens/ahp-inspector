@@ -3,10 +3,10 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  SessionOpenError,
   fetchCandidates,
   openSessionByCandidate,
   openSessionByPath,
+  SessionOpenError,
 } from "./sessions-client.js";
 
 interface FetchInit {
@@ -25,9 +25,7 @@ function mkResponse(init: {
     ok: init.ok,
     status: init.status,
     json: () =>
-      init.jsonThrows
-        ? Promise.reject(new Error("bad json"))
-        : Promise.resolve(init.json),
+      init.jsonThrows ? Promise.reject(new Error("bad json")) : Promise.resolve(init.json),
   } as unknown as Response;
 }
 
@@ -63,9 +61,7 @@ describe("sessions-client", () => {
     });
 
     it("returns empty array when server returns missing candidates field", async () => {
-      globalThis.fetch = vi
-        .fn()
-        .mockResolvedValue(mkResponse({ ok: true, status: 200, json: {} }));
+      globalThis.fetch = vi.fn().mockResolvedValue(mkResponse({ ok: true, status: 200, json: {} }));
       const result = await fetchCandidates();
       expect(result).toEqual([]);
     });
@@ -104,9 +100,7 @@ describe("sessions-client", () => {
     it("throws SessionOpenError carrying server `code` on 4xx", async () => {
       globalThis.fetch = vi
         .fn()
-        .mockResolvedValue(
-          mkResponse({ ok: false, status: 400, json: { code: "not-found" } }),
-        );
+        .mockResolvedValue(mkResponse({ ok: false, status: 400, json: { code: "not-found" } }));
       try {
         await openSessionByCandidate("x");
         expect.fail("should have thrown");
@@ -156,9 +150,7 @@ describe("sessions-client", () => {
     it("propagates 4xx code", async () => {
       globalThis.fetch = vi
         .fn()
-        .mockResolvedValue(
-          mkResponse({ ok: false, status: 400, json: { code: "not-a-file" } }),
-        );
+        .mockResolvedValue(mkResponse({ ok: false, status: 400, json: { code: "not-a-file" } }));
       await expect(openSessionByPath("/x")).rejects.toMatchObject({ code: "not-a-file" });
     });
   });
