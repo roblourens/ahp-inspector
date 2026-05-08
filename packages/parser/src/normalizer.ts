@@ -8,8 +8,8 @@
 //   - request / response            → kind:'request' / 'response'
 //   - anything else                 → kind:'parse-error' via makeParseErrorEvent
 
-import type { AhpEvent, EventKind, IdType, NormalizeMeta } from "@ahp-viewer/shared";
 import type { ActionEnvelope, ProtocolNotification } from "@ahp-viewer/protocol";
+import type { AhpEvent, EventKind, IdType, NormalizeMeta } from "@ahp-viewer/shared";
 import { makeParseErrorEvent } from "@ahp-viewer/shared";
 import { extractSessionId, extractToolCallId, extractTurnId } from "./extract.js";
 

@@ -11,7 +11,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 ## Milestones
 
 - **v1.0 Initial MVP** — shipped 2026-05-08. Delivered standalone local viewing, JSONL ingestion, virtualized timeline, detail/search/filtering, live discovery/tail/persistence, row polish, three themes, and full verification.
-- **v1.1 Reducer-backed State Snapshots** — planned. Reconstruct root/session/terminal state at selected log events by replaying canonical AHP reducers over snapshots and server action envelopes.
+- **v1.1 Reducer-backed State Snapshots** — in progress. Reconstruct root/session/terminal state at selected log events by replaying canonical AHP reducers over snapshots and server action envelopes.
 
 ## Phases
 
@@ -38,9 +38,9 @@ Full phase details are archived in `.planning/milestones/v1.0-ROADMAP.md`.
 
 Plans:
 
-- [ ] 06-01: Add generated `@ahp-viewer/protocol` package and sync script based on VS Code's AHP sync workflow.
-- [ ] 06-02: Switch protocol imports away from stale sibling `file:` dependency behavior.
-- [ ] 06-03: Add reducer parity fixtures and source-commit diagnostics.
+- [x] 06-01: Add generated `@ahp-viewer/protocol` package and sync script based on VS Code's AHP sync workflow.
+- [x] 06-02: Switch protocol imports away from stale sibling `file:` dependency behavior.
+- [x] 06-03: Add reducer parity fixtures and source-commit diagnostics.
 
 **Success criteria:**
 
