@@ -17,12 +17,7 @@ export interface DetailData {
   pairIdx: number | null;
 }
 
-export type Connection =
-  | "connecting"
-  | "connected"
-  | "disconnected"
-  | "no-server"
-  | "no-log";
+export type Connection = "connecting" | "connected" | "disconnected" | "no-server" | "no-log";
 
 export interface MetaSummary {
   filename: string;

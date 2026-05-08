@@ -4,8 +4,8 @@ import { EMPTY_FILTERS } from "./filters.js";
 import {
   clearPerLogPrefs,
   loadPerLogPrefs,
-  persistPerLogPrefs,
   type PerLogPrefs,
+  persistPerLogPrefs,
 } from "./persistence.js";
 
 const sample: PerLogPrefs = {
@@ -38,10 +38,7 @@ describe("persistPerLogPrefs / loadPerLogPrefs", () => {
     expect(loadPerLogPrefs("k2")).not.toBeNull();
   });
   it("returns null when stored entry has wrong schema version", () => {
-    localStorage.setItem(
-      "ahp-log-prefs-v1",
-      JSON.stringify({ k1: { v: 99, _writtenAt: 1 } }),
-    );
+    localStorage.setItem("ahp-log-prefs-v1", JSON.stringify({ k1: { v: 99, _writtenAt: 1 } }));
     expect(loadPerLogPrefs("k1")).toBeNull();
   });
   it("LRU-caps at 50 entries (oldest evicted)", () => {

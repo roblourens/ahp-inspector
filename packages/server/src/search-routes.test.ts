@@ -116,7 +116,12 @@ function makeSearchAppState(entries: Array<{ method: string }>): AppState {
     if (!e) continue;
     si.append(makeEvent({ seq: i, method: e.method }));
   }
-  const meta: LogMeta = { filename: "test.log", sizeBytes: 0, startedAt: 0, logKey: "0".repeat(32) };
+  const meta: LogMeta = {
+    filename: "test.log",
+    sizeBytes: 0,
+    startedAt: 0,
+    logKey: "0".repeat(32),
+  };
   return {
     meta,
     searchIndex: si,
