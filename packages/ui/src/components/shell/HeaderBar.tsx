@@ -1,6 +1,7 @@
 import { Check, ChevronDown, Palette } from "lucide-react";
-import type { JSX } from "react";
+import type { JSX, KeyboardEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import { applyTheme, labelForTheme, persistTheme, THEMES, type ThemeId } from "../../theme/theme.js";
 import { __APP_VERSION__ } from "../../version.js";
 import { LivePauseButton } from "./LivePauseButton.js";
 import { SwitchLogButton } from "./SwitchLogButton.js";
@@ -9,20 +10,6 @@ interface HeaderBarProps {
   version: string;
   onSwitchLog?: () => void;
 }
-
-const THEMES = [
-  { id: "dark", label: "Dark" },
-  { id: "light", label: "Light" },
-  { id: "hacker", label: "Hacker" },
-] as const;
-
-type ThemeId = (typeof THEMES)[number]["id"];
-
-const THEME_LABEL: Record<ThemeId, string> = {
-  dark: "Dark",
-  light: "Light",
-  hacker: "Hacker",
-};
 
 function readTheme(): ThemeId {
   const attr = document.documentElement.getAttribute("data-theme");
@@ -33,6 +20,8 @@ export function HeaderBar({ version, onSwitchLog }: HeaderBarProps): JSX.Element
   const [theme, setThemeState] = useState<ThemeId>(readTheme);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement>(null);
+  const themeButtonRef = useRef<HTMLButtonElement>(null);
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
     function handleMouseDown(event: MouseEvent): void {
@@ -45,15 +34,39 @@ export function HeaderBar({ version, onSwitchLog }: HeaderBarProps): JSX.Element
     return () => document.removeEventListener("mousedown", handleMouseDown);
   }, []);
 
-  function setTheme(next: ThemeId): void {
-    document.documentElement.setAttribute("data-theme", next);
-    try {
-      localStorage.setItem("ahp-theme", next);
-    } catch {
-      // Ignore unavailable storage; the selected theme still applies for this page.
-    }
-    setThemeState(next);
+  function closeThemeMenu(): void {
     setIsThemeMenuOpen(false);
+    themeButtonRef.current?.focus();
+  }
+
+  function setTheme(next: ThemeId): void {
+    applyTheme(next);
+    persistTheme(next);
+    setThemeState(next);
+    closeThemeMenu();
+  }
+
+  function focusOption(index: number): void {
+    optionRefs.current[index]?.focus();
+  }
+
+  function handleOptionKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number): void {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeThemeMenu();
+    } else if (event.key === "ArrowDown") {
+      event.preventDefault();
+      focusOption((index + 1) % THEMES.length);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      focusOption((index - 1 + THEMES.length) % THEMES.length);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      focusOption(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      focusOption(THEMES.length - 1);
+    }
   }
 
   return (
@@ -77,10 +90,11 @@ export function HeaderBar({ version, onSwitchLog }: HeaderBarProps): JSX.Element
         <div ref={themeMenuRef} style={{ position: "relative" }}>
           <button
             type="button"
-            aria-label={`Theme picker (${THEME_LABEL[theme]})`}
+            aria-label={`Theme picker (${labelForTheme(theme)})`}
             aria-haspopup="menu"
             aria-expanded={isThemeMenuOpen}
-            title={`Theme: ${THEME_LABEL[theme]}`}
+            title={`Theme: ${labelForTheme(theme)}`}
+            ref={themeButtonRef}
             onClick={() => setIsThemeMenuOpen((open) => !open)}
             onMouseDown={(event) => event.stopPropagation()}
             style={{
@@ -132,7 +146,7 @@ export function HeaderBar({ version, onSwitchLog }: HeaderBarProps): JSX.Element
                 boxShadow: "var(--shadow-menu)",
               }}
             >
-              {THEMES.map((option) => {
+              {THEMES.map((option, index) => {
                 const active = theme === option.id;
                 return (
                   <button
@@ -140,7 +154,9 @@ export function HeaderBar({ version, onSwitchLog }: HeaderBarProps): JSX.Element
                     type="button"
                     role="menuitemradio"
                     aria-checked={active}
+                    ref={(node) => { optionRefs.current[index] = node; }}
                     onClick={() => setTheme(option.id)}
+                    onKeyDown={(event) => handleOptionKeyDown(event, index)}
                     style={{
                       width: "100%",
                       display: "flex",

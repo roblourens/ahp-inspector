@@ -58,6 +58,24 @@ describe("persistPerLogPrefs / loadPerLogPrefs", () => {
     const loaded = loadPerLogPrefs("k1");
     expect(loaded?.groupCollapsed.length).toBe(1000);
   });
+
+  it("keeps theme global and never persists paths, prompts, raw payloads, or log content", () => {
+    localStorage.setItem("ahp-theme", "hacker");
+    persistPerLogPrefs("opaque-log-key", {
+      ...sample,
+      searchQuery: "initialize",
+    });
+    const raw = localStorage.getItem("ahp-log-prefs-v1") ?? "";
+    expect(raw).not.toContain("hacker");
+    expect(raw).not.toContain("ahp-theme");
+    expect(raw).not.toContain("/Users/");
+    expect(raw).not.toContain("/home/");
+    expect(raw).not.toContain("C:\\");
+    expect(raw).not.toContain("prompt");
+    expect(raw).not.toContain("raw payload");
+    expect(Object.keys(JSON.parse(raw))).toEqual(["opaque-log-key"]);
+  });
+
   it("silently no-ops if localStorage.setItem throws (quota)", () => {
     const orig = Storage.prototype.setItem;
     Storage.prototype.setItem = () => {
