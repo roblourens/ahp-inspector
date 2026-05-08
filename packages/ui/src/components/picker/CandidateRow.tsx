@@ -2,15 +2,15 @@ import type { JSX } from "react";
 import type { SafeCandidate } from "../../types/safe-candidate.js";
 
 const ORIGIN_LABEL: Record<SafeCandidate["origin"], string> = {
-  "vscode": "VS Code",
+  vscode: "VS Code",
   "vscode-insiders": "VS Code Insiders",
-  "manual": "Manual",
+  manual: "Manual",
 };
 
 const CONFIDENCE_BADGE: Record<SafeCandidate["confidence"], string> = {
-  "high": "JSONL",
-  "medium": "Legacy",
-  "low": "Unknown",
+  high: "JSONL",
+  medium: "Legacy",
+  low: "Unknown",
 };
 
 function relTime(ms: number): string {
@@ -43,7 +43,7 @@ export function CandidateRow({
         ? "var(--color-confidence-medium)"
         : "var(--color-confidence-low)";
   return (
-    <li role="listitem" style={{ listStyle: "none" }}>
+    <li style={{ listStyle: "none" }}>
       <button
         type="button"
         onClick={onSelect}

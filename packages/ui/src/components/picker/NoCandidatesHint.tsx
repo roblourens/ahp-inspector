@@ -23,8 +23,8 @@ export function NoCandidatesHint(): JSX.Element {
         No logs discovered
       </div>
       <p style={{ margin: 0 }}>
-        AHP logs are created when VS Code and the Copilot extension generate protocol traffic.
-        Check that VS Code is installed and has been used recently.
+        AHP logs are created when VS Code and the Copilot extension generate protocol traffic. Check
+        that VS Code is installed and has been used recently.
       </p>
     </div>
   );

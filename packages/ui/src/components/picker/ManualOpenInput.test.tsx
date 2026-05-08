@@ -19,7 +19,9 @@ describe("ManualOpenInput", () => {
     render(<ManualOpenInput onOpen={onOpen} />);
     const input = screen.getByPlaceholderText(/absolute\/path/i) as HTMLInputElement;
     fireEvent.change(input, { target: { value: "/tmp/x.jsonl" } });
-    fireEvent.submit(input.closest("form")!);
+    const form = input.closest("form");
+    if (!form) throw new Error("form not found");
+    fireEvent.submit(form);
     await waitFor(() => expect(onOpen).toHaveBeenCalled());
   });
 
@@ -29,7 +31,7 @@ describe("ManualOpenInput", () => {
     const input = screen.getByPlaceholderText(/absolute\/path/i) as HTMLInputElement;
     // Bypass maxLength via direct value mutation (simulate paste-bypass).
     input.removeAttribute("maxLength");
-    fireEvent.change(input, { target: { value: "/" + "a".repeat(5000) } });
+    fireEvent.change(input, { target: { value: `/${"a".repeat(5000)}` } });
     fireEvent.click(screen.getByRole("button", { name: /Open Log/i }));
     await waitFor(() => {
       expect(screen.getByRole("alert").textContent).toBe("Path is too long.");
@@ -53,15 +55,15 @@ describe("ManualOpenInput", () => {
   });
 
   it("falls back to generic copy on unknown error code", async () => {
-    const onOpen = vi
-      .fn()
-      .mockRejectedValue(Object.assign(new Error("?"), { code: "weird-code" }));
+    const onOpen = vi.fn().mockRejectedValue(Object.assign(new Error("?"), { code: "weird-code" }));
     render(<ManualOpenInput onOpen={onOpen} />);
     fireEvent.change(screen.getByPlaceholderText(/absolute\/path/i), {
       target: { value: "/tmp/x" },
     });
     fireEvent.click(screen.getByRole("button", { name: /Open Log/i }));
     const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toBe("Could not open that file. Check that it exists and is readable.");
+    expect(alert.textContent).toBe(
+      "Could not open that file. Check that it exists and is readable.",
+    );
   });
 });

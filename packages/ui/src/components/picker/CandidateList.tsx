@@ -12,7 +12,7 @@ export function CandidateList({
 }): JSX.Element {
   if (candidates.length === 0) return <NoCandidatesHint />;
   return (
-    <ul role="list" aria-label="Discovered logs" style={{ margin: 0, padding: 0 }}>
+    <ul aria-label="Discovered logs" style={{ margin: 0, padding: 0 }}>
       {candidates.map((c) => (
         <CandidateRow key={c.id} candidate={c} onSelect={() => onSelect(c.id)} />
       ))}

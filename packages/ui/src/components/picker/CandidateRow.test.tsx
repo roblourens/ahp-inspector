@@ -1,7 +1,7 @@
-import { cleanup, render, screen, fireEvent } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CandidateRow } from "./CandidateRow.js";
 import type { SafeCandidate } from "../../types/safe-candidate.js";
+import { CandidateRow } from "./CandidateRow.js";
 
 afterEach(() => cleanup());
 
