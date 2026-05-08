@@ -15,6 +15,7 @@ const ALLOW = new Set<string>([
   "tsup",
   "tsx",
   "@types/node",
+  "@playwright/test",
   // Runtime deps
   "commander",
   "chokidar",

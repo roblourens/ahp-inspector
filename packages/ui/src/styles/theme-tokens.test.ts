@@ -1,7 +1,8 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const css = readFileSync("src/styles/tokens.css", "utf8");
+const cssPath = existsSync("src/styles/tokens.css") ? "src/styles/tokens.css" : "packages/ui/src/styles/tokens.css";
+const css = readFileSync(cssPath, "utf8");
 
 export const REQUIRED_THEME_TOKENS = [
   "--color-bg",

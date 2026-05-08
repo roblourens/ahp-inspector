@@ -1,7 +1,8 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const css = readFileSync("src/styles/global.css", "utf8");
+const cssPath = existsSync("src/styles/global.css") ? "src/styles/global.css" : "packages/ui/src/styles/global.css";
+const css = readFileSync(cssPath, "utf8");
 
 describe("reduced motion CSS", () => {
   it("disables hacker CRT animations when reduced motion is requested", () => {
