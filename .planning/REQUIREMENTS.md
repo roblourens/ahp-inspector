@@ -9,19 +9,19 @@ Requirements for reducer-backed state reconstruction.
 
 ### Protocol Sync
 
-- [ ] **SYNC-01**: Developer can sync canonical AHP TypeScript protocol files from `../agent-host-protocol` into a generated local package.
-- [ ] **SYNC-02**: Synced protocol files include reducers, state, actions, action-origin, messages, commands, notifications, errors, and version registry.
-- [ ] **SYNC-03**: The app records the source AHP commit for synced protocol files and exposes it in developer-facing diagnostics.
-- [ ] **SYNC-04**: Existing imports use the generated protocol package instead of stale or hand-rolled protocol definitions.
+- [x] **SYNC-01**: Developer can sync canonical AHP TypeScript protocol files from `../agent-host-protocol` into a generated local package.
+- [x] **SYNC-02**: Synced protocol files include reducers, state, actions, action-origin, messages, commands, notifications, errors, and version registry.
+- [x] **SYNC-03**: The app records the source AHP commit for synced protocol files and exposes it in developer-facing diagnostics.
+- [x] **SYNC-04**: Existing imports use the generated protocol package instead of stale or hand-rolled protocol definitions.
 
 ### Replay Engine
 
-- [ ] **REPLAY-01**: The app can reconstruct AHP root state at a selected event index from snapshots and server action envelopes.
-- [ ] **REPLAY-02**: The app can reconstruct AHP session state at a selected event index from snapshots and session-scoped action envelopes.
-- [ ] **REPLAY-03**: The app can reconstruct AHP terminal state at a selected event index from snapshots and terminal-scoped action envelopes.
-- [ ] **REPLAY-04**: Replay uses event timestamps for reducer-derived time values so repeated runs are deterministic.
-- [ ] **REPLAY-05**: Client dispatch requests are shown as intent but do not mutate reconstructed state unless accepted through server action envelopes.
-- [ ] **REPLAY-06**: Reconnect replay responses apply embedded action envelopes in order.
+- [x] **REPLAY-01**: The app can reconstruct AHP root state at a selected event index from snapshots and server action envelopes.
+- [x] **REPLAY-02**: The app can reconstruct AHP session state at a selected event index from snapshots and session-scoped action envelopes.
+- [x] **REPLAY-03**: The app can reconstruct AHP terminal state at a selected event index from snapshots and terminal-scoped action envelopes.
+- [x] **REPLAY-04**: Replay uses event timestamps for reducer-derived time values so repeated runs are deterministic.
+- [x] **REPLAY-05**: Client dispatch requests are shown as intent but do not mutate reconstructed state unless accepted through server action envelopes.
+- [x] **REPLAY-06**: Reconnect replay responses apply embedded action envelopes in order.
 
 ### State Confidence and Diagnostics
 
@@ -45,7 +45,7 @@ Requirements for reducer-backed state reconstruction.
 
 ### Verification
 
-- [ ] **VERIFY-01**: Reducer replay is covered by parity fixtures based on `../agent-host-protocol/types/test-cases/reducers`.
+- [x] **VERIFY-01**: Reducer replay is covered by parity fixtures based on `../agent-host-protocol/types/test-cases/reducers`.
 - [ ] **VERIFY-02**: Integration tests cover state reconstruction from synthetic JSONL with subscribe/reconnect snapshots and action envelopes.
 - [ ] **VERIFY-03**: Browser E2E covers opening a log, selecting a row, viewing state, pinning two points, and seeing confidence diagnostics.
 - [ ] **VERIFY-04**: Large-log tests confirm state-at-index lookup remains responsive and does not inflate timeline SSE payloads.
@@ -72,16 +72,16 @@ Requirements for reducer-backed state reconstruction.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SYNC-01 | Phase 6 | Pending |
-| SYNC-02 | Phase 6 | Pending |
-| SYNC-03 | Phase 6 | Pending |
-| SYNC-04 | Phase 6 | Pending |
-| REPLAY-01 | Phase 7 | Pending |
-| REPLAY-02 | Phase 7 | Pending |
-| REPLAY-03 | Phase 7 | Pending |
-| REPLAY-04 | Phase 7 | Pending |
-| REPLAY-05 | Phase 7 | Pending |
-| REPLAY-06 | Phase 7 | Pending |
+| SYNC-01 | Phase 6 | Done |
+| SYNC-02 | Phase 6 | Done |
+| SYNC-03 | Phase 6 | Done |
+| SYNC-04 | Phase 6 | Done |
+| REPLAY-01 | Phase 7 | Done |
+| REPLAY-02 | Phase 7 | Done |
+| REPLAY-03 | Phase 7 | Done |
+| REPLAY-04 | Phase 7 | Done |
+| REPLAY-05 | Phase 7 | Done |
+| REPLAY-06 | Phase 7 | Done |
 | CONF-01 | Phase 8 | Pending |
 | CONF-02 | Phase 8 | Pending |
 | CONF-03 | Phase 8 | Pending |
@@ -93,7 +93,7 @@ Requirements for reducer-backed state reconstruction.
 | COMPARE-01 | Phase 10 | Pending |
 | COMPARE-02 | Phase 10 | Pending |
 | COMPARE-03 | Phase 10 | Pending |
-| VERIFY-01 | Phase 6 | Pending |
+| VERIFY-01 | Phase 6 | Done |
 | VERIFY-02 | Phase 8 | Pending |
 | VERIFY-03 | Phase 10 | Pending |
 | VERIFY-04 | Phase 10 | Pending |
