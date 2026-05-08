@@ -59,17 +59,17 @@ Requirements for the first useful standalone release. Each maps to roadmap phase
 
 ### Themes and Polish
 
-- [ ] **THEME-01**: User can switch between polished light, dark, and hacker themes.
-- [ ] **THEME-02**: Themes are implemented through design tokens so future VS Code theme integration does not require a UI rewrite.
-- [ ] **THEME-03**: Hacker mode has a distinct intentional aesthetic, not just green text on a dark background.
-- [ ] **THEME-04**: Theme choice and key viewer preferences persist across app reloads.
-- [ ] **THEME-05**: The UI is responsive from laptop width to ultra-wide displays.
+- [x] **THEME-01**: User can switch between polished light, dark, and hacker themes.
+- [x] **THEME-02**: Themes are implemented through design tokens so future VS Code theme integration does not require a UI rewrite.
+- [x] **THEME-03**: Hacker mode has a distinct intentional aesthetic, not just green text on a dark background.
+- [x] **THEME-04**: Theme choice and key viewer preferences persist across app reloads.
+- [x] **THEME-05**: The UI is responsive from laptop width to ultra-wide displays.
 
 ### Verification
 
 - [x] **VERIFY-01**: Parser and normalizer tests cover valid JSONL, malformed lines, partial trailing lines, CRLF/BOM handling, large payloads, request/response correlation, and the legacy sample adapter.
-- [ ] **VERIFY-02**: UI tests cover timeline rendering, row selection, detail view, filtering/search, theme switching, empty states, and parse-error states.
-- [ ] **VERIFY-03**: End-to-end tests exercise opening a fixture log, filtering/searching, expanding event details, and following appended events.
+- [x] **VERIFY-02**: UI tests cover timeline rendering, row selection, detail view, filtering/search, theme switching, empty states, and parse-error states.
+- [x] **VERIFY-03**: End-to-end tests exercise opening a fixture log, filtering/searching, expanding event details, and following appended events.
 - [x] **VERIFY-04**: Fixture logs are scrubbed so committed test data does not contain tokens or private prompt/output content.
 
 ## v2 Requirements
@@ -145,14 +145,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEARCH-03 | Phase 3 | Complete |
 | SEARCH-04 | Phase 3 | Complete |
 | SEARCH-05 | Phase 4 | Complete |
-| THEME-01 | Phase 5 | Pending |
-| THEME-02 | Phase 5 | Pending |
-| THEME-03 | Phase 5 | Pending |
-| THEME-04 | Phase 5 | Pending |
-| THEME-05 | Phase 5 | Pending |
+| THEME-01 | Phase 5 | Complete |
+| THEME-02 | Phase 5 | Complete |
+| THEME-03 | Phase 5 | Complete |
+| THEME-04 | Phase 5 | Complete |
+| THEME-05 | Phase 5 | Complete |
 | VERIFY-01 | Phase 1 | Complete |
-| VERIFY-02 | Phase 5 | Pending |
-| VERIFY-03 | Phase 5 | Pending |
+| VERIFY-02 | Phase 5 | Complete |
+| VERIFY-03 | Phase 5 | Complete |
 | VERIFY-04 | Phase 1 | Complete |
 | EXT-01 | v2 | Deferred |
 | EXT-02 | v2 | Deferred |

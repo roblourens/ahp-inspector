@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready-for-next-phase
-stopped_at: Completed 04.1-05-PLAN.md
-last_updated: "2026-05-08T04:42:09.447Z"
+status: verifying
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-05-08T04:57:00.500Z"
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 37
-  completed_plans: 31
-  percent: 84
+  completed_plans: 37
+  percent: 100
 ---
 
 # State: AHP Log Viewer
@@ -22,22 +22,22 @@ progress:
 
 ## Current Position
 
-Phase: 04.1 (timeline-row-information-polish-and-real-log-validation) — **COMPLETE**
+Phase: 05 (themes-polish-and-verification) — **COMPLETE**
 Plan: 6 of 6
 
 - **Milestone:** v1
-- **Phase:** 04.1
+- **Phase:** 05
 - **Plan:** 6 of 6
-- **Status:** Complete; ready for Phase 5
-- **Progress:** [████████░░] 84%
+- **Status:** Phase complete — ready for verification
+- **Progress:** [██████████] 100%
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases complete | 5 / 6 |
+| Phases complete | 6 / 6 |
 | v1 requirements mapped | 41 / 41 |
-| v1 requirements validated | 23 / 41 |
+| v1 requirements validated | 30 / 41 |
 | Phase 02 P01 | 30min | 2 tasks | 12 files |
 | Phase 02 P02 | 10min | 2 tasks | 17 files |
 | Phase 02 P03 | 13min | 2 tasks | 12 files |
@@ -54,6 +54,7 @@ Plan: 6 of 6
 | Phase 04.1 plans | 6 planned | 16 tasks | ready |
 | Phase 05 plans | 6 planned | 18 tasks | ready |
 | Phase 04.1 Pall | 11min | 16 tasks | 37 files |
+| Phase 05 Pall | 74min | 18 tasks | 50 files |
 
 ## Accumulated Context
 
@@ -100,10 +101,12 @@ Plan: 6 of 6
 - Plan 03-06: @vitest-environment jsdom directive needed for UI hook tests run via root vitest config — avoids breaking `pnpm test` when selectors.test.ts and search-client.test.ts run without jsdom environment
 - Plan 03-06: return null over <></> for early-return JSX components; requires JSX.Element|null return type annotation; satisfies biome noUselessFragments
 - Plan 03-06: tabIndex={-1} on gap-banner and group-header role=row divs — biome useFocusableInteractive requires programmatic focusability; keyboard navigation managed at TimelineRegion level
+- Phase 05: Playwright browser UAT uses @playwright/test, starts the local CLI/server against copied synthetic fixtures, captures the committed screenshot matrix, and verifies no absolute path leakage in browser-visible text.
+- Phase 05: Responsive details use a desktop side rail at >=1400px and an overlay drawer below 1400px; theme choice remains global under `ahp-theme` while per-log preferences remain keyed by opaque logKey.
 
 ### Open TODOs
 
-- Phase 05: Execute 6 approved plans for themes, polish, responsive layout, and verification coverage after Phase 04.1.
+- None.
 
 ### Blockers
 
@@ -113,12 +116,13 @@ Plan: 6 of 6
 
 - Phase 04.1 inserted after Phase 4 (URGENT): Timeline row information polish and real-log validation.
 - Phase 04.1 completed: ID-first timeline rows, Summary column, request/response pair highlighting, nested session/turn extraction, expanded Pretty JSON defaults, and privacy-safe real-log structural validation are in place.
+- Phase 05 completed: polished dark/light/hacker themes, responsive drawer/rail layout, theme persistence hardening, integrated UI coverage, Playwright E2E, UAT screenshots, and final verification gate are complete.
 
 ## Session Continuity
 
-**Last session:** 2026-05-08T04:42:09.445Z
+**Last session:** 2026-05-08T04:57:00.498Z
 **Next action:** `/gsd-execute-phase 05`
-**Stopped at:** Completed 04.1-05-PLAN.md
+**Stopped at:** Completed 05-05-PLAN.md
 
 ---
 *State initialized: 2026-05-06*
