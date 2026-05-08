@@ -637,11 +637,13 @@ Total: **7 plans across 6 waves**, parallelizable in Waves 1 and 3.
 
 ### Open Questions
 
-1. **Q1: Should `livePaused` be persisted by default?** D-17 says yes. Confirm — restoring `paused: true` on every reload could surprise users who paused once. Recommend persisting but adding a small "Live (paused)" indicator so it's discoverable. *(Defer to UI-SPEC.)*
-2. **Q2: Should the "Switch log" UI fully reset or remember per-log persisted state?** Locked decision (D-17/D-18) implies remember per-log. Confirm at UI-SPEC.
-3. **Q3: Polling fallback for NFS/SMB watchers (§3.2 G6)?** Recommend defer to v2.
-4. **Q4: Candidate confidence thresholds (§1.3)?** First-pass values are guesses; tune after running on a real AHP-emitting build. Plan to log scoring details to a debug endpoint behind an env flag in Wave 1.
-5. **Q5: Should manual-open accept relative paths?** `NodeHostAdapter.openLog()` does `path.resolve(process.cwd(), path)`. For a server launched via the CLI, `cwd` is the user's terminal cwd which is fine. For a server launched headlessly later, behavior is undefined. Recommend documenting "absolute paths recommended" in the input help text.
+> **Status (resolved during phase planning, post-CONTEXT/UI-SPEC):** All open questions below are now resolved or formally deferred. See annotations.
+
+1. **Q1: Should `livePaused` be persisted by default?** D-17 says yes. Confirm — restoring `paused: true` on every reload could surprise users who paused once. Recommend persisting but adding a small "Live (paused)" indicator so it's discoverable. *(Defer to UI-SPEC.)* — **RESOLVED:** D-17 (locked) + UI-SPEC §3 LivePauseButton + §6.4 persistence flow lock `livePaused` as part of per-log persisted state. The accent-tinted Pause/Play chip with `aria-pressed` provides the discoverability indicator. Implemented by Plan 04-06.
+2. **Q2: Should the "Switch log" UI fully reset or remember per-log persisted state?** Locked decision (D-17/D-18) implies remember per-log. Confirm at UI-SPEC. — **RESOLVED:** D-18 + UI-SPEC §6.4 specify per-log storage keyed by `logKey` with synchronous flush of the previous log's prefs on switch and rehydration of the new log's prefs on snapshot-end. Implemented by Plan 04-06 Task 3 (`usePersistEffect`).
+3. **Q3: Polling fallback for NFS/SMB watchers (§3.2 G6)?** Recommend defer to v2. — **RESOLVED (deferred to v2):** Confirmed out of scope for Phase 4. UI-SPEC §G6 notes a future `WatchErrorBanner` variant could surface it without new UI; no plan task allocated.
+4. **Q4: Candidate confidence thresholds (§1.3)?** First-pass values are guesses; tune after running on a real AHP-emitting build. Plan to log scoring details to a debug endpoint behind an env flag in Wave 1. — **RESOLVED:** Plan 04-01 fixes the scoring constants used by `discoverCandidates()` and exposes them as named constants for future tuning. Tuning against a real AHP build is post-phase telemetry, not a Phase 4 blocker.
+5. **Q5: Should manual-open accept relative paths?** `NodeHostAdapter.openLog()` does `path.resolve(process.cwd(), path)`. For a server launched via the CLI, `cwd` is the user's terminal cwd which is fine. For a server launched headlessly later, behavior is undefined. Recommend documenting "absolute paths recommended" in the input help text. — **RESOLVED:** UI-SPEC §ManualOpenInput locks the help-text copy ("Absolute path recommended.") and error code → fixed-copy mapping. Server still accepts relative paths (resolved against `cwd`); UX guidance steers users toward absolute.
 
 ---
 
