@@ -13,7 +13,7 @@ requires:
   - phase: 02-04
     provides: TimelineRegion routing + ServerNotRunningState
   - phase: 02-05
-    provides: ahp-viewer CLI with classifyDirection + 127.0.0.1 binding
+    provides: ahp-inspector CLI with classifyDirection + 127.0.0.1 binding
 provides:
   - "SSE client (`connectLogStream`) bridging server frames to AppStore"
   - "App.tsx that probes `/api/log/meta` and routes to ServerNotRunningState on failure"
@@ -82,7 +82,7 @@ completed: 2026-05-07
 - `connectLogStream` covers every server SSE frame kind (snapshot-begin/chunk/end, append, patch, ping, bye) with one store mutation each; `bye` closes the EventSource and short-circuits the browser auto-reconnect loop (T-02-06-02).
 - `App.tsx` now probes `/api/log/meta` on mount and routes to `ServerNotRunningState` on failure, then opens the SSE stream and stashes the handle on `window.__ahpStream` so `DisconnectedBanner`'s Retry button can tear down the prior connection cleanly.
 - `registerStaticUi` mounts `packages/ui/dist/` at `/`, `/assets/*`, `/fonts/*`, and `/favicon.ico` under the same CSP, X-Content-Type-Options, and Referrer-Policy headers the API uses (T-02-06-03/04).
-- `ahp-viewer` CLI auto-discovers the UI dist directory at runtime and forwards it to `startLogServer({ uiDistDir })`; missing bundle just disables the static mount instead of failing.
+- `ahp-inspector` CLI auto-discovers the UI dist directory at runtime and forwards it to `startLogServer({ uiDistDir })`; missing bundle just disables the static mount instead of failing.
 - New `test/vertical-slice.test.ts` boots the real CLI under `tsx`, captures the ephemeral port, exercises `/api/log/meta` + `/` + `/api/log/stream`, asserts the 11-column EventRow contract, the parse-error → `BAD` mapping, the correlator's `status='ok'` + `latencyBand`, and the post-shutdown 'no-server' surface.
 
 ## Task Commits
@@ -124,7 +124,7 @@ _Plan metadata commit added separately by the executor._
 - **Committed in:** `bbf51d9`.
 
 **2. [Rule 1 — Bug] App.test.tsx flapping under new probe effect**
-- **Found during:** Task 1 (running `pnpm -F @ahp-viewer/ui test`).
+- **Found during:** Task 1 (running `pnpm -F @ahp-inspector/ui test`).
 - **Issue:** New `useEffect` in `App.tsx` calls `fetch('/api/log/meta')`. In jsdom, `fetch` rejects → effect flips connection to `'no-server'`, breaking the existing `App.test.tsx` smoke that expects the loading state.
 - **Fix:** Stub `globalThis.fetch` with a never-resolving promise in `beforeEach`; `vi.unstubAllGlobals()` in `afterEach`.
 - **Verification:** Both App tests pass (loading state + no-server routing).
@@ -147,18 +147,18 @@ _Plan metadata commit added separately by the executor._
   - `packages/server/src/static-ui.ts` ✅
   - `test/vertical-slice.test.ts` ✅
 - Commits exist: `bbf51d9` ✅, `6cb1360` ✅.
-- Full phase gate is green: `pnpm vitest run && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint`.
+- Full phase gate is green: `pnpm vitest run && pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/cli build && pnpm typecheck && pnpm lint`.
 
 ## User Setup Required
 
 None — the CLI auto-discovers the built UI bundle. To run the standalone app:
 
 ```bash
-pnpm -F @ahp-viewer/ui build
-pnpm exec ahp-viewer test/fixtures/phase2-mini.jsonl --port 5173
+pnpm -F @ahp-inspector/ui build
+pnpm exec ahp-inspector test/fixtures/phase2-mini.jsonl --port 5173
 # or, against a large fixture:
 node -e 'const fs=require("fs");let s="";for(let i=0;i<50000;i++){s+=JSON.stringify({jsonrpc:"2.0",id:i,method:"ping"})+"\n";s+=JSON.stringify({jsonrpc:"2.0",id:i,result:{}})+"\n";}fs.writeFileSync("test/fixtures/large.jsonl",s);'
-pnpm exec ahp-viewer test/fixtures/large.jsonl --port 5173
+pnpm exec ahp-inspector test/fixtures/large.jsonl --port 5173
 ```
 
 Per `02-VALIDATION.md` Manual-Only Verifications, scrolling smoothness on a 50K-line fixture is a manual check.

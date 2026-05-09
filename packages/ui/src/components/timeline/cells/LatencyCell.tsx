@@ -1,4 +1,4 @@
-import type { LatencyBand } from "@ahp-viewer/core";
+import type { LatencyBand } from "@ahp-inspector/core";
 import type { JSX } from "react";
 
 function fmt(ms: number | null): string {

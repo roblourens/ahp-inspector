@@ -1,4 +1,4 @@
-// Public barrel for @ahp-viewer/parser. Legacy adapter is intentionally NOT
+// Public barrel for @ahp-inspector/parser. Legacy adapter is intentionally NOT
 // re-exported here — consumers must import it via the dedicated path
 // (Pitfall 6) so it is provably isolated from core/UI.
 

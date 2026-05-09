@@ -13,7 +13,7 @@ full_suite: pnpm test && pnpm typecheck && pnpm lint
 
 ## Scope Guard
 
-Phase 7 is pure `@ahp-viewer/core` package logic only.
+Phase 7 is pure `@ahp-inspector/core` package logic only.
 
 Allowed implementation files:
 
@@ -39,8 +39,8 @@ Before executing any Phase 7 task, the executor must confirm:
 
 | Requirement | Required State |
 |---|---|
-| Phase 6 dependency | `@ahp-viewer/protocol` package exists and Phase 6 verification passed |
-| Protocol imports | Core replay code imports canonical names directly from `@ahp-viewer/protocol`, not `@ahp-viewer/shared/ahp` compatibility aliases |
+| Phase 6 dependency | `@ahp-inspector/protocol` package exists and Phase 6 verification passed |
+| Protocol imports | Core replay code imports canonical names directly from `@ahp-inspector/protocol`, not `@ahp-inspector/shared/ahp` compatibility aliases |
 | Test fixture policy | `packages/core/src/replay.test.ts` uses synthetic in-test `AhpEvent[]` helpers, not real logs |
 | File scope | No files outside the four allowed implementation files are modified |
 | Commands | Verification commands are root-relative |

@@ -25,13 +25,13 @@ Discovery now surfaces AHP JSONL logs from Code OSS dev builds and ignores legac
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/host-node typecheck` — clean.
+- `pnpm -F @ahp-inspector/host-node typecheck` — clean.
 - `pnpm vitest run packages/host-node/src/discovery.test.ts` — 6/6 pass.
 - Live smoke against `~/.vscode-oss-agents-dev/logs/` returned 15 `.jsonl`
   candidates tagged `vscode-oss-dev`, no `.log` files.
 
 ## Notes
 
-- `LogCandidate.origin` in `@ahp-viewer/shared` is typed as `string`, so the
+- `LogCandidate.origin` in `@ahp-inspector/shared` is typed as `string`, so the
   shared interface did not need a change.
 - Server was restarted to pick up the discovery change (modules import once).

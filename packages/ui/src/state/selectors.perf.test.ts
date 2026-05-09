@@ -1,4 +1,4 @@
-import type { EventRow } from "@ahp-viewer/core";
+import type { EventRow } from "@ahp-inspector/core";
 import { describe, expect, it } from "vitest";
 import { applyFacets, EMPTY_FILTERS } from "./filters.js";
 

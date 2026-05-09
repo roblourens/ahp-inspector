@@ -58,7 +58,7 @@ pnpm test -- packages/ui/src/components/detail/StateInspectorPanel.test.tsx pack
 pnpm test
 pnpm typecheck
 pnpm lint
-pnpm -F @ahp-viewer/ui build
+pnpm -F @ahp-inspector/ui build
 ```
 
 Browser smoke used a synthetic snapshot JSONL with root/session/terminal resources, selected the session resource, switched Summary/Pretty/Raw views, checked light and hacker themes, and saved `screenshots/phase9/09-02-state-resource-views-smoke.png`.
@@ -70,7 +70,7 @@ Browser smoke used a synthetic snapshot JSONL with root/session/terminal resourc
 ## Issues Encountered
 
 - Existing committed fixtures did not contain replayable snapshot resources, so browser smoke used a temporary synthetic snapshot JSONL.
-- The first smoke run used a stale UI bundle; rebuilding `@ahp-viewer/ui` before launching the CLI fixed the verification path.
+- The first smoke run used a stale UI bundle; rebuilding `@ahp-inspector/ui` before launching the CLI fixed the verification path.
 
 ## Next Phase Readiness
 

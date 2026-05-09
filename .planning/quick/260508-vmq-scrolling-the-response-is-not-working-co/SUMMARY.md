@@ -15,7 +15,7 @@ Changed:
 
 Verification:
 - `pnpm test -- packages/server/src/app-state.test.ts packages/core/src/row-projection.test.ts`
-- `pnpm --filter @ahp-viewer/ui test -- selectors.test.ts DetailPanel.test.tsx AppShell.test.tsx DetailSummary.fields.test.tsx TimelineList.virt.test.tsx grouping.test.tsx EventRow.columns.test.tsx ParseErrorRow.test.tsx TimelineRegion.test.tsx FilterBar.test.tsx selectors.perf.test.ts`
-- `pnpm --filter @ahp-viewer/core typecheck && pnpm --filter @ahp-viewer/server typecheck && pnpm --filter @ahp-viewer/ui typecheck`
+- `pnpm --filter @ahp-inspector/ui test -- selectors.test.ts DetailPanel.test.tsx AppShell.test.tsx DetailSummary.fields.test.tsx TimelineList.virt.test.tsx grouping.test.tsx EventRow.columns.test.tsx ParseErrorRow.test.tsx TimelineRegion.test.tsx FilterBar.test.tsx selectors.perf.test.ts`
+- `pnpm --filter @ahp-inspector/core typecheck && pnpm --filter @ahp-inspector/server typecheck && pnpm --filter @ahp-inspector/ui typecheck`
 - `pnpm exec biome check ...touched files...`
-- `pnpm --filter @ahp-viewer/ui build`
+- `pnpm --filter @ahp-inspector/ui build`

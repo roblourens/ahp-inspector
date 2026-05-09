@@ -32,7 +32,7 @@ never polluted with non-canonical text logs.
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/host-node typecheck`
+- `pnpm -F @ahp-inspector/host-node typecheck`
 - `pnpm vitest run packages/host-node/src/discovery.test.ts`
 - Live smoke against `~/.vscode-oss-agents-dev/logs/`: confirm only `.jsonl`
   candidates, all with `vscode-oss-dev` origin.

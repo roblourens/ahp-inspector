@@ -3,7 +3,7 @@
 // store mutation. Snapshot rows must NOT appear in the store until
 // `snapshot-end`. `bye` flips to 'disconnected' without auto-reconnect.
 
-import type { EventRow } from "@ahp-viewer/core";
+import type { EventRow } from "@ahp-inspector/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAppStore } from "../state/store.js";
 import { connectLogStream } from "./sse-client.js";

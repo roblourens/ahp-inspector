@@ -9,7 +9,7 @@
 // A throwing subscriber MUST NOT block ingest (T-03-04): we wrap dispatch in
 // try/catch and one-shot warn via console.warn.
 
-import type { AhpEvent, Direction, EventKind, IdType } from "@ahp-viewer/shared";
+import type { AhpEvent, Direction, EventKind, IdType } from "@ahp-inspector/shared";
 
 export interface AppendRange {
   /** Inclusive start index. */

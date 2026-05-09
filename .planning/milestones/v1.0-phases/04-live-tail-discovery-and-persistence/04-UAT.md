@@ -14,7 +14,7 @@ rotation, and watch-error surfaces against the built local app.
 
 ## Setup
 
-1. Built the UI with `pnpm -F @ahp-viewer/ui build`.
+1. Built the UI with `pnpm -F @ahp-inspector/ui build`.
 2. Started the real CLI with no active file: `pnpm exec tsx packages/cli/src/index.ts --port 0 --no-open`.
 3. Pointed `HOME`/`USERPROFILE`/`APPDATA` at synthetic VS Code-shaped log roots for candidate/no-candidate scenarios.
 4. Drove Chromium at 1440x900 through Playwright installed in the session workspace, not as a project dependency.

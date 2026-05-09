@@ -111,8 +111,8 @@ metrics:
 
 | Check | Result |
 |-------|--------|
-| `pnpm -F @ahp-viewer/ui test src/components/filters/ src/components/states/NoResultsState` | ✅ 22/22 tests passed |
-| `pnpm -F @ahp-viewer/ui build` | ✅ 226 KB bundle, no errors |
+| `pnpm -F @ahp-inspector/ui test src/components/filters/ src/components/states/NoResultsState` | ✅ 22/22 tests passed |
+| `pnpm -F @ahp-inspector/ui build` | ✅ 226 KB bundle, no errors |
 | Hex-literal grep in filters/ | ✅ 0 results |
 | Hex-literal grep in state components | ✅ 0 results |
 | `pnpm typecheck` | ✅ All packages clean |

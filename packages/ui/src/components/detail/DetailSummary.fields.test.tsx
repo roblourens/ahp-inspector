@@ -2,8 +2,8 @@
  * Tests for AhpFieldStrip — all 9 AHP fields (Plan 03-04 Task 1).
  */
 
-import type { EventRow, KindTag } from "@ahp-viewer/core";
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { EventRow, KindTag } from "@ahp-inspector/core";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { AhpFieldStrip } from "./AhpFieldStrip.js";

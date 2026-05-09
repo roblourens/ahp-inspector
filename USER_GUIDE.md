@@ -1,8 +1,26 @@
-# AHP Log Viewer User Guide
+# AHP Inspector User Guide
 
-## Open a JSONL log
+## Install and run
 
-Run the viewer from the repository root with a JSONL file path:
+The fastest path is `npx` — no clone, no build:
+
+```bash
+npx ahp-inspector
+```
+
+This auto-opens the most recent AHP JSONL log under your standard VS Code log
+roots. To open a specific file:
+
+```bash
+npx ahp-inspector path/to/log.jsonl
+```
+
+Flags: `--port <n>`, `--no-open`, `--no-auto-discover`.
+
+## Open a JSONL log (from source)
+
+If you've cloned this repo, run the viewer from the repository root with a
+JSONL file path:
 
 ```bash
 pnpm exec tsx packages/cli/src/index.ts path/to/log.jsonl
@@ -11,8 +29,8 @@ pnpm exec tsx packages/cli/src/index.ts path/to/log.jsonl
 For a built CLI smoke test, build first and run:
 
 ```bash
-pnpm -F @ahp-viewer/ui build
-pnpm -F @ahp-viewer/cli build
+pnpm -F @ahp-inspector/ui build
+pnpm -F ahp-inspector build
 node packages/cli/dist/index.js path/to/log.jsonl
 ```
 
@@ -23,7 +41,7 @@ The CLI prints a loopback URL, opens the browser by default, and serves the UI l
 You can run the viewer without specifying a log file:
 
 ```sh
-ahp-viewer
+ahp-inspector
 ```
 
 The browser opens to a picker showing logs the viewer discovered automatically under the standard VS Code log roots for macOS, Windows, and Linux. Pick a log to begin streaming, or paste a local log file path under "or open manually".
@@ -33,7 +51,7 @@ The browser opens to a picker showing logs the viewer discovered automatically u
 ## Inside VS Code (extension)
 
 If you install the bundled VS Code extension (`packages/extension`), open
-the command palette and run **AHP Log Viewer: Open**. The viewer appears
+the command palette and run **AHP Inspector: Open**. The viewer appears
 in a webview panel in the active editor column. The same React UI runs
 inside the webview; the extension host owns log discovery, file watchers,
 and the in-memory event store and talks to the webview over typed

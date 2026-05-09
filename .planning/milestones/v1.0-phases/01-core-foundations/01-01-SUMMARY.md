@@ -8,12 +8,12 @@ threats_mitigated: [T-01-01, T-01-02, T-01-03, T-01-04]
 dependency_graph:
   requires: []
   provides:
-    - "@ahp-viewer/shared (empty stub)"
-    - "@ahp-viewer/parser (empty stub)"
-    - "@ahp-viewer/core (empty stub)"
-    - "@ahp-viewer/host-node (empty stub)"
-    - "@ahp-viewer/server (empty stub)"
-    - "@ahp-viewer/cli (empty stub)"
+    - "@ahp-inspector/shared (empty stub)"
+    - "@ahp-inspector/parser (empty stub)"
+    - "@ahp-inspector/core (empty stub)"
+    - "@ahp-inspector/host-node (empty stub)"
+    - "@ahp-inspector/server (empty stub)"
+    - "@ahp-inspector/cli (empty stub)"
     - "Wave 0 test harness (boundary, security, fixture-scrub)"
     - "Wave 0 synthetic fixtures (tiny, malformed, crlf, bom, legacy)"
   affects: ["all subsequent plans depend on this scaffold"]
@@ -24,8 +24,8 @@ tech_stack:
     - "@biomejs/biome@2.4.14"
     - tsup@8.5.1
     - "@types/node@22.x"
-    - commander@14.0.3 (declared in @ahp-viewer/cli; not yet installed runtime)
-    - chokidar@5.0.0 (declared in @ahp-viewer/host-node; not yet installed runtime)
+    - commander@14.0.3 (declared in @ahp-inspector/cli; not yet installed runtime)
+    - chokidar@5.0.0 (declared in @ahp-inspector/host-node; not yet installed runtime)
     - pnpm@9.15.0 (workspace manager)
   patterns:
     - "pnpm workspace with packages/* glob"
@@ -84,9 +84,9 @@ Scaffolds a pnpm workspace with six TypeScript 5.x packages (shared, parser, cor
 
 - pnpm 9.15 workspace with `packages/*` glob, Node 22 LTS pinned via `.nvmrc` and `engines.node`.
 - Strict TypeScript 5.9.3 base config (`tsconfig.base.json`) — `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `isolatedModules`, ESNext modules with Bundler resolution.
-- Six empty package skeletons (`@ahp-viewer/shared|parser|core|host-node|server|cli`), each with its own `tsconfig.json`, `package.json`, and `src/index.ts` stub. `pnpm typecheck` runs `tsc --noEmit` across all six.
-- `@ahp-viewer/cli` declares `bin: { "ahp-viewer": "./dist/index.js" }` and depends on `commander`, `@ahp-viewer/host-node`, `@ahp-viewer/server` (workspace links).
-- `@ahp-viewer/host-node` depends on `chokidar@^5.0.0` (sole runtime dep needed for Plan 02 file watching).
+- Six empty package skeletons (`@ahp-inspector/shared|parser|core|host-node|server|cli`), each with its own `tsconfig.json`, `package.json`, and `src/index.ts` stub. `pnpm typecheck` runs `tsc --noEmit` across all six.
+- `@ahp-inspector/cli` declares `bin: { "ahp-inspector": "./dist/index.js" }` and depends on `commander`, `@ahp-inspector/host-node`, `@ahp-inspector/server` (workspace links).
+- `@ahp-inspector/host-node` depends on `chokidar@^5.0.0` (sole runtime dep needed for Plan 02 file watching).
 - Biome 2.4.14 lint+format with per-package `noRestrictedImports` overrides for portable packages.
 - Vitest 4.1.5 root config covering `test/**` and `packages/*/{src,test}/**/*.test.ts`.
 
@@ -94,7 +94,7 @@ Scaffolds a pnpm workspace with six TypeScript 5.x packages (shared, parser, cor
 
 | Test file | Purpose | Mitigates |
 |-----------|---------|-----------|
-| `test/boundary.test.ts` | Regex-walks `packages/{shared,parser,core}/src` and rejects `node:*`, `fs`, `fs/*`, `path`, `chokidar`, `react`, `react-dom`, `vite`, `hono`, `@ahp-viewer/host-node`. Verified by injecting a forbidden import and confirming failure. | T-01-03 |
+| `test/boundary.test.ts` | Regex-walks `packages/{shared,parser,core}/src` and rejects `node:*`, `fs`, `fs/*`, `path`, `chokidar`, `react`, `react-dom`, `vite`, `hono`, `@ahp-inspector/host-node`. Verified by injecting a forbidden import and confirming failure. | T-01-03 |
 | `test/security.test.ts` | Reads every `package.json` in the workspace and asserts every dep/devDep is in the allow-list (see below). | T-01-02 |
 | `test/fixture-scrub.test.ts` | Generates fixtures, then scans `test/fixtures/**` for Bearer/sk-/ghp_/JWT/password/api_key patterns. Also asserts on-disk fixtures match generator output (idempotency check). | T-01-01 |
 
@@ -117,7 +117,7 @@ Plan 03 must extend this when it adds Hono.
 ```
 typescript, @biomejs/biome, vitest, tsup, @types/node,
 commander, chokidar,
-@ahp-viewer/{shared, parser, core, host-node, server, cli}
+@ahp-inspector/{shared, parser, core, host-node, server, cli}
 ```
 
 ## Commits

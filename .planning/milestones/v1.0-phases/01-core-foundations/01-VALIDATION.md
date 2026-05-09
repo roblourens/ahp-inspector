@@ -29,7 +29,7 @@ created: 2026-05-06
 
 - **After every task commit:** Run `pnpm vitest run --changed`
 - **After every plan wave:** Run `pnpm vitest run`
-- **Before `/gsd-verify-work`:** Run `pnpm vitest run`, `pnpm biome check .`, and `pnpm exec ahp-viewer ./test/fixtures/tiny.jsonl`
+- **Before `/gsd-verify-work`:** Run `pnpm vitest run`, `pnpm biome check .`, and `pnpm exec ahp-inspector ./test/fixtures/tiny.jsonl`
 - **Max feedback latency:** 10 seconds for the Phase 1 full suite
 
 ---

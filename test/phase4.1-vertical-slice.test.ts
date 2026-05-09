@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import type { DiscoveryResult, Disposable, HostAdapter, LogHandle } from "@ahp-viewer/shared";
+import type { DiscoveryResult, Disposable, HostAdapter, LogHandle } from "@ahp-inspector/shared";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   type AppState,

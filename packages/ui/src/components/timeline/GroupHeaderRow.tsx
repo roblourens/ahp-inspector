@@ -1,6 +1,6 @@
 // biome-ignore-all lint/a11y/useSemanticElements: virtualized grid uses divs for absolute positioning.
 
-import { formatSessionShort } from "@ahp-viewer/core";
+import { formatSessionShort } from "@ahp-inspector/core";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import type { CSSProperties, JSX } from "react";
 

@@ -94,7 +94,7 @@ Hardens `TailReader` and the AppState ingest closure for the three live-tail edg
 - **Commit:** 5eeb79b (folded into Task 3 commit).
 
 **2. [Rule 3 — Blocking] `packages/shared/src/host-protocol.ts` updated alongside Task 1's tail-reader rewrite.**
-- **Found during:** Task 1 verification (`pnpm -F @ahp-viewer/host-node typecheck`).
+- **Found during:** Task 1 verification (`pnpm -F @ahp-inspector/host-node typecheck`).
 - **Issue:** Plan structures shared/host-protocol.ts changes as Task 3 work, but the new `WatchSink` parameter on `NodeHostAdapter.watchLog` could not satisfy the existing `HostAdapter.watchLog: (handle, onChunk) => Disposable` signature. Typecheck failed at the Task 1 boundary.
 - **Fix:** Widened `HostAdapter.watchLog` signature to the union (function | WatchSink-shape) in the same change set as the host-adapter shim. Listed under Task 3 commit since it's the Task 3 plan deliverable; the typecheck issue is an artifact of plan task ordering.
 - **Files modified:** `packages/shared/src/host-protocol.ts`.

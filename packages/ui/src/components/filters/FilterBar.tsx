@@ -1,4 +1,4 @@
-import { formatSessionShort } from "@ahp-viewer/core";
+import { formatSessionShort } from "@ahp-inspector/core";
 import type { JSX, RefObject } from "react";
 import { useState } from "react";
 import { useFacetCounts, useFilteredRows } from "../../state/selectors.js";
@@ -166,7 +166,7 @@ export function FilterBar({
             options={mapToOptions(facetCounts.kind)}
             selected={filters.kind}
             onChange={(vals) =>
-              patchFilter("kind", vals as import("@ahp-viewer/shared").EventKind[])
+              patchFilter("kind", vals as import("@ahp-inspector/shared").EventKind[])
             }
             onClose={close}
           />
@@ -265,7 +265,7 @@ export function FilterBar({
           <FacetPopover
             options={mapToOptions(facetCounts.status)}
             selected={filters.status}
-            onChange={(vals) => patchFilter("status", vals as import("@ahp-viewer/core").Status[])}
+            onChange={(vals) => patchFilter("status", vals as import("@ahp-inspector/core").Status[])}
             onClose={close}
           />
         )}

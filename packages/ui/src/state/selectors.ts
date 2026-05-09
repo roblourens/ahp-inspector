@@ -1,4 +1,4 @@
-import type { EventRow } from "@ahp-viewer/core";
+import type { EventRow } from "@ahp-inspector/core";
 import { useDeferredValue, useMemo } from "react";
 import { applyFacets, isFiltersEmpty } from "./filters.js";
 import { type GroupingMode, useAppStore } from "./store.js";

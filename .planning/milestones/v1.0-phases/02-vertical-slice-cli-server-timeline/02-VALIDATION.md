@@ -20,7 +20,7 @@ created: 2026-05-07
 | **Framework** | Vitest 4.1.5 + React Testing Library 16.3.2 + jsdom 29.1.1 |
 | **Config file** | `vitest.config.ts`; `packages/ui/vitest.config.ts` for jsdom UI tests |
 | **Quick run command** | `pnpm vitest run --changed` |
-| **Full suite command** | `pnpm vitest run && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint` |
+| **Full suite command** | `pnpm vitest run && pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/cli build && pnpm typecheck && pnpm lint` |
 
 ---
 
@@ -28,7 +28,7 @@ created: 2026-05-07
 
 - **After every task commit:** Run `pnpm vitest run --changed`
 - **After every plan wave:** Run `pnpm vitest run`
-- **Before `/gsd-verify-work`:** Run `pnpm vitest run && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint`
+- **Before `/gsd-verify-work`:** Run `pnpm vitest run && pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/cli build && pnpm typecheck && pnpm lint`
 - **Max feedback latency:** quick changed-file Vitest feedback between task commits
 
 ---
@@ -73,7 +73,7 @@ created: 2026-05-07
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Real-browser perceived smoothness on a large log | TIME-01 | jsdom verifies virtualization DOM count but not actual paint/scroll feel | Run `pnpm exec ahp-viewer test/fixtures/large.jsonl`, open the browser, scroll the timeline, and confirm the UI stays responsive. Capture screenshots for USER_GUIDE updates if a guide exists. |
+| Real-browser perceived smoothness on a large log | TIME-01 | jsdom verifies virtualization DOM count but not actual paint/scroll feel | Run `pnpm exec ahp-inspector test/fixtures/large.jsonl`, open the browser, scroll the timeline, and confirm the UI stays responsive. Capture screenshots for USER_GUIDE updates if a guide exists. |
 
 ---
 

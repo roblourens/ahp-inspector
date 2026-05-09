@@ -81,7 +81,7 @@ There is no `copilot-instructions.md` at the repo root. The de-facto project rul
 
 1. **Loopback-only HTTP.** `startLogServer` hard-codes `127.0.0.1`; tests assert the literal and reject any `0.0.0.0`/`localhost` drift.
 2. **Local-first dependency allow-list.** `test/security.test.ts` enforces a closed dependency set. **No new runtime dep should be added in Phase 4** — `chokidar`, `hono`, `zustand`, etc. cover the workspace. If a hash helper or a tiny shallow-equal is needed, prefer Node `crypto` (stdlib) and hand-rolled.
-3. **Portable boundary.** `packages/shared`, `packages/parser`, `packages/core` MUST NOT import `node:`, `fs`, `path`, `chokidar`, `react`, `hono`, or `@ahp-viewer/host-node`. UI MUST NOT import `hono`, `@hono/*`, `@ahp-viewer/server`, `@ahp-viewer/host-node`, or `@ahp-viewer/parser/legacy`.
+3. **Portable boundary.** `packages/shared`, `packages/parser`, `packages/core` MUST NOT import `node:`, `fs`, `path`, `chokidar`, `react`, `hono`, or `@ahp-inspector/host-node`. UI MUST NOT import `hono`, `@hono/*`, `@ahp-inspector/server`, `@ahp-inspector/host-node`, or `@ahp-inspector/parser/legacy`.
 4. **No raw `#hex` literals** in `packages/ui/src/components/`. Add tokens to `tokens.css` (data-theme="dark" only; Phase 5 owns light/hacker overrides).
 5. **No absolute paths in metadata, row payloads, or SSE frames.** `LogMeta.filename` is basename only; this rule must extend to discovered-candidate listings (D-05).
 6. **`exactOptionalPropertyTypes` is on.** Use conditional spreads (`...(v !== undefined ? { v } : {})`) for optional props; this has bitten plans 03-02, 03-03, 03-04, 03-05.
@@ -524,29 +524,29 @@ Following Phase 3 convention, capture under `screenshots/phase4-*.png`:
 |----------|-------|
 | Framework | Vitest 4.1.5 + jsdom for UI; native Node for server/host |
 | Config files | `vitest.config.ts`, `packages/ui/vitest.config.ts` |
-| Quick run | `pnpm -F @ahp-viewer/<pkg> test` for changed package |
-| Full suite | `pnpm test && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint` |
+| Quick run | `pnpm -F @ahp-inspector/<pkg> test` for changed package |
+| Full suite | `pnpm test && pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/cli build && pnpm typecheck && pnpm lint` |
 | Browser UAT | `playwright-cli` skill (see `.github/skills/playwright-cli/`), screenshots committed under `screenshots/phase4-*` |
 
 ### 8.2 Phase Requirements → Test Map
 
 | Req | Behavior | Test Type | Command | File Exists? |
 |-----|----------|-----------|---------|--------------|
-| INGEST-02 | `discoverVsCodeLogs()` returns scored candidates from a temp tree mimicking real VS Code layout | unit | `pnpm -F @ahp-viewer/host-node test src/discovery.test.ts` | ❌ Wave 0 |
+| INGEST-02 | `discoverVsCodeLogs()` returns scored candidates from a temp tree mimicking real VS Code layout | unit | `pnpm -F @ahp-inspector/host-node test src/discovery.test.ts` | ❌ Wave 0 |
 | INGEST-02 | Discovery walk is bounded (file/time cap; 5000-stat ceiling); returns `truncated: true` | unit | same as above, `--bounded` test case | ❌ Wave 0 |
-| INGEST-02 | `GET /api/sessions/discover` returns SafeCandidate[] with no abs paths | integration | `pnpm -F @ahp-viewer/server test src/session-routes.test.ts` | ❌ Wave 0 |
-| INGEST-02 | UI `NoActiveLogState` lists candidates and selects one via `POST /api/sessions/open` | jsdom | `pnpm -F @ahp-viewer/ui test src/components/states/NoActiveLogState.test.tsx` | ❌ Wave 2 |
+| INGEST-02 | `GET /api/sessions/discover` returns SafeCandidate[] with no abs paths | integration | `pnpm -F @ahp-inspector/server test src/session-routes.test.ts` | ❌ Wave 0 |
+| INGEST-02 | UI `NoActiveLogState` lists candidates and selects one via `POST /api/sessions/open` | jsdom | `pnpm -F @ahp-inspector/ui test src/components/states/NoActiveLogState.test.tsx` | ❌ Wave 2 |
 | INGEST-03 | `POST /api/sessions/open` accepts a typed path; rejects non-file with safe error | integration | `session-routes.test.ts` | ❌ Wave 0 |
 | INGEST-03 | UI `ManualOpenInput` validates length and renders basename-only errors | jsdom | `ManualOpenInput.test.tsx` | ❌ Wave 2 |
-| INGEST-04 | `TailReader` initial read + chokidar append with byte-accurate offset (LF and CRLF) | unit | `pnpm -F @ahp-viewer/host-node test src/tail-reader.test.ts` | ❌ Wave 1 |
+| INGEST-04 | `TailReader` initial read + chokidar append with byte-accurate offset (LF and CRLF) | unit | `pnpm -F @ahp-inspector/host-node test src/tail-reader.test.ts` | ❌ Wave 1 |
 | INGEST-04 | `TailReader` shrink → `onReset({reason:"shrink"})` | unit | `tail-reader.test.ts` | ❌ Wave 1 |
 | INGEST-04 | `TailReader` rename/replace → `onReset({reason:"rename"})` | unit | `tail-reader.test.ts` | ❌ Wave 1 |
-| INGEST-04 | Read-error → `onError(err, fatal)`, propagated to AppState as `watch-error` SSE frame | integration | `pnpm -F @ahp-viewer/server test src/app-state.test.ts` | ⚠ extends existing |
-| INGEST-04 | Append while paused does not lose events; UI `pendingNewCount` increments | jsdom | `pnpm -F @ahp-viewer/ui test src/state/store.test.ts` | ❌ Wave 2 |
-| INGEST-05 | Pause toggle preserves `selectedIdx` and scroll across appends | jsdom | `pnpm -F @ahp-viewer/ui test src/components/timeline/TimelineRegion.test.tsx` | ⚠ extends existing |
+| INGEST-04 | Read-error → `onError(err, fatal)`, propagated to AppState as `watch-error` SSE frame | integration | `pnpm -F @ahp-inspector/server test src/app-state.test.ts` | ⚠ extends existing |
+| INGEST-04 | Append while paused does not lose events; UI `pendingNewCount` increments | jsdom | `pnpm -F @ahp-inspector/ui test src/state/store.test.ts` | ❌ Wave 2 |
+| INGEST-05 | Pause toggle preserves `selectedIdx` and scroll across appends | jsdom | `pnpm -F @ahp-inspector/ui test src/components/timeline/TimelineRegion.test.tsx` | ⚠ extends existing |
 | INGEST-05 | `NewEventsPill` resumes and jumps to latest | jsdom | `NewEventsPill.test.tsx` | ❌ Wave 2 |
-| SEARCH-05 | `logKey` is stable for the lifetime of an open log; differs across paths | unit | `pnpm -F @ahp-viewer/server test src/log-key.test.ts` | ❌ Wave 0 |
-| SEARCH-05 | localStorage hydration restores searchQuery/filters/grouping/selectedIdx/detailWidth/livePaused | jsdom | `pnpm -F @ahp-viewer/ui test src/state/persistence.test.ts` | ❌ Wave 0 |
+| SEARCH-05 | `logKey` is stable for the lifetime of an open log; differs across paths | unit | `pnpm -F @ahp-inspector/server test src/log-key.test.ts` | ❌ Wave 0 |
+| SEARCH-05 | localStorage hydration restores searchQuery/filters/grouping/selectedIdx/detailWidth/livePaused | jsdom | `pnpm -F @ahp-inspector/ui test src/state/persistence.test.ts` | ❌ Wave 0 |
 | SEARCH-05 | Hydration drops out-of-range `selectedIdx` and unknown filter values | jsdom | `persistence.test.ts` | ❌ Wave 0 |
 | SEARCH-05 | Switching logs persists the prior slice and hydrates the new one | jsdom | `persistence.test.ts` | ❌ Wave 3 |
 | ALL | Vertical-slice: discover → open → tail → pause → resume → reload restores state | integration | `pnpm test test/phase4-vertical-slice.test.ts` | ❌ Wave 5 |
@@ -554,7 +554,7 @@ Following Phase 3 convention, capture under `screenshots/phase4-*.png`:
 
 ### 8.3 Sampling Rate
 
-- **Per task commit:** package-scoped `pnpm -F @ahp-viewer/<pkg> test`.
+- **Per task commit:** package-scoped `pnpm -F @ahp-inspector/<pkg> test`.
 - **Per wave merge:** `pnpm test`.
 - **Phase gate:** full suite green + browser UAT recorded before `/gsd-verify-work`.
 

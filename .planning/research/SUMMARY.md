@@ -4,7 +4,7 @@
 
 ## Conclusion
 
-The user's proposed model is correct and useful: because AHP state changes through pure reducers over snapshots and action envelopes, AHP Log Viewer can reconstruct "state at this point" from a JSONL traffic log and make protocol behavior much easier to understand.
+The user's proposed model is correct and useful: because AHP state changes through pure reducers over snapshots and action envelopes, AHP Inspector can reconstruct "state at this point" from a JSONL traffic log and make protocol behavior much easier to understand.
 
 The important caveat is trust. The viewer must communicate whether state is complete, partial, or unknown based on whether the log contains a valid baseline snapshot and contiguous server action history.
 

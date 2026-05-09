@@ -7,5 +7,5 @@ export default defineConfig({
   shims: true,
   platform: "node",
   target: "es2022",
-  noExternal: [/^@ahp-viewer\//],
+  noExternal: [/^@ahp-inspector\//],
 });

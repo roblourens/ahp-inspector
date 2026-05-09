@@ -27,7 +27,7 @@ protocol types they share.
 The plan listed `packages/extension/src/messageProtocol.ts` as the home
 for `WebviewRequest` / `WebviewResponse` / `ExtensionNotification`, but
 the next plan (11-04) tightens the boundary tests to forbid the UI
-package from depending on `@ahp-viewer/extension`. To satisfy both:
+package from depending on `@ahp-inspector/extension`. To satisfy both:
 
 - The canonical types live in
   `packages/shared/src/webview-message.ts` (a `WebviewStatus` alias is
@@ -55,7 +55,7 @@ move from Rob's preferences.
 ## Out of scope (next plan)
 
 - Boundary test extensions to forbid `vscode` outside
-  `packages/extension` and `@ahp-viewer/extension` inside the UI.
+  `packages/extension` and `@ahp-inspector/extension` inside the UI.
 - Build wiring to copy `packages/ui/dist` → `packages/extension/ui-dist`.
 - Documentation updates in `USER_GUIDE.md` and `SECURITY.md`.
 

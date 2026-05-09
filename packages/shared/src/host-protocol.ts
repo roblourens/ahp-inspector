@@ -1,5 +1,5 @@
 // Host-protocol contracts. Types only — runtime implementation lives in
-// `@ahp-viewer/host-node` (Node) and a future browser/VS Code adapter.
+// `@ahp-inspector/host-node` (Node) and a future browser/VS Code adapter.
 // Per RESEARCH Pattern 6: keep file discovery/watching/reading behind an
 // abstraction so the same UI can later run in a VS Code webview.
 

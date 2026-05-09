@@ -1,27 +1,51 @@
 {
-  "name": "@ahp-viewer/cli",
+  "name": "ahp-inspector",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
-  "exports": {
-    ".": "./src/index.ts"
+  "description": "Local-first viewer for VS Code Agent Host Protocol (AHP) JSONL logs.",
+  "keywords": [
+    "ahp",
+    "agent-host-protocol",
+    "vscode",
+    "logs",
+    "viewer",
+    "jsonl"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/roblourens/ahp-inspector#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/roblourens/ahp-inspector.git"
+  },
+  "bugs": {
+    "url": "https://github.com/roblourens/ahp-inspector/issues"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "bin": {
-    "ahp-viewer": "./dist/index.js"
+    "ahp-inspector": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "ui-dist",
+    "README.md"
+  ],
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsup"
+    "build": "tsup && node ./scripts/copy-ui-dist.cjs",
+    "prepublishOnly": "pnpm typecheck && pnpm -F @ahp-inspector/ui build && pnpm -F ahp-inspector build"
   },
   "dependencies": {
-    "@ahp-viewer/core": "workspace:*",
-    "@ahp-viewer/host-node": "workspace:*",
-    "@ahp-viewer/parser": "workspace:*",
-    "@ahp-viewer/server": "workspace:*",
-    "@ahp-viewer/shared": "workspace:*",
     "commander": "^14.0.3",
     "open": "^11.0.0"
+  },
+  "devDependencies": {
+    "@ahp-inspector/core": "workspace:*",
+    "@ahp-inspector/host-node": "workspace:*",
+    "@ahp-inspector/parser": "workspace:*",
+    "@ahp-inspector/server": "workspace:*",
+    "@ahp-inspector/shared": "workspace:*",
+    "@ahp-inspector/ui": "workspace:*"
   }
 }

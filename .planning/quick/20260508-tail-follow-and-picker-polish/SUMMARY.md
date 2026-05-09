@@ -53,7 +53,7 @@ in `packages/parser/src/legacy.test.ts` that is unrelated to this task).
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/ui typecheck` — clean.
+- `pnpm -F @ahp-inspector/ui typecheck` — clean.
 - `pnpm vitest run packages/ui packages/host-node` — 309/309 pass.
 - `pnpm test` — 974/974 actual tests pass (one unrelated pre-existing fixture
   failure in `packages/parser/src/legacy.test.ts`).

@@ -96,7 +96,7 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-Phase 7 can build the deterministic replay engine against `@ahp-viewer/protocol` reducers, fixtures, and source metadata.
+Phase 7 can build the deterministic replay engine against `@ahp-inspector/protocol` reducers, fixtures, and source metadata.
 
 ---
 *Phase: 06-protocol-reducer-sync-foundation*

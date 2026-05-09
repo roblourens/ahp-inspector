@@ -18,7 +18,7 @@ created: 2026-05-08
 | **Framework** | Vitest |
 | **Config file** | `vitest.config.ts`, package `tsconfig.json` files |
 | **Quick run command** | `pnpm test -- packages/protocol/src` |
-| **Full suite command** | `pnpm test && pnpm typecheck && pnpm lint && pnpm -F @ahp-viewer/protocol build` |
+| **Full suite command** | `pnpm test && pnpm typecheck && pnpm lint && pnpm -F @ahp-inspector/protocol build` |
 | **Estimated runtime** | repo-standard |
 
 ## Sampling Rate
@@ -34,12 +34,12 @@ created: 2026-05-08
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 06-01-01 | 01 | 0 | SYNC-01 | T-06-01 | Workspace package skeleton and root sync script contract are declared | static/build | `pnpm install --lockfile-only && test -f packages/protocol/package.json` | ✅ | ✅ green |
 | 06-01-02 | 01 | 0 | SYNC-01, SYNC-02 | T-06-01, T-06-02, T-06-05 | Sync script reads only sibling protocol source and copies whitelisted protocol files/fixtures | unit/build | `pnpm sync:ahp && test -f packages/protocol/src/reducers.ts` | ✅ | ✅ green |
-| 06-01-03 | 01 | 1 | SYNC-02 | T-06-02 | Generated package is populated and builds | build | `pnpm sync:ahp && pnpm -F @ahp-viewer/protocol build` | ✅ | ✅ green |
+| 06-01-03 | 01 | 1 | SYNC-02 | T-06-02 | Generated package is populated and builds | build | `pnpm sync:ahp && pnpm -F @ahp-inspector/protocol build` | ✅ | ✅ green |
 | 06-02-01 | 02 | 2 | SYNC-04 | T-06-03 | Package manifests and security allow-list use generated protocol package | static/test | `pnpm install --lockfile-only && pnpm test -- test/security.test.ts` | ✅ | ✅ green |
 | 06-02-02 | 02 | 2 | SYNC-04 | T-06-03 | Source imports use generated protocol package or intentional compatibility layer | type/test | `pnpm typecheck && pnpm test -- packages/parser/src/normalizer.test.ts packages/shared/src/ahp.reexport.test.ts` | ✅ | ✅ green |
 | 06-03-01 | 03 | 3 | VERIFY-01 | T-06-04 | Reducer fixture parity passes deterministically with `Date.now()` mocked to `9999` | unit | `pnpm test -- packages/protocol/src/reducers.test.ts` | ✅ | ✅ green |
 | 06-03-02 | 03 | 3 | SYNC-03, VERIFY-01 | T-06-02, T-06-05 | Source commit diagnostics and fixture privacy are test-visible | unit | `pnpm test -- packages/protocol/src/source-info.test.ts packages/protocol/src/fixture-privacy.test.ts` | ✅ | ✅ green |
-| 06-03-03 | 03 | 3 | SYNC-03, SYNC-04, VERIFY-01 | T-06-02, T-06-03, T-06-04, T-06-05 | Focused and full Phase 6 validation passes | full gate | `pnpm sync:ahp && pnpm test -- packages/protocol/src && pnpm -F @ahp-viewer/protocol build && pnpm test && pnpm typecheck && pnpm lint` | ✅ | ✅ green |
+| 06-03-03 | 03 | 3 | SYNC-03, SYNC-04, VERIFY-01 | T-06-02, T-06-03, T-06-04, T-06-05 | Focused and full Phase 6 validation passes | full gate | `pnpm sync:ahp && pnpm test -- packages/protocol/src && pnpm -F @ahp-inspector/protocol build && pnpm test && pnpm typecheck && pnpm lint` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

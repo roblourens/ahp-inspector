@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "extension: build",
+      "type": "shell",
+      "command": "pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/extension build",
+      "group": "build",
+      "presentation": { "reveal": "silent", "panel": "shared" },
+      "problemMatcher": []
+    }
+  ]
+}

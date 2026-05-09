@@ -6,9 +6,9 @@
 
 ## What changed
 
-- Added `packages/extension` workspace package (`@ahp-viewer/extension`,
+- Added `packages/extension` workspace package (`@ahp-inspector/extension`,
   `private: true`) with a VS Code manifest contributing the
-  `ahpViewer.open` command in the AHP Log Viewer category, `engines.vscode
+  `ahpInspector.open` command in the AHP Inspector category, `engines.vscode
   ^1.95.0`, and CommonJS `tsup` build (`extension.cjs`) marking `vscode`
   as external.
 - `tsconfig.json` extends the workspace base and pulls in `@types/vscode`
@@ -23,7 +23,7 @@
   `generateNonce`. HTML is CSP-safe (`default-src 'none'`, per-load nonce,
   `script-src 'nonce-…'`, `${cspSource}`-scoped img/font/style/connect),
   and never interpolates user-controlled file paths.
-- `packages/extension/src/extension.ts` registers `ahpViewer.open`,
+- `packages/extension/src/extension.ts` registers `ahpInspector.open`,
   creates the webview panel directly (not a `CustomEditorProvider`),
   loads bundled UI assets via `webview.asWebviewUri` with restricted
   `localResourceRoots`, and forwards an `initialLog` message that carries
@@ -34,7 +34,7 @@
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/extension typecheck` — clean.
+- `pnpm -F @ahp-inspector/extension typecheck` — clean.
 - `pnpm exec vitest run packages/extension/src/activeLog.test.ts` — 4
   tests pass (active editor, untitled/non-file/non-log, recent visible
   editor fallback, AHP-named extension fallback).

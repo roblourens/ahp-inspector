@@ -55,7 +55,7 @@ Full reducer-backed state verification is now covered with a synthetic browser E
 
 | Command | Result |
 |---|---|
-| `pnpm -F @ahp-viewer/ui build` | PASS |
+| `pnpm -F @ahp-inspector/ui build` | PASS |
 | `pnpm test -- test/sse-integration.test.ts` | PASS |
 | `pnpm e2e -- e2e/phase10.spec.ts` | PASS |
 | `pnpm test` | PASS (84 files, 1010 tests) |

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // usePersistEffect tests — Plan 04-06 Task 3 (TDD).
 
-import type { EventRow } from "@ahp-viewer/core";
+import type { EventRow } from "@ahp-inspector/core";
 import { cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

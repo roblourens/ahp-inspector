@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { AhpEvent, NormalizeMeta } from "@ahp-viewer/shared";
+import type { AhpEvent, NormalizeMeta } from "@ahp-inspector/shared";
 import { describe, expect, it } from "vitest";
 import { LineSplitter, MAX_BUF_BYTES, ParseOverflowError, parseLine } from "./jsonl.js";
 import { normalize } from "./normalizer.js";

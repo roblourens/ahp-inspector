@@ -1,5 +1,5 @@
 {
-  "name": "@ahp-viewer/host-node",
+  "name": "@ahp-inspector/host-node",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,8 @@
     "build": "tsup src/index.ts --format esm --dts"
   },
   "dependencies": {
-    "@ahp-viewer/shared": "workspace:*",
+    "@ahp-inspector/parser": "workspace:*",
+    "@ahp-inspector/shared": "workspace:*",
     "chokidar": "^5.0.0"
   }
 }

@@ -6,11 +6,11 @@ tags: [foundation, eventrow, tokens, security, tdd]
 dependency_graph:
   requires: []
   provides:
-    - EventRowExtras interface in @ahp-viewer/core
+    - EventRowExtras interface in @ahp-inspector/core
     - EventRow Phase 3 fields (errorCode, serverSeq, gapBefore, isAuthFailure)
     - AppState.eventAt(idx) method
     - Phase 3 CSS design tokens in tokens.css
-    - react-json-view-lite@2.5.0 in @ahp-viewer/ui
+    - react-json-view-lite@2.5.0 in @ahp-inspector/ui
   affects:
     - packages/core/src/row-projection.ts
     - packages/server/src/app-state.ts
@@ -69,7 +69,7 @@ pnpm test packages/core/src/        → 64 tests pass (including 8 new Phase 3 e
 pnpm test packages/server/src/      → 7 tests pass
 pnpm test test/security.test.ts     → 55 tests pass (react-json-view-lite in ALLOW)
 pnpm test test/boundary.test.ts     → 42 tests pass (no forbidden imports)
-pnpm -F @ahp-viewer/ui build        → builds successfully (tokens.css compiles)
+pnpm -F @ahp-inspector/ui build        → builds successfully (tokens.css compiles)
 pnpm typecheck                      → clean across all 7 workspace packages
 pnpm test (full suite)              → 267 tests pass
 grep eval/new Function in react-json-view-lite/dist/ → empty (safe)

@@ -1,11 +1,11 @@
 {
-  "name": "@ahp-viewer/extension",
+  "name": "@ahp-inspector/extension",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "displayName": "AHP Log Viewer",
+  "displayName": "AHP Inspector",
   "description": "Local-first viewer for Agent Host Protocol JSONL traffic logs.",
-  "publisher": "ahp-viewer",
+  "publisher": "ahp-inspector",
   "main": "./dist/extension.cjs",
   "engines": {
     "vscode": "^1.95.0"
@@ -14,9 +14,9 @@
   "contributes": {
     "commands": [
       {
-        "command": "ahpViewer.open",
-        "title": "AHP Log Viewer: Open",
-        "category": "AHP Log Viewer"
+        "command": "ahpInspector.open",
+        "title": "AHP Inspector: Open",
+        "category": "AHP Inspector"
       }
     ]
   },
@@ -26,14 +26,14 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@ahp-viewer/core": "workspace:*",
-    "@ahp-viewer/host-node": "workspace:*",
-    "@ahp-viewer/parser": "workspace:*",
-    "@ahp-viewer/server": "workspace:*",
-    "@ahp-viewer/shared": "workspace:*"
+    "@ahp-inspector/core": "workspace:*",
+    "@ahp-inspector/host-node": "workspace:*",
+    "@ahp-inspector/parser": "workspace:*",
+    "@ahp-inspector/server": "workspace:*",
+    "@ahp-inspector/shared": "workspace:*"
   },
   "devDependencies": {
-    "@ahp-viewer/ui": "workspace:*",
+    "@ahp-inspector/ui": "workspace:*",
     "@types/vscode": "^1.95.0"
   }
 }

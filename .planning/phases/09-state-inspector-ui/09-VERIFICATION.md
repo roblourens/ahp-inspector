@@ -27,7 +27,7 @@ pnpm test -- packages/ui/src/transport/state-client.test.ts packages/ui/src/comp
 pnpm test
 pnpm typecheck
 pnpm lint
-pnpm -F @ahp-viewer/ui build
+pnpm -F @ahp-inspector/ui build
 ```
 
 Browser smoke screenshots are captured in `screenshots/phase9/`:

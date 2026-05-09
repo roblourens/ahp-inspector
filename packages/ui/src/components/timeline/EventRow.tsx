@@ -1,7 +1,7 @@
 // biome-ignore-all lint/a11y/useSemanticElements: virtualized grid rows/cells use divs per ARIA grid pattern and absolute positioning.
 // biome-ignore-all lint/a11y/useFocusableInteractive: grid keyboard focus is managed at the row level; individual cells are not tab stops.
 
-import type { EventRow as EventRowData } from "@ahp-viewer/core";
+import type { EventRow as EventRowData } from "@ahp-inspector/core";
 import { ShieldAlert } from "lucide-react";
 import type { CSSProperties, JSX } from "react";
 import { memo } from "react";

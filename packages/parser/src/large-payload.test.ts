@@ -1,4 +1,4 @@
-import type { NormalizeMeta } from "@ahp-viewer/shared";
+import type { NormalizeMeta } from "@ahp-inspector/shared";
 import { describe, expect, it } from "vitest";
 import { LineSplitter, parseLine } from "./jsonl.js";
 import { normalize } from "./normalizer.js";

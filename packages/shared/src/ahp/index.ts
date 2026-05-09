@@ -1,6 +1,6 @@
-// Compatibility re-export backed by generated @ahp-viewer/protocol.
+// Compatibility re-export backed by generated @ahp-inspector/protocol.
 // New protocol consumers should import canonical names directly from
-// @ahp-viewer/protocol; this subpath keeps older shared callers compiling.
+// @ahp-inspector/protocol; this subpath keeps older shared callers compiling.
 export type {
   ActionEnvelope,
   ActionEnvelope as IActionEnvelope,
@@ -41,4 +41,4 @@ export type {
   ProtocolNotification as IProtocolNotification,
   ServerNotificationMap,
   ServerNotificationMap as IServerNotificationMap,
-} from "@ahp-viewer/protocol";
+} from "@ahp-inspector/protocol";

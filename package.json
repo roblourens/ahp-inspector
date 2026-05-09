@@ -1,5 +1,5 @@
 {
-  "name": "ahp-viewer",
+  "name": "ahp-inspector",
   "version": "0.1.0",
   "private": true,
   "description": "Local-first GUI for exploring Agent Host Protocol JSONL traffic logs.",
@@ -7,7 +7,7 @@
   "packageManager": "pnpm@9.15.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/roblourens/ahp-viewer.git"
+    "url": "git+https://github.com/roblourens/ahp-inspector.git"
   },
   "keywords": [
     "agent-host-protocol",
@@ -27,8 +27,8 @@
     "format": "biome format --write .",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "start:fixture": "pnpm -F @ahp-viewer/ui build && pnpm exec tsx packages/cli/src/index.ts test/fixtures/phase3-mini.jsonl",
-    "start:long": "pnpm -F @ahp-viewer/ui build && pnpm exec tsx packages/cli/src/index.ts test/fixtures/long-realistic-ahp.jsonl",
+    "start:fixture": "pnpm -F @ahp-inspector/ui build && pnpm exec tsx packages/cli/src/index.ts test/fixtures/phase3-mini.jsonl",
+    "start:long": "pnpm -F @ahp-inspector/ui build && pnpm exec tsx packages/cli/src/index.ts test/fixtures/long-realistic-ahp.jsonl",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed"
   },

@@ -10,7 +10,7 @@ const srcDir = path.resolve(__dirname, "../../ui/dist");
 const dstDir = path.resolve(__dirname, "../ui-dist");
 
 if (!fs.existsSync(srcDir)) {
-  console.error(`[extension] missing UI build at ${srcDir}; run 'pnpm -F @ahp-viewer/ui build' first.`);
+  console.error(`[extension] missing UI build at ${srcDir}; run 'pnpm -F @ahp-inspector/ui build' first.`);
   process.exit(1);
 }
 

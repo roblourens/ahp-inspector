@@ -69,7 +69,7 @@ Testing is partly present but not sufficient for VERIFY-02/VERIFY-03. Vitest/jsd
 
 - Root test command is `pnpm test`, which runs `vitest run`. [VERIFIED: package.json]
 - Root Vitest config includes `test/**/*.test.ts`, `packages/*/src/**/*.test.ts`, and `packages/*/test/**/*.test.ts`, uses default reporter, and pool `forks`. [VERIFIED: vitest.config.ts]
-- UI package test command is `pnpm -F @ahp-viewer/ui test`, which runs `vitest run`. [VERIFIED: packages/ui/package.json]
+- UI package test command is `pnpm -F @ahp-inspector/ui test`, which runs `vitest run`. [VERIFIED: packages/ui/package.json]
 - UI package Vitest config uses React plugin, jsdom environment, `src/test-setup.ts`, and includes `src/**/*.test.{ts,tsx}`. [VERIFIED: packages/ui/vitest.config.ts]
 - `src/test-setup.ts` loads `@testing-library/jest-dom/vitest`. [VERIFIED: packages/ui/src/test-setup.ts]
 - Existing UI tests cover the theme picker, timeline cells, virtualized row count, timeline region keyboard/live states, detail panel states, filters, picker, state screens, per-log persistence, and transport clients. [VERIFIED: repository test list and corresponding test files]
@@ -86,7 +86,7 @@ Testing is partly present but not sufficient for VERIFY-02/VERIFY-03. Vitest/jsd
 | THEME-03: distinctive hacker aesthetic | Hacker palette exists. [VERIFIED: tokens.css] | Add intentional hacker-only CSS effects/tokens beyond green-on-black: glow, terminal grid/scanline overlay, sharper borders, syntax accent differences, reduced-motion safeguards. [ASSUMED] | Browser/UAT screenshots for hacker mode and token tests showing hacker-specific tokens. [ASSUMED] |
 | THEME-04: theme choice and key prefs persist | Theme persists globally; per-log prefs persist by `logKey`. [VERIFIED: main.tsx, HeaderBar.tsx, persistence.ts, persist-effect.ts] | Decide if additional "key viewer preferences" are needed beyond existing filter/group/selection/detail/livePaused and theme. [ASSUMED] | Persistence tests for theme fallback and existing prefs; optional migration tests if schema changes. [ASSUMED] |
 | THEME-05: responsive laptop to ultra-wide | Current flex and fixed-width layout exists. [VERIFIED: AppShell.tsx, EventRow.tsx] | Add explicit breakpoints and layout behavior for narrow laptop, normal desktop, ultra-wide, and detail-open states. [ASSUMED] | jsdom layout-style tests plus browser screenshots at 1366x768, 1440x900, 1920x1080, and 2560x1440. [ASSUMED] |
-| VERIFY-02: UI tests cover timeline, selection, detail, filters/search, theme, empty, parse-error | Many component tests exist. [VERIFIED: test list] | Add missing cross-component/app-level UI tests that exercise complete flows rather than isolated components. [ASSUMED] | Targeted `pnpm -F @ahp-viewer/ui test ...` files plus full `pnpm test`. [VERIFIED: package scripts] |
+| VERIFY-02: UI tests cover timeline, selection, detail, filters/search, theme, empty, parse-error | Many component tests exist. [VERIFIED: test list] | Add missing cross-component/app-level UI tests that exercise complete flows rather than isolated components. [ASSUMED] | Targeted `pnpm -F @ahp-inspector/ui test ...` files plus full `pnpm test`. [VERIFIED: package scripts] |
 | VERIFY-03: E2E tests cover opening fixture, filtering/searching, expanding details, appended events | Server vertical slices cover much of ingestion/tail without browser. [VERIFIED: phase4-vertical-slice.test.ts] | Add browser E2E, preferably Playwright, to drive real UI against CLI/server and a fixture file. [ASSUMED] | `pnpm e2e` or equivalent Playwright command; fallback manual UAT with `playwright-cli`. [ASSUMED] |
 
 ## Standard Stack
@@ -219,8 +219,8 @@ pnpm add -D @playwright/test
 | Unit/component framework | Vitest 4.1.5 + jsdom 29.1.1 + Testing Library React 16.3.2. [VERIFIED: package.json, packages/ui/package.json, npm registry] |
 | Root config | `vitest.config.ts`. [VERIFIED: vitest.config.ts] |
 | UI config | `packages/ui/vitest.config.ts`. [VERIFIED: packages/ui/vitest.config.ts] |
-| Quick UI command | `pnpm -F @ahp-viewer/ui test`. [VERIFIED: packages/ui/package.json] |
-| Full suite command | `pnpm test && pnpm -F @ahp-viewer/ui build && pnpm typecheck && pnpm lint`. [VERIFIED: package.json, packages/ui/package.json] |
+| Quick UI command | `pnpm -F @ahp-inspector/ui test`. [VERIFIED: packages/ui/package.json] |
+| Full suite command | `pnpm test && pnpm -F @ahp-inspector/ui build && pnpm typecheck && pnpm lint`. [VERIFIED: package.json, packages/ui/package.json] |
 | Browser E2E | Recommended `@playwright/test@1.59.1` if dependency accepted. [VERIFIED: npm registry; ASSUMED: acceptance] |
 | Manual browser/UAT fallback | `playwright-cli` 0.1.12 is globally available in this environment. [VERIFIED: environment probe] |
 
@@ -228,18 +228,18 @@ pnpm add -D @playwright/test
 
 | Req ID | Behavior | Test Type | Suggested Command | Existing Coverage |
 |---|---|---|---|---|
-| THEME-01 | Switch dark/light/hacker from UI | UI component + browser smoke | `pnpm -F @ahp-viewer/ui test src/components/shell/HeaderBar.test.tsx` | Partial: compact picker and light persistence. [VERIFIED] |
-| THEME-02 | Components use tokens, not hard-coded colors | Static Vitest guard | `pnpm -F @ahp-viewer/ui test src/styles/no-hex-in-components.test.ts` | Partial: only quoted hex. [VERIFIED] |
-| THEME-03 | Hacker mode is distinctive | UI/browser visual + token tests | `pnpm -F @ahp-viewer/ui test src/styles/*.test.ts` plus UAT | Gap. [ASSUMED] |
-| THEME-04 | Theme and key prefs persist reloads | jsdom persistence tests + E2E reload | `pnpm -F @ahp-viewer/ui test src/persistence/persist-effect.test.ts src/state/persistence.test.ts src/components/shell/HeaderBar.test.tsx` | Partial: per-log prefs and light theme. [VERIFIED] |
+| THEME-01 | Switch dark/light/hacker from UI | UI component + browser smoke | `pnpm -F @ahp-inspector/ui test src/components/shell/HeaderBar.test.tsx` | Partial: compact picker and light persistence. [VERIFIED] |
+| THEME-02 | Components use tokens, not hard-coded colors | Static Vitest guard | `pnpm -F @ahp-inspector/ui test src/styles/no-hex-in-components.test.ts` | Partial: only quoted hex. [VERIFIED] |
+| THEME-03 | Hacker mode is distinctive | UI/browser visual + token tests | `pnpm -F @ahp-inspector/ui test src/styles/*.test.ts` plus UAT | Gap. [ASSUMED] |
+| THEME-04 | Theme and key prefs persist reloads | jsdom persistence tests + E2E reload | `pnpm -F @ahp-inspector/ui test src/persistence/persist-effect.test.ts src/state/persistence.test.ts src/components/shell/HeaderBar.test.tsx` | Partial: per-log prefs and light theme. [VERIFIED] |
 | THEME-05 | Laptop-to-ultra-wide responsive layout | Browser E2E/UAT + style tests | Playwright viewport tests or manual UAT | Gap. [ASSUMED] |
-| VERIFY-02 | UI test coverage for required states/flows | Vitest/jsdom integrated tests | `pnpm -F @ahp-viewer/ui test` | Partial: many isolated components. [VERIFIED] |
+| VERIFY-02 | UI test coverage for required states/flows | Vitest/jsdom integrated tests | `pnpm -F @ahp-inspector/ui test` | Partial: many isolated components. [VERIFIED] |
 | VERIFY-03 | Open fixture, filter/search, expand details, appended events | Playwright E2E | `pnpm e2e` if added | Gap: server vertical slices exist but no browser E2E. [VERIFIED] |
 
 ### Recommended E2E shape
 
 - Use a temporary copied fixture file so the test can append without mutating committed fixtures. [ASSUMED]
-- Start CLI with `--port 0 --no-open` and parse `AHP Log Viewer running at http://127.0.0.1:<port>`. [VERIFIED: pattern in test/phase4-vertical-slice.test.ts]
+- Start CLI with `--port 0 --no-open` and parse `AHP Inspector running at http://127.0.0.1:<port>`. [VERIFIED: pattern in test/phase4-vertical-slice.test.ts]
 - Navigate a browser to the printed URL. [ASSUMED]
 - Assert no absolute path patterns appear in `document.body.innerText`, reusing Phase 4 privacy regexes. [VERIFIED: test/phase4-vertical-slice.test.ts, 04-UAT.md]
 - Drive search by the visible search input placeholder or aria-label. [VERIFIED: FilterBar.test.tsx]

@@ -14,8 +14,8 @@
  * No raw #hex literals. No dangerouslySetInnerHTML.
  */
 
-import type { Status } from "@ahp-viewer/core";
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { Status } from "@ahp-inspector/core";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import { Loader2 } from "lucide-react";
 import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "../../state/store.js";

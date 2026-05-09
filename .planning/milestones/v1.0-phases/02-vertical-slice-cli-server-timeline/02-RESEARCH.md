@@ -10,7 +10,7 @@ Phase 1 already delivered the canonical event model, parser, EventStore, Correla
 
 **Primary recommendation:** Build an explicit `EventRow` projection in `packages/core/` (computed once on append from `AhpEvent` + `Correlator` columns) and stream it (snapshot + tail deltas) over Hono SSE as JSON-encoded batches. The UI consumes the projection and never re-derives correlation/status/latency on the render path. This isolates UI from store internals and matches Phase 3's filter-on-projection plan.
 
-The single non-obvious snag in the existing repo: `test/boundary.test.ts` already lists `packages/ui/src` in `PORTABLE_ROOTS` with `react`/`react-dom`/`vite` in `FORBIDDEN_PATTERNS`. Phase 2 MUST update the boundary test (remove `packages/ui/src` from portable roots and add a separate `UI_FORBIDDEN_PATTERNS` for `node:`/`fs`/`chokidar`/`hono`/`@ahp-viewer/host-node`/`@ahp-viewer/server`) before any UI code lands, otherwise the suite will fail green-Wave-0.
+The single non-obvious snag in the existing repo: `test/boundary.test.ts` already lists `packages/ui/src` in `PORTABLE_ROOTS` with `react`/`react-dom`/`vite` in `FORBIDDEN_PATTERNS`. Phase 2 MUST update the boundary test (remove `packages/ui/src` from portable roots and add a separate `UI_FORBIDDEN_PATTERNS` for `node:`/`fs`/`chokidar`/`hono`/`@ahp-inspector/host-node`/`@ahp-inspector/server`) before any UI code lands, otherwise the suite will fail green-Wave-0.
 
 ## User Constraints (from CONTEXT.md)
 
@@ -103,15 +103,15 @@ No CONTEXT.md exists for Phase 2. The orchestrator clarified out-of-band:
 
 **Installation (planner reference):**
 ```bash
-pnpm -F @ahp-viewer/cli add open
-pnpm -F @ahp-viewer/server add  # no new deps; reuse hono
+pnpm -F @ahp-inspector/cli add open
+pnpm -F @ahp-inspector/server add  # no new deps; reuse hono
 pnpm add -w -D @testing-library/react @testing-library/user-event jsdom
 # new package:
-pnpm -F @ahp-viewer/ui add react react-dom @tanstack/react-virtual zustand lucide-react
-pnpm -F @ahp-viewer/ui add -D vite @vitejs/plugin-react tailwindcss @tailwindcss/vite @types/react @types/react-dom
+pnpm -F @ahp-inspector/ui add react react-dom @tanstack/react-virtual zustand lucide-react
+pnpm -F @ahp-inspector/ui add -D vite @vitejs/plugin-react tailwindcss @tailwindcss/vite @types/react @types/react-dom
 ```
 
-**Allow-list test extension required:** add `react`, `react-dom`, `@tanstack/react-virtual`, `zustand`, `lucide-react`, `vite`, `@vitejs/plugin-react`, `tailwindcss`, `@tailwindcss/vite`, `open`, `@testing-library/react`, `@testing-library/user-event`, `jsdom`, `@types/react`, `@types/react-dom`, and `@ahp-viewer/ui` to `test/security.test.ts` `ALLOW`. Without this, Wave 0 will fail.
+**Allow-list test extension required:** add `react`, `react-dom`, `@tanstack/react-virtual`, `zustand`, `lucide-react`, `vite`, `@vitejs/plugin-react`, `tailwindcss`, `@tailwindcss/vite`, `open`, `@testing-library/react`, `@testing-library/user-event`, `jsdom`, `@types/react`, `@types/react-dom`, and `@ahp-inspector/ui` to `test/security.test.ts` `ALLOW`. Without this, Wave 0 will fail.
 
 ## Architecture Patterns
 
@@ -262,7 +262,7 @@ Content-Security-Policy:
 2. If !file: print server-not-running help text and exit 0 (UI-SPEC §10 server-not-running)
 3. Construct AppState (open file, start watcher, seed store)
 4. Start server on 127.0.0.1:port (port=0 picks ephemeral; print resolved URL)
-5. Print "AHP Log Viewer running at http://127.0.0.1:{port}\nOpening browser…\nWatching {abs_path}" (UI-SPEC §10)
+5. Print "AHP Inspector running at http://127.0.0.1:{port}\nOpening browser…\nWatching {abs_path}" (UI-SPEC §10)
 6. await open(url) — pass {wait:false}; on failure log "Open this URL: {url}" but don't exit
 7. SIGINT/SIGTERM → AppState.dispose() → server.close()
 ```
@@ -299,7 +299,7 @@ Content-Security-Policy:
 **Why it happens:** Phase 1 future-proofed against UI accidentally importing host code, but used the *portable* forbidden list.
 **How to avoid:** First task in Wave 0 of Phase 2 is to refactor the boundary test:
 - Keep `PORTABLE_ROOTS = [shared, parser, core]` with the existing forbidden list.
-- Add a new `UI_ROOTS = [packages/ui/src]` with `UI_FORBIDDEN_PATTERNS = [/^node:/, /^fs$/, /^fs\//, /^path$/, /^chokidar$/, /^hono($|\/)/, /^@hono\//, /^@ahp-viewer\/host-node($|\/)/, /^@ahp-viewer\/server($|\/)/]`.
+- Add a new `UI_ROOTS = [packages/ui/src]` with `UI_FORBIDDEN_PATTERNS = [/^node:/, /^fs$/, /^fs\//, /^path$/, /^chokidar$/, /^hono($|\/)/, /^@hono\//, /^@ahp-inspector\/host-node($|\/)/, /^@ahp-inspector\/server($|\/)/]`.
 - Add tests asserting the UI roots scan runs and is non-trivial (≥1 file scanned once UI exists).
 
 **Warning signs:** if the boundary refactor lands *after* the first UI file, CI is red and people start commenting `// biome-ignore`. Refactor first.
@@ -421,7 +421,7 @@ export function connect(onMsg: (m: SsePayload) => void, onState: (s: ConnState) 
 // Source: github.com/sindresorhus/open#readme
 import open from 'open';
 const url = `http://127.0.0.1:${serverHandle.port}`;
-console.log(`AHP Log Viewer running at ${url}\nOpening browser…\nWatching ${absPath}`);
+console.log(`AHP Inspector running at ${url}\nOpening browser…\nWatching ${absPath}`);
 try { await open(url, { wait: false }); }
 catch { console.log(`(could not auto-open; visit ${url})`); }
 ```
@@ -447,8 +447,8 @@ catch { console.log(`(could not auto-open; visit ${url})`); }
 | Framework | Vitest 4.1.5 (root config `vitest.config.ts` already present) + `@testing-library/react` 16.3.2 + jsdom 29.1.1 |
 | Config file | `vitest.config.ts` (root, project-shared); `packages/ui/vitest.config.ts` for jsdom env override |
 | Quick run command | `pnpm vitest run --changed` |
-| Full suite command | `pnpm vitest run && pnpm -F @ahp-viewer/ui build` |
-| Phase-2 gate | `pnpm test && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build` |
+| Full suite command | `pnpm vitest run && pnpm -F @ahp-inspector/ui build` |
+| Phase-2 gate | `pnpm test && pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/cli build` |
 
 ### Phase Requirements → Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
@@ -472,7 +472,7 @@ catch { console.log(`(could not auto-open; visit ${url})`); }
 ### Sampling Rate
 - **Per task commit:** `pnpm vitest run --changed` (fast feedback on edited files)
 - **Per wave merge:** `pnpm vitest run` (full Vitest suite)
-- **Phase gate:** `pnpm vitest run && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck` — all green before `/gsd-verify-work`
+- **Phase gate:** `pnpm vitest run && pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/cli build && pnpm typecheck` — all green before `/gsd-verify-work`
 
 ### Wave 0 Gaps
 - [ ] `test/boundary.test.ts` — refactor to split portable vs UI roots (see Pitfall 1)
@@ -572,14 +572,14 @@ Per `.planning/config.json` `workflow.nyquist_validation: true`; security_enforc
 3. **What happens if the CLI is invoked twice?**
    - What we know: second invocation gets `EADDRINUSE`.
    - What's unclear: should the second invocation `open` the existing tab?
-   - Recommendation: out of scope for Phase 2 — the existing UI-SPEC §10 copy `Error: port {port} is in use. Try: ahp-viewer --port {port+1} {path}` is the contract. Defer cross-instance handoff to Phase 4. Resolved.
+   - Recommendation: out of scope for Phase 2 — the existing UI-SPEC §10 copy `Error: port {port} is in use. Try: ahp-inspector --port {port+1} {path}` is the contract. Defer cross-instance handoff to Phase 4. Resolved.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `/Users/roblou/code/ahp-viewer/.planning/phases/01-core-foundations/01-VERIFICATION.md` — Phase 1 capabilities & gaps
-- `/Users/roblou/code/ahp-viewer/.planning/phases/02-vertical-slice-cli-server-timeline/02-UI-SPEC.md` — locked design contract
-- `/Users/roblou/code/ahp-viewer/packages/{cli,server,host-node,core,shared,parser}/src/**` — actual current code
+- `/Users/roblou/code/ahp-inspector/.planning/phases/01-core-foundations/01-VERIFICATION.md` — Phase 1 capabilities & gaps
+- `/Users/roblou/code/ahp-inspector/.planning/phases/02-vertical-slice-cli-server-timeline/02-UI-SPEC.md` — locked design contract
+- `/Users/roblou/code/ahp-inspector/packages/{cli,server,host-node,core,shared,parser}/src/**` — actual current code
 - `npm view` for every Phase-2 package version (2026-05-07)
 - hono.dev — `streamSSE` API contract (`hono/streaming`)
 - tanstack.com/virtual/v3 — `useVirtualizer` reference

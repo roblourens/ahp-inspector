@@ -49,11 +49,11 @@ completed: 2026-05-09
 
 ## Verification
 
-- `pnpm --filter @ahp-viewer/ui test -- persistence.test.ts persist-effect.test.ts store.test.ts`
-- `pnpm --filter @ahp-viewer/ui build`
+- `pnpm --filter @ahp-inspector/ui test -- persistence.test.ts persist-effect.test.ts store.test.ts`
+- `pnpm --filter @ahp-inspector/ui build`
 - `pnpm e2e -- e2e/phase12.spec.ts`
-- `pnpm --filter @ahp-viewer/ui typecheck`
-- `pnpm --filter @ahp-viewer/ui test -- selectors.test.ts store.test.ts search-client.test.ts TimelineRegion.test.tsx FilterBar.test.tsx TimelineList.virt.test.tsx EventRow.columns.test.tsx AppShell.test.tsx persistence.test.ts persist-effect.test.ts`
+- `pnpm --filter @ahp-inspector/ui typecheck`
+- `pnpm --filter @ahp-inspector/ui test -- selectors.test.ts store.test.ts search-client.test.ts TimelineRegion.test.tsx FilterBar.test.tsx TimelineList.virt.test.tsx EventRow.columns.test.tsx AppShell.test.tsx persistence.test.ts persist-effect.test.ts`
 - `pnpm test -- --run test/vertical-slice.test.ts`
 
 ## Deviations from Plan
@@ -62,7 +62,7 @@ None - plan executed as specified.
 
 ## Issues Encountered
 
-The first E2E run used a stale UI bundle and showed the old filtering behavior. Running `pnpm --filter @ahp-viewer/ui build` refreshed `packages/ui/dist`; after adjusting the facet option selector to the actual checkbox-label markup, the Phase 12 E2E passed.
+The first E2E run used a stale UI bundle and showed the old filtering behavior. Running `pnpm --filter @ahp-inspector/ui build` refreshed `packages/ui/dist`; after adjusting the facet option selector to the actual checkbox-label markup, the Phase 12 E2E passed.
 
 ## User Setup Required
 
@@ -70,7 +70,7 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-Phase 12 has unit, typecheck, vertical-slice, and browser coverage for the new search behavior. Future CLI-served UI E2E should build `@ahp-viewer/ui` first when source changes affect the browser bundle.
+Phase 12 has unit, typecheck, vertical-slice, and browser coverage for the new search behavior. Future CLI-served UI E2E should build `@ahp-inspector/ui` first when source changes affect the browser bundle.
 
 ---
 *Phase: 12-search-rather-than-filter*

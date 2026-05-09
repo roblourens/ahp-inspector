@@ -1,12 +1,12 @@
-import type { ReplayDiagnostic, ReplayResourceState } from "@ahp-viewer/core";
+import type { ReplayDiagnostic, ReplayResourceState } from "@ahp-inspector/core";
 import {
   ActionType,
   ReconnectResultType,
   SessionLifecycle,
   SessionStatus,
   TerminalClaimKind,
-} from "@ahp-viewer/protocol";
-import type { AhpEvent, Disposable, HostAdapter, LogHandle } from "@ahp-viewer/shared";
+} from "@ahp-inspector/protocol";
+import type { AhpEvent, Disposable, HostAdapter, LogHandle } from "@ahp-inspector/shared";
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { type AppState, createAppState, type LogMeta } from "./app-state.js";

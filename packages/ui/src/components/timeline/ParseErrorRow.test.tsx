@@ -1,4 +1,4 @@
-import type { EventRow as EventRowData } from "@ahp-viewer/core";
+import type { EventRow as EventRowData } from "@ahp-inspector/core";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { ParseErrorRow } from "./ParseErrorRow.js";

@@ -224,7 +224,7 @@ Bars are intentionally low-chroma so they do not compete visually with the kind 
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ Header bar (40px)        AHP Log Viewer · v0.1                          │
+│ Header bar (40px)        AHP Inspector · v0.1                          │
 ├─────────────────────────────────────────────────────────────────────────┤
 │ Source strip (32px)      📄 sample.jsonl · 12,431 events · 3 sessions   │
 ├──────────────────────────────────────────────────┬──────────────────────┤
@@ -361,7 +361,7 @@ Per §7.3 — parse errors render as individual `BAD` rows interleaved with vali
 
 - **Trigger:** UI bundle loaded but `/api/log` returns 503 or never reached because no server.
 - **Heading:** `Start the viewer from the CLI`
-- **Body:** `Run \`ahp-viewer path/to/log.jsonl\` from your terminal, then refresh this page.` (the command rendered in mono on its own line)
+- **Body:** `Run \`ahp-inspector path/to/log.jsonl\` from your terminal, then refresh this page.` (the command rendered in mono on its own line)
 - **Status bar:** connection dot in `--color-destructive`, label `No server`.
 
 ---
@@ -414,14 +414,14 @@ Voice: **terse, factual, devtools-tone**. No exclamation marks. No emoji. No "Oo
 
 | Element | Copy |
 |---------|------|
-| App title (header) | `AHP Log Viewer` |
+| App title (header) | `AHP Inspector` |
 | Version label | `v{semver}` (e.g. `v0.1.0`) |
 | Source strip — file present | `{file_basename} · {N} events · {M} sessions` (with N/M tabular-num) |
 | Source strip — 0 events | `{file_basename} · 0 events` |
-| CLI — invocation success (printed to terminal) | `AHP Log Viewer running at http://127.0.0.1:{port}\nOpening browser…\nWatching {abs_path}` |
-| CLI — file not found | `Error: log file not found: {path}\nUsage: ahp-viewer <path-to-log.jsonl>` (exit 1) |
+| CLI — invocation success (printed to terminal) | `AHP Inspector running at http://127.0.0.1:{port}\nOpening browser…\nWatching {abs_path}` |
+| CLI — file not found | `Error: log file not found: {path}\nUsage: ahp-inspector <path-to-log.jsonl>` (exit 1) |
 | CLI — file not readable | `Error: cannot read {path}: {os_error}\nCheck file permissions.` (exit 1) |
-| CLI — port in use | `Error: port {port} is in use. Try: ahp-viewer --port {port+1} {path}` (exit 1) |
+| CLI — port in use | `Error: port {port} is in use. Try: ahp-inspector --port {port+1} {path}` (exit 1) |
 | Browser — loading heading | `Loading log…` |
 | Browser — loading body | `Reading {filename}` |
 | Browser — empty heading | `No events yet` |
@@ -431,7 +431,7 @@ Voice: **terse, factual, devtools-tone**. No exclamation marks. No emoji. No "Oo
 | Browser — disconnected banner | `Disconnected from log stream. Showing last received events.` |
 | Browser — disconnected action | `Retry connection` |
 | Browser — server-not-running heading | `Start the viewer from the CLI` |
-| Browser — server-not-running body | `Run \`ahp-viewer path/to/log.jsonl\` from your terminal, then refresh this page.` |
+| Browser — server-not-running body | `Run \`ahp-inspector path/to/log.jsonl\` from your terminal, then refresh this page.` |
 | Detail rail placeholder — no selection | `Select a row to preview.` |
 | Detail rail placeholder — has selection | `{timestamp} · {direction-word} · {KIND} · {method}\nFull detail view ships in Phase 3.` |
 | Status bar — connected | `● Connected · {N} events{ · selected #{rowIndex}}?` |

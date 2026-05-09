@@ -57,11 +57,11 @@ browser UAT screenshots for the discovery/live-tail/persistence workflow.
 
 - `pnpm vitest run test/phase4-vertical-slice.test.ts` — passed.
 - `pnpm test` — passed.
-- `pnpm -F @ahp-viewer/ui test src/transport/sessions-client.test.ts` — passed after session-client fix.
-- `pnpm -F @ahp-viewer/ui test src/components/picker/ManualOpenInput.test.tsx` — passed after placeholder fix.
-- `pnpm -F @ahp-viewer/ui test src/transport/sse-client.test.ts src/transport/sessions-client.test.ts src/components/shell/AppShell.test.tsx` — passed after verifier-gap fixes.
-- `pnpm -F @ahp-viewer/ui build` — passed after UI UAT fixes.
-- `pnpm -F @ahp-viewer/cli build` — passed.
+- `pnpm -F @ahp-inspector/ui test src/transport/sessions-client.test.ts` — passed after session-client fix.
+- `pnpm -F @ahp-inspector/ui test src/components/picker/ManualOpenInput.test.tsx` — passed after placeholder fix.
+- `pnpm -F @ahp-inspector/ui test src/transport/sse-client.test.ts src/transport/sessions-client.test.ts src/components/shell/AppShell.test.tsx` — passed after verifier-gap fixes.
+- `pnpm -F @ahp-inspector/ui build` — passed after UI UAT fixes.
+- `pnpm -F @ahp-inspector/cli build` — passed.
 - `pnpm typecheck` — passed.
 - `pnpm lint` — passed.
 - Phase verifier — passed with score 5/5.

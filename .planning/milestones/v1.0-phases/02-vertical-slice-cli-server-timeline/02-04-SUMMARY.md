@@ -138,7 +138,7 @@ Modified:
 - **Issue:** The pre-existing `App.test.tsx` (from Plan 02-02) asserted `getByTestId("timeline-region")`. After replacing the stub, that test ID is no longer present when `connection==='connecting' && rows.length===0` (TimelineRegion returns `<LoadingState />` directly). Test failed.
 - **Fix:** Updated smoke test to assert `state-loading` is rendered for the default store state (matches new contract), added `useAppStore.setState` in `afterEach` to reset state between tests, and added a second `it` covering the `no-server` → `ServerNotRunningState` short-circuit. Net result: the App test now also covers Task 3's App.tsx change.
 - **Files modified:** `packages/ui/src/App.test.tsx`
-- **Verification:** `pnpm -F @ahp-viewer/ui test` → 15 files / 55 tests passing
+- **Verification:** `pnpm -F @ahp-inspector/ui test` → 15 files / 55 tests passing
 - **Committed in:** `ac62e20` (Task 3 commit)
 
 ---
@@ -152,9 +152,9 @@ Modified:
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/ui test` — 15 files / 55 tests passing
-- `pnpm -F @ahp-viewer/ui typecheck` — clean
-- `pnpm -F @ahp-viewer/ui build` — `dist/assets/index-*.js` 223.89 kB (gzip 70.10 kB), 215 ms
+- `pnpm -F @ahp-inspector/ui test` — 15 files / 55 tests passing
+- `pnpm -F @ahp-inspector/ui typecheck` — clean
+- `pnpm -F @ahp-inspector/ui build` — `dist/assets/index-*.js` 223.89 kB (gzip 70.10 kB), 215 ms
 - `pnpm typecheck` — all 6 packages clean
 - `grep -rEn "#[0-9a-fA-F]{3,8}" packages/ui/src/components/` — 0 matches (token guard preserved)
 

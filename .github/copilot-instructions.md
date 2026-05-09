@@ -10,7 +10,7 @@
 
 # Project Context
 
-This repository is AHP Log Viewer: a local-first developer GUI for discovering, watching, searching, and understanding JSONL logs of Agent Host Protocol traffic. The core value is to make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
+This repository is AHP Inspector: a local-first developer GUI for discovering, watching, searching, and understanding JSONL logs of Agent Host Protocol traffic. The core value is to make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
 
 The first milestone builds a standalone local web app launched from the CLI. Keep architecture compatible with a future VS Code extension/webview by preserving a host adapter boundary between file discovery/watching/reading and the portable browser UI.
 

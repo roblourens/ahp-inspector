@@ -8,7 +8,7 @@ import type {
   IProtocolNotification,
   IServerNotificationMap,
   NotificationType,
-} from "@ahp-viewer/shared/ahp";
+} from "@ahp-inspector/shared/ahp";
 import { describe, expect, it } from "vitest";
 import {
   type AhpEvent,
@@ -25,7 +25,7 @@ import {
 // ─── AHP re-export shape ─────────────────────────────────────────────────────
 
 describe("AHP compatibility re-exports (SYNC-04)", () => {
-  it("type-only symbols typecheck via the @ahp-viewer/shared/ahp subpath", () => {
+  it("type-only symbols typecheck via the @ahp-inspector/shared/ahp subpath", () => {
     // Pure type-level assertions: if the imports above resolved, they pass.
     type _M = IProtocolMessage;
     type _A = IActionEnvelope;

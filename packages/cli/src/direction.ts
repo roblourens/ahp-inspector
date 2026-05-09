@@ -10,7 +10,7 @@
 //   4. has 'method' (request or client notification) → 'c2s'
 //   5. fallback → 'c2s'
 
-import type { Direction } from "@ahp-viewer/shared";
+import type { Direction } from "@ahp-inspector/shared";
 
 export function classifyDirection(raw: unknown): Direction {
   if (raw === null || typeof raw !== "object") return "c2s";

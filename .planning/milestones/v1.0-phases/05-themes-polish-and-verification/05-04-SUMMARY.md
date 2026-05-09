@@ -33,9 +33,9 @@ Phase 5 now has a representative scrubbed fixture and integrated tests covering 
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/ui test src/test-fixtures/phase5-log.test.ts` — passed
+- `pnpm -F @ahp-inspector/ui test src/test-fixtures/phase5-log.test.ts` — passed
 - `pnpm vitest run test/phase5-vertical-slice.test.ts` — passed
-- `pnpm -F @ahp-viewer/ui test` — passed
+- `pnpm -F @ahp-inspector/ui test` — passed
 - `pnpm test` — passed
 
 ## Deviations from Plan

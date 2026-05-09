@@ -5,9 +5,9 @@ subsystem: core
 tags: [ahp, replay, reducers, diagnostics]
 requires:
   - phase: 06-protocol-reducer-sync-foundation
-    provides: Generated @ahp-viewer/protocol package
+    provides: Generated @ahp-inspector/protocol package
 provides:
-  - Pure replay API exported from @ahp-viewer/core
+  - Pure replay API exported from @ahp-inspector/core
   - Snapshot baseline installation for initialize and subscribe responses
   - Server action envelope application for root/session/terminal reducers
 affects: [phase-07, phase-08, core]
@@ -23,7 +23,7 @@ key-files:
     - packages/core/src/index.ts
     - pnpm-lock.yaml
 key-decisions:
-  - "Replay lives in @ahp-viewer/core and imports canonical reducer/state/action types directly from @ahp-viewer/protocol."
+  - "Replay lives in @ahp-inspector/core and imports canonical reducer/state/action types directly from @ahp-inspector/protocol."
   - "Malformed payloads, missing baselines, and unknown resources become diagnostics rather than thrown failures."
 patterns-established:
   - "Replay input remains a readonly AhpEvent array; no server, UI, filesystem, or cache lifecycle work belongs in Phase 7."
@@ -38,7 +38,7 @@ completed: 2026-05-08
 
 ## Accomplishments
 
-- Added `@ahp-viewer/protocol` as a direct `@ahp-viewer/core` workspace dependency.
+- Added `@ahp-inspector/protocol` as a direct `@ahp-inspector/core` workspace dependency.
 - Created `packages/core/src/replay.ts` with typed replay resource, diagnostic, client-intent, and result contracts.
 - Exported the replay API from the core package barrel.
 - Installed `initialize.result.snapshots[]` and `subscribe.result.snapshot` as root/session/terminal baselines.

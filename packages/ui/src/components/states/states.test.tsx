@@ -60,6 +60,6 @@ describe("ServerNotRunningState", () => {
   it("renders heading and run command", () => {
     render(<ServerNotRunningState />);
     expect(screen.getByText("Start the viewer from the CLI")).toBeTruthy();
-    expect(screen.getByText("ahp-viewer path/to/log.jsonl")).toBeTruthy();
+    expect(screen.getByText("ahp-inspector path/to/log.jsonl")).toBeTruthy();
   });
 });

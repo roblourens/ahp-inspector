@@ -15,7 +15,7 @@ with the current phase in `.planning/ROADMAP.md`.
 Run the same gate used during active development:
 
 ```bash
-pnpm test && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint
+pnpm test && pnpm -F @ahp-inspector/ui build && pnpm -F ahp-inspector build && pnpm typecheck && pnpm lint
 ```
 
 For UI-visible changes, also run the app with a fixture log and update

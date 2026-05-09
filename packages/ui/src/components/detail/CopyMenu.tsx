@@ -8,8 +8,8 @@
  * No raw #hex literals. No dangerouslySetInnerHTML.
  */
 
-import type { Status } from "@ahp-viewer/core";
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { Status } from "@ahp-inspector/core";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import { ChevronDown } from "lucide-react";
 import { type JSX, useEffect, useRef, useState } from "react";
 import { copyText } from "./clipboard.js";

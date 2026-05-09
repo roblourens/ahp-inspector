@@ -10,7 +10,7 @@
 // connection at 'connecting'. After data has loaded, any stream error is
 // user-visible as disconnected so the retry banner appears promptly.
 
-import type { EventRow, LatencyBand, Status } from "@ahp-viewer/core";
+import type { EventRow, LatencyBand, Status } from "@ahp-inspector/core";
 import { useAppStore } from "../state/store.js";
 
 export interface ConnectionHandle {

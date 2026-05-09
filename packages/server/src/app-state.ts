@@ -16,14 +16,14 @@ import {
   type LatencyBand,
   projectRow,
   type Status,
-} from "@ahp-viewer/core";
-import { LineSplitter, normalize, parseLine } from "@ahp-viewer/parser";
+} from "@ahp-inspector/core";
+import { LineSplitter, normalize, parseLine } from "@ahp-inspector/parser";
 import {
   type Direction,
   type HostAdapter,
   type LogHandle,
   makeParseErrorEvent,
-} from "@ahp-viewer/shared";
+} from "@ahp-inspector/shared";
 import { computeLogKey } from "./log-key.js";
 import { SearchIndex } from "./search-index.js";
 import { StateReplayIndex, type StateReplayIndexResult } from "./state-replay-index.js";
@@ -108,7 +108,7 @@ export interface AppState {
    */
   runFlush(nowMs?: number): void;
   /** Returns the raw AhpEvent at the given store index, or null if out of range. */
-  eventAt(idx: number): import("@ahp-viewer/shared").AhpEvent | null;
+  eventAt(idx: number): import("@ahp-inspector/shared").AhpEvent | null;
   /**
    * Returns correlator metadata for the event at the given index.
    * Used by detail-routes to build the DetailResponse shape.

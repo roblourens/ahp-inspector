@@ -9,7 +9,7 @@
   in the extension package resolve at import time before `vi.mock`
   intercepts.
 - `packages/extension/src/__test__/vscode-stub.ts` — empty stub.
-- `test/boundary.test.ts` — adds `vscode` and `@ahp-viewer/extension`
+- `test/boundary.test.ts` — adds `vscode` and `@ahp-inspector/extension`
   to the forbidden-imports lists for portable packages and the UI, and
   introduces a server-package boundary that forbids the same.
 - `test/security.test.ts` — adds two new gates: no `startLogServer` /
@@ -17,7 +17,7 @@
   that exercises `renderWebviewHtml` directly.
 - `packages/extension/package.json` — `build` now invokes
   `scripts/copy-ui-dist.cjs` after `tsup`. Adds workspace `devDep`
-  on `@ahp-viewer/ui` so `pnpm -r build` orders UI before extension.
+  on `@ahp-inspector/ui` so `pnpm -r build` orders UI before extension.
 - `packages/extension/scripts/copy-ui-dist.cjs` — copies
   `packages/ui/dist` → `packages/extension/ui-dist` and renames the
   hashed `index-*.{js,css}` outputs to `main.js` / `main.css` so the

@@ -21,7 +21,7 @@ The phase splits into five tightly-scoped deliverables: (1) a pnpm workspace sca
 
 | ID | Description | Research Support |
 |----|-------------|------------------|
-| FOUND-01 | Developer can install dependencies and run a standalone local AHP Log Viewer from the CLI. | Phase 1 produces only a CLI shell that boots the server skeleton; full UI lands in Phase 2. Scaffolding must include a runnable `bin` entry, even if it just prints "open log not yet wired". §"Standard Stack", §"Architecture Patterns / Pattern 1". |
+| FOUND-01 | Developer can install dependencies and run a standalone local AHP Inspector from the CLI. | Phase 1 produces only a CLI shell that boots the server skeleton; full UI lands in Phase 2. Scaffolding must include a runnable `bin` entry, even if it just prints "open log not yet wired". §"Standard Stack", §"Architecture Patterns / Pattern 1". |
 | FOUND-02 | Codebase separates portable core, Node host, server transport, CLI entry, browser UI. | pnpm workspace with `packages/{shared,core,host-node,server,cli,ui}` and lint-enforced import boundaries (forbid `node:*`/`fs`/`chokidar` outside `host-node`). §"Recommended Project Structure", §"Pitfall: Webview compatibility broken late". |
 | FOUND-03 | Use `../agent-host-protocol` as source of truth for AHP method/action/notification/schema. | `packages/shared/src/ahp/index.ts` re-exports `IProtocolMessage`, `IActionEnvelope`, `IProtocolNotification`, `ICommandMap`, `INotificationMap`, `ActionType`, `NotificationType` from the sibling repo. No hand-rolled method or action enums. §"Standard Stack / AHP types". |
 | FOUND-04 | Local-only security: no telemetry, no CDN assets, no outbound network for viewing. | Bake CSP `default-src 'self'`, ban CDN font/`<script src=https://>` imports, no analytics/error reporting deps in `package.json`, no auto-update calls. Locked here because retrofitting after a single CDN dep is impossible. §"Security Domain", §"Pitfall: Secret leakage". |
@@ -45,7 +45,7 @@ The phase splits into five tightly-scoped deliverables: (1) a pnpm workspace sca
 | `typescript` | 6.0.3 [VERIFIED: npm view] | Language for every package | AHP repo ships TS source; only sane choice for shared types |
 | `pnpm` | 9+ (use `packageManager` field) [ASSUMED: still current major] | Workspace manager | Strict isolation, fast installs, first-class monorepo |
 | Node.js | 22 LTS [ASSUMED] | Runtime for `host-node`, `server`, `cli` | Current LTS; native `fetch`, stable ESM |
-| `commander` | 14.0.3 [VERIFIED: npm view] | CLI argument parsing | Mature, tiny; phase 1 needs only `ahp-viewer <file>` skeleton |
+| `commander` | 14.0.3 [VERIFIED: npm view] | CLI argument parsing | Mature, tiny; phase 1 needs only `ahp-inspector <file>` skeleton |
 | `chokidar` | 5.0.0 [VERIFIED: npm view] | File watching for `host-node` | Cross-platform reliability vs. raw `fs.watch` |
 | `vitest` | 4.1.5 [VERIFIED: npm view] | Unit + fixture testing | Vite-native, instant feedback |
 | `@biomejs/biome` | 2.4.14 [VERIFIED: npm view] | Lint + format | One binary, fast; replaces ESLint+Prettier |
@@ -86,7 +86,7 @@ pnpm add -D -w @types/node
 ### Recommended Project Structure
 
 ```
-ahp-viewer/
+ahp-inspector/
 ├── package.json                 # workspace root
 ├── pnpm-workspace.yaml
 ├── biome.json
@@ -322,7 +322,7 @@ export function correlationKeyForRequest(ev: AhpEvent): CorrelationKey {
 
 ```ts
 // packages/core/src/event-store.ts
-import type { AhpEvent, EventKind, Direction } from '@ahp-viewer/shared';
+import type { AhpEvent, EventKind, Direction } from '@ahp-inspector/shared';
 
 export type Status = 'ok' | 'error' | 'pending' | 'unmatched' | 'orphan' | 'n/a';
 
@@ -495,8 +495,8 @@ import type {
   IProtocolMessage,
   IActionEnvelope,
   IProtocolNotification,
-} from '@ahp-viewer/shared/ahp';
-import type { AhpEvent, EventKind, Direction, IdType } from '@ahp-viewer/shared';
+} from '@ahp-inspector/shared/ahp';
+import type { AhpEvent, EventKind, Direction, IdType } from '@ahp-inspector/shared';
 
 export function normalize(
   raw: unknown,
@@ -604,10 +604,10 @@ export function parseLegacyBlock(headerLine: string, payloadBlock: string, meta:
 // packages/cli/src/index.ts
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { NodeHostAdapter } from '@ahp-viewer/host-node';
+import { NodeHostAdapter } from '@ahp-inspector/host-node';
 
 const program = new Command()
-  .name('ahp-viewer')
+  .name('ahp-inspector')
   .version('0.1.0')
   .argument('[file]', 'AHP log file path')
   .option('--port <n>', 'local server port', '5173')
@@ -615,17 +615,17 @@ const program = new Command()
     const host = new NodeHostAdapter();
     if (file) {
       const handle = await host.openLog(file);
-      console.log(`[ahp-viewer] opened ${handle.path} (${handle.size} bytes)`);
+      console.log(`[ahp-inspector] opened ${handle.path} (${handle.size} bytes)`);
       // Phase 2 will boot the Hono server here. Today we exit cleanly.
     } else {
-      console.log('[ahp-viewer] no file specified; UI not yet wired (Phase 2)');
+      console.log('[ahp-inspector] no file specified; UI not yet wired (Phase 2)');
     }
   });
 
 program.parse();
 ```
 
-The CLI MUST run end-to-end (`pnpm exec ahp-viewer ./test/fixtures/tiny.jsonl`) and print the opened-log line. That is FOUND-01's Phase 1 demo.
+The CLI MUST run end-to-end (`pnpm exec ahp-inspector ./test/fixtures/tiny.jsonl`) and print the opened-log line. That is FOUND-01's Phase 1 demo.
 
 ---
 
@@ -738,7 +738,7 @@ Phase 1 is local TypeScript only — no external services or runtimes beyond Nod
 ### Sampling Rate
 - **Per task commit:** `pnpm vitest run --changed` (typically <5 s in P1)
 - **Per wave merge:** `pnpm vitest run` (full suite — should stay under 10 s in P1)
-- **Phase gate:** Full suite + `pnpm exec ahp-viewer ./test/fixtures/tiny.jsonl` smoke + lint (`pnpm biome check .`) all green before `/gsd-verify-work`
+- **Phase gate:** Full suite + `pnpm exec ahp-inspector ./test/fixtures/tiny.jsonl` smoke + lint (`pnpm biome check .`) all green before `/gsd-verify-work`
 
 ### Wave 0 Gaps
 - [ ] Vitest install + `vitest.config.ts` at root

@@ -6,8 +6,8 @@
  * details stay visually clean.
  */
 
-import type { Status } from "@ahp-viewer/core";
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { Status } from "@ahp-inspector/core";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import type { JSX } from "react";
 
 interface DetailCorrelationProps {

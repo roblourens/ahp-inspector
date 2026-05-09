@@ -77,12 +77,12 @@ Wires the discovery + open endpoints (Plan 04-03) and the picker components (Pla
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/ui test src/transport/sessions-client.test.ts` → 11/11 ✅
-- `pnpm -F @ahp-viewer/ui test src/transport/sse-client.test.ts` → 8/8 ✅ (no Plan 02-06 regressions)
-- `pnpm -F @ahp-viewer/ui test src/components/shell/AppShell.test.tsx` → 6/6 ✅ (incl. RotationBanner-not-in-AppShell negative)
-- `pnpm -F @ahp-viewer/ui test` → **206/206 passing** workspace-wide (no UI regressions)
+- `pnpm -F @ahp-inspector/ui test src/transport/sessions-client.test.ts` → 11/11 ✅
+- `pnpm -F @ahp-inspector/ui test src/transport/sse-client.test.ts` → 8/8 ✅ (no Plan 02-06 regressions)
+- `pnpm -F @ahp-inspector/ui test src/components/shell/AppShell.test.tsx` → 6/6 ✅ (incl. RotationBanner-not-in-AppShell negative)
+- `pnpm -F @ahp-inspector/ui test` → **206/206 passing** workspace-wide (no UI regressions)
 - `pnpm typecheck` → all 7 packages green
-- `pnpm -F @ahp-viewer/ui build` → green (302 kB JS, 11 kB CSS)
+- `pnpm -F @ahp-inspector/ui build` → green (302 kB JS, 11 kB CSS)
 - `pnpm exec biome check packages/ui` → clean
 - All Plan-04-05 acceptance grep checks return expected counts (see Deviations §3 for the one relaxed grep)
 

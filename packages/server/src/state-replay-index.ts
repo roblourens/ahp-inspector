@@ -1,5 +1,5 @@
-import type { EventStore, ReplayResult } from "@ahp-viewer/core";
-import { replayToIndex } from "@ahp-viewer/core";
+import type { EventStore, ReplayResult } from "@ahp-inspector/core";
+import { replayToIndex } from "@ahp-inspector/core";
 
 export interface StateReplayCacheInfo {
   readonly hit: boolean;

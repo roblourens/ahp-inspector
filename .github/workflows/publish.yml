@@ -1,0 +1,56 @@
+name: Publish ahp-inspector to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (e.g. 0.1.0). Leave blank to use packages/cli/package.json as-is."
+        required: false
+        type: string
+      dry_run:
+        description: "Dry run (skip npm publish, run everything else)"
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm -F @ahp-inspector/ui build
+      - run: pnpm -F ahp-inspector build
+      - name: Bump version (if requested)
+        if: inputs.version != ''
+        run: pnpm --filter ahp-inspector version "${{ inputs.version }}" --no-git-tag-version
+      - name: Pack and smoke test
+        working-directory: packages/cli
+        run: |
+          pnpm pack
+          TARBALL=$(ls ahp-inspector-*.tgz | head -1)
+          TMP=$(mktemp -d)
+          ( cd "$TMP" && npm init -y > /dev/null && npm i "$PWD/$TARBALL" )
+          echo "Smoke test passed."
+      - name: Publish to npm
+        if: inputs.dry_run == false
+        working-directory: packages/cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
+      - name: Dry-run notice
+        if: inputs.dry_run == true
+        run: echo "Dry run — npm publish skipped."

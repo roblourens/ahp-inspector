@@ -3,7 +3,7 @@
  * Environment: jsdom (packages/ui/vitest.config.ts)
  */
 
-import type { EventRow } from "@ahp-viewer/core";
+import type { EventRow } from "@ahp-inspector/core";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EMPTY_FILTERS } from "../../state/filters.js";

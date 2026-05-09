@@ -112,16 +112,16 @@ All four registrars now take `LogSessionManager` and read `sessions.current()` p
 | `pnpm exec vitest run packages/server/src/session-routes.test.ts` | 6/6 pass |
 | `pnpm exec vitest run` (full workspace) | 36 files, **452 tests** pass |
 | `pnpm typecheck` | All 7 packages green |
-| `pnpm -F @ahp-viewer/cli build` | tsup ESM + DTS green |
+| `pnpm -F @ahp-inspector/cli build` | tsup ESM + DTS green |
 
 ## Deviations from Plan
 
 ### Auto-fixed Issues
 
-**1. [Rule 3 - Blocking] `@ahp-viewer/host-node` missing from `packages/server` deps**
+**1. [Rule 3 - Blocking] `@ahp-inspector/host-node` missing from `packages/server` deps**
 - **Found during:** Task 1 (running session-manager.test.ts)
-- **Issue:** session-manager.test.ts imports `NodeHostAdapter` from `@ahp-viewer/host-node`; the server package didn't declare it.
-- **Fix:** Added `"@ahp-viewer/host-node": "workspace:*"` to `packages/server/package.json` `devDependencies`. Production code in `session-manager.ts` only imports `host-node` types from `@ahp-viewer/shared`, so the runtime dependency footprint is unchanged.
+- **Issue:** session-manager.test.ts imports `NodeHostAdapter` from `@ahp-inspector/host-node`; the server package didn't declare it.
+- **Fix:** Added `"@ahp-inspector/host-node": "workspace:*"` to `packages/server/package.json` `devDependencies`. Production code in `session-manager.ts` only imports `host-node` types from `@ahp-inspector/shared`, so the runtime dependency footprint is unchanged.
 - **Files modified:** `packages/server/package.json`, `pnpm-lock.yaml`
 - **Commit:** `4cf9d83`
 
@@ -134,8 +134,8 @@ All four registrars now take `LogSessionManager` and read `sessions.current()` p
 
 **3. [Rule 1 - Test correctness] cli-errors Case A asserted the old hard-fail behavior**
 - **Found during:** Task 3 (running full suite after CLI rewrite)
-- **Issue:** `cli-errors.test.ts` Case A expected `ahp-viewer` (no args) to exit 1 with `Error: log file not found:` + `Usage: ahp-viewer <path-to-log.jsonl>`. Plan 04-03 D-01/D-08 explicitly removes that hard-fail; the CLI now launches into a no-active-log state.
-- **Fix:** Rewrote Case A to spawn the CLI with `--no-open --port 0`, wait for the `AHP Log Viewer running at http://127.0.0.1:N` banner, then SIGTERM. Updated Case B's Usage regex from `<path-to-log.jsonl>` to `[path-to-log.jsonl]` to match the new commander argument descriptor.
+- **Issue:** `cli-errors.test.ts` Case A expected `ahp-inspector` (no args) to exit 1 with `Error: log file not found:` + `Usage: ahp-inspector <path-to-log.jsonl>`. Plan 04-03 D-01/D-08 explicitly removes that hard-fail; the CLI now launches into a no-active-log state.
+- **Fix:** Rewrote Case A to spawn the CLI with `--no-open --port 0`, wait for the `AHP Inspector running at http://127.0.0.1:N` banner, then SIGTERM. Updated Case B's Usage regex from `<path-to-log.jsonl>` to `[path-to-log.jsonl]` to match the new commander argument descriptor.
 - **Files modified:** `packages/cli/src/cli-errors.test.ts`
 - **Commit:** `dd761f3`
 

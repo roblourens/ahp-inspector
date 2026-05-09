@@ -1,4 +1,4 @@
-# Roadmap: AHP Log Viewer
+# Roadmap: AHP Inspector
 
 **Created:** 2026-05-06  
 **Current milestone:** v1.1 Reducer-backed State Snapshots
@@ -38,7 +38,7 @@ Full phase details are archived in `.planning/milestones/v1.0-ROADMAP.md`.
 
 Plans:
 
-- [x] 06-01: Add generated `@ahp-viewer/protocol` package and sync script based on VS Code's AHP sync workflow.
+- [x] 06-01: Add generated `@ahp-inspector/protocol` package and sync script based on VS Code's AHP sync workflow.
 - [x] 06-02: Switch protocol imports away from stale sibling `file:` dependency behavior.
 - [x] 06-03: Add reducer parity fixtures and source-commit diagnostics.
 
@@ -137,16 +137,16 @@ Run `/gsd-complete-milestone` for v1.1 milestone verification/archive when reque
 
 ### Phase 11: VS Code extension command palette webview
 
-**Goal:** Let users open AHP Log Viewer from the VS Code Command Palette in a local-only webview backed by direct extension-host messaging.
+**Goal:** Let users open AHP Inspector from the VS Code Command Palette in a local-only webview backed by direct extension-host messaging.
 **Requirements:** EXT-01, EXT-02, EXT-03, EXT-04, EXT-05, EXT-06, EXT-07
 **Depends on:** Phase 10
 **Plans:** 4 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Add the VS Code extension package, command contribution, webview shell, and active-log detection.
-- [ ] 11-02-PLAN.md — Introduce a UI transport abstraction while preserving the browser HTTP/SSE runtime.
-- [ ] 11-03-PLAN.md — Implement the direct webview `postMessage` bridge for sessions, stream frames, detail, search, and state lookup.
-- [ ] 11-04-PLAN.md — Add extension packaging verification, security guards, docs, and end-to-end validation.
+- [x] 11-01-PLAN.md — Add the VS Code extension package, command contribution, webview shell, and active-log detection.
+- [x] 11-02-PLAN.md — Introduce a UI transport abstraction while preserving the browser HTTP/SSE runtime.
+- [x] 11-03-PLAN.md — Implement the direct webview `postMessage` bridge for sessions, stream frames, detail, search, and state lookup.
+- [x] 11-04-PLAN.md — Add extension packaging verification, security guards, docs, and end-to-end validation.
 
 ### Phase 12: Search rather than filter
 
@@ -160,5 +160,18 @@ Plans:
 - [x] 12-02-PLAN.md — Add search match highlighting, count, and navigation without hiding rows.
 - [x] 12-03-PLAN.md — Verify browser/extension search semantics and update user-facing docs.
 
+### Phase 13: npx publishing and auto-open latest log
+
+**Goal:** Ship the standalone viewer as a published npm package so a single `npx` invocation downloads, runs the loopback server, and opens the browser viewer streaming the most-recently-modified AHP JSONL log under the standard VS Code log roots.
+**Requirements:** NPX-01, NPX-02, NPX-03, NPX-04, NPX-05, NPX-06
+**Depends on:** Phase 11
+**Plans:** 3/3 plans complete
+
+Plans:
+- [x] 13-01-PLAN.md — CLI auto-discovery: findLatestAhpLog() in host-node + wire into CLI no-arg path (NPX-02, NPX-03)
+- [x] 13-02-PLAN.md — Packaging: rename CLI package to `ahp-inspector` (unscoped), add bin/files/UI bundling, npm pack smoke test (NPX-01, NPX-04)
+- [x] 13-03-PLAN.md — Release script (`scripts/release.sh --dry-run`) + manual publish workflow + README/USER_GUIDE quickstart (NPX-05, NPX-06)
+
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*
+*Phase 13 added: 2026-05-09 (npx publishing).*

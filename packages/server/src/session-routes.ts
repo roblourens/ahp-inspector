@@ -9,7 +9,7 @@
 // T-04-03-02: error responses NEVER echo the user-typed path; we send only
 // {code, message:code}. T-04-03-07: bad JSON bodies return 400 bad-request.
 
-import { discoverVsCodeLogs } from "@ahp-viewer/host-node";
+import { discoverVsCodeLogs } from "@ahp-inspector/host-node";
 import type { Hono } from "hono";
 import type { ActiveSession, LogSessionManager } from "./session-manager.js";
 

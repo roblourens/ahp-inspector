@@ -33,9 +33,9 @@ Theme startup, persistence, and picker interaction are centralized and robust ac
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/ui test src/theme/theme.test.ts src/components/shell/HeaderBar.test.tsx` — passed
-- `pnpm -F @ahp-viewer/ui test src/state/persistence.test.ts src/persistence/persist-effect.test.ts` — passed
-- `pnpm -F @ahp-viewer/ui build` — passed
+- `pnpm -F @ahp-inspector/ui test src/theme/theme.test.ts src/components/shell/HeaderBar.test.tsx` — passed
+- `pnpm -F @ahp-inspector/ui test src/state/persistence.test.ts src/persistence/persist-effect.test.ts` — passed
+- `pnpm -F @ahp-inspector/ui build` — passed
 
 ## Deviations from Plan
 

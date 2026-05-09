@@ -146,7 +146,10 @@ interface CliProc {
 }
 
 function spawnCliNoFile(env: NodeJS.ProcessEnv): CliProc {
-  const child = spawn(TSX_BIN, [CLI_ENTRY, "--port", "0", "--no-open"], {
+  // --no-auto-discover keeps Phase 13's auto-open-latest-log behavior off so
+  // this test starts in the no-active-log state regardless of what AHP logs
+  // exist under the synthetic HOME used by buildFixture().
+  const child = spawn(TSX_BIN, [CLI_ENTRY, "--port", "0", "--no-open", "--no-auto-discover"], {
     cwd: process.cwd(),
     env,
   }) as ChildProcessWithoutNullStreams;
@@ -171,7 +174,7 @@ function waitForPort(r: CliProc, timeoutMs = 15_000): Promise<number> {
   return new Promise((res, rej) => {
     const start = Date.now();
     const tick = setInterval(() => {
-      const m = r.stdout.match(/AHP Log Viewer running at http:\/\/127\.0\.0\.1:(\d+)/);
+      const m = r.stdout.match(/AHP Inspector running at http:\/\/127\.0\.0\.1:(\d+)/);
       if (m) {
         clearInterval(tick);
         const portStr = m[1];

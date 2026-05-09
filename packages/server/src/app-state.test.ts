@@ -7,8 +7,8 @@ import {
   SessionLifecycle,
   SessionStatus,
   TerminalClaimKind,
-} from "@ahp-viewer/protocol";
-import type { DiscoveryResult, Disposable, HostAdapter, LogHandle } from "@ahp-viewer/shared";
+} from "@ahp-inspector/protocol";
+import type { DiscoveryResult, Disposable, HostAdapter, LogHandle } from "@ahp-inspector/shared";
 import { afterEach, describe, expect, it } from "vitest";
 import { type AppState, createAppState, type SsePayload } from "./app-state.js";
 

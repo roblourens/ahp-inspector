@@ -22,7 +22,7 @@ Pinned comparison belongs to Phase 10 (`COMPARE-01`..`COMPARE-03`) and must rema
 
 ## Existing Architecture
 
-- UI source must not import Node, Hono, `@ahp-viewer/server`, host adapters, or legacy parser sub-entries; `test/boundary.test.ts` enforces this.
+- UI source must not import Node, Hono, `@ahp-inspector/server`, host adapters, or legacy parser sub-entries; `test/boundary.test.ts` enforces this.
 - Zustand `useAppStore` is the central UI state surface.
 - The detail UX already supports a desktop rail and responsive drawer; Phase 9 should extend it rather than create a separate page or global modal.
 - Theme support is dark, light, and hacker through `packages/ui/src/styles/tokens.css`; component code should not introduce raw color literals.

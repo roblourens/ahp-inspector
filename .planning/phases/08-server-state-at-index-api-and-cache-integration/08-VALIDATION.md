@@ -39,7 +39,7 @@ Before executing any Phase 8 task, the executor must confirm:
 
 | Requirement | Required State |
 |---|---|
-| Phase 7 dependency | `@ahp-viewer/core` exports `replayToIndex` and Phase 7 verification passed |
+| Phase 7 dependency | `@ahp-inspector/core` exports `replayToIndex` and Phase 7 verification passed |
 | Lazy state delivery | No state is added to `SsePayload`, `EventRow`, or timeline row projection |
 | Test fixture policy | Use synthetic JSONL/in-test helpers, not real logs |
 | Route boundary | Routes access replay through `AppState`, not a global cache |

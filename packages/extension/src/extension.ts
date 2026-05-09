@@ -1,7 +1,7 @@
-// VS Code AHP Log Viewer extension entry (Plan 11-01 Task 3).
+// VS Code AHP Inspector extension entry (Plan 11-01 Task 3).
 //
 // Phase 11 boundary:
-//   - Registers the `ahpViewer.open` command (D-01, D-03).
+//   - Registers the `ahpInspector.open` command (D-01, D-03).
 //   - Opens a webview panel directly via `vscode.window.createWebviewPanel`
 //     (no CustomEditorProvider — D-02).
 //   - Loads bundled UI assets through `webview.asWebviewUri` under a
@@ -24,9 +24,9 @@ import {
 import { ViewerSessionBridge } from "./viewerSession.js";
 import { generateNonce, renderWebviewHtml } from "./webviewHtml.js";
 
-const COMMAND_ID = "ahpViewer.open";
-const VIEW_TYPE = "ahpViewer.panel";
-const PANEL_TITLE = "AHP Log Viewer";
+const COMMAND_ID = "ahpInspector.open";
+const VIEW_TYPE = "ahpInspector.panel";
+const PANEL_TITLE = "AHP Inspector";
 
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(

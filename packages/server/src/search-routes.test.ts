@@ -4,7 +4,7 @@
 // Covers: substring match, 256-char cap, 5000 result cap, empty query = match-all,
 // limit param capped at MAX_RESULTS.
 
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import type { AppState, LogMeta } from "./app-state.js";

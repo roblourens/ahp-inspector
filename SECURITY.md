@@ -1,6 +1,6 @@
 # Security
 
-AHP Log Viewer handles local protocol traffic logs that may include prompts,
+AHP Inspector handles local protocol traffic logs that may include prompts,
 tokens, file paths, model output, and other sensitive data.
 
 ## Supported versions
@@ -37,7 +37,7 @@ webview panel and the React UI uses a typed `postMessage` transport.
   nonce are blocked, and there is no allowlist for outbound network
   origins.
 - Webview ↔ extension messages are typed `WebviewRequest` /
-  `ExtensionNotification` envelopes from `@ahp-viewer/shared`. Unknown
+  `ExtensionNotification` envelopes from `@ahp-inspector/shared`. Unknown
   message kinds are ignored; invalid payloads return coded error
   responses.
 - Absolute file paths only appear inside the extension host (for the
@@ -47,7 +47,7 @@ webview panel and the React UI uses a typed `postMessage` transport.
 
 The boundary is enforced by automated tests:
 `test/boundary.test.ts` forbids `vscode` imports and
-`@ahp-viewer/extension` imports outside `packages/extension`, and
+`@ahp-inspector/extension` imports outside `packages/extension`, and
 `test/security.test.ts` asserts that the extension runtime never imports
 `startLogServer` and that `renderWebviewHtml` emits the strict CSP with
 no external URLs.

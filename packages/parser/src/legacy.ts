@@ -4,12 +4,12 @@
 // indented JSON block) and emits canonical AhpEvents through normalize().
 //
 // This module is intentionally isolated (Pitfall 6): it exports EXACTLY two
-// functions and is NOT re-exported from `@ahp-viewer/parser`'s main barrel.
+// functions and is NOT re-exported from `@ahp-inspector/parser`'s main barrel.
 // Only the parser's own tests may import it. A regex-grep test in
 // `legacy.test.ts` enforces both invariants.
 
-import type { AhpEvent, Direction, NormalizeMeta } from "@ahp-viewer/shared";
-import { makeParseErrorEvent } from "@ahp-viewer/shared";
+import type { AhpEvent, Direction, NormalizeMeta } from "@ahp-inspector/shared";
+import { makeParseErrorEvent } from "@ahp-inspector/shared";
 import { normalize } from "./normalizer.js";
 
 const HEADER_RE = /^\[(?<ts>[^\]]+)\]\s+(?<marker>>>|<<|!!|\*\*)\s+(?<label>\S+)/;

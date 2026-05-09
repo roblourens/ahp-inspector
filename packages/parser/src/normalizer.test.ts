@@ -1,4 +1,4 @@
-import type { Direction, NormalizeMeta } from "@ahp-viewer/shared";
+import type { Direction, NormalizeMeta } from "@ahp-inspector/shared";
 import { describe, expect, it } from "vitest";
 import { normalize } from "./normalizer.js";
 

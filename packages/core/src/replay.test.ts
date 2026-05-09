@@ -10,8 +10,8 @@ import {
   type StateAction,
   TerminalClaimKind,
   type TerminalState,
-} from "@ahp-viewer/protocol";
-import type { AhpEvent } from "@ahp-viewer/shared";
+} from "@ahp-inspector/protocol";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import { describe, expect, it } from "vitest";
 import { replayToIndex } from "./replay.js";
 

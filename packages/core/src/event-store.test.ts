@@ -1,4 +1,4 @@
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import { describe, expect, it, vi } from "vitest";
 import { EventStore } from "./event-store.js";
 

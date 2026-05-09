@@ -1,6 +1,6 @@
 // biome-ignore-all lint/a11y/useSemanticElements: virtualized grid uses divs so rows can be absolutely positioned.
 
-import { type EventRow as EventRowData, formatSessionShort } from "@ahp-viewer/core";
+import { type EventRow as EventRowData, formatSessionShort } from "@ahp-inspector/core";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { CSSProperties, JSX } from "react";
 import { useCallback, useEffect, useMemo, useRef } from "react";

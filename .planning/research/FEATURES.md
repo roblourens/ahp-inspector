@@ -4,7 +4,7 @@
 
 ## Summary
 
-Reducer-backed state snapshots are a strong fit for AHP Log Viewer. AHP is explicitly built around immutable state plus pure reducers, and the log viewer already has the ordered JSON-RPC traffic needed to replay state changes.
+Reducer-backed state snapshots are a strong fit for AHP Inspector. AHP is explicitly built around immutable state plus pure reducers, and the log viewer already has the ordered JSON-RPC traffic needed to replay state changes.
 
 The useful product framing is: "At this event, what would an AHP client believe the agent host state was?" This should be presented with confidence metadata because logs can start after a subscription, miss snapshots, or contain only client intent.
 

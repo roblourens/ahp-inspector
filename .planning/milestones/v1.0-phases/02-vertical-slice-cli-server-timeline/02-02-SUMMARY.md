@@ -7,7 +7,7 @@ tags: [react, zustand, css-tokens, design-system, dark-theme, lucide-react, vite
 # Dependency graph
 requires:
   - phase: 02-00
-    provides: "vendored Inter / JetBrains Mono fonts under packages/ui/public/fonts/, Phase-2 UI scaffold (vite + react), @ahp-viewer/core EventRow + LatencyBand + Status types"
+    provides: "vendored Inter / JetBrains Mono fonts under packages/ui/public/fonts/, Phase-2 UI scaffold (vite + react), @ahp-inspector/core EventRow + LatencyBand + Status types"
   - phase: 02-01
     provides: "(awareness only) AppState/SSE seam — not consumed by this plan; Plan 02-04 wires the SSE client into the store"
 provides:
@@ -132,7 +132,7 @@ completed: 2026-05-07
 ## Decisions Made
 
 - **`FileBraces` instead of `FileJson`** (see deviations). lucide-react@1.14.0 does not export FileJson; FileBraces is the closest semantic match (JSON-shaped braces glyph) and avoids bumping the dependency lock mid-plan.
-- **Defer `<AppShell />` wiring from Task 1 to Task 2.** The plan's Task 1 step 6 replaces App.tsx with `<AppShell />`, but AppShell.tsx isn't created until Task 2 — applying the plan literally would leave the repo in a non-buildable state at the Task 1 commit boundary. Task 1 keeps the original `app-root` div; Task 2 rewires to AppShell. Both tasks' `pnpm -F @ahp-viewer/ui build` verify commands now pass at their respective commits.
+- **Defer `<AppShell />` wiring from Task 1 to Task 2.** The plan's Task 1 step 6 replaces App.tsx with `<AppShell />`, but AppShell.tsx isn't created until Task 2 — applying the plan literally would leave the repo in a non-buildable state at the Task 1 commit boundary. Task 1 keeps the original `app-root` div; Task 2 rewires to AppShell. Both tasks' `pnpm -F @ahp-inspector/ui build` verify commands now pass at their respective commits.
 - **`.detail-rail` rule lives in `global.css`** (Task 1 file), per the plan's recommended path, so the responsive contract sits with the rest of the dark-theme stylesheet.
 - **`useAppStore.setRows` preserves null `meta`.** A `setRows` call before `setMeta` does not synthesize a `MetaSummary`. `meta` is initialized explicitly via `setMeta` once Plan 02-04 wires the SSE handshake.
 
@@ -145,15 +145,15 @@ completed: 2026-05-07
 - **Issue:** Plan instructed `import { FileJson } from "lucide-react";` but lucide-react@1.14.0 (locked by Plan 02-00) does not export `FileJson`. Available file icons include `FileBraces`, `FileCode`, `FileText`.
 - **Fix:** Substituted `FileBraces` (JSON-style braces glyph) — semantically equivalent for a JSONL log source and keeps `pnpm-lock.yaml` untouched.
 - **Files modified:** `packages/ui/src/components/shell/SourceStrip.tsx`
-- **Verification:** `pnpm -F @ahp-viewer/ui build` and `pnpm -F @ahp-viewer/ui typecheck` pass; AppShell renders the icon in jsdom App.test.tsx without errors.
+- **Verification:** `pnpm -F @ahp-inspector/ui build` and `pnpm -F @ahp-inspector/ui typecheck` pass; AppShell renders the icon in jsdom App.test.tsx without errors.
 - **Committed in:** `7fff06b` (Task 2)
 
 **2. [Rule 3 - Blocking] Plan task ordering broke build at Task 1 commit boundary**
 - **Found during:** Task 1 (App.tsx replacement step)
-- **Issue:** Plan's Task 1 step 6 imports `<AppShell />` from a file that does not yet exist (created in Task 2). Applying it literally fails `pnpm -F @ahp-viewer/ui build` at the Task 1 commit, violating the plan's own Task 1 verify command.
+- **Issue:** Plan's Task 1 step 6 imports `<AppShell />` from a file that does not yet exist (created in Task 2). Applying it literally fails `pnpm -F @ahp-inspector/ui build` at the Task 1 commit, violating the plan's own Task 1 verify command.
 - **Fix:** Kept App.tsx as `<div data-testid="app-root" />` through Task 1; rewired to `<AppShell />` in Task 2 once AppShell.tsx exists. Documented inline as a comment.
 - **Files modified:** `packages/ui/src/App.tsx`, `packages/ui/src/App.test.tsx`
-- **Verification:** Both tasks' verify commands (`pnpm vitest run …` + `pnpm -F @ahp-viewer/ui build`) green at their commit boundary.
+- **Verification:** Both tasks' verify commands (`pnpm vitest run …` + `pnpm -F @ahp-inspector/ui build`) green at their commit boundary.
 - **Committed in:** `35d3fd9` (Task 1) + `7fff06b` (Task 2)
 
 ---
@@ -170,9 +170,9 @@ completed: 2026-05-07
 | Command | Result |
 |---|---|
 | `pnpm vitest run packages/ui/src/styles packages/ui/src/state` (Task 1) | ✅ 6/6 |
-| `pnpm -F @ahp-viewer/ui build` (Task 1) | ✅ |
+| `pnpm -F @ahp-inspector/ui build` (Task 1) | ✅ |
 | `cd packages/ui && pnpm vitest run` (Task 2) | ✅ 12/12 |
-| `pnpm -F @ahp-viewer/ui build` (Task 2) | ✅ |
+| `pnpm -F @ahp-inspector/ui build` (Task 2) | ✅ |
 | `pnpm typecheck` (full workspace) | ✅ |
 | `grep -nE "#[0-9a-fA-F]{3,8}" packages/ui/src/components/ -r` | ✅ 0 hits |
 | `pnpm vitest run test/boundary.test.ts test/security.test.ts` | ✅ 55/55 |

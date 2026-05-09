@@ -87,7 +87,7 @@ export function HeaderBar({ version }: HeaderBarProps): JSX.Element {
       }}
       data-testid="header-bar"
     >
-      <span style={{ fontWeight: 600 }}>AHP Log Viewer</span>
+      <span style={{ fontWeight: 600 }}>AHP Inspector</span>
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
         <LivePauseButton />
         <div ref={themeMenuRef} style={{ position: "relative" }}>

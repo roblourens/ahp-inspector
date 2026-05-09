@@ -1,4 +1,4 @@
-import type { Status } from "@ahp-viewer/core";
+import type { Status } from "@ahp-inspector/core";
 import type { JSX } from "react";
 
 interface Spec {
