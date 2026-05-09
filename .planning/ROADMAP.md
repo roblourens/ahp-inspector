@@ -165,12 +165,12 @@ Plans:
 **Goal:** Ship the standalone viewer as a published npm package so a single `npx` invocation downloads, runs the loopback server, and opens the browser viewer streaming the most-recently-modified AHP JSONL log under the standard VS Code log roots.
 **Requirements:** NPX-01, NPX-02, NPX-03, NPX-04, NPX-05, NPX-06
 **Depends on:** Phase 11
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 13-01-PLAN.md — CLI auto-discovery: findLatestAhpLog() in host-node + wire into CLI no-arg path (NPX-02, NPX-03)
 - [x] 13-02-PLAN.md — Packaging: rename CLI package to `ahp-inspector` (unscoped), add bin/files/UI bundling, npm pack smoke test (NPX-01, NPX-04)
-- [ ] 13-03-PLAN.md — Release script (`scripts/release.sh --dry-run`) + manual publish workflow + README/USER_GUIDE quickstart (NPX-05, NPX-06)
+- [x] 13-03-PLAN.md — Release script (`scripts/release.sh --dry-run`) + manual publish workflow + README/USER_GUIDE quickstart (NPX-05, NPX-06)
 
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*
