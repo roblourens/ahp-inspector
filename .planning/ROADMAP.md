@@ -135,5 +135,15 @@ Plans:
 
 Run `/gsd-complete-milestone` for v1.1 milestone verification/archive when requested.
 
+### Phase 11: VS Code extension command palette custom editor
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 10
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 11 to break down)
+
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*
