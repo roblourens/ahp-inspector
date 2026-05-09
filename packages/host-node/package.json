@@ -13,6 +13,7 @@
     "build": "tsup src/index.ts --format esm --dts"
   },
   "dependencies": {
+    "@ahp-inspector/parser": "workspace:*",
     "@ahp-inspector/shared": "workspace:*",
     "chokidar": "^5.0.0"
   }

@@ -17,12 +17,12 @@ const MAX_DEPTH_BELOW_LAUNCH = 3;
 
 type Origin = "vscode" | "vscode-insiders" | "vscode-oss-dev";
 
-interface Root {
+export interface Root {
   readonly origin: Origin;
   readonly dir: string;
 }
 
-function defaultRoots(): readonly Root[] {
+export function defaultRoots(): readonly Root[] {
   const home = homedir();
   const platform = process.platform;
   // OSS dev build (Code OSS run from sources) writes to ~/.vscode-oss-agents-dev
@@ -57,8 +57,8 @@ function defaultRoots(): readonly Root[] {
   ];
 }
 
-const FILENAME_RE_AHP_JSONL = /^(agenthost|agent-host|ahp).*\.jsonl$/i;
-const FILENAME_RE_AHP_NAMED_JSONL = /(agent-host|agenthost|ahp|copilot-chat).*\.jsonl$/i;
+export const FILENAME_RE_AHP_JSONL = /^(agenthost|agent-host|ahp).*\.jsonl$/i;
+export const FILENAME_RE_AHP_NAMED_JSONL = /(agent-host|agenthost|ahp|copilot-chat).*\.jsonl$/i;
 
 function score(name: string, mtimeMs: number, sizeBytes: number, parentPath: string): number {
   let s = 0;
