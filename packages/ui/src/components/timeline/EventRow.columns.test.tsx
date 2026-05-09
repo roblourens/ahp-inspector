@@ -32,6 +32,7 @@ const baseRow: EventRowData = {
   lineIndex: 1,
   errorCode: null,
   serverSeq: null,
+  previousServerSeq: null,
   gapBefore: false,
   isAuthFailure: false,
 };

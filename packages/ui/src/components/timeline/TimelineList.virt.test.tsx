@@ -34,6 +34,7 @@ function makeRow(i: number): EventRowData {
     lineIndex: i + 1,
     errorCode: null,
     serverSeq: null,
+    previousServerSeq: null,
     gapBefore: false,
     isAuthFailure: false,
   };

@@ -80,6 +80,7 @@ function makeRow(overrides: Partial<EventRow> = {}): EventRow {
     lineIndex: null,
     errorCode: null,
     serverSeq: null,
+    previousServerSeq: null,
     gapBefore: false,
     isAuthFailure: false,
     ...overrides,
@@ -261,6 +262,8 @@ describe("DetailPanel — scrollable JSON tabpanel", () => {
     expect(tabPanel.style.overflow).toBe("auto");
     expect(tabPanel.style.flex).toContain("1");
     expect(tabPanel.style.minHeight).toBe("0px");
+    expect(screen.getByTestId("detail-panel").style.height).toBe("100%");
+    expect(screen.getByTestId("detail-panel").style.minHeight).toBe("0px");
   });
 
   it("keeps the Raw tab panel scrollable after switching tabs", async () => {

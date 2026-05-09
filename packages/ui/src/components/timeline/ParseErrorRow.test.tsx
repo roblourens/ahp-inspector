@@ -30,6 +30,7 @@ const baseError: EventRowData = {
   lineIndex: 5,
   errorCode: null,
   serverSeq: null,
+  previousServerSeq: null,
   gapBefore: false,
   isAuthFailure: false,
 };

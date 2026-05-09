@@ -116,12 +116,11 @@ function buildGroupedItems(
     for (const rowIdx of idxs) {
       const row = rows[rowIdx];
       if (!row) continue;
-      if (row.gapBefore) {
-        const prevSeq = row.serverSeq !== null ? row.serverSeq - 1 : 0;
+      if (row.gapBefore && row.previousServerSeq !== null && row.serverSeq !== null) {
         items.push({
           kind: "gap-banner",
-          prev: prevSeq,
-          curr: row.serverSeq ?? 0,
+          prev: row.previousServerSeq,
+          curr: row.serverSeq,
           virtualIdx: items.length,
         });
       }
@@ -185,12 +184,11 @@ function buildGroupedItems(
         durationMs: end - start,
       });
     }
-    if (row.gapBefore) {
-      const prevSeq = row.serverSeq !== null ? row.serverSeq - 1 : 0;
+    if (row.gapBefore && row.previousServerSeq !== null && row.serverSeq !== null) {
       items.push({
         kind: "gap-banner",
-        prev: prevSeq,
-        curr: row.serverSeq ?? 0,
+        prev: row.previousServerSeq,
+        curr: row.serverSeq,
         virtualIdx: items.length,
       });
     }

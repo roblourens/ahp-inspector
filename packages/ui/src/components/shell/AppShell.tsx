@@ -220,7 +220,9 @@ export function AppShell(): JSX.Element {
             data-testid="detail-panel-wrapper"
             className="detail-rail"
             style={{
+              display: "flex",
               flex: `0 0 ${detailWidth}px`,
+              minHeight: 0,
               minWidth: 0,
               overflow: "hidden",
             }}

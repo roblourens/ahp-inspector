@@ -39,6 +39,7 @@ export interface EventRow {
   // Phase 3 additions — additive, non-breaking (row-projection.ts:9-13)
   readonly errorCode: number | null;
   readonly serverSeq: number | null;
+  readonly previousServerSeq: number | null;
   readonly gapBefore: boolean;
   readonly isAuthFailure: boolean;
 }
@@ -47,6 +48,7 @@ export interface EventRow {
 export interface EventRowExtras {
   readonly errorCode: number | null;
   readonly serverSeq: number | null;
+  readonly previousServerSeq: number | null;
   readonly gapBefore: boolean;
   readonly isAuthFailure: boolean;
   readonly pairIdx?: number | null;
@@ -55,6 +57,7 @@ export interface EventRowExtras {
 const DEFAULT_EXTRAS: EventRowExtras = {
   errorCode: null,
   serverSeq: null,
+  previousServerSeq: null,
   gapBefore: false,
   isAuthFailure: false,
   pairIdx: null,

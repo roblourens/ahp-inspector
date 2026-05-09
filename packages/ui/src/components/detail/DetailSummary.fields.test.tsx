@@ -34,6 +34,7 @@ function makeRow(overrides: Partial<EventRow> = {}): EventRow {
     lineIndex: null,
     errorCode: null,
     serverSeq: null,
+    previousServerSeq: null,
     gapBefore: false,
     isAuthFailure: false,
     ...overrides,

@@ -153,6 +153,7 @@ Last activity: 2026-05-09 -- Phase 12 executed and verified
 
 | Date | Slug | Summary |
 |------|------|---------|
+| 2026-05-09 | scrolling-the-response-is-not-working-co | Fixed response detail scrolling and corrected serverSeq gap banners to use real global sequence gaps instead of fabricating missing-0 rows. |
 | 2026-05-09 | in-the-response-viewer-on-the-right-side | Restored vertical scrolling in the response viewer Pretty/Raw tabs by allowing the shared JSON tabpanel flex child to shrink. |
 | 2026-05-08 | discover-oss-dev-jsonl | Discover Code OSS dev AHP JSONL logs under `~/.vscode-oss-agents-dev/logs`; drop legacy `agenthost.*.log` matching. |
 | 2026-05-08 | tail-follow-and-picker-polish | Tail-follow timeline auto-scroll, clickable filename opens picker (removed Switch Log button), picker rows show left-aligned time, no `.jsonl` extension, no JSONL badge. |
