@@ -62,12 +62,12 @@ Requirements for reducer-backed state reconstruction.
 
 ### npx Publishing and Auto-open Latest Log
 
-- [ ] **NPX-01**: User can install or invoke the viewer with `npx ahp-inspector` (unscoped, top-level) without cloning the repository.
-- [ ] **NPX-02**: Running the published binary with no arguments discovers the most-recently-modified AHP JSONL log under the standard VS Code log roots, opens the viewer browser tab, and streams that log immediately.
-- [ ] **NPX-03**: Running the published binary with an explicit path argument behaves the same as today's CLI (open that file, ignore auto-discovery).
-- [ ] **NPX-04**: The published package bundles the prebuilt UI assets (`packages/ui/dist`) so the binary works without a post-install build step.
-- [ ] **NPX-05**: Publishing is automated: a release script (or CI workflow) bumps the version, builds, runs typecheck/test, and publishes to npm under a public scope with a documented dry-run mode.
-- [ ] **NPX-06**: A short README/USER_GUIDE section documents the `npx` invocation, the auto-discovery rule, and the local-only privacy posture (loopback bind, no telemetry).
+- [x] **NPX-01**: User can install or invoke the viewer with `npx ahp-inspector` (unscoped, top-level) without cloning the repository.
+- [x] **NPX-02**: Running the published binary with no arguments discovers the most-recently-modified AHP JSONL log under the standard VS Code log roots, opens the viewer browser tab, and streams that log immediately.
+- [x] **NPX-03**: Running the published binary with an explicit path argument behaves the same as today's CLI (open that file, ignore auto-discovery).
+- [x] **NPX-04**: The published package bundles the prebuilt UI assets (`packages/ui/dist`) so the binary works without a post-install build step.
+- [x] **NPX-05**: Publishing is automated: a release script (or CI workflow) bumps the version, builds, runs typecheck/test, and publishes to npm under a public scope with a documented dry-run mode.
+- [x] **NPX-06**: A short README/USER_GUIDE section documents the `npx` invocation, the auto-discovery rule, and the local-only privacy posture (loopback bind, no telemetry).
 
 ## Future Requirements
 
@@ -123,12 +123,12 @@ Requirements for reducer-backed state reconstruction.
 | EXT-05 | Phase 11 | Done |
 | EXT-06 | Phase 11 | Done |
 | EXT-07 | Phase 11 | Done |
-| NPX-01 | Phase 13 | Planned |
-| NPX-02 | Phase 13 | Planned |
-| NPX-03 | Phase 13 | Planned |
-| NPX-04 | Phase 13 | Planned |
-| NPX-05 | Phase 13 | Planned |
-| NPX-06 | Phase 13 | Planned |
+| NPX-01 | Phase 13 | Implemented |
+| NPX-02 | Phase 13 | Implemented |
+| NPX-03 | Phase 13 | Implemented |
+| NPX-04 | Phase 13 | Implemented |
+| NPX-05 | Phase 13 | Implemented |
+| NPX-06 | Phase 13 | Implemented |
 
 **Coverage:**
 
