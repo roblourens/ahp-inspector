@@ -135,15 +135,18 @@ Plans:
 
 Run `/gsd-complete-milestone` for v1.1 milestone verification/archive when requested.
 
-### Phase 11: VS Code extension command palette custom editor
+### Phase 11: VS Code extension command palette webview
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Let users open AHP Log Viewer from the VS Code Command Palette in a local-only webview backed by direct extension-host messaging.
+**Requirements:** EXT-01, EXT-02, EXT-03, EXT-04, EXT-05, EXT-06, EXT-07
 **Depends on:** Phase 10
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 11 to break down)
+- [ ] 11-01-PLAN.md — Add the VS Code extension package, command contribution, webview shell, and active-log detection.
+- [ ] 11-02-PLAN.md — Introduce a UI transport abstraction while preserving the browser HTTP/SSE runtime.
+- [ ] 11-03-PLAN.md — Implement the direct webview `postMessage` bridge for sessions, stream frames, detail, search, and state lookup.
+- [ ] 11-04-PLAN.md — Add extension packaging verification, security guards, docs, and end-to-end validation.
 
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*
