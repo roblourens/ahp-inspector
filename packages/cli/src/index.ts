@@ -6,11 +6,19 @@
 // browser, and cleans up on SIGINT/SIGTERM. Direction inference is
 // structural (`classifyDirection`) — Phase-1's hard-coded `dir='c2s'` is
 // gone.
+//
+// Phase 13: when invoked with no path argument, auto-discovers the most
+// recent AHP-shape JSONL log under the standard VS Code log roots and
+// opens it. If none qualify, falls back to the discovery picker UI.
 
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
-import { NodeHostAdapter, resolveCandidateId } from "@ahp-inspector/host-node";
+import {
+  findLatestAhpLog,
+  NodeHostAdapter,
+  resolveCandidateId,
+} from "@ahp-inspector/host-node";
 import {
   createLogSessionManager,
   type LogServerHandle,
@@ -129,6 +137,25 @@ const program = new Command()
         await sessions.dispose().catch(() => undefined);
         fail(`Error: cannot open ${absPath}: ${e.message ?? "unknown"}\nCheck file permissions.`);
       }
+    } else {
+      // No path argument — try to auto-open the newest AHP-shape log under the
+      // standard VS Code log roots (Phase 13, CONTEXT D-3). If none qualify,
+      // fall back to the discovery picker UI without erroring.
+      const auto = await findLatestAhpLog();
+      if (auto) {
+        absPath = auto;
+        try {
+          await sessions.open({ path: absPath });
+        } catch (err) {
+          const e = err as { code?: string; message?: string };
+          await sessions.dispose().catch(() => undefined);
+          fail(`Error: cannot open ${absPath}: ${e.message ?? "unknown"}\nCheck file permissions.`);
+        }
+      } else {
+        process.stderr.write(
+          "No AHP logs found under VS Code log roots — opened picker UI.\n",
+        );
+      }
     }
 
     let serverHandle: LogServerHandle;
@@ -161,9 +188,7 @@ const program = new Command()
         `AHP Inspector running at ${url}\nOpening browser…\nWatching ${absPath}\n`,
       );
     } else {
-      process.stdout.write(
-        `AHP Inspector running at ${url}\nOpening browser…\n(No log file selected — use the picker to discover or open a log.)\n`,
-      );
+      process.stdout.write(`AHP Inspector running at ${url}\nOpening browser…\n`);
     }
 
     if (opts.open !== false) {
