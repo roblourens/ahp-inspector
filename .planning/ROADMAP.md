@@ -148,5 +148,17 @@ Plans:
 - [ ] 11-03-PLAN.md — Implement the direct webview `postMessage` bridge for sessions, stream frames, detail, search, and state lookup.
 - [ ] 11-04-PLAN.md — Add extension packaging verification, security guards, docs, and end-to-end validation.
 
+### Phase 12: Search rather than filter
+
+**Goal:** Make free-text search preserve timeline context by highlighting and navigating matches instead of filtering nonmatching rows out of the visible timeline, while faceted filters remain the row-narrowing mechanism.
+**Requirements:** SEARCH-01, SEARCH-02, SEARCH-03, SEARCH-04, SEARCH-05, EXT-04, VERIFY-02, VERIFY-03
+**Depends on:** Phase 11
+**Plans:** 3 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Separate search result state from faceted row filtering.
+- [ ] 12-02-PLAN.md — Add search match highlighting, count, and navigation without hiding rows.
+- [ ] 12-03-PLAN.md — Verify browser/extension search semantics and update user-facing docs.
+
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*
