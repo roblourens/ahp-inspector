@@ -68,9 +68,16 @@ export function loadPerLogPrefs(logKey: string): PerLogPrefs | null {
   const all = readAll();
   const e = all[logKey];
   if (!e || !isValid(e)) return null;
-  // Strip `_writtenAt` before returning the public shape.
-  const { _writtenAt: _w, ...prefs } = e;
-  return prefs;
+  return {
+    v: 1,
+    searchQuery: e.searchQuery,
+    filters: e.filters,
+    grouping: e.grouping,
+    groupCollapsed: e.groupCollapsed,
+    selectedIdx: e.selectedIdx,
+    detailWidth: e.detailWidth,
+    livePaused: e.livePaused,
+  };
 }
 
 export function persistPerLogPrefs(logKey: string, prefs: PerLogPrefs): void {

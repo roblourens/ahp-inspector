@@ -4,7 +4,11 @@
 import type { JSX, KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
 import { useCallback, useEffect, useRef } from "react";
 import { isFiltersEmpty } from "../../state/filters.js";
-import { useFilteredRows, useGroupedItems } from "../../state/selectors.js";
+import {
+  useFilteredRows,
+  useGroupedItems,
+  useVisibleSearchMatches,
+} from "../../state/selectors.js";
 import { useAppStore } from "../../state/store.js";
 import { connectLogStream } from "../../transport/sse-client.js";
 import { RotationBanner } from "../banners/RotationBanner.js";
@@ -52,8 +56,9 @@ export function TimelineRegion({
   const select = useAppStore((s) => s.selectIdx);
   const clear = useAppStore((s) => s.clearSelection);
   const searchQuery = useAppStore((s) => s.searchQuery);
+  const searchMatches = useAppStore((s) => s.searchMatches);
   const setSearchQuery = useAppStore((s) => s.setSearchQuery);
-  const setSearchMatches = useAppStore((s) => s.setSearchMatches);
+  const clearSearchResults = useAppStore((s) => s.clearSearchResults);
   const filters = useAppStore((s) => s.filters);
   const clearFilters = useAppStore((s) => s.clearFilters);
   const grouping = useAppStore((s) => s.grouping);
@@ -101,7 +106,26 @@ export function TimelineRegion({
 
   // Selectors — compute filtered/grouped items.
   const filteredRowIdxs = useFilteredRows();
+  const visibleSearchMatches = useVisibleSearchMatches();
   const groupedItems = useGroupedItems(filteredRowIdxs);
+
+  const selectSearchMatch = useCallback(
+    (direction: "previous" | "next") => {
+      if (visibleSearchMatches.length === 0) return;
+      const currentSelectedIdx = useAppStore.getState().selectedIdx;
+      const current =
+        currentSelectedIdx !== null ? visibleSearchMatches.indexOf(currentSelectedIdx) : -1;
+      const nextPos =
+        direction === "next"
+          ? (current + 1) % visibleSearchMatches.length
+          : current <= 0
+            ? visibleSearchMatches.length - 1
+            : current - 1;
+      const next = visibleSearchMatches[nextPos];
+      if (next !== undefined) select(next);
+    },
+    [select, visibleSearchMatches],
+  );
 
   const chordRef = useRef<ChordState | null>(null);
 
@@ -134,12 +158,18 @@ export function TimelineRegion({
       if (e.key === "Escape") {
         if (searchQuery) {
           setSearchQuery("");
-          setSearchMatches(null);
+          clearSearchResults();
         } else if (!isFiltersEmpty(filters)) {
           clearFilters();
         } else {
           clear();
         }
+        return;
+      }
+
+      if (e.key === "F3" && searchQuery && visibleSearchMatches.length > 0) {
+        e.preventDefault();
+        selectSearchMatch(e.shiftKey ? "previous" : "next");
         return;
       }
 
@@ -174,20 +204,30 @@ export function TimelineRegion({
       }
     }
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    function onSearchNav(e: Event): void {
+      const direction = (e as CustomEvent<"previous" | "next">).detail;
+      if (direction === "previous" || direction === "next") selectSearchMatch(direction);
+    }
+    window.addEventListener("ahp-search-nav", onSearchNav);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("ahp-search-nav", onSearchNav);
+    };
   }, [
     filteredRowIdxs,
+    visibleSearchMatches,
     selectedIdx,
     select,
     clear,
     searchQuery,
     setSearchQuery,
-    setSearchMatches,
+    clearSearchResults,
     filters,
     clearFilters,
     grouping,
     setGrouping,
     searchInputRef,
+    selectSearchMatch,
   ]);
 
   if (connection === "connecting" && rows.length === 0) {
@@ -228,6 +268,7 @@ export function TimelineRegion({
         selectedIdx={selectedIdx}
         onSelect={(idx) => select(idx)}
         searchQuery={searchQuery}
+        searchMatches={searchMatches}
         groupCollapsed={groupCollapsed}
         onToggleGroup={toggleGroupCollapsed}
         {...(onTopGroupChange !== undefined ? { onTopGroupChange } : {})}

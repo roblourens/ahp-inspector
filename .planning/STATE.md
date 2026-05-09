@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Reducer-backed State Snapshots
 status: verifying
-stopped_at: Phase 11 context gathered
-last_updated: "2026-05-09T00:42:29.712Z"
-last_activity: 2026-05-08 -- Phase 10 verified complete
+stopped_at: Phase 12 executed and verified
+last_updated: "2026-05-09T05:39:40.000Z"
+last_activity: 2026-05-09 -- Phase 12 search rather than filter executed and verified
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 15
-  completed_plans: 13
-  percent: 87
+  total_plans: 18
+  completed_plans: 16
+  percent: 89
 ---
 
 # State: AHP Log Viewer
@@ -19,14 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 10 — pinned comparison and milestone verification
+**Current Focus:** Phase 12 — search rather than filter
 
 ## Current Position
 
-Phase: 10 (pinned comparison and milestone verification) — COMPLETE
+Phase: 12 (search rather than filter) — COMPLETE
 Plan: 3 of 3 complete
-Status: Phase 10 verified complete; ready for v1.1 milestone verification
-Last activity: 2026-05-08 -- Phase 10 verified complete
+Status: Phase 12 executed and verified; search now highlights/navigates matches while filters narrow rows
+Last activity: 2026-05-09 -- Phase 12 executed and verified
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Last activity: 2026-05-08 -- Phase 10 verified complete
 | Phase 08 plans | 3 complete | 8 tasks | validated |
 | Phase 09 plans | 3 complete / 3 planned | verified | complete |
 | Phase 10 plans | 3 complete / 3 planned | verified | complete |
+| Phase 12 plans | 3 complete / 3 planned | verified | complete |
 | Phase 10 P10-03 | 6m24s | 3 tasks | 14 files |
 
 ## Accumulated Context
@@ -139,12 +140,14 @@ Last activity: 2026-05-08 -- Phase 10 verified complete
 - Phase 05 completed: polished dark/light/hacker themes, responsive drawer/rail layout, theme persistence hardening, integrated UI coverage, Playwright E2E, UAT screenshots, and final verification gate are complete.
 - Milestone v1.0 archived: roadmap, requirements, audit, milestones index, project state, and retrospective are updated.
 - Phase 11 added: VS Code extension command palette custom editor
+- Phase 12 added: Search rather than filter
+- Phase 12 completed: free-text search now highlights and navigates matches without filtering out nonmatching rows; faceted filters remain the only row-narrowing controls.
 
 ## Session Continuity
 
 **Last session:** 2026-05-09T00:42:29.706Z
 **Next action:** `/gsd-complete-milestone` when ready to archive v1.1
-**Stopped at:** Phase 11 context gathered
+**Stopped at:** Phase 12 executed and verified
 
 ## Quick Tasks Completed
 

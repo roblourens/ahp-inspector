@@ -92,6 +92,7 @@ export function usePersistEffect(): void {
         s.setFilters(stored.filters);
         s.setGrouping(stored.grouping);
         s.setSearchQuery(stored.searchQuery);
+        s.clearSearchResults();
         s.setDetailWidth(stored.detailWidth);
         s.setLivePaused(stored.livePaused);
         useAppStore.setState({ groupCollapsed: new Set(stored.groupCollapsed) });

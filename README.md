@@ -2,8 +2,8 @@
 
 AHP Log Viewer is a local-first GUI for exploring JSONL logs of Agent Host
 Protocol traffic. It turns raw JSON-RPC messages between VS Code and agent
-hosts into a fast, searchable, filterable timeline with expandable event
-details.
+hosts into a fast timeline where search highlights and navigates matching events,
+faceted filters narrow rows, and event details are expandable.
 
 ![AHP Log Viewer in hacker theme](screenshots/phase3-hacker-theme-columns.png)
 
@@ -13,8 +13,9 @@ details.
   method/action type, session, turn, status, latency, IDs, and payload preview.
 - Full event detail panel with summary fields, Pretty/Raw JSON tabs, copy menu,
   truncation handling, auth-failure banners, and correlation metadata.
-- Payload search, faceted filtering, session/turn grouping, server sequence gap
-  banners, keyboard navigation, and no-wrap columns.
+- Payload search with match highlighting/navigation, faceted filtering,
+  session/turn grouping, server sequence gap banners, keyboard navigation, and
+  no-wrap columns.
 - Dark, light, and hacker themes through design tokens.
 - Local-only architecture: no telemetry, no CDN assets, loopback server only,
   and a host adapter boundary for future VS Code/webview hosting.

@@ -7,7 +7,12 @@ import type { EventRow } from "@ahp-viewer/core";
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { applyFacets, EMPTY_FILTERS } from "./filters.js";
-import { useFacetCounts, useFilteredRows, useGroupedItems } from "./selectors.js";
+import {
+  useFacetCounts,
+  useFilteredRows,
+  useGroupedItems,
+  useVisibleSearchMatches,
+} from "./selectors.js";
 import { useAppStore } from "./store.js";
 
 function makeRow(overrides: Partial<EventRow> = {}): EventRow {
@@ -47,6 +52,10 @@ function resetStore(rows: EventRow[] = []) {
     rows,
     filters: EMPTY_FILTERS,
     searchMatches: null,
+    searchTotal: 0,
+    searchTruncated: false,
+    searchStatus: "idle",
+    searchError: null,
     searchQuery: "",
     grouping: "none",
     groupCollapsed: new Set(),
@@ -104,15 +113,15 @@ describe("useFilteredRows", () => {
     expect(result.current).toEqual([0, 1, 2]);
   });
 
-  it("with searchMatches = Set([0,2]) and 3 rows returns [0, 2]", () => {
+  it("with searchMatches = Set([0,2]) and 3 rows still returns all row indices", () => {
     const rows = [makeRow({ idx: 0 }), makeRow({ idx: 1 }), makeRow({ idx: 2 })];
     resetStore(rows);
     useAppStore.setState({ searchMatches: new Set([0, 2]) });
     const { result } = renderHook(() => useFilteredRows());
-    expect(result.current).toEqual([0, 2]);
+    expect(result.current).toEqual([0, 1, 2]);
   });
 
-  it("with direction filter ['c2s'] AND searchMatches = Set([0,1]) returns intersection of matching direction rows", () => {
+  it("with direction filter ['c2s'] and searchMatches = Set([0,1]) returns all matching direction rows", () => {
     const rows = [
       makeRow({ idx: 0, dir: "c2s" }),
       makeRow({ idx: 1, dir: "s2c", dirGlyph: "←" }),
@@ -124,7 +133,27 @@ describe("useFilteredRows", () => {
       searchMatches: new Set([0, 1]),
     });
     const { result } = renderHook(() => useFilteredRows());
-    // idx 0 passes both; idx 1 is s2c (fails direction); idx 2 passes direction but not search
+    expect(result.current).toEqual([0, 2]);
+  });
+});
+
+describe("useVisibleSearchMatches", () => {
+  beforeEach(() => resetStore());
+
+  afterEach(() => resetStore());
+
+  it("returns visible search matches after applying facets", () => {
+    const rows = [
+      makeRow({ idx: 0, dir: "c2s" }),
+      makeRow({ idx: 1, dir: "s2c", dirGlyph: "←" }),
+      makeRow({ idx: 2, dir: "c2s" }),
+    ];
+    resetStore(rows);
+    useAppStore.setState({
+      filters: { ...EMPTY_FILTERS, direction: ["c2s"] },
+      searchMatches: new Set([0, 1, 99]),
+    });
+    const { result } = renderHook(() => useVisibleSearchMatches());
     expect(result.current).toEqual([0]);
   });
 });

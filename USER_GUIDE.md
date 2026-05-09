@@ -116,9 +116,10 @@ The current standalone app opens one log at a time. Multi-log comparison, export
 
 ## Searching events
 
-The search bar (top of the filter bar) performs an instant full-text substring search across every event's method name, session ID, turn ID, key ID, and payload preview. Search is case-insensitive. Results are highlighted in the timeline.
+The search bar (top of the filter bar) performs a case-insensitive full-text substring search across event method names, action types, IDs, session IDs, turn IDs, error text, and payload text. Search finds, counts, highlights, and navigates matching events without hiding the surrounding timeline context.
 
 - Press **`/`** from anywhere to focus the search input.
+- Use the **Prev** and **Next** search buttons, or press **`F3`** / **`Shift+F3`**, to move between matching rows.
 - Press **`Esc`** to clear the search query (press again to clear active filters, then again to deselect the current row).
 - Results are capped at **5,000 matches** to keep scrolling smooth on large logs. A "truncated" indicator appears when the cap is reached.
 
@@ -144,7 +145,7 @@ Click any of the **8 facet chips** in the filter bar to open a popover with the 
 Selecting a value within a popover adds an **active chip** below the filter bar. Multiple values within the same facet are OR-combined; values across different facets are AND-combined.
 
 - Click **✕** on an individual chip to remove that filter.
-- Click **Clear all** to reset all active chips and the search query.
+- Click **Clear all** to reset all active filter chips. The search query is cleared separately from the search input or with **`Esc`**.
 
 ![Filter bar with all facets](screenshots/phase3-filter-bar.png)
 

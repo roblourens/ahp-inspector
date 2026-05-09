@@ -53,6 +53,10 @@ beforeEach(() => {
     meta: { filename: "x.jsonl", eventCount: 3, sessionCount: 1 },
     searchQuery: "",
     searchMatches: null,
+    searchTotal: 0,
+    searchTruncated: false,
+    searchStatus: "idle",
+    searchError: null,
     grouping: "none",
   });
 });
@@ -80,6 +84,17 @@ describe("TimelineRegion — Plan 04-06 Task 2", () => {
   it("does NOT render RotationBanner when rotationNotice=false", () => {
     render(<TimelineRegion />);
     expect(screen.queryByTestId("rotation-banner")).toBeNull();
+  });
+
+  it("navigates between visible search matches", () => {
+    useAppStore.setState({ searchQuery: "ping", searchMatches: new Set([0, 2]), searchTotal: 2 });
+    render(<TimelineRegion />);
+    window.dispatchEvent(new CustomEvent("ahp-search-nav", { detail: "next" }));
+    expect(useAppStore.getState().selectedIdx).toBe(0);
+    window.dispatchEvent(new CustomEvent("ahp-search-nav", { detail: "next" }));
+    expect(useAppStore.getState().selectedIdx).toBe(2);
+    window.dispatchEvent(new CustomEvent("ahp-search-nav", { detail: "previous" }));
+    expect(useAppStore.getState().selectedIdx).toBe(0);
   });
 
   it("renders NewEventsPill when livePaused && pendingNewCount > 0; click flushes buffer + resumes", () => {

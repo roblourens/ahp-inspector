@@ -30,6 +30,24 @@ describe("persistPerLogPrefs / loadPerLogPrefs", () => {
     persistPerLogPrefs("k1", sample);
     expect(loadPerLogPrefs("k1")).toEqual(sample);
   });
+
+  it("drops volatile search result metadata from stored entries", () => {
+    localStorage.setItem(
+      "ahp-log-prefs-v1",
+      JSON.stringify({
+        k1: {
+          ...sample,
+          searchMatches: [1, 2],
+          searchTotal: 2,
+          searchTruncated: true,
+          searchStatus: "ready",
+          searchError: "stale",
+          _writtenAt: 1,
+        },
+      }),
+    );
+    expect(loadPerLogPrefs("k1")).toEqual(sample);
+  });
   it("clearPerLogPrefs removes only the targeted key", () => {
     persistPerLogPrefs("k1", sample);
     persistPerLogPrefs("k2", sample);

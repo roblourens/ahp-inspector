@@ -69,7 +69,6 @@ export function AppShell(): JSX.Element {
   const connection = useAppStore((s) => s.connection);
   const rows = useAppStore((s) => s.rows);
   const filters = useAppStore((s) => s.filters);
-  const searchQuery = useAppStore((s) => s.searchQuery);
   const grouping = useAppStore((s) => s.grouping);
   const detailWidth = useAppStore((s) => s.detailWidth);
   const selectedIdx = useAppStore((s) => s.selectedIdx);
@@ -87,7 +86,7 @@ export function AppShell(): JSX.Element {
   const groupedItems = useGroupedItems(filteredRowIdxs);
 
   // Active filters check
-  const hasActiveFilters = !isFiltersEmpty(filters) || searchQuery !== "";
+  const hasActiveFilters = !isFiltersEmpty(filters);
 
   // StickyGroupBar state — updated via onTopGroupChange callback from TimelineList
   const [stickyGroup, setStickyGroup] = useState<{

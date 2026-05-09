@@ -108,6 +108,11 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
     expect(row.getAttribute("data-selected")).toBe("true");
   });
 
+  it("marks a row as a search match", () => {
+    render(<EventRow row={baseRow} isSelected={false} isSearchMatch onClick={() => {}} />);
+    expect(screen.getByRole("row")).toHaveAttribute("data-search-match", "true");
+  });
+
   it("does not expose action family marker copy", () => {
     render(
       <EventRow

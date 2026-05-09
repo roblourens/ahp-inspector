@@ -156,9 +156,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — Separate search result state from faceted row filtering.
-- [ ] 12-02-PLAN.md — Add search match highlighting, count, and navigation without hiding rows.
-- [ ] 12-03-PLAN.md — Verify browser/extension search semantics and update user-facing docs.
+- [x] 12-01-PLAN.md — Separate search result state from faceted row filtering.
+- [x] 12-02-PLAN.md — Add search match highlighting, count, and navigation without hiding rows.
+- [x] 12-03-PLAN.md — Verify browser/extension search semantics and update user-facing docs.
 
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*

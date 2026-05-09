@@ -39,6 +39,10 @@ export function FilterBar({
 }): JSX.Element {
   const searchQuery = useAppStore((s) => s.searchQuery);
   const setSearchQuery = useAppStore((s) => s.setSearchQuery);
+  const searchTotal = useAppStore((s) => s.searchTotal);
+  const searchStatus = useAppStore((s) => s.searchStatus);
+  const searchTruncated = useAppStore((s) => s.searchTruncated);
+  const searchError = useAppStore((s) => s.searchError);
   const filters = useAppStore((s) => s.filters);
   const patchFilter = useAppStore((s) => s.patchFilter);
   const grouping = useAppStore((s) => s.grouping);
@@ -56,6 +60,20 @@ export function FilterBar({
   function close() {
     setOpenPopover(null);
   }
+
+  function navigateSearch(direction: "previous" | "next"): void {
+    window.dispatchEvent(new CustomEvent("ahp-search-nav", { detail: direction }));
+  }
+
+  const hasSearch = searchQuery.trim() !== "";
+  const hasSearchMatches = hasSearch && searchTotal > 0;
+  const searchStatusText = !hasSearch
+    ? null
+    : searchStatus === "searching"
+      ? "Searching..."
+      : searchStatus === "error"
+        ? `Search failed${searchError ? `: ${searchError}` : ""}`
+        : `${searchTotal.toLocaleString()} ${searchTotal === 1 ? "match" : "matches"}${searchTruncated ? "+" : ""}`;
 
   return (
     <div
@@ -81,6 +99,39 @@ export function FilterBar({
         onClear={() => setSearchQuery("")}
         {...(searchInputRef !== undefined ? { ref: searchInputRef } : {})}
       />
+      {searchStatusText !== null && (
+        <div
+          data-testid="search-status"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "var(--space-1)",
+            color: searchStatus === "error" ? "var(--color-danger)" : "var(--color-text-muted)",
+            fontFamily: "var(--font-sans)",
+            fontSize: "var(--text-ui-muted-size)",
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+          }}
+        >
+          <span>{searchStatusText}</span>
+          <button
+            type="button"
+            aria-label="Previous search match"
+            disabled={!hasSearchMatches}
+            onClick={() => navigateSearch("previous")}
+          >
+            Prev
+          </button>
+          <button
+            type="button"
+            aria-label="Next search match"
+            disabled={!hasSearchMatches}
+            onClick={() => navigateSearch("next")}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Direction facet */}
       <div style={{ position: "relative", flexShrink: 0 }}>

@@ -42,6 +42,7 @@ export interface TimelineListProps {
   selectedIdx: number | null;
   onSelect: (idx: number) => void;
   searchQuery?: string;
+  searchMatches?: Set<number> | null;
   onTopGroupChange?: (group: { level: "session" | "turn"; label: string } | null) => void;
   groupCollapsed?: Set<string>;
   onToggleGroup?: (key: string) => void;
@@ -53,6 +54,7 @@ export function TimelineList({
   selectedIdx,
   onSelect,
   searchQuery = "",
+  searchMatches = null,
   onTopGroupChange,
   groupCollapsed,
   onToggleGroup,
@@ -301,6 +303,7 @@ export function TimelineList({
                 isSelected={isSelected}
                 onClick={() => onSelect(row.idx)}
                 searchQuery={searchQuery}
+                isSearchMatch={searchMatches?.has(row.idx) ?? false}
                 pairHighlight={pairHighlight}
                 pairHidden={pairHidden}
                 style={style}

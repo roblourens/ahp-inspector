@@ -1,4 +1,3 @@
-import { Search } from "lucide-react";
 import type { JSX } from "react";
 import { isFiltersEmpty } from "../../state/filters.js";
 import { useAppStore } from "../../state/store.js";
@@ -6,43 +5,14 @@ import { ActiveChip } from "./ActiveChip.js";
 
 export function ActiveFilterChips(): JSX.Element | null {
   const filters = useAppStore((s) => s.filters);
-  const searchQuery = useAppStore((s) => s.searchQuery);
   const patchFilter = useAppStore((s) => s.patchFilter);
   const clearFilters = useAppStore((s) => s.clearFilters);
 
   const hasFilters = !isFiltersEmpty(filters);
-  const hasSearch = searchQuery !== "";
 
-  if (!hasFilters && !hasSearch) return null;
+  if (!hasFilters) return null;
 
   const chips: JSX.Element[] = [];
-
-  // Search chip first
-  if (hasSearch) {
-    const label = searchQuery.length > 40 ? `${searchQuery.slice(0, 40)}…` : searchQuery;
-    chips.push(
-      <span
-        key="search"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "var(--space-1)",
-          height: 22,
-          paddingLeft: "var(--space-2)",
-          paddingRight: "var(--space-2)",
-          background: "var(--color-chip-bg-active)",
-          border: "1px solid var(--color-chip-border)",
-          borderRadius: 4,
-          color: "var(--color-chip-fg)",
-          fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-ui-muted-size)",
-        }}
-      >
-        <Search size={12} style={{ color: "var(--color-text-muted)" }} />
-        <span>{label}</span>
-      </span>,
-    );
-  }
 
   // Facet chips
   const arrayFacets: Array<{
@@ -129,7 +99,7 @@ export function ActiveFilterChips(): JSX.Element | null {
       </div>
       <button
         type="button"
-        aria-label="Clear all filters and search"
+        aria-label="Clear all filters"
         onClick={clearFilters}
         style={{
           marginLeft: "auto",

@@ -20,19 +20,35 @@ export type VirtualItem =
 export function useFilteredRows(): number[] {
   const rows = useAppStore((s) => s.rows);
   const filters = useAppStore((s) => s.filters);
-  const searchMatches = useAppStore((s) => s.searchMatches);
   const deferredFilters = useDeferredValue(filters);
-  const deferredMatches = useDeferredValue(searchMatches);
   return useMemo(() => {
     const noFacets = isFiltersEmpty(deferredFilters);
-    const noSearch = deferredMatches === null;
-    if (noFacets && noSearch) return rows.map((_, i) => i);
+    if (noFacets) return rows.map((_, i) => i);
     const result: number[] = [];
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       if (!row) continue;
       if (!noFacets && !applyFacets(row, deferredFilters)) continue;
-      if (!noSearch && !deferredMatches?.has(i)) continue;
+      result.push(i);
+    }
+    return result;
+  }, [rows, deferredFilters]);
+}
+
+export function useVisibleSearchMatches(): number[] {
+  const rows = useAppStore((s) => s.rows);
+  const filters = useAppStore((s) => s.filters);
+  const searchMatches = useAppStore((s) => s.searchMatches);
+  const deferredFilters = useDeferredValue(filters);
+  const deferredMatches = useDeferredValue(searchMatches);
+  return useMemo(() => {
+    if (deferredMatches === null) return [];
+    const noFacets = isFiltersEmpty(deferredFilters);
+    const result: number[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || !deferredMatches.has(i)) continue;
+      if (!noFacets && !applyFacets(row, deferredFilters)) continue;
       result.push(i);
     }
     return result;
