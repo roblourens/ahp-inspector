@@ -52,13 +52,22 @@ Requirements for reducer-backed state reconstruction.
 
 ### VS Code Extension Webview
 
-- [ ] **EXT-01**: User can run an AHP Viewer command from the VS Code Command Palette and open the viewer inside a VS Code webview.
-- [ ] **EXT-02**: If the active editor is an AHP JSONL log, the command opens the webview with that log selected by default; otherwise the webview shows log discovery/open options.
-- [ ] **EXT-03**: The VS Code webview runtime uses direct `postMessage` communication with the extension host instead of starting the loopback browser server.
-- [ ] **EXT-04**: The VS Code webview supports discovery/open, live timeline updates, event detail, search, and reconstructed state lookup through a shared transport contract.
-- [ ] **EXT-05**: The extension package has publishable manifest metadata, activation, command contribution, CSP-safe webview asset loading, and build/typecheck scripts.
-- [ ] **EXT-06**: The existing standalone CLI/browser viewer continues to build and run through the HTTP/SSE transport after the UI transport refactor.
-- [ ] **EXT-07**: Automated verification covers command activation, active-log detection, webview message handling, and local-only/no-outbound constraints.
+- [x] **EXT-01**: User can run an AHP Viewer command from the VS Code Command Palette and open the viewer inside a VS Code webview.
+- [x] **EXT-02**: If the active editor is an AHP JSONL log, the command opens the webview with that log selected by default; otherwise the webview shows log discovery/open options.
+- [x] **EXT-03**: The VS Code webview runtime uses direct `postMessage` communication with the extension host instead of starting the loopback browser server.
+- [x] **EXT-04**: The VS Code webview supports discovery/open, live timeline updates, event detail, search, and reconstructed state lookup through a shared transport contract.
+- [x] **EXT-05**: The extension package has publishable manifest metadata, activation, command contribution, CSP-safe webview asset loading, and build/typecheck scripts.
+- [x] **EXT-06**: The existing standalone CLI/browser viewer continues to build and run through the HTTP/SSE transport after the UI transport refactor.
+- [x] **EXT-07**: Automated verification covers command activation, active-log detection, webview message handling, and local-only/no-outbound constraints.
+
+### npx Publishing and Auto-open Latest Log
+
+- [ ] **NPX-01**: User can install or invoke the viewer with `npx @ahp-viewer/cli` (or equivalent published package name) without cloning the repository.
+- [ ] **NPX-02**: Running the published binary with no arguments discovers the most-recently-modified AHP JSONL log under the standard VS Code log roots, opens the viewer browser tab, and streams that log immediately.
+- [ ] **NPX-03**: Running the published binary with an explicit path argument behaves the same as today's CLI (open that file, ignore auto-discovery).
+- [ ] **NPX-04**: The published package bundles the prebuilt UI assets (`packages/ui/dist`) so the binary works without a post-install build step.
+- [ ] **NPX-05**: Publishing is automated: a release script (or CI workflow) bumps the version, builds, runs typecheck/test, and publishes to npm under a public scope with a documented dry-run mode.
+- [ ] **NPX-06**: A short README/USER_GUIDE section documents the `npx` invocation, the auto-discovery rule, and the local-only privacy posture (loopback bind, no telemetry).
 
 ## Future Requirements
 
@@ -107,18 +116,25 @@ Requirements for reducer-backed state reconstruction.
 | VERIFY-02 | Phase 8 | Done |
 | VERIFY-03 | Phase 10 | Done |
 | VERIFY-04 | Phase 10 | Done |
-| EXT-01 | Phase 11 | Planned |
-| EXT-02 | Phase 11 | Planned |
-| EXT-03 | Phase 11 | Planned |
-| EXT-04 | Phase 11 | Planned |
-| EXT-05 | Phase 11 | Planned |
-| EXT-06 | Phase 11 | Planned |
-| EXT-07 | Phase 11 | Planned |
+| EXT-01 | Phase 11 | Done |
+| EXT-02 | Phase 11 | Done |
+| EXT-03 | Phase 11 | Done |
+| EXT-04 | Phase 11 | Done |
+| EXT-05 | Phase 11 | Done |
+| EXT-06 | Phase 11 | Done |
+| EXT-07 | Phase 11 | Done |
+| NPX-01 | Phase 13 | Planned |
+| NPX-02 | Phase 13 | Planned |
+| NPX-03 | Phase 13 | Planned |
+| NPX-04 | Phase 13 | Planned |
+| NPX-05 | Phase 13 | Planned |
+| NPX-06 | Phase 13 | Planned |
 
 **Coverage:**
 
 - v1.1 requirements: 32 total
 - Mapped to phases: 32
+- v1.2 requirements: 6 total (NPX-01..06) mapped to Phase 13
 - Unmapped: 0
 
 ---

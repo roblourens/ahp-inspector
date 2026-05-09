@@ -143,10 +143,10 @@ Run `/gsd-complete-milestone` for v1.1 milestone verification/archive when reque
 **Plans:** 4 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Add the VS Code extension package, command contribution, webview shell, and active-log detection.
-- [ ] 11-02-PLAN.md — Introduce a UI transport abstraction while preserving the browser HTTP/SSE runtime.
-- [ ] 11-03-PLAN.md — Implement the direct webview `postMessage` bridge for sessions, stream frames, detail, search, and state lookup.
-- [ ] 11-04-PLAN.md — Add extension packaging verification, security guards, docs, and end-to-end validation.
+- [x] 11-01-PLAN.md — Add the VS Code extension package, command contribution, webview shell, and active-log detection.
+- [x] 11-02-PLAN.md — Introduce a UI transport abstraction while preserving the browser HTTP/SSE runtime.
+- [x] 11-03-PLAN.md — Implement the direct webview `postMessage` bridge for sessions, stream frames, detail, search, and state lookup.
+- [x] 11-04-PLAN.md — Add extension packaging verification, security guards, docs, and end-to-end validation.
 
 ### Phase 12: Search rather than filter
 
@@ -160,5 +160,18 @@ Plans:
 - [x] 12-02-PLAN.md — Add search match highlighting, count, and navigation without hiding rows.
 - [x] 12-03-PLAN.md — Verify browser/extension search semantics and update user-facing docs.
 
+### Phase 13: npx publishing and auto-open latest log
+
+**Goal:** Ship the standalone viewer as a published npm package so a single `npx` invocation downloads, runs the loopback server, and opens the browser viewer streaming the most-recently-modified AHP JSONL log under the standard VS Code log roots.
+**Requirements:** NPX-01, NPX-02, NPX-03, NPX-04, NPX-05, NPX-06
+**Depends on:** Phase 11
+**Plans:** TBD (run `/gsd-plan-phase 13`)
+
+Outline:
+- 13-01 — CLI: when launched without a path argument, reuse `discoverVsCodeLogs()` to pick the most-recently-modified JSONL candidate, then open it as the active log (treat "no candidate" the same as today's empty discovery state).
+- 13-02 — Packaging: choose a public scope/name, ensure the published tarball includes `packages/cli/dist`, `packages/ui/dist`, and the protocol/server/host-node bundles; add a `bin` entry so `npx <name>` runs the CLI; verify `npm pack` and a tarball install boot the viewer.
+- 13-03 — Release automation + docs: add a release script (or GH Actions workflow) that bumps version, builds, runs typecheck/test, and publishes (with a documented dry-run); update README/USER_GUIDE with the `npx` flow, auto-open behavior, and the local-only privacy posture.
+
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*
+*Phase 13 added: 2026-05-09 (npx publishing).*
