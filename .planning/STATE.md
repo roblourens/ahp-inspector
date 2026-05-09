@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Reducer-backed State Snapshots
-status: verifying
-stopped_at: Phase 11 executed (verification pending)
-last_updated: "2026-05-09T07:00:00.000Z"
-last_activity: 2026-05-09 -- Phase 11 VS Code extension command palette webview executed (4/4 plans)
+status: executing
+stopped_at: Phase 12 executed and verified
+last_updated: "2026-05-09T16:52:18.397Z"
+last_activity: 2026-05-09 -- Phase 13 execution started
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 6
-  total_plans: 22
-  completed_plans: 22
-  percent: 100
+  total_plans: 25
+  completed_plans: 20
+  percent: 80
 ---
 
 # State: AHP Inspector
@@ -19,14 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 11 — VS Code extension command palette webview
+**Current Focus:** Phase 13 — npx-publishing-and-auto-open-latest-log
 
 ## Current Position
 
-Phase: 11 (VS Code extension command palette webview) — EXECUTED
-Plan: 4 of 4 complete
-Status: Phase 11 executed; all plans committed; full pnpm typecheck/test/build green; verification pending
-Last activity: 2026-05-09 -- Phase 11 executed: extension package + webview bridge + UI transport abstraction + boundary/security/docs
+Phase: 13 (npx-publishing-and-auto-open-latest-log) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 13
+Last activity: 2026-05-09 -- Phase 13 execution started
 
 ## Performance Metrics
 
