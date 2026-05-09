@@ -13,3 +13,4 @@ test-results
 ~/agenthost.*.log
 agenthost.*.log
 .DS_Store
+ui-dist
