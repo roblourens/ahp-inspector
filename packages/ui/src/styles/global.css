@@ -533,7 +533,10 @@ body {
   gap: var(--space-1);
   margin: 0;
   padding: 0;
+  padding-right: var(--space-1);
   list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
 }
 
 .state-diagnostic-group li {
@@ -541,6 +544,8 @@ body {
   gap: var(--space-1);
   border-left: 2px solid var(--color-border-strong);
   padding-left: var(--space-2);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .state-diagnostic-meta {
@@ -550,6 +555,12 @@ body {
   color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: var(--text-ui-muted-size);
+}
+
+.state-diagnostic-message {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-text);
 }
 
 .pinned-state-panel {

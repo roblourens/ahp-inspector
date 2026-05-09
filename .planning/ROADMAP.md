@@ -180,10 +180,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 14-01-PLAN.md — State diagnostics scrolling + parsed row layout (HARDEN-01)
-- [ ] 14-02-PLAN.md — Row highlighting precedence cleanup (HARDEN-02)
-- [ ] 14-03-PLAN.md — Smarter notification/event summaries (HARDEN-03)
-- [ ] 14-04-PLAN.md — Search ergonomics: Enter/Shift+Enter + scroll-to-current-match (HARDEN-04)
+- [x] 14-01-PLAN.md — State diagnostics scrolling + parsed row layout (HARDEN-01)
+- [x] 14-02-PLAN.md — Row highlighting precedence cleanup (HARDEN-02)
+- [x] 14-03-PLAN.md — Smarter notification/event summaries (HARDEN-03)
+- [x] 14-04-PLAN.md — Search ergonomics: Enter/Shift+Enter + scroll-to-current-match (HARDEN-04)
 
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Reducer-backed State Snapshots
-status: milestone_complete
-stopped_at: Phase 12 executed and verified
-last_updated: "2026-05-09T16:52:18.397Z"
-last_activity: 2026-05-09 -- Phase 13 execution started
+status: phase_14_complete
+stopped_at: Phase 14 (hardening) planned and executed
+last_updated: "2026-05-09T21:30:00.000Z"
+last_activity: 2026-05-09 -- Phase 14 hardening plans 14-01..14-04 executed and tested
 progress:
-  total_phases: 8
-  completed_phases: 7
-  total_plans: 25
-  completed_plans: 20
-  percent: 88
+  total_phases: 9
+  completed_phases: 9
+  total_plans: 29
+  completed_plans: 29
+  percent: 100
 ---
 
 # State: AHP Inspector
@@ -142,6 +142,7 @@ Last activity: 2026-05-09
 - Phase 11 added: VS Code extension command palette custom editor
 - Phase 12 added: Search rather than filter
 - Phase 12 completed: free-text search now highlights and navigates matches without filtering out nonmatching rows; faceted filters remain the only row-narrowing controls.
+- Phase 14 added: Hardening: state diagnostics scrolling and parsing, row highlighting cleanup, smarter event/notification summaries, search ergonomics (Enter/Shift+Enter/F3 cycling, scroll to current match)
 
 ## Session Continuity
 

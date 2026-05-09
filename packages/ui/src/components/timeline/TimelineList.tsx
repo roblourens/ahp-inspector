@@ -113,6 +113,17 @@ export function TimelineList({
     return () => cancelAnimationFrame(raf);
   }, [items.length, scrollToBottom]);
 
+  // Scroll the selected row into view (e.g., after search match navigation).
+  useEffect(() => {
+    if (selectedIdx === null) return;
+    const targetVi = items.findIndex(
+      (it) => it.kind === "row" && rows[it.rowIdx]?.idx === selectedIdx,
+    );
+    if (targetVi < 0) return;
+    followTailRef.current = false;
+    v.scrollToIndex(targetVi, { align: "center" });
+  }, [selectedIdx, items, rows, v]);
+
   const onScroll = useCallback((): void => {
     const el = parentRef.current;
     if (!el) return;

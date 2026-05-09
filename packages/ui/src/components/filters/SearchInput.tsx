@@ -43,6 +43,16 @@ export function SearchInput({ value, onChange, onClear, ref }: SearchInputProps)
         ref={ref}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && value.length > 0) {
+            e.preventDefault();
+            window.dispatchEvent(
+              new CustomEvent("ahp-search-nav", {
+                detail: e.shiftKey ? "previous" : "next",
+              }),
+            );
+          }
+        }}
         placeholder="all JSON payloads, methods, ids, sessions..."
         aria-label="Search all events"
         style={{

@@ -70,7 +70,7 @@ function DiagnosticGroup({
               <span>{diagnostic.code}</span>
               {diagnostic.eventIdx !== null && <span>event #{diagnostic.eventIdx}</span>}
             </span>
-            <span>{diagnostic.message}</span>
+            <span className="state-diagnostic-message">{diagnostic.message}</span>
           </li>
         ))}
       </ul>

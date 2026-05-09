@@ -310,11 +310,27 @@ function eventSummaryOf(event: AhpEvent, _status: Status, pairMethod: string | n
   }
 
   if (event.kind === "protocol-notification") {
-    const notifType = event.actionType ?? stringField(notification, "type") ?? "notification";
-    return `notification ${notifType} ${summarizeValue(notification ?? params)}`;
+    const notifType = event.actionType ?? stringField(notification, "type") ?? null;
+    const notifPayload = notification ?? params;
+    const state = firstString(notifPayload?.state, notifPayload?.status);
+    const message = firstString(
+      notifPayload?.message,
+      notifPayload?.text,
+      notifPayload?.detail,
+      notifPayload?.reason,
+    );
+    if (notifType && state) return `notification ${notifType} ${clip(state)}`;
+    if (notifType && message) return `notification ${notifType} ${clip(message)}`;
+    if (notifType) return `notification ${notifType} ${summarizeValue(notifPayload)}`;
+    return `notification ${summarizeValue(notifPayload)}`;
   }
   if (event.kind === "client-notification" || event.kind === "server-notification") {
-    return `${event.method ?? "notification"} ${summarizeValue(params)}`;
+    const methodLabel = event.method ?? "notification";
+    const message = firstString(params?.message, params?.text, params?.detail, params?.reason);
+    const state = firstString(params?.state, params?.status);
+    if (message) return `${methodLabel}: ${clip(message)}`;
+    if (state) return `${methodLabel} ${clip(state)}`;
+    return `${methodLabel} ${summarizeValue(params)}`;
   }
   if (event.kind === "request") {
     return `${event.method ?? "request"} ${summarizeValue(params)}`;

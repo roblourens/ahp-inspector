@@ -114,6 +114,26 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
     expect(screen.getByRole("row")).toHaveAttribute("data-search-match", "true");
   });
 
+  it("uses selected bg when a row is selected, search-matched, and pair-highlighted", () => {
+    render(
+      <EventRow
+        row={baseRow}
+        isSelected
+        isSearchMatch
+        pairHighlight="request"
+        onClick={() => {}}
+      />,
+    );
+    const row = screen.getByRole("row");
+    expect(row.getAttribute("data-selected")).toBe("true");
+    expect(row.getAttribute("data-search-match")).toBe("true");
+    expect(row.getAttribute("data-pair-highlight")).toBe("request");
+    // Selected bg wins over pair and search-match.
+    expect((row as HTMLElement).style.background).toContain("--row-selected-bg");
+    // No outline rule fights the selection.
+    expect((row as HTMLElement).style.outline).toBe("");
+  });
+
   it("does not expose action family marker copy", () => {
     render(
       <EventRow

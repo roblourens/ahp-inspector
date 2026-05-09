@@ -369,6 +369,54 @@ describe("projectRow() — tabular field formatting", () => {
   });
 });
 
+describe("projectRow() — notification summaries", () => {
+  it("protocol-notification with state extracts state into summary", () => {
+    const e = mkEvent({
+      kind: "protocol-notification",
+      method: null,
+      actionType: "session/update",
+      raw: {
+        jsonrpc: "2.0",
+        method: "session/notification",
+        params: { notification: { type: "session/update", state: "running" } },
+      },
+    });
+    const row = projectRow(e, 0, "n/a", null);
+    expect(row.summary).toBe("notification session/update running");
+  });
+
+  it("server-notification with message renders method: message", () => {
+    const e = mkEvent({
+      kind: "server-notification",
+      dir: "s2c",
+      method: "window/showMessage",
+      actionType: null,
+      raw: {
+        jsonrpc: "2.0",
+        method: "window/showMessage",
+        params: { message: "Build failed: foo" },
+      },
+    });
+    const row = projectRow(e, 0, "n/a", null);
+    expect(row.summary).toBe("window/showMessage: Build failed: foo");
+  });
+
+  it("protocol-notification without state/message falls back to JSON-ish", () => {
+    const e = mkEvent({
+      kind: "protocol-notification",
+      method: null,
+      actionType: "telemetry/event",
+      raw: {
+        jsonrpc: "2.0",
+        method: "session/notification",
+        params: { notification: { type: "telemetry/event" } },
+      },
+    });
+    const row = projectRow(e, 0, "n/a", null);
+    expect(row.summary?.startsWith("notification telemetry/event")).toBe(true);
+  });
+});
+
 describe("projectRow() — action family derivation", () => {
   it("populates actionFamily for action events", () => {
     const e = mkEvent({

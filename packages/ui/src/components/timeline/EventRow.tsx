@@ -167,17 +167,23 @@ export const EventRow = memo(function EventRow({
           : pairHighlight
             ? "color-mix(in srgb, var(--color-info) 14%, transparent)"
             : isSearchMatch
-              ? "color-mix(in srgb, var(--color-search-match-bg) 35%, transparent)"
+              ? "color-mix(in srgb, var(--color-search-match-bg) 28%, transparent)"
               : "transparent",
-        outline: isSearchMatch ? "1px solid var(--color-search-match-bg)" : undefined,
-        outlineOffset: isSearchMatch ? -1 : undefined,
         ...style,
       }}
     >
       <div
         role="gridcell"
         data-testid="row-rail"
-        style={{ ...cellStyle, width: 4, height: "100%", background: railColor(row, isSelected) }}
+        style={{
+          ...cellStyle,
+          width: 4,
+          height: "100%",
+          background:
+            isSearchMatch && !isSelected
+              ? "var(--color-search-match-bg)"
+              : railColor(row, isSelected),
+        }}
       />
       <div role="gridcell" className="id" style={cellStyle}>
         {row.keyId ?? "—"}
