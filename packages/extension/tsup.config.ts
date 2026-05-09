@@ -12,5 +12,5 @@ export default defineConfig({
   platform: "node",
   target: "es2022",
   external: ["vscode"],
-  noExternal: [/^@ahp-viewer\//],
+  noExternal: [/^@ahp-inspector\//],
 });

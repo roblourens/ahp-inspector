@@ -125,7 +125,7 @@ The Phase 4 `Connection` type is extended to: `"connecting" | "connected" | "dis
 
 ```
 ┌─ HeaderBar ──────────────────────────────────────────┐
-│ AHP Log Viewer          [theme picker]  v{version}   │
+│ AHP Inspector          [theme picker]  v{version}   │
 └──────────────────────────────────────────────────────┘
 ┌─ content (flex-col, centered, max-width 640px, mx:auto) ─┐
 │                                                          │

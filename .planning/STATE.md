@@ -14,7 +14,7 @@ progress:
   percent: 100
 ---
 
-# State: AHP Log Viewer
+# State: AHP Inspector
 
 ## Project Reference
 
@@ -77,7 +77,7 @@ Last activity: 2026-05-09 -- Phase 11 executed: extension package + webview brid
 - Plan 02-02: Substituted lucide-react `FileBraces` for `FileJson` (FileJson is not exported in lucide-react@1.14.0); semantic match for a JSONL source, no dependency-lock churn.
 - Plan 02-02: `useAppStore` (Zustand) is the single UI state surface (rows / connection / selectedIdx / meta + 7 actions); shell components are pure presentational and only `AppShell` reads the store.
 - Plan 02-03: widen `DirectionGlyph` prop to `Direction | "unknown"` locally — shared `Direction` is `c2s|s2c` only, but UI-SPEC §5.1 requires an "unknown" fallback glyph; widened cell prop avoids changing the shared type.
-- Plan 02-03: import `KindTag`/`ActionFamily`/`LatencyBand`/`Status` from `@ahp-viewer/core` barrel; import `Direction` from `@ahp-viewer/shared` (not re-exported by core).
+- Plan 02-03: import `KindTag`/`ActionFamily`/`LatencyBand`/`Status` from `@ahp-inspector/core` barrel; import `Direction` from `@ahp-inspector/shared` (not re-exported by core).
 - Plan 02-04: TanStack Virtual measures via `offsetWidth`/`offsetHeight` (virtual-core `getRect`), not `getBoundingClientRect`; virt test mocks both `HTMLElement.prototype` getters in jsdom to give the scroll element a non-zero viewport.
 - Plan 02-04: window-scoped keydown handler in `TimelineRegion` (Up/Down/PageUp/PageDown/Home/End/Esc); empty-rows guard prevents bogus selection when no rows exist.
 - Plan 02-04: `App.tsx` routes to `ServerNotRunningState` full-page (before `AppShell`) when `connection === "no-server"`; Plan 02-06 SSE client will set this on EventSource failure.
@@ -118,8 +118,8 @@ Last activity: 2026-05-09 -- Phase 11 executed: extension package + webview brid
 - Phase 10 plan-checker verified pinned comparison approach: memory-only two-pin state points, top-level-only comparison, no persistence/network/export, and large-log `/api/state-at` responsiveness plus SSE non-inflation verification.
 - Phase 10 verified PASS: pinned state points and top-level comparison are covered by synthetic Playwright E2E, `/api/state-at` remains responsive on 1,000+ event logs, and SSE rows remain free of replay state payloads.
 - Phase 05: Responsive details use a desktop side rail at >=1400px and an overlay drawer below 1400px; theme choice remains global under `ahp-theme` while per-log preferences remain keyed by opaque logKey.
-- Phase 06: `@ahp-viewer/protocol` is a generated workspace package synced from sibling `../agent-host-protocol/types` via `pnpm sync:ahp`; generated files carry a DO NOT EDIT banner and source commit metadata.
-- Phase 06: Parser code imports canonical `ActionEnvelope` / `ProtocolNotification` directly from `@ahp-viewer/protocol`; `@ahp-viewer/shared/ahp` remains only as compatibility aliases for old I-prefixed names.
+- Phase 06: `@ahp-inspector/protocol` is a generated workspace package synced from sibling `../agent-host-protocol/types` via `pnpm sync:ahp`; generated files carry a DO NOT EDIT banner and source commit metadata.
+- Phase 06: Parser code imports canonical `ActionEnvelope` / `ProtocolNotification` directly from `@ahp-inspector/protocol`; `@ahp-inspector/shared/ahp` remains only as compatibility aliases for old I-prefixed names.
 - Phase 06: Reducer parity tests run copied upstream synthetic reducer fixtures with `Date.now()` mocked to `9999`; fixture privacy tests prevent real JSONL/log data from entering the generated fixture set.
 - Milestone v1.1: reducer-backed state reconstruction should be implemented as server-side replay of canonical AHP snapshots/action envelopes, using synced protocol reducers from `../agent-host-protocol` and explicit confidence diagnostics for partial logs.
 

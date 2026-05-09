@@ -33,8 +33,8 @@ The shell now keeps the timeline primary at laptop widths by moving event detail
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/ui test src/components/shell/AppShell.test.tsx src/components/detail/DetailPanel.test.tsx src/components/timeline/TimelineList.virt.test.tsx src/components/filters/FilterBar.test.tsx` — passed
-- `pnpm -F @ahp-viewer/ui build` — passed
+- `pnpm -F @ahp-inspector/ui test src/components/shell/AppShell.test.tsx src/components/detail/DetailPanel.test.tsx src/components/timeline/TimelineList.virt.test.tsx src/components/filters/FilterBar.test.tsx` — passed
+- `pnpm -F @ahp-inspector/ui build` — passed
 
 ## Deviations from Plan
 

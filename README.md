@@ -1,11 +1,11 @@
-# AHP Log Viewer
+# AHP Inspector
 
-AHP Log Viewer is a local-first GUI for exploring JSONL logs of Agent Host
+AHP Inspector is a local-first GUI for exploring JSONL logs of Agent Host
 Protocol traffic. It turns raw JSON-RPC messages between VS Code and agent
 hosts into a fast timeline where search highlights and navigates matching events,
 faceted filters narrow rows, and event details are expandable.
 
-![AHP Log Viewer in hacker theme](screenshots/phase3-hacker-theme-columns.png)
+![AHP Inspector in hacker theme](screenshots/phase3-hacker-theme-columns.png)
 
 ## Highlights
 
@@ -47,15 +47,15 @@ The CLI starts a local server bound to `127.0.0.1`, opens the browser, and loads
 To open your own JSONL log:
 
 ```bash
-pnpm -F @ahp-viewer/ui build
+pnpm -F @ahp-inspector/ui build
 pnpm exec tsx packages/cli/src/index.ts path/to/log.jsonl
 ```
 
 For a built CLI smoke test:
 
 ```bash
-pnpm -F @ahp-viewer/ui build
-pnpm -F @ahp-viewer/cli build
+pnpm -F @ahp-inspector/ui build
+pnpm -F @ahp-inspector/cli build
 node packages/cli/dist/index.js path/to/log.jsonl
 ```
 
@@ -85,7 +85,7 @@ Example:
 | `packages/host-node` | Node filesystem host adapter, discovery stub, tail reader |
 | `packages/server` | Local Hono server, SSE stream, detail/search endpoints |
 | `packages/ui` | React UI, Zustand store, timeline/detail/filter components |
-| `packages/cli` | `ahp-viewer` CLI entrypoint |
+| `packages/cli` | `ahp-inspector` CLI entrypoint |
 | `test/fixtures` | Scrubbed JSONL fixtures, including long realistic traffic |
 | `.planning` | GSD project roadmap, phase plans, reviews, and state |
 
@@ -95,14 +95,14 @@ Example:
 pnpm test
 pnpm typecheck
 pnpm lint
-pnpm -F @ahp-viewer/ui build
-pnpm -F @ahp-viewer/cli build
+pnpm -F @ahp-inspector/ui build
+pnpm -F @ahp-inspector/cli build
 ```
 
 The full local verification gate used during development is:
 
 ```bash
-pnpm test && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint
+pnpm test && pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/cli build && pnpm typecheck && pnpm lint
 ```
 
 ## Privacy and security posture

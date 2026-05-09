@@ -9,7 +9,7 @@
 
 ### What Shipped
 
-- A standalone local CLI-launched AHP Log Viewer with loopback-only server, CSP/host guard, static UI serving, and no outbound viewing dependencies.
+- A standalone local CLI-launched AHP Inspector with loopback-only server, CSP/host guard, static UI serving, and no outbound viewing dependencies.
 - A tolerant JSONL ingestion pipeline with canonical AHP event normalization, legacy sample adapter, scrubbed fixtures, and JSON-RPC-safe request/response correlation.
 - A fast virtualized timeline with search, faceted filters, grouping, keyboard navigation, parse-error rows, row summaries, and request/response pair highlighting.
 - A detail inspector with AHP-specific field strip, correlation metadata, expanded Pretty JSON, raw JSON, truncation handling, and copy actions.
@@ -19,8 +19,8 @@
 ### Quality Gates
 
 - `pnpm test` — 45 files / 562 tests passed
-- `pnpm -F @ahp-viewer/ui build` — passed
-- `pnpm -F @ahp-viewer/cli build` — passed
+- `pnpm -F @ahp-inspector/ui build` — passed
+- `pnpm -F @ahp-inspector/cli build` — passed
 - `pnpm typecheck` — passed
 - `pnpm lint` — passed
 - `pnpm e2e` — passed

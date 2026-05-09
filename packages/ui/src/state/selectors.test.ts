@@ -3,7 +3,7 @@
  * Unit tests for selectors: applyFacets, useFilteredRows, useFacetCounts, useGroupedItems.
  * Environment: jsdom (packages/ui/vitest.config.ts)
  */
-import type { EventRow } from "@ahp-viewer/core";
+import type { EventRow } from "@ahp-inspector/core";
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { applyFacets, EMPTY_FILTERS } from "./filters.js";

@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { readdir, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, join, sep } from "node:path";
-import type { DiscoveryResult, LogCandidate } from "@ahp-viewer/shared";
+import type { DiscoveryResult, LogCandidate } from "@ahp-inspector/shared";
 
 const DEFAULT_TIME_BUDGET_MS = 1500;
 const DEFAULT_MAX_STATS = 5000;

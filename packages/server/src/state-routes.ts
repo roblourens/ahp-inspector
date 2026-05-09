@@ -4,7 +4,7 @@ import type {
   ReplayDiagnostic,
   ReplayResourceKind,
   ReplayResourceState,
-} from "@ahp-viewer/core";
+} from "@ahp-inspector/core";
 import type { Hono } from "hono";
 import type { LogSessionManager } from "./session-manager.js";
 import type { StateReplayCacheInfo } from "./state-replay-index.js";

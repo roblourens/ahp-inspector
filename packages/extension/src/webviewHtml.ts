@@ -18,7 +18,7 @@ export interface WebviewHtmlOptions {
   readonly nonce: string;
   /** `webview.cspSource` from the active panel. */
   readonly cspSource: string;
-  /** Page title (defaults to "AHP Log Viewer"). */
+  /** Page title (defaults to "AHP Inspector"). */
   readonly title?: string;
 }
 
@@ -45,7 +45,7 @@ export function generateNonce(): string {
 }
 
 export function renderWebviewHtml(opts: WebviewHtmlOptions): string {
-  const title = escapeHtml(opts.title ?? "AHP Log Viewer");
+  const title = escapeHtml(opts.title ?? "AHP Inspector");
   const nonce = escapeHtml(opts.nonce);
   const scriptUri = escapeHtml(opts.scriptUri);
   const cspSource = escapeHtml(opts.cspSource);

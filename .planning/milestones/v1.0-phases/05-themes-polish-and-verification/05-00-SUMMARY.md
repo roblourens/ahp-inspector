@@ -35,7 +35,7 @@ Phase 5 now has committed browser E2E infrastructure and automated token/color g
 
 - `pnpm install --lockfile-only` — passed
 - `pnpm exec playwright test --list` — passed
-- `pnpm -F @ahp-viewer/ui test src/styles/no-hex-in-components.test.ts src/styles/theme-tokens.test.ts` — passed
+- `pnpm -F @ahp-inspector/ui test src/styles/no-hex-in-components.test.ts src/styles/theme-tokens.test.ts` — passed
 
 ## Deviations from Plan
 

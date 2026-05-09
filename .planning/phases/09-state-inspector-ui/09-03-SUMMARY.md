@@ -63,7 +63,7 @@ pnpm test -- packages/ui/src/components/detail/StateInspectorPanel.test.tsx pack
 pnpm test
 pnpm typecheck
 pnpm lint
-pnpm -F @ahp-viewer/ui build
+pnpm -F @ahp-inspector/ui build
 ```
 
 Browser smoke used a synthetic snapshot JSONL with an unknown replay action diagnostic, selected a session resource, verified confidence/diagnostics, used all three state copy actions, switched Summary/Pretty/Raw tabs, checked light and hacker themes, and saved `screenshots/phase9/09-03-confidence-diagnostics-copy-smoke.png`.

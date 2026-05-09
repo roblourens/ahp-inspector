@@ -1,4 +1,4 @@
-import type { ActionFamily } from "@ahp-viewer/core";
+import type { ActionFamily } from "@ahp-inspector/core";
 import type { JSX } from "react";
 
 const VAR: Record<NonNullable<ActionFamily>, string> = {

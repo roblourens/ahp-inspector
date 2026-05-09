@@ -1,8 +1,8 @@
-# AHP Log Viewer
+# AHP Inspector
 
 ## What This Is
 
-AHP Log Viewer is a shipped local-first GUI for discovering, watching, searching, and understanding Agent Host Protocol JSONL traffic logs. It runs as a standalone CLI-launched local web app and keeps the architecture compatible with a future VS Code extension/webview host. It turns raw VS Code-to-agent-host JSON-RPC traffic into a fast, information-dense, polished timeline with expandable details.
+AHP Inspector is a shipped local-first GUI for discovering, watching, searching, and understanding Agent Host Protocol JSONL traffic logs. It runs as a standalone CLI-launched local web app and keeps the architecture compatible with a future VS Code extension/webview host. It turns raw VS Code-to-agent-host JSON-RPC traffic into a fast, information-dense, polished timeline with expandable details.
 
 ## Core Value
 
@@ -74,7 +74,7 @@ Final gate passed: `pnpm test`, UI build, CLI build, typecheck, lint, E2E, state
 
 The Agent Host Protocol (AHP) is a JSON-RPC 2.0 protocol used by clients such as VS Code to communicate with agent hosts. The protocol defines requests, notifications, actions, session/resource flows, authentication, and state updates. Protocol details, TypeScript types, and JSON schemas live in `../agent-host-protocol`.
 
-VS Code can emit AHP traffic as JSONL logs. AHP Log Viewer treats the real JSONL shape as canonical while keeping a legacy adapter for old human-readable sample logs. The primary user is a developer debugging or exploring VS Code-to-agent-host behavior who needs to identify what happened, what failed, what changed state, and which events belong together without reading raw JSONL line by line.
+VS Code can emit AHP traffic as JSONL logs. AHP Inspector treats the real JSONL shape as canonical while keeping a legacy adapter for old human-readable sample logs. The primary user is a developer debugging or exploring VS Code-to-agent-host behavior who needs to identify what happened, what failed, what changed state, and which events belong together without reading raw JSONL line by line.
 
 ## Constraints
 

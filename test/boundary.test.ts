@@ -20,9 +20,9 @@ const FORBIDDEN_PATTERNS: RegExp[] = [
   /^react-dom($|\/)/,
   /^vite$/,
   /^hono($|\/)/,
-  /^@ahp-viewer\/host-node($|\/)/,
+  /^@ahp-inspector\/host-node($|\/)/,
   /^vscode$/,
-  /^@ahp-viewer\/extension($|\/)/,
+  /^@ahp-inspector\/extension($|\/)/,
 ];
 
 const UI_FORBIDDEN_PATTERNS: RegExp[] = [
@@ -33,11 +33,11 @@ const UI_FORBIDDEN_PATTERNS: RegExp[] = [
   /^chokidar$/,
   /^hono($|\/)/,
   /^@hono\//,
-  /^@ahp-viewer\/host-node($|\/)/,
-  /^@ahp-viewer\/server($|\/)/,
-  /^@ahp-viewer\/parser\/legacy/,
+  /^@ahp-inspector\/host-node($|\/)/,
+  /^@ahp-inspector\/server($|\/)/,
+  /^@ahp-inspector\/parser\/legacy/,
   /^vscode$/,
-  /^@ahp-viewer\/extension($|\/)/,
+  /^@ahp-inspector\/extension($|\/)/,
 ];
 
 // Server package boundary — must not import the extension package, since the
@@ -45,7 +45,7 @@ const UI_FORBIDDEN_PATTERNS: RegExp[] = [
 const SERVER_ROOTS = ["packages/server/src"];
 const SERVER_FORBIDDEN_PATTERNS: RegExp[] = [
   /^vscode$/,
-  /^@ahp-viewer\/extension($|\/)/,
+  /^@ahp-inspector\/extension($|\/)/,
 ];
 
 // Capture the import specifier in either `import ... from "x"` or bare `from "x"`.

@@ -2,7 +2,7 @@
 /**
  * Tests for CopyMenu copy actions (WR-01: raw vs pretty JSON differentiation).
  */
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CopyMenu } from "./CopyMenu.js";

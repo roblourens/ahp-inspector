@@ -19,7 +19,7 @@ No `./copilot-instructions.md` exists in the repo. Constraints inherited from `.
 - **Local-only privacy:** no telemetry, no CDN, no outbound network. CSP is `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; ...` (see `packages/server/src/csp.ts`). New deps must keep `script-src 'self'` valid (no `eval`, no `new Function`, no remote workers).
 - **Dependency allow-list (`test/security.test.ts`):** every new package must be added to the `ALLOW` set in the same plan that introduces it. This is a hard test gate.
 - **No raw `#hex` literals in components** (`packages/ui/src/components/`). Phase-2 grep guard: `rg -n '#[0-9a-fA-F]{3,8}' packages/ui/src/components/` must return zero. Use design tokens from `tokens.css`.
-- **Boundary test (`test/boundary.test.ts`):** UI source must not import `node:`, `fs`, `path`, `chokidar`, `hono`, or host-node. Search/detail logic that must touch the filesystem stays in `@ahp-viewer/server` or `@ahp-viewer/core`.
+- **Boundary test (`test/boundary.test.ts`):** UI source must not import `node:`, `fs`, `path`, `chokidar`, `hono`, or host-node. Search/detail logic that must touch the filesystem stays in `@ahp-inspector/server` or `@ahp-inspector/core`.
 - **Real JSONL is canonical; fixtures must be synthetic/scrubbed** (`test/fixture-scrub.test.ts`).
 - **EventRow is a locked contract.** `row-projection.ts:9-13` says: "Adding fields is non-breaking; renaming/removing is breaking." Adding `errorCode`/`serverSeq` for EVENT-06 is allowed; renaming any existing field is not.
 - **AppState never emits absolute paths** (T-02-03). Only `basename(filename)` crosses the boundary. Detail responses must follow the same rule (sanitize anything that could be a path).
@@ -98,7 +98,7 @@ No `./copilot-instructions.md` exists in the repo. Constraints inherited from `.
 
 **Installation (when planner extends Wave 0 / `test/security.test.ts` allow-list):**
 ```bash
-pnpm -F @ahp-viewer/ui add react-json-view-lite@2.5.0
+pnpm -F @ahp-inspector/ui add react-json-view-lite@2.5.0
 ```
 Add `"react-json-view-lite"` to the `ALLOW` set in `test/security.test.ts`.
 
@@ -330,29 +330,29 @@ Local devtool, but logs contain tokens, prompts, file paths, model output. Threa
 |----------|-------|
 | Framework | Vitest 4.1.5 (root + `packages/ui` jsdom config) |
 | Config file | `vitest.config.ts` (root) + `packages/ui/vitest.config.ts` (jsdom) |
-| Quick run command | `pnpm -F @ahp-viewer/<pkg> test` for the changed package |
+| Quick run command | `pnpm -F @ahp-inspector/<pkg> test` for the changed package |
 | Full suite command | `pnpm test` (root, all packages) |
 | UAT framework | Installed `playwright-cli` skill (per project constraints) — used for browser verification, not unit tests |
 
 ### Phase Requirements → Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| TIME-04 | Mouse + keyboard selection persists across filter changes | unit (jsdom) | `pnpm -F @ahp-viewer/ui test src/components/timeline/TimelineRegion.selection.test.tsx` | ❌ Wave 0 |
-| TIME-05 | Grouping toggle reorders rows; selection preserved | unit (jsdom) | `pnpm -F @ahp-viewer/ui test src/components/timeline/grouping.test.tsx` | ❌ Wave 5 |
-| DETAIL-01 | Selecting a row opens detail; virtualization unchanged (DOM row count) | unit (jsdom) | `pnpm -F @ahp-viewer/ui test src/components/detail/DetailPanel.virt.test.tsx` | ❌ Wave 2 |
-| DETAIL-02 | Detail shows summary + correlation + raw JSON for fetched event | unit (jsdom) | `pnpm -F @ahp-viewer/ui test src/components/detail/DetailPanel.test.tsx` | ❌ Wave 2 |
-| DETAIL-03 | 256KB cap, copy action, raw/pretty toggle, truncation banner | unit (jsdom) | `pnpm -F @ahp-viewer/ui test src/components/detail/PayloadTooLarge.test.tsx` | ❌ Wave 2 |
-| DETAIL-04 | All 9 AHP-specific fields render when present in raw | unit (jsdom) | `pnpm -F @ahp-viewer/ui test src/components/detail/DetailSummary.fields.test.tsx` | ❌ Wave 2 |
-| SEARCH-01 | Server endpoint matches across method/actionType/IDs/session/turn/error/payload | integration (node) | `pnpm -F @ahp-viewer/server test src/search-routes.test.ts` | ❌ Wave 4 |
-| SEARCH-02 | Each of 8 facets filters correctly; combinations intersect | unit | `pnpm -F @ahp-viewer/ui test src/state/selectors.test.ts` | ❌ Wave 3 |
-| SEARCH-03 | Typing 100 chars produces no >16ms blocked frame (perf assertion) | unit (perf) | `pnpm -F @ahp-viewer/ui test src/state/selectors.perf.test.ts` | ❌ Wave 3 |
-| SEARCH-04 | Active filter chips render; "Clear all" resets state | unit | `pnpm -F @ahp-viewer/ui test src/components/filters/FilterBar.test.tsx` | ❌ Wave 3 |
-| EVENT-06 | serverSeq gap and auth-failure (-32007 + notify/authRequired) detected and surfaced | unit + integration | `pnpm -F @ahp-viewer/core test src/row-projection.gap.test.ts && pnpm -F @ahp-viewer/server test src/app-state.auth.test.ts` | ❌ Wave 0 + 5 |
+| TIME-04 | Mouse + keyboard selection persists across filter changes | unit (jsdom) | `pnpm -F @ahp-inspector/ui test src/components/timeline/TimelineRegion.selection.test.tsx` | ❌ Wave 0 |
+| TIME-05 | Grouping toggle reorders rows; selection preserved | unit (jsdom) | `pnpm -F @ahp-inspector/ui test src/components/timeline/grouping.test.tsx` | ❌ Wave 5 |
+| DETAIL-01 | Selecting a row opens detail; virtualization unchanged (DOM row count) | unit (jsdom) | `pnpm -F @ahp-inspector/ui test src/components/detail/DetailPanel.virt.test.tsx` | ❌ Wave 2 |
+| DETAIL-02 | Detail shows summary + correlation + raw JSON for fetched event | unit (jsdom) | `pnpm -F @ahp-inspector/ui test src/components/detail/DetailPanel.test.tsx` | ❌ Wave 2 |
+| DETAIL-03 | 256KB cap, copy action, raw/pretty toggle, truncation banner | unit (jsdom) | `pnpm -F @ahp-inspector/ui test src/components/detail/PayloadTooLarge.test.tsx` | ❌ Wave 2 |
+| DETAIL-04 | All 9 AHP-specific fields render when present in raw | unit (jsdom) | `pnpm -F @ahp-inspector/ui test src/components/detail/DetailSummary.fields.test.tsx` | ❌ Wave 2 |
+| SEARCH-01 | Server endpoint matches across method/actionType/IDs/session/turn/error/payload | integration (node) | `pnpm -F @ahp-inspector/server test src/search-routes.test.ts` | ❌ Wave 4 |
+| SEARCH-02 | Each of 8 facets filters correctly; combinations intersect | unit | `pnpm -F @ahp-inspector/ui test src/state/selectors.test.ts` | ❌ Wave 3 |
+| SEARCH-03 | Typing 100 chars produces no >16ms blocked frame (perf assertion) | unit (perf) | `pnpm -F @ahp-inspector/ui test src/state/selectors.perf.test.ts` | ❌ Wave 3 |
+| SEARCH-04 | Active filter chips render; "Clear all" resets state | unit | `pnpm -F @ahp-inspector/ui test src/components/filters/FilterBar.test.tsx` | ❌ Wave 3 |
+| EVENT-06 | serverSeq gap and auth-failure (-32007 + notify/authRequired) detected and surfaced | unit + integration | `pnpm -F @ahp-inspector/core test src/row-projection.gap.test.ts && pnpm -F @ahp-inspector/server test src/app-state.auth.test.ts` | ❌ Wave 0 + 5 |
 | Phase gate | E2E: open fixture → search → filter → group → select → detail | integration | `pnpm test test/phase3-vertical-slice.test.ts` | ❌ Wave 6 |
 | Phase gate (UAT) | Browser UAT screenshots via Playwright skill | manual-driven | (see `.agents/skills/playwright-cli`) | manual |
 
 ### Sampling Rate
-- **Per task commit:** package-scoped `pnpm -F @ahp-viewer/<pkg> test`
+- **Per task commit:** package-scoped `pnpm -F @ahp-inspector/<pkg> test`
 - **Per wave merge:** root `pnpm test` (all Vitest suites)
 - **Phase gate:** `pnpm test` green + Playwright UAT screenshots committed under `screenshots/phase3-*`
 

@@ -4,19 +4,19 @@ plan: 02
 subsystem: parser
 tags: [parser, normalizer, ahp-types, jsonl, legacy-adapter, host-protocol]
 requires:
-  - "@ahp-viewer/shared (Plan 01-01 stub)"
-  - "@ahp-viewer/parser (Plan 01-01 stub)"
+  - "@ahp-inspector/shared (Plan 01-01 stub)"
+  - "@ahp-inspector/parser (Plan 01-01 stub)"
   - "agent-host-protocol sibling repo at ../agent-host-protocol"
   - "test/fixtures/{tiny,malformed,crlf,bom}.jsonl + legacy.sample.log (Plan 01-01)"
 provides:
-  - "@ahp-viewer/shared: AhpEvent envelope + EventKind/Direction/IdType/ParseStatus/NormalizeMeta"
-  - "@ahp-viewer/shared: makeParseErrorEvent (8 KiB rawText cap)"
-  - "@ahp-viewer/shared: makeCorrelationKey / correlationKeyForRequest / correlationKeyForResponse"
-  - "@ahp-viewer/shared: HostMessage union + HostAdapter / HostClient / LogHandle / LogCandidate / Disposable"
-  - "@ahp-viewer/shared/ahp: verbatim re-exports of the AHP type surface"
-  - "@ahp-viewer/parser: LineSplitter + parseLine + ParsedLine + MAX_BUF_BYTES + ParseOverflowError"
-  - "@ahp-viewer/parser: normalize(raw, meta) → AhpEvent (never throws)"
-  - "@ahp-viewer/parser/legacy: parseLegacyBlock + parseLegacyStream (isolated, not in main barrel)"
+  - "@ahp-inspector/shared: AhpEvent envelope + EventKind/Direction/IdType/ParseStatus/NormalizeMeta"
+  - "@ahp-inspector/shared: makeParseErrorEvent (8 KiB rawText cap)"
+  - "@ahp-inspector/shared: makeCorrelationKey / correlationKeyForRequest / correlationKeyForResponse"
+  - "@ahp-inspector/shared: HostMessage union + HostAdapter / HostClient / LogHandle / LogCandidate / Disposable"
+  - "@ahp-inspector/shared/ahp: verbatim re-exports of the AHP type surface"
+  - "@ahp-inspector/parser: LineSplitter + parseLine + ParsedLine + MAX_BUF_BYTES + ParseOverflowError"
+  - "@ahp-inspector/parser: normalize(raw, meta) → AhpEvent (never throws)"
+  - "@ahp-inspector/parser/legacy: parseLegacyBlock + parseLegacyStream (isolated, not in main barrel)"
 affects:
   - "test/security.test.ts (allow-list now includes agent-host-protocol)"
   - "test/boundary.test.ts (now excludes *.test.ts so test files may use node:fs)"
@@ -73,7 +73,7 @@ metrics:
 
 # Phase 01 Plan 02: Event Model + JSONL Parser + Legacy Adapter Summary
 
-Locked the canonical `AhpEvent` envelope, correlation key, and host-protocol seam in `@ahp-viewer/shared`, then shipped a tolerant streaming JSONL parser plus an isolated legacy sample-log adapter — all behind a single `parse → AhpEvent` surface that never throws.
+Locked the canonical `AhpEvent` envelope, correlation key, and host-protocol seam in `@ahp-inspector/shared`, then shipped a tolerant streaming JSONL parser plus an isolated legacy sample-log adapter — all behind a single `parse → AhpEvent` surface that never throws.
 
 ## Commits
 
@@ -85,7 +85,7 @@ Locked the canonical `AhpEvent` envelope, correlation key, and host-protocol sea
 
 ## What Shipped
 
-### Locked Contracts (`@ahp-viewer/shared`)
+### Locked Contracts (`@ahp-inspector/shared`)
 
 | Symbol                                | File                              | Purpose                                                              |
 | ------------------------------------- | --------------------------------- | -------------------------------------------------------------------- |
@@ -97,7 +97,7 @@ Locked the canonical `AhpEvent` envelope, correlation key, and host-protocol sea
 | `makeCorrelationKey` + helpers        | src/correlation.ts:30,45,58      | Direction-inverting JSON-RPC pairing key (Pitfall 2).                |
 | `HostAdapter` / `HostClient` / `HostMessage` | src/host-protocol.ts:34,45,90 | Future-VS-Code-webview seam — types only.                          |
 
-### AHP Re-exports (`@ahp-viewer/shared/ahp`)
+### AHP Re-exports (`@ahp-inspector/shared/ahp`)
 
 | Re-exported symbol                   | Upstream source                                  | Kind |
 | ------------------------------------ | ------------------------------------------------ | ---- |
@@ -112,7 +112,7 @@ Locked the canonical `AhpEvent` envelope, correlation key, and host-protocol sea
 
 `ActionType` and `NotificationType` are re-exported as TYPES only — under `verbatimModuleSyntax + isolatedModules`, `const enum`s cannot be re-exported as runtime values. Consumers narrow string literals against the imported type alias.
 
-### Parser Surface (`@ahp-viewer/parser`)
+### Parser Surface (`@ahp-inspector/parser`)
 
 | Export                          | File                                | Behavior                                                               |
 | ------------------------------- | ----------------------------------- | ---------------------------------------------------------------------- |

@@ -6,7 +6,7 @@
 
 ## Summary
 
-Phase 7 should implement a pure replay engine in `@ahp-viewer/core` that consumes canonical `AhpEvent[]` / `EventStore` data and reconstructs AHP resource state by applying generated `@ahp-viewer/protocol` reducers. `@ahp-viewer/core` is the right boundary because it already owns pure event storage, row projection, correlation-facing models, and domain logic, while server cache/API lifecycle is Phase 8 and UI is Phase 9.
+Phase 7 should implement a pure replay engine in `@ahp-inspector/core` that consumes canonical `AhpEvent[]` / `EventStore` data and reconstructs AHP resource state by applying generated `@ahp-inspector/protocol` reducers. `@ahp-inspector/core` is the right boundary because it already owns pure event storage, row projection, correlation-facing models, and domain logic, while server cache/API lifecycle is Phase 8 and UI is Phase 9.
 
 Replay should process events from index `0..targetIndex` in log order, update replay resources keyed by target URI, and expose diagnostics for incomplete or suspicious inputs. Baselines come from `initialize.result.snapshots[]`, `subscribe.result.snapshot`, and reconnect snapshot results. Mutations come only from server action envelopes (`method: "action"` / `AhpEvent.kind === "action"`) and reconnect replay embedded `actions[]`. Client `dispatchAction` notifications are diagnostic intent only and must not mutate canonical reconstructed state.
 
@@ -16,7 +16,7 @@ Reducer determinism requires temporarily patching `Date.now()` to the current ev
 
 - Add replay implementation in `packages/core/src/replay.ts` and tests in `packages/core/src/replay.test.ts`.
 - Export replay symbols from `packages/core/src/index.ts`.
-- Add `@ahp-viewer/protocol: "workspace:*"` to `packages/core/package.json`.
+- Add `@ahp-inspector/protocol: "workspace:*"` to `packages/core/package.json`.
 - Do not place replay in `packages/server`; server integration and caching belong to Phase 8.
 - Do not add routes or UI; `/api/state-at` is Phase 8 and inspector UI is Phase 9.
 
@@ -272,7 +272,7 @@ Scope:
 - Add `packages/core/src/replay.ts`.
 - Add replay result/resource/diagnostic/client-intent types.
 - Add helper type guards and target inference.
-- Add `@ahp-viewer/protocol` dependency to `packages/core/package.json`.
+- Add `@ahp-inspector/protocol` dependency to `packages/core/package.json`.
 - Export replay symbols from `packages/core/src/index.ts`.
 - Implement baseline install from `initialize` and `subscribe` responses using replay-local request pairing.
 - Implement server `method: "action"` envelope application.

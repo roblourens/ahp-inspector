@@ -1,5 +1,5 @@
 // Correlator — pairs request/response events using the bidirectional
-// JSON-RPC-safe correlation key from @ahp-viewer/shared.
+// JSON-RPC-safe correlation key from @ahp-inspector/shared.
 //
 // 01-RESEARCH.md Pattern 4 (lines 277-319) + Pitfall 2 (lines 444-447).
 // Threat: T-03-02 (mispairing across direction or id-type).
@@ -12,8 +12,8 @@
 // Notifications, actions, protocol-notifications, parse-errors, and log lines
 // MUST NOT touch the correlation map (status defaults to 'n/a').
 
-import type { AhpEvent, CorrelationKey } from "@ahp-viewer/shared";
-import { correlationKeyForRequest, correlationKeyForResponse } from "@ahp-viewer/shared";
+import type { AhpEvent, CorrelationKey } from "@ahp-inspector/shared";
+import { correlationKeyForRequest, correlationKeyForResponse } from "@ahp-inspector/shared";
 import type { AppendRange, EventStore } from "./event-store.js";
 import type { Status } from "./types.js";
 

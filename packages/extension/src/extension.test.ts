@@ -126,12 +126,12 @@ function makeContext(): FakeContext {
   };
 }
 
-describe("ahp-viewer extension", () => {
-  it("activate registers ahpViewer.open and deactivate is a no-op", () => {
+describe("ahp-inspector extension", () => {
+  it("activate registers ahpInspector.open and deactivate is a no-op", () => {
     fake.registered.length = 0;
     const ctx = makeContext();
     activate(ctx as never);
-    expect(fake.registered.map((c) => c.id)).toEqual(["ahpViewer.open"]);
+    expect(fake.registered.map((c) => c.id)).toEqual(["ahpInspector.open"]);
     expect(ctx.subscriptions.length).toBeGreaterThan(0);
     expect(() => deactivate()).not.toThrow();
   });
@@ -141,7 +141,7 @@ describe("ahp-viewer extension", () => {
     fake.panels.length = 0;
     fake.setActiveDocument(null);
     activate(makeContext() as never);
-    const cmd = fake.registered.find((c) => c.id === "ahpViewer.open");
+    const cmd = fake.registered.find((c) => c.id === "ahpInspector.open");
     expect(cmd).toBeDefined();
     cmd?.handler();
     expect(fake.panels).toHaveLength(1);

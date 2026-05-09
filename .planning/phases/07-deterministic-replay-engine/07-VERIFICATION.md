@@ -12,12 +12,12 @@ verified: 2026-05-08
 
 ## Goal Achievement
 
-Phase 7 achieved its goal: `@ahp-viewer/core` now has a pure deterministic replay engine that reconstructs root, session, and terminal state from canonical AHP snapshots and server action envelopes using generated `@ahp-viewer/protocol` reducers/types.
+Phase 7 achieved its goal: `@ahp-inspector/core` now has a pure deterministic replay engine that reconstructs root, session, and terminal state from canonical AHP snapshots and server action envelopes using generated `@ahp-inspector/protocol` reducers/types.
 
 ## Verified Outcomes
 
 - Replay exposes a pure `replayToIndex(events, targetIndex)` API returning reconstructed resources, client intents, and diagnostics.
-- Core replay imports canonical reducers, actions, and state types directly from `@ahp-viewer/protocol`.
+- Core replay imports canonical reducers, actions, and state types directly from `@ahp-inspector/protocol`.
 - Initialize, subscribe, and reconnect snapshot responses install root/session/terminal baselines.
 - Server action envelopes apply to the correct canonical root/session/terminal reducer when a baseline exists.
 - Malformed payloads, missing baselines, unknown actions, parse errors, server sequence gaps, duplicates, and out-of-order envelopes produce diagnostics instead of crashes.

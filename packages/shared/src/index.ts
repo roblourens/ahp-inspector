@@ -1,5 +1,5 @@
-// Public barrel for @ahp-viewer/shared. AHP re-exports live behind the
-// dedicated subpath `@ahp-viewer/shared/ahp` so consumers opt in explicitly.
+// Public barrel for @ahp-inspector/shared. AHP re-exports live behind the
+// dedicated subpath `@ahp-inspector/shared/ahp` so consumers opt in explicitly.
 
 export * from "./correlation.js";
 export * from "./event.js";

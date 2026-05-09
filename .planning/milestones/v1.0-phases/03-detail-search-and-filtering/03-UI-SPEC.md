@@ -155,7 +155,7 @@ When a field is absent on the selected event, the row is omitted entirely from t
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ Header bar (40px)         AHP Log Viewer · v0.3                              │
+│ Header bar (40px)         AHP Inspector · v0.3                              │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │ Source strip (32px)       📄 sample.jsonl · 12,431 events · 3 sessions       │
 ├──────────────────────────────────────────────────────────────────────────────┤

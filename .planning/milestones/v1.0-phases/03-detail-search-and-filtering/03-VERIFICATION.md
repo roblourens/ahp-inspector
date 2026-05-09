@@ -107,8 +107,8 @@ overrides_applied: 0
 
 Full test suite results (per 03-06 gate and post-review-fix evidence):
 - **402 tests / 30 test files — all passing**
-- `pnpm -F @ahp-viewer/ui build` — ✓ clean
-- `pnpm -F @ahp-viewer/cli build` — ✓ clean
+- `pnpm -F @ahp-inspector/ui build` — ✓ clean
+- `pnpm -F @ahp-inspector/cli build` — ✓ clean
 - `pnpm typecheck` — ✓ clean
 - `pnpm lint` — 0 errors, 2 biome-ignore comment warnings (documented)
 

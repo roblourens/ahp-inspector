@@ -70,11 +70,11 @@ Built every NEW Phase 4 picker component as pure presentation surface — `SafeC
 
 | Command                                                                                                                               | Result |
 | ------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| `pnpm -F @ahp-viewer/ui test src/components/picker/CandidateRow.test.tsx`                                                             | 4/4 ✅ |
-| `pnpm -F @ahp-viewer/ui test src/components/picker/ManualOpenInput.test.tsx`                                                          | 5/5 ✅ |
-| `pnpm -F @ahp-viewer/ui test src/components/states/NoActiveLogState.test.tsx`                                                         | 5/5 ✅ |
+| `pnpm -F @ahp-inspector/ui test src/components/picker/CandidateRow.test.tsx`                                                             | 4/4 ✅ |
+| `pnpm -F @ahp-inspector/ui test src/components/picker/ManualOpenInput.test.tsx`                                                          | 5/5 ✅ |
+| `pnpm -F @ahp-inspector/ui test src/components/states/NoActiveLogState.test.tsx`                                                         | 5/5 ✅ |
 | Combined run (all three above)                                                                                                        | 14/14 ✅ |
-| `pnpm -F @ahp-viewer/ui build`                                                                                                        | ✅ (vite production build) |
+| `pnpm -F @ahp-inspector/ui build`                                                                                                        | ✅ (vite production build) |
 | `pnpm typecheck` (workspace)                                                                                                          | ✅ all 7 packages |
 | `grep -nE "#[0-9a-fA-F]{3,}" packages/ui/src/components/picker/*.tsx packages/ui/src/components/states/NoActiveLogState.tsx`          | no matches (no raw hex) |
 | `npx biome check` over new + modified files                                                                                           | 0 errors |

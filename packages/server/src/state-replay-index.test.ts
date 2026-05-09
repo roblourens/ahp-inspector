@@ -1,5 +1,5 @@
-import { EventStore } from "@ahp-viewer/core";
-import type { AhpEvent } from "@ahp-viewer/shared";
+import { EventStore } from "@ahp-inspector/core";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import { describe, expect, it } from "vitest";
 import { StateReplayIndex } from "./state-replay-index.js";
 

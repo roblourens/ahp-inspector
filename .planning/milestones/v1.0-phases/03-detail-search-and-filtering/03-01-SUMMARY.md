@@ -73,7 +73,7 @@ npx vitest run (full suite)          → 285 tests pass (267 baseline + 18 new)
 - [x] `GET /api/log/search?q=` returns all indices (match-all)
 - [x] Query length > 256 chars is silently truncated; result count never exceeds 5000
 - [x] Both routes are registered in `startLogServer` after SSE routes
-- [x] `pnpm -F @ahp-viewer/server test` all green (25 tests)
+- [x] `pnpm -F @ahp-inspector/server test` all green (25 tests)
 - [x] `pnpm typecheck` green
 
 ## Deviations from Plan

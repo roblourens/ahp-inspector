@@ -1,7 +1,7 @@
 /**
  * http-client.ts — browser-only transport for the detail API (Plan 03-04).
  *
- * MUST NOT import node:, fs, path, hono, or @ahp-viewer/server.
+ * MUST NOT import node:, fs, path, hono, or @ahp-inspector/server.
  * boundary.test.ts enforces this at CI time.
  *
  * Security:
@@ -9,8 +9,8 @@
  *   new selectedIdx change in DetailPanel's useEffect cleanup.
  */
 
-import type { Status } from "@ahp-viewer/core";
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { Status } from "@ahp-inspector/core";
+import type { AhpEvent } from "@ahp-inspector/shared";
 
 export type { AhpEvent };
 

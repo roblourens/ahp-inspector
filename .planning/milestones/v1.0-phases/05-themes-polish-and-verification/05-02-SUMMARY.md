@@ -33,9 +33,9 @@ Dark, light, and hacker themes now share the Phase 5 polish token family, and ha
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/ui test src/styles/theme-tokens.test.ts src/styles/no-hex-in-components.test.ts src/styles/reduced-motion-css.test.ts` — passed
-- `pnpm -F @ahp-viewer/ui test src/components/shell/HeaderBar.test.tsx src/components/timeline/TimelineList.virt.test.tsx src/components/detail/DetailPanel.test.tsx` — passed
-- `pnpm -F @ahp-viewer/ui build` — passed
+- `pnpm -F @ahp-inspector/ui test src/styles/theme-tokens.test.ts src/styles/no-hex-in-components.test.ts src/styles/reduced-motion-css.test.ts` — passed
+- `pnpm -F @ahp-inspector/ui test src/components/shell/HeaderBar.test.tsx src/components/timeline/TimelineList.virt.test.tsx src/components/detail/DetailPanel.test.tsx` — passed
+- `pnpm -F @ahp-inspector/ui build` — passed
 
 ## Deviations from Plan
 

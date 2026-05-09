@@ -14,18 +14,18 @@
 //   - `dispose()` closes the active session, removes session-manager
 //     and AppState subscriptions, and ignores any further requests.
 
-import { discoverVsCodeLogs, NodeHostAdapter, resolveCandidateId } from "@ahp-viewer/host-node";
+import { discoverVsCodeLogs, NodeHostAdapter, resolveCandidateId } from "@ahp-inspector/host-node";
 import {
   createLogSessionManager,
   type LogSessionManager,
   type SsePayload,
-} from "@ahp-viewer/server";
+} from "@ahp-inspector/server";
 import type {
   ExtensionNotification,
   WebviewRequest,
   WebviewResponseError,
   WebviewSsePayload,
-} from "@ahp-viewer/shared";
+} from "@ahp-inspector/shared";
 
 const MAX_PATH_LEN = 4096;
 const MAX_QUERY_LEN = 256;

@@ -48,7 +48,7 @@
                   "react-dom": "Portable packages must not import react-dom.",
                   "vite": "Portable packages must not import vite.",
                   "hono": "Portable packages must not import hono.",
-                  "@ahp-viewer/host-node": "Portable packages must not import @ahp-viewer/host-node."
+                  "@ahp-inspector/host-node": "Portable packages must not import @ahp-inspector/host-node."
                 }
               }
             }

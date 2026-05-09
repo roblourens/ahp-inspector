@@ -10,7 +10,7 @@ describe("NodeHostAdapter", () => {
   let watchFile: string;
 
   beforeAll(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), "ahp-viewer-watch-"));
+    tmpDir = mkdtempSync(join(tmpdir(), "ahp-inspector-watch-"));
     watchFile = join(tmpDir, "live.jsonl");
     writeFileSync(watchFile, "line1\n");
   });

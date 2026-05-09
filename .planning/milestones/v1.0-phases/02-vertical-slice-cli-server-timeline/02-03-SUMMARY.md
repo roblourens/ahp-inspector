@@ -44,7 +44,7 @@ key-files:
 
 key-decisions:
   - "Plan 02-03: widen DirectionGlyph prop to Direction | 'unknown' locally — shared Direction is c2s|s2c only, but UI-SPEC §5.1 calls for an 'unknown' fallback glyph; widening the cell prop avoids changing the shared type."
-  - "Plan 02-03: import KindTag, ActionFamily, LatencyBand, Status from @ahp-viewer/core (re-exported barrel) and Direction from @ahp-viewer/shared (not in core barrel)."
+  - "Plan 02-03: import KindTag, ActionFamily, LatencyBand, Status from @ahp-inspector/core (re-exported barrel) and Direction from @ahp-inspector/shared (not in core barrel)."
 
 patterns-established:
   - "Cell component template: data-testid + data-{kind} attribute, inline style consuming var(--*) tokens, JSX returns a single span/div."
@@ -101,7 +101,7 @@ Plan metadata commit follows.
 
 ## Decisions Made
 
-- Imported `KindTag`, `ActionFamily`, `LatencyBand`, `Status` from `@ahp-viewer/core` (the public barrel), and `Direction` from `@ahp-viewer/shared` (since core does not re-export it).
+- Imported `KindTag`, `ActionFamily`, `LatencyBand`, `Status` from `@ahp-inspector/core` (the public barrel), and `Direction` from `@ahp-inspector/shared` (since core does not re-export it).
 - Widened `DirectionGlyph` prop locally to `Direction | "unknown"` to honor UI-SPEC §5.1's unknown-glyph requirement without altering the shared `Direction` union.
 
 ## Deviations from Plan
@@ -110,8 +110,8 @@ Plan metadata commit follows.
 
 **1. [Rule 3 — Blocking] Direction type mismatch with plan's stated interface**
 - **Found during:** Task 1 (DirectionGlyph implementation)
-- **Issue:** The plan asserted that `@ahp-viewer/core` exports `Direction = "c2s" | "s2c" | "unknown"`. In reality, `Direction` is defined in `@ahp-viewer/shared` as `"c2s" | "s2c"` only, and is not re-exported from core. Coding the cell as the plan literally specified would not type-check.
-- **Fix:** Import `Direction` from `@ahp-viewer/shared`, then locally widen the cell prop to `DirectionInput = Direction | "unknown"` so the third (unknown) case the plan and UI-SPEC §5.1 require remains addressable. Documented inline.
+- **Issue:** The plan asserted that `@ahp-inspector/core` exports `Direction = "c2s" | "s2c" | "unknown"`. In reality, `Direction` is defined in `@ahp-inspector/shared` as `"c2s" | "s2c"` only, and is not re-exported from core. Coding the cell as the plan literally specified would not type-check.
+- **Fix:** Import `Direction` from `@ahp-inspector/shared`, then locally widen the cell prop to `DirectionInput = Direction | "unknown"` so the third (unknown) case the plan and UI-SPEC §5.1 require remains addressable. Documented inline.
 - **Files modified:** `packages/ui/src/components/timeline/cells/DirectionGlyph.tsx`
 - **Verification:** `pnpm typecheck` passes; `DirectionGlyph.test.tsx` exercises all three cases.
 - **Committed in:** `70a9341` (Task 1 GREEN)
@@ -123,7 +123,7 @@ Plan metadata commit follows.
 
 ## Issues Encountered
 
-- `vitest run` from the repo root applied the root vitest config which only includes `**/*.test.ts` (not `.tsx`). Ran tests via `pnpm -F @ahp-viewer/ui` (which uses the UI package's vitest config including `.tsx`). Not a fix — just an invocation note for future runs.
+- `vitest run` from the repo root applied the root vitest config which only includes `**/*.test.ts` (not `.tsx`). Ran tests via `pnpm -F @ahp-inspector/ui` (which uses the UI package's vitest config including `.tsx`). Not a fix — just an invocation note for future runs.
 
 ## User Setup Required
 
@@ -137,8 +137,8 @@ None — no external services configured.
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/ui vitest run src/components/timeline/cells` → 6 files, 26 tests passed
-- `pnpm -F @ahp-viewer/ui build` → built in 269ms, no errors
+- `pnpm -F @ahp-inspector/ui vitest run src/components/timeline/cells` → 6 files, 26 tests passed
+- `pnpm -F @ahp-inspector/ui build` → built in 269ms, no errors
 - `pnpm typecheck` → 7 workspaces clean
 - `grep -rEn '#[0-9a-fA-F]{3,8}' packages/ui/src/components/timeline/cells/` → 0 hits
 

@@ -37,7 +37,7 @@
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/ui typecheck` — clean.
+- `pnpm -F @ahp-inspector/ui typecheck` — clean.
 - `pnpm exec vitest run packages/ui/src/transport/browser-client.test.ts
   packages/ui/src/transport/sessions-client.test.ts
   packages/ui/src/transport/http-client.test.ts

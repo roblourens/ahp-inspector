@@ -36,11 +36,11 @@ Phase 5 is verified end-to-end with Playwright browser UAT, a committed screensh
 
 - `pnpm e2e` — passed
 - `pnpm test` — passed
-- `pnpm -F @ahp-viewer/ui build` — passed
-- `pnpm -F @ahp-viewer/cli build` — passed
+- `pnpm -F @ahp-inspector/ui build` — passed
+- `pnpm -F @ahp-inspector/cli build` — passed
 - `pnpm typecheck` — passed
 - `pnpm lint` — passed
-- Final combined gate `pnpm test && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint && pnpm e2e` — passed
+- Final combined gate `pnpm test && pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/cli build && pnpm typecheck && pnpm lint && pnpm e2e` — passed
 
 ## Screenshot Matrix
 

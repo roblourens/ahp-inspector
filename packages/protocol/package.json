@@ -1,5 +1,5 @@
 {
-  "name": "@ahp-viewer/protocol",
+  "name": "@ahp-inspector/protocol",
   "version": "0.1.0",
   "private": true,
   "type": "module",

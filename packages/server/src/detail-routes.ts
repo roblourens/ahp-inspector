@@ -3,8 +3,8 @@
 // metadata for the UI detail panel (DETAIL-02, DETAIL-04).
 // T-03-01-03: idx validated; T-03-01-04: no absolute file paths in response.
 
-import type { Status } from "@ahp-viewer/core";
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { Status } from "@ahp-inspector/core";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import type { Hono } from "hono";
 import type { LogSessionManager } from "./session-manager.js";
 

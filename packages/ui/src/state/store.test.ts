@@ -1,4 +1,4 @@
-import type { EventRow } from "@ahp-viewer/core";
+import type { EventRow } from "@ahp-inspector/core";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useAppStore } from "./store.js";
 

@@ -1,4 +1,4 @@
-import type { EventRow, LatencyBand, Status } from "@ahp-viewer/core";
+import type { EventRow, LatencyBand, Status } from "@ahp-inspector/core";
 import { create } from "zustand";
 import {
   DETAIL_DEFAULT_WIDTH,

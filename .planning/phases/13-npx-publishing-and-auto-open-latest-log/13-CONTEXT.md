@@ -1,6 +1,6 @@
 # Phase 13 Context — npx publishing and auto-open latest log
 
-**Goal:** Ship the standalone AHP Log Viewer as a published npm package so a single `npx` invocation downloads the package, starts the loopback HTTP server, opens the browser, and immediately streams the most-recently-modified AHP JSONL log under the standard VS Code log roots.
+**Goal:** Ship the standalone AHP Inspector as a published npm package so a single `npx` invocation downloads the package, starts the loopback HTTP server, opens the browser, and immediately streams the most-recently-modified AHP JSONL log under the standard VS Code log roots.
 
 ## Why now
 
@@ -9,7 +9,7 @@ Phase 11 added a VS Code extension entry point. The standalone CLI still require
 ## Scope
 
 - Auto-discovery: when invoked with no path, pick the most-recently-modified candidate from `discoverVsCodeLogs()` and open it as the active log. If no candidate is found, fall back to today's "no active log" picker.
-- Packaging: choose a public scope/name (suggest `@ahp-viewer/cli` if scope is acquired, otherwise `ahp-viewer-cli`), define `bin`, ship prebuilt `packages/cli/dist` and `packages/ui/dist`, and bundle workspace deps so the published tarball is self-contained.
+- Packaging: choose a public scope/name (suggest `@ahp-inspector/cli` if scope is acquired, otherwise `ahp-inspector-cli`), define `bin`, ship prebuilt `packages/cli/dist` and `packages/ui/dist`, and bundle workspace deps so the published tarball is self-contained.
 - Release: a release script (or GH Actions workflow) bumps version, builds, runs typecheck/test, and publishes — with a documented dry-run / `npm pack` flow for safety.
 - Docs: README + USER_GUIDE call out the `npx` command, the auto-open rule, and the local-only privacy posture.
 
@@ -22,13 +22,13 @@ Phase 11 added a VS Code extension entry point. The standalone CLI still require
 
 ## Dependencies
 
-- Phase 4 — existing `discoverVsCodeLogs()` API in `@ahp-viewer/host-node`.
+- Phase 4 — existing `discoverVsCodeLogs()` API in `@ahp-inspector/host-node`.
 - Phase 11 — UI build + bundled assets pattern already exercised by `packages/extension/scripts/copy-ui-dist.cjs`.
 
 ## Open questions for `/gsd-plan-phase 13`
 
 - Final published package name + scope (need npm availability check).
-- Whether to publish a single binary package or separate `@ahp-viewer/cli` + `@ahp-viewer/ui` packages.
+- Whether to publish a single binary package or separate `@ahp-inspector/cli` + `@ahp-inspector/ui` packages.
 - CI publish trigger: tag push vs manual workflow dispatch.
 - Whether `npx` should default to `--no-open` in headless environments (CI), and how to detect headless.
 

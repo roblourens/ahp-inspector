@@ -5,9 +5,9 @@ subsystem: protocol
 tags: [ahp, workspace-dependencies, parser, shared]
 requires:
   - phase: 06-protocol-reducer-sync-foundation
-    provides: Generated @ahp-viewer/protocol package
+    provides: Generated @ahp-inspector/protocol package
 provides:
-  - Parser imports canonical protocol types directly from @ahp-viewer/protocol
+  - Parser imports canonical protocol types directly from @ahp-inspector/protocol
   - Shared compatibility layer aliases old I-prefixed names to canonical protocol exports
   - Stale agent-host-protocol file dependency removed from workspace manifests
 affects: [phase-06, phase-07, parser, shared]
@@ -27,10 +27,10 @@ key-files:
     - packages/protocol/src/*.ts
     - pnpm-lock.yaml
 key-decisions:
-  - "Parser imports ActionEnvelope and ProtocolNotification from @ahp-viewer/protocol rather than shared compatibility aliases."
+  - "Parser imports ActionEnvelope and ProtocolNotification from @ahp-inspector/protocol rather than shared compatibility aliases."
   - "Shared keeps I-prefixed aliases only as a compatibility subpath backed by generated protocol exports."
 patterns-established:
-  - "Direct protocol consumers use canonical names from @ahp-viewer/protocol."
+  - "Direct protocol consumers use canonical names from @ahp-inspector/protocol."
   - "Generated source includes @ts-nocheck so consuming workspace packages do not re-typecheck upstream reducer internals under stricter local flags."
 requirements-completed: [SYNC-04]
 duration: inline
@@ -48,9 +48,9 @@ completed: 2026-05-08
 
 ## Accomplishments
 
-- Replaced `agent-host-protocol` file dependency with `@ahp-viewer/protocol` workspace dependency.
+- Replaced `agent-host-protocol` file dependency with `@ahp-inspector/protocol` workspace dependency.
 - Updated parser normalization to import canonical `ActionEnvelope` and `ProtocolNotification`.
-- Reworked `@ahp-viewer/shared/ahp` into a compatibility re-export layer with I-prefixed aliases.
+- Reworked `@ahp-inspector/shared/ahp` into a compatibility re-export layer with I-prefixed aliases.
 - Updated dependency allow-list coverage to permit the generated protocol package and reject the stale file dependency.
 
 ## Task Commits
@@ -59,7 +59,7 @@ Plan tasks are committed together in the plan completion commit.
 
 ## Files Created/Modified
 
-- `packages/shared/package.json` - depends on `@ahp-viewer/protocol`.
+- `packages/shared/package.json` - depends on `@ahp-inspector/protocol`.
 - `packages/parser/package.json` - adds direct generated protocol dependency.
 - `packages/parser/src/normalizer.ts` - imports canonical protocol types.
 - `packages/shared/src/ahp/index.ts` - compatibility aliases backed by generated protocol exports.

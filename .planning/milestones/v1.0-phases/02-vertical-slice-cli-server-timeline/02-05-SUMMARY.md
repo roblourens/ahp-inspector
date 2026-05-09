@@ -11,7 +11,7 @@ requires:
     provides: open@^11.0.0 dependency allow-listed (Plan 02-00)
 provides:
   - classifyDirection(raw) helper inferring c2s/s2c structurally from JSON-RPC envelope
-  - ahp-viewer CLI Phase-2 entry — validates file/port, builds AppState, starts log-server, prints UI-SPEC §10 copy, opens loopback URL, disposes on signals
+  - ahp-inspector CLI Phase-2 entry — validates file/port, builds AppState, starts log-server, prints UI-SPEC §10 copy, opens loopback URL, disposes on signals
   - cli-launch.test.ts + cli-errors.test.ts — spawn-based integration tests covering the success path and four error paths (port-in-use gated)
   - test/fixtures/cli-mini.jsonl — 3-line JSONL exercising classifyDirection across request/response/action
 affects: [02-06]
@@ -41,7 +41,7 @@ key-decisions:
   - "classifyDirection assumes client-side capture: requests w/ method+id → c2s; result/error responses → s2c; method 'action' or 'notification' → s2c (server-originated). A future flag will inject an inverted inference for server-side logs."
   - "Removed cli.smoke.test.ts (Phase-1 health-check) instead of porting it; cli-launch.test.ts is its strict superset and exercises the real Phase-2 launch path including UI-SPEC §10 copy."
   - "Tests spawn via tsx (already in devDependencies) rather than building dist first — faster feedback loop, fewer flake surfaces, mirrors existing repo pattern."
-  - "Plan referenced LogServerHandle.sayGoodbye() but no such method exists in @ahp-viewer/server; shutdown calls appState.dispose() + serverHandle.close() only. Documented as deviation."
+  - "Plan referenced LogServerHandle.sayGoodbye() but no such method exists in @ahp-inspector/server; shutdown calls appState.dispose() + serverHandle.close() only. Documented as deviation."
 
 requirements-completed: [INGEST-01]
 
@@ -51,7 +51,7 @@ completed: 2026-05-07
 
 # Phase 02 Plan 05: CLI Launch Path Summary
 
-**ahp-viewer Phase-2 CLI entrypoint — validates file/port, structurally infers JSON-RPC direction, starts the loopback log-server, prints UI-SPEC §10 copy, opens the default browser, and disposes cleanly on SIGINT/SIGTERM.**
+**ahp-inspector Phase-2 CLI entrypoint — validates file/port, structurally infers JSON-RPC direction, starts the loopback log-server, prints UI-SPEC §10 copy, opens the default browser, and disposes cleanly on SIGINT/SIGTERM.**
 
 ## Performance
 
@@ -98,7 +98,7 @@ See frontmatter `key-decisions`.
 
 **1. [Rule 3 - Blocking] `LogServerHandle.sayGoodbye()` does not exist**
 - **Found during:** Task 1 (CLI rewrite)
-- **Issue:** Plan 02-05 action snippet calls `serverHandle.sayGoodbye()` inside `shutdown()`. The `@ahp-viewer/server` `LogServerHandle` interface (Plan 02-01) only exposes `url`, `port`, `server`, and `close()`; there is no `sayGoodbye` method anywhere in the server package, and adding one is out of scope for Plan 02-05.
+- **Issue:** Plan 02-05 action snippet calls `serverHandle.sayGoodbye()` inside `shutdown()`. The `@ahp-inspector/server` `LogServerHandle` interface (Plan 02-01) only exposes `url`, `port`, `server`, and `close()`; there is no `sayGoodbye` method anywhere in the server package, and adding one is out of scope for Plan 02-05.
 - **Fix:** Removed the `sayGoodbye()` call from `shutdown()`. SSE 'bye' broadcasts on shutdown are an SSE-route concern (Plan 02-06's vertical slice will exercise the bye path through the EventSource client). The CLI now disposes via `appState.dispose()` then `serverHandle.close()` — both wrapped in try/catch as the plan prescribed.
 - **Files modified:** `packages/cli/src/index.ts`
 - **Verification:** `pnpm typecheck` passes; cli-launch.test.ts asserts clean exit on SIGTERM.
@@ -128,13 +128,13 @@ None — CLI runs entirely on local loopback with no external services.
 - `pnpm vitest run packages/cli` → 15/15 pass (3 files)
 - `pnpm vitest run` (full repo) → 243/243 pass (21 files)
 - `pnpm typecheck` → all 7 packages green
-- `pnpm -F @ahp-viewer/cli build` → tsup ESM + DTS clean
+- `pnpm -F @ahp-inspector/cli build` → tsup ESM + DTS clean
 - `grep -rn "0\.0\.0\.0" packages/cli/src` → 0 hits
 - `grep -nF 'dir: Direction = "c2s"' packages/cli/src/index.ts` → 0 hits (placeholder gone)
 
 ## Next Phase Readiness
 
-- INGEST-01 closed end-to-end: a user can now run `ahp-viewer path/to/log.jsonl`, see the §10 copy, and have a loopback browser tab navigate to the log-server.
+- INGEST-01 closed end-to-end: a user can now run `ahp-inspector path/to/log.jsonl`, see the §10 copy, and have a loopback browser tab navigate to the log-server.
 - Plan 02-06's vertical-slice integration test can spawn the CLI, hit `/api/log/stream` over SSE, and assert the timeline UI renders rows with structurally inferred directions.
 - No outstanding blockers.
 

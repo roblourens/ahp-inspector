@@ -5,7 +5,7 @@
 
 import { stat as fsStat } from "node:fs/promises";
 import { resolve as pathResolve } from "node:path";
-import type { Direction, HostAdapter } from "@ahp-viewer/shared";
+import type { Direction, HostAdapter } from "@ahp-inspector/shared";
 import { type AppState, type AppStateOptions, createAppState } from "./app-state.js";
 import { computeLogKey } from "./log-key.js";
 

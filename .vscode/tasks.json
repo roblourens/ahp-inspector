@@ -4,7 +4,7 @@
     {
       "label": "extension: build",
       "type": "shell",
-      "command": "pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/extension build",
+      "command": "pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/extension build",
       "group": "build",
       "presentation": { "reveal": "silent", "panel": "shared" },
       "problemMatcher": []

@@ -9,7 +9,7 @@
 
 ### What Was Built
 
-- Local CLI-launched AHP Log Viewer with loopback server, CSP/host guard, static UI serving, and no outbound viewing dependencies.
+- Local CLI-launched AHP Inspector with loopback server, CSP/host guard, static UI serving, and no outbound viewing dependencies.
 - JSONL parser/normalizer, canonical event model, legacy sample adapter, scrubbed fixtures, and request/response correlation.
 - Virtualized timeline with search, filters, grouping, live tail, pause/resume, row summaries, pair highlighting, and robust empty/error states.
 - Detail inspector with AHP fields, pair metadata, expanded Pretty JSON, raw JSON, truncation, copy actions, and privacy captions.

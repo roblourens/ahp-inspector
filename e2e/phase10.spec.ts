@@ -42,7 +42,7 @@ function waitForPort(proc: CliProc, timeoutMs = 15_000): Promise<number> {
   return new Promise((resolvePort, reject) => {
     const start = Date.now();
     const tick = setInterval(() => {
-      const match = proc.stdout.match(/AHP Log Viewer running at http:\/\/127\.0\.0\.1:(\d+)/);
+      const match = proc.stdout.match(/AHP Inspector running at http:\/\/127\.0\.0\.1:(\d+)/);
       if (match?.[1]) {
         clearInterval(tick);
         resolvePort(Number(match[1]));

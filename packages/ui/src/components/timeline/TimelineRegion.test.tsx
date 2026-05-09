@@ -2,7 +2,7 @@
 // Covers: live-pause Space-key shortcut (with editable-target guards),
 // RotationBanner mount + auto-dismiss, NewEventsPill mount when paused.
 
-import type { EventRow } from "@ahp-viewer/core";
+import type { EventRow } from "@ahp-inspector/core";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAppStore } from "../../state/store.js";

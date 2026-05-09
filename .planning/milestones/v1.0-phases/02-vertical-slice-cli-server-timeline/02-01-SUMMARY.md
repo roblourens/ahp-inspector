@@ -79,7 +79,7 @@ completed: 2026-05-07
 
 ## Accomplishments
 
-- `createAppState` owns the full ingest pipeline (host watcher → LineSplitter → parseLine → normalize → EventStore → Correlator) and projects each event into the locked Phase-2 `EventRow` contract from `@ahp-viewer/core`.
+- `createAppState` owns the full ingest pipeline (host watcher → LineSplitter → parseLine → normalize → EventStore → Correlator) and projects each event into the locked Phase-2 `EventRow` contract from `@ahp-inspector/core`.
 - The Projector seam emits three frame kinds: `append` for newly observed rows, `patch` for retroactive status/latency changes (late correlation **and** flush-driven `unmatched`), and the snapshot trio (`snapshot-begin`/`snapshot-chunk`/`snapshot-end`) for catch-up.
 - `startLogServer` composes a host-guard, CSP middleware, `/health` probe, and the new `/api/log/{meta,stream}` routes, binding hard-coded `127.0.0.1`. Mirroring health-server's pattern keeps the loopback regression test surface unified.
 - Threats T-02-03 (path leakage), T-02-04a (DNS rebinding), T-02-04b (XSS/clickjacking), T-02-04c (loopback bind), and T-02-04d (subscriber leak) all have automated coverage.
@@ -111,7 +111,7 @@ completed: 2026-05-07
 ### Modified
 
 - `packages/server/src/index.ts` — barrel re-exports for new symbols (`createAppState`, `AppState`, `SsePayload`, `LogMeta`, `startLogServer`, `LogServerHandle`, `CSP_VALUE`, etc.).
-- `packages/server/package.json` — adds `@ahp-viewer/core` and `@ahp-viewer/parser` workspace deps.
+- `packages/server/package.json` — adds `@ahp-inspector/core` and `@ahp-inspector/parser` workspace deps.
 
 ## Verification
 
@@ -156,10 +156,10 @@ completed: 2026-05-07
 - **Files modified:** `test/fixtures/phase2-mini.jsonl`
 - **Commit:** `64f9c6b`
 
-**3. [Rule 3 — Blocking] HostAdapter / LogHandle types live in `@ahp-viewer/shared`, not `@ahp-viewer/host-node`**
+**3. [Rule 3 — Blocking] HostAdapter / LogHandle types live in `@ahp-inspector/shared`, not `@ahp-inspector/host-node`**
 - **Found during:** Task 1 implementation
-- **Issue:** Plan suggested importing `HostAdapter` / `LogHandle` from `@ahp-viewer/host-node`. The host-node barrel re-exports `NodeLogHandle` and `NodeHostAdapter` only; the abstract types live in shared.
-- **Fix:** Imported `HostAdapter`, `LogHandle`, `Disposable` from `@ahp-viewer/shared` and treated `handle.path`/`handle.size` as optional fields on a `MaybeNodeLogHandle` extension.
+- **Issue:** Plan suggested importing `HostAdapter` / `LogHandle` from `@ahp-inspector/host-node`. The host-node barrel re-exports `NodeLogHandle` and `NodeHostAdapter` only; the abstract types live in shared.
+- **Fix:** Imported `HostAdapter`, `LogHandle`, `Disposable` from `@ahp-inspector/shared` and treated `handle.path`/`handle.size` as optional fields on a `MaybeNodeLogHandle` extension.
 - **Files modified:** `packages/server/src/app-state.ts`
 - **Commit:** `7cf5bdd`
 

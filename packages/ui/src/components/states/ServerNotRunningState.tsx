@@ -17,7 +17,7 @@ export function ServerNotRunningState(): JSX.Element {
     >
       <div style={{ fontWeight: 600 }}>Start the viewer from the CLI</div>
       <div>
-        Run <code className="mono">ahp-viewer path/to/log.jsonl</code> from your terminal, then
+        Run <code className="mono">ahp-inspector path/to/log.jsonl</code> from your terminal, then
         refresh this page.
       </div>
     </div>

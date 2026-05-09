@@ -25,7 +25,7 @@ Phase 8 requirements:
 - `LogSessionManager` replaces the active `AppState` on log switch and disposes the old instance.
 - HTTP routes are thin Hono adapters registered from `packages/server/src/log-server.ts`; existing examples are `detail-routes.ts`, `search-routes.ts`, and `session-routes.ts`.
 - SSE payloads currently contain only row/meta/patch/control frames. State must stay behind a lazy endpoint so selected-index fetches do not inflate timeline payloads.
-- Phase 7 already exposes the pure `replayToIndex(events, targetIndex)` engine from `@ahp-viewer/core`; Phase 8 should not duplicate reducer logic.
+- Phase 7 already exposes the pure `replayToIndex(events, targetIndex)` engine from `@ahp-inspector/core`; Phase 8 should not duplicate reducer logic.
 
 ## Recommended Design
 

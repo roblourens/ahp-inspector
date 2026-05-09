@@ -15,6 +15,6 @@ Changes:
 - Added regression tests covering the scroll-critical tabpanel styles for both Pretty and Raw tabs.
 
 Verification:
-- `pnpm --filter @ahp-viewer/ui test -- DetailPanel.test.tsx`
-- `pnpm --filter @ahp-viewer/ui test`
-- `pnpm --filter @ahp-viewer/ui typecheck`
+- `pnpm --filter @ahp-inspector/ui test -- DetailPanel.test.tsx`
+- `pnpm --filter @ahp-inspector/ui test`
+- `pnpm --filter @ahp-inspector/ui typecheck`

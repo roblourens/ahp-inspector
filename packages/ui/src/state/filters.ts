@@ -1,5 +1,5 @@
-import type { EventRow, Status } from "@ahp-viewer/core";
-import type { EventKind } from "@ahp-viewer/shared";
+import type { EventRow, Status } from "@ahp-inspector/core";
+import type { EventKind } from "@ahp-inspector/shared";
 
 export interface FilterState {
   direction: ("c2s" | "s2c")[];

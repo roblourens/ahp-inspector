@@ -1,6 +1,6 @@
 // Webview ↔ extension-host message envelopes (Phase 11 Plan 11-03).
 //
-// Types live in @ahp-viewer/shared so both the extension package and the
+// Types live in @ahp-inspector/shared so both the extension package and the
 // browser-only UI can import them without violating package-boundary
 // rules (boundary.test.ts forbids the UI from importing the extension).
 // `packages/extension/src/messageProtocol.ts` re-exports these for the
@@ -8,9 +8,9 @@
 
 import type { AhpEvent } from "./event.js";
 
-// Mirror of @ahp-viewer/core Status — duplicated here so this protocol
-// file can stay in @ahp-viewer/shared without taking a runtime dep on
-// @ahp-viewer/core. Plan 11-03 contract tests pin it to core's shape.
+// Mirror of @ahp-inspector/core Status — duplicated here so this protocol
+// file can stay in @ahp-inspector/shared without taking a runtime dep on
+// @ahp-inspector/core. Plan 11-03 contract tests pin it to core's shape.
 type WebviewStatus = "ok" | "error" | "pending" | "unmatched" | "orphan" | "n/a";
 
 // Server-route response shapes are not exported from any portable

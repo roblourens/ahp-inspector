@@ -98,12 +98,12 @@ search, detail-panel width, group-collapse state, and selection (range-checked).
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/ui test src/components/shell/LivePauseButton.test.tsx src/components/shell/NewEventsPill.test.tsx` → 12/12 passing.
-- `pnpm -F @ahp-viewer/ui test src/components/timeline/TimelineRegion.test.tsx` → 10/10 passing.
-- `pnpm -F @ahp-viewer/ui test src/persistence/persist-effect.test.ts` → 7/7 passing.
-- `pnpm -F @ahp-viewer/ui test src/components/shell src/components/timeline src/persistence` → all green.
-- `pnpm -F @ahp-viewer/ui typecheck` → green.
-- `pnpm -F @ahp-viewer/ui build` → green (308.72 kB / 90.40 kB gzip).
+- `pnpm -F @ahp-inspector/ui test src/components/shell/LivePauseButton.test.tsx src/components/shell/NewEventsPill.test.tsx` → 12/12 passing.
+- `pnpm -F @ahp-inspector/ui test src/components/timeline/TimelineRegion.test.tsx` → 10/10 passing.
+- `pnpm -F @ahp-inspector/ui test src/persistence/persist-effect.test.ts` → 7/7 passing.
+- `pnpm -F @ahp-inspector/ui test src/components/shell src/components/timeline src/persistence` → all green.
+- `pnpm -F @ahp-inspector/ui typecheck` → green.
+- `pnpm -F @ahp-inspector/ui build` → green (308.72 kB / 90.40 kB gzip).
 - `pnpm typecheck` (workspace-wide) → green.
 - Acceptance greps:
   - `^export function LivePauseButton` → 1 match.

@@ -13,13 +13,13 @@
  *     into the same Zustand store the SSE client uses.
  */
 
-import type { EventRow, LatencyBand, Status } from "@ahp-viewer/core";
+import type { EventRow, LatencyBand, Status } from "@ahp-inspector/core";
 import type {
   ExtensionNotification,
   WebviewRequest,
   WebviewSsePayload,
-} from "@ahp-viewer/shared";
-import { isExtensionNotification } from "@ahp-viewer/shared";
+} from "@ahp-inspector/shared";
+import { isExtensionNotification } from "@ahp-inspector/shared";
 import { useAppStore } from "../state/store.js";
 import type {
   AhpViewerClient,

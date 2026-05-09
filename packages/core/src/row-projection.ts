@@ -1,4 +1,4 @@
-import type { AhpEvent, Direction, EventKind } from "@ahp-viewer/shared";
+import type { AhpEvent, Direction, EventKind } from "@ahp-inspector/shared";
 import type { Status } from "./types.js";
 
 export type LatencyBand = "fast" | "normal" | "slow" | "critical";

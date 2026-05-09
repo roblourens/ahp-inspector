@@ -11,8 +11,8 @@
  * No raw #hex literals — all stripe colors use CSS var().
  */
 
-import type { EventRow } from "@ahp-viewer/core";
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { EventRow } from "@ahp-inspector/core";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import type { JSX } from "react";
 import { AhpFieldRow } from "./AhpFieldRow.js";
 

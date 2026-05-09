@@ -19,8 +19,8 @@ created: 2026-05-07
 |----------|-------|
 | **Framework** | Vitest 4.1.5 + jsdom for UI; native Node test surfaces through Vitest for server/host packages |
 | **Config file** | `vitest.config.ts`, `packages/ui/vitest.config.ts` |
-| **Quick run command** | `pnpm -F @ahp-viewer/<pkg> test` for the package changed by the task |
-| **Full suite command** | `pnpm test && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint` |
+| **Quick run command** | `pnpm -F @ahp-inspector/<pkg> test` for the package changed by the task |
+| **Full suite command** | `pnpm test && pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/cli build && pnpm typecheck && pnpm lint` |
 | **Browser UAT command** | Playwright CLI skill with screenshots saved under `screenshots/phase4-*` |
 
 ---
@@ -38,18 +38,18 @@ created: 2026-05-07
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 04-W0-discovery-tests | 04-01 | 0 | INGEST-02 | V12-FILE-01 | Discovery walk is bounded and returns safe candidates without absolute paths | unit | `pnpm -F @ahp-viewer/host-node test src/discovery.test.ts` | Yes | green |
-| 04-W0-session-routes | 04-03 | 0 | INGEST-02, INGEST-03 | V7-ERR-01 | Discover/open endpoints expose safe codes and never echo absolute paths | integration | `pnpm -F @ahp-viewer/server test src/session-routes.test.ts` | Yes | green |
-| 04-W0-log-key | 04-00 | 0 | SEARCH-05 | V8-DATA-01 | `logKey` is non-reversible and stable for the opened log identity | unit | `pnpm -F @ahp-viewer/server test src/log-key.test.ts` | Yes | green |
-| 04-W0-persistence | 04-06 | 0 | SEARCH-05 | V8-DATA-02 | localStorage stores only UI preferences, validates schema, and drops stale selected rows | jsdom | `pnpm -F @ahp-viewer/ui test src/state/persistence.test.ts` | Yes | green |
-| 04-W1-tail-append | 04-02 | 1 | INGEST-04 | V12-FILE-02 | Appends are byte-offset based and partial trailing lines remain buffered | unit | `pnpm -F @ahp-viewer/host-node test src/tail-reader.test.ts` | Yes | green |
-| 04-W1-tail-reset | 04-02 | 1 | INGEST-04 | V12-FILE-03 | Shrink/rename/replacement emits visible reset state instead of silent ignore | unit | `pnpm -F @ahp-viewer/host-node test src/tail-reader.test.ts` | Yes | green |
-| 04-W1-watch-error | 04-02 | 1 | INGEST-04 | V7-ERR-02 | Read/watch errors become safe `watch-error` frames and UI-safe codes | integration | `pnpm -F @ahp-viewer/server test src/app-state.test.ts` | Yes | green |
-| 04-W2-session-manager | 04-03 | 2 | INGEST-02, INGEST-03, INGEST-04 | V4-AC-01 | Server can run with no active log, switch logs, and dispose old watchers | integration | `pnpm -F @ahp-viewer/server test src/session-manager.test.ts` | Yes | green |
-| 04-W3-picker-ui | 04-04 | 3 | INGEST-02, INGEST-03 | V7-ERR-01 | Picker/manual-open UI never renders absolute paths and maps errors to fixed copy | jsdom | `pnpm -F @ahp-viewer/ui test src/components/states/NoActiveLogState.test.tsx` | Yes | green |
-| 04-W3-stream-events | 04-05 | 3 | INGEST-04 | V7-ERR-02 | UI distinguishes `rotation`, `log-reset`, and `watch-error` frames | jsdom | `pnpm -F @ahp-viewer/ui test src/transport/sse-client.test.ts` | Yes | green |
-| 04-W4-live-pause | 04-06 | 4 | INGEST-05 | UX-STATE-01 | Paused view preserves selection/scroll while pending event count increments | jsdom | `pnpm -F @ahp-viewer/ui test src/components/timeline/TimelineRegion.test.tsx` | Yes | green |
-| 04-W4-new-events-pill | 04-06 | 4 | INGEST-05 | UX-STATE-02 | Resume clears pending count and jumps to newest row without clearing filters | jsdom | `pnpm -F @ahp-viewer/ui test src/components/timeline/NewEventsPill.test.tsx` | Yes | green |
+| 04-W0-discovery-tests | 04-01 | 0 | INGEST-02 | V12-FILE-01 | Discovery walk is bounded and returns safe candidates without absolute paths | unit | `pnpm -F @ahp-inspector/host-node test src/discovery.test.ts` | Yes | green |
+| 04-W0-session-routes | 04-03 | 0 | INGEST-02, INGEST-03 | V7-ERR-01 | Discover/open endpoints expose safe codes and never echo absolute paths | integration | `pnpm -F @ahp-inspector/server test src/session-routes.test.ts` | Yes | green |
+| 04-W0-log-key | 04-00 | 0 | SEARCH-05 | V8-DATA-01 | `logKey` is non-reversible and stable for the opened log identity | unit | `pnpm -F @ahp-inspector/server test src/log-key.test.ts` | Yes | green |
+| 04-W0-persistence | 04-06 | 0 | SEARCH-05 | V8-DATA-02 | localStorage stores only UI preferences, validates schema, and drops stale selected rows | jsdom | `pnpm -F @ahp-inspector/ui test src/state/persistence.test.ts` | Yes | green |
+| 04-W1-tail-append | 04-02 | 1 | INGEST-04 | V12-FILE-02 | Appends are byte-offset based and partial trailing lines remain buffered | unit | `pnpm -F @ahp-inspector/host-node test src/tail-reader.test.ts` | Yes | green |
+| 04-W1-tail-reset | 04-02 | 1 | INGEST-04 | V12-FILE-03 | Shrink/rename/replacement emits visible reset state instead of silent ignore | unit | `pnpm -F @ahp-inspector/host-node test src/tail-reader.test.ts` | Yes | green |
+| 04-W1-watch-error | 04-02 | 1 | INGEST-04 | V7-ERR-02 | Read/watch errors become safe `watch-error` frames and UI-safe codes | integration | `pnpm -F @ahp-inspector/server test src/app-state.test.ts` | Yes | green |
+| 04-W2-session-manager | 04-03 | 2 | INGEST-02, INGEST-03, INGEST-04 | V4-AC-01 | Server can run with no active log, switch logs, and dispose old watchers | integration | `pnpm -F @ahp-inspector/server test src/session-manager.test.ts` | Yes | green |
+| 04-W3-picker-ui | 04-04 | 3 | INGEST-02, INGEST-03 | V7-ERR-01 | Picker/manual-open UI never renders absolute paths and maps errors to fixed copy | jsdom | `pnpm -F @ahp-inspector/ui test src/components/states/NoActiveLogState.test.tsx` | Yes | green |
+| 04-W3-stream-events | 04-05 | 3 | INGEST-04 | V7-ERR-02 | UI distinguishes `rotation`, `log-reset`, and `watch-error` frames | jsdom | `pnpm -F @ahp-inspector/ui test src/transport/sse-client.test.ts` | Yes | green |
+| 04-W4-live-pause | 04-06 | 4 | INGEST-05 | UX-STATE-01 | Paused view preserves selection/scroll while pending event count increments | jsdom | `pnpm -F @ahp-inspector/ui test src/components/timeline/TimelineRegion.test.tsx` | Yes | green |
+| 04-W4-new-events-pill | 04-06 | 4 | INGEST-05 | UX-STATE-02 | Resume clears pending count and jumps to newest row without clearing filters | jsdom | `pnpm -F @ahp-inspector/ui test src/components/timeline/NewEventsPill.test.tsx` | Yes | green |
 | 04-W5-vertical-slice | 04-07 | 5 | INGEST-02, INGEST-03, INGEST-04, INGEST-05, SEARCH-05 | ALL | Discover/open/tail/pause/resume/reload restore flow works end-to-end | integration | `pnpm test -- test/phase4-vertical-slice.test.ts` | Yes | green |
 
 ---

@@ -129,8 +129,8 @@ All 13 screenshots linked inline in the new sections.
 
 ```
 pnpm test               → 396/396 passed (29 test files)
-pnpm -F @ahp-viewer/ui build  → ✓ built in ~100ms
-pnpm -F @ahp-viewer/cli build → ✓ built in ~19ms
+pnpm -F @ahp-inspector/ui build  → ✓ built in ~100ms
+pnpm -F @ahp-inspector/cli build → ✓ built in ~19ms
 pnpm typecheck          → all packages clean
 pnpm lint               → 0 errors, 2 warnings (biome-ignore comment flags)
 rg -n '#[0-9a-fA-F]' packages/ui/src/components/ → 0 results

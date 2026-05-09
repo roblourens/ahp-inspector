@@ -32,19 +32,19 @@ importers:
 
   packages/cli:
     dependencies:
-      '@ahp-viewer/core':
+      '@ahp-inspector/core':
         specifier: workspace:*
         version: link:../core
-      '@ahp-viewer/host-node':
+      '@ahp-inspector/host-node':
         specifier: workspace:*
         version: link:../host-node
-      '@ahp-viewer/parser':
+      '@ahp-inspector/parser':
         specifier: workspace:*
         version: link:../parser
-      '@ahp-viewer/server':
+      '@ahp-inspector/server':
         specifier: workspace:*
         version: link:../server
-      '@ahp-viewer/shared':
+      '@ahp-inspector/shared':
         specifier: workspace:*
         version: link:../shared
       commander:
@@ -56,32 +56,32 @@ importers:
 
   packages/core:
     dependencies:
-      '@ahp-viewer/protocol':
+      '@ahp-inspector/protocol':
         specifier: workspace:*
         version: link:../protocol
-      '@ahp-viewer/shared':
+      '@ahp-inspector/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/extension:
     dependencies:
-      '@ahp-viewer/core':
+      '@ahp-inspector/core':
         specifier: workspace:*
         version: link:../core
-      '@ahp-viewer/host-node':
+      '@ahp-inspector/host-node':
         specifier: workspace:*
         version: link:../host-node
-      '@ahp-viewer/parser':
+      '@ahp-inspector/parser':
         specifier: workspace:*
         version: link:../parser
-      '@ahp-viewer/server':
+      '@ahp-inspector/server':
         specifier: workspace:*
         version: link:../server
-      '@ahp-viewer/shared':
+      '@ahp-inspector/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:
-      '@ahp-viewer/ui':
+      '@ahp-inspector/ui':
         specifier: workspace:*
         version: link:../ui
       '@types/vscode':
@@ -90,7 +90,7 @@ importers:
 
   packages/host-node:
     dependencies:
-      '@ahp-viewer/shared':
+      '@ahp-inspector/shared':
         specifier: workspace:*
         version: link:../shared
       chokidar:
@@ -99,10 +99,10 @@ importers:
 
   packages/parser:
     dependencies:
-      '@ahp-viewer/protocol':
+      '@ahp-inspector/protocol':
         specifier: workspace:*
         version: link:../protocol
-      '@ahp-viewer/shared':
+      '@ahp-inspector/shared':
         specifier: workspace:*
         version: link:../shared
 
@@ -110,13 +110,13 @@ importers:
 
   packages/server:
     dependencies:
-      '@ahp-viewer/core':
+      '@ahp-inspector/core':
         specifier: workspace:*
         version: link:../core
-      '@ahp-viewer/parser':
+      '@ahp-inspector/parser':
         specifier: workspace:*
         version: link:../parser
-      '@ahp-viewer/shared':
+      '@ahp-inspector/shared':
         specifier: workspace:*
         version: link:../shared
       '@hono/node-server':
@@ -126,25 +126,25 @@ importers:
         specifier: ^4.12.18
         version: 4.12.18
     devDependencies:
-      '@ahp-viewer/host-node':
+      '@ahp-inspector/host-node':
         specifier: workspace:*
         version: link:../host-node
-      '@ahp-viewer/protocol':
+      '@ahp-inspector/protocol':
         specifier: workspace:*
         version: link:../protocol
 
   packages/shared:
     dependencies:
-      '@ahp-viewer/protocol':
+      '@ahp-inspector/protocol':
         specifier: workspace:*
         version: link:../protocol
 
   packages/ui:
     dependencies:
-      '@ahp-viewer/core':
+      '@ahp-inspector/core':
         specifier: workspace:*
         version: link:../core
-      '@ahp-viewer/shared':
+      '@ahp-inspector/shared':
         specifier: workspace:*
         version: link:../shared
       '@tanstack/react-virtual':

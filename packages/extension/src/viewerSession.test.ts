@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { ExtensionNotification, WebviewSsePayload } from "@ahp-viewer/shared";
+import type { ExtensionNotification, WebviewSsePayload } from "@ahp-inspector/shared";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ViewerSessionBridge } from "./viewerSession.js";
 

@@ -14,7 +14,7 @@ provides:
 affects: [phase-08, server, tests]
 tech-stack:
   added:
-    - "@ahp-viewer/protocol devDependency for @ahp-viewer/server tests"
+    - "@ahp-inspector/protocol devDependency for @ahp-inspector/server tests"
   patterns: [synthetic-jsonl-fixtures, lazy-replay-boundary-tests]
 key-files:
   modified:
@@ -47,7 +47,7 @@ completed: 2026-05-08
 - Added route-level `/api/state-at` tests backed by a real `AppState` and fake host.
 - Added cache lifecycle tests for historical cache hits across live append, log switch isolation, UI pause-equivalent ingest, and rotation reset.
 - Added SSE integration coverage proving state-at lookups do not add replay fields to snapshot or append frames, including a larger 250-row log.
-- Added `@ahp-viewer/protocol` as a server dev dependency so tests use canonical generated protocol constants.
+- Added `@ahp-inspector/protocol` as a server dev dependency so tests use canonical generated protocol constants.
 
 ## Task Commits
 
@@ -68,7 +68,7 @@ None remaining.
 ## Issues Encountered
 
 - Initial synthetic action tests failed because test direction inference treated `method: "action"` as client-to-server. The helper now classifies server action notifications as `s2c`, matching parser expectations.
-- Server tests needed an explicit `@ahp-viewer/protocol` dev dependency to import generated protocol constants.
+- Server tests needed an explicit `@ahp-inspector/protocol` dev dependency to import generated protocol constants.
 
 ## Next Phase Readiness
 

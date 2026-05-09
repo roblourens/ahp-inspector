@@ -8,7 +8,7 @@
 
 import { accessSync, constants, statSync } from "node:fs";
 import { basename, resolve as pathResolve } from "node:path";
-import type { DiscoveryResult, Disposable, HostAdapter, LogHandle } from "@ahp-viewer/shared";
+import type { DiscoveryResult, Disposable, HostAdapter, LogHandle } from "@ahp-inspector/shared";
 import { discoverVsCodeLogs } from "./discovery.js";
 import { type ChunkSink, chunkSinkToWatchSink, TailReader, type WatchSink } from "./tail-reader.js";
 

@@ -7,12 +7,12 @@ requires:
   - phase: v1.1-roadmap
     provides: Phase 6 requirements and execution plan
 provides:
-  - Generated @ahp-viewer/protocol workspace package skeleton
+  - Generated @ahp-inspector/protocol workspace package skeleton
   - Deterministic sync command for canonical AHP protocol sources
   - Synced reducer sources, protocol types, fixtures, and source metadata
 affects: [phase-06, phase-07, protocol-replay, reducer-state]
 tech-stack:
-  added: [@ahp-viewer/protocol]
+  added: [@ahp-inspector/protocol]
   patterns: [generated-protocol-package, sibling-repo-sync, source-commit-diagnostics]
 key-files:
   created:
@@ -49,9 +49,9 @@ completed: 2026-05-08
 ## Accomplishments
 
 - Added root `pnpm sync:ahp` and `scripts/sync-agent-host-protocol.ts`.
-- Created private workspace package `@ahp-viewer/protocol`.
+- Created private workspace package `@ahp-inspector/protocol`.
 - Synced canonical AHP protocol files, reducer fixtures, `.ahp-version`, and importable source metadata.
-- Confirmed the generated package builds with `pnpm -F @ahp-viewer/protocol build`.
+- Confirmed the generated package builds with `pnpm -F @ahp-inspector/protocol build`.
 
 ## Task Commits
 
@@ -83,7 +83,7 @@ Plan tasks are committed together in the plan completion commit for a coherent g
 - **Issue:** `tsup --dts` failed on upstream reducer code with `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.
 - **Fix:** Added package-local TypeScript overrides for generated protocol code.
 - **Files modified:** `packages/protocol/tsconfig.json`
-- **Verification:** `pnpm sync:ahp && pnpm -F @ahp-viewer/protocol build`
+- **Verification:** `pnpm sync:ahp && pnpm -F @ahp-inspector/protocol build`
 
 ## Issues Encountered
 
@@ -95,7 +95,7 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-Plan 06-02 can now migrate dependencies and imports to `@ahp-viewer/protocol`.
+Plan 06-02 can now migrate dependencies and imports to `@ahp-inspector/protocol`.
 
 ---
 *Phase: 06-protocol-reducer-sync-foundation*

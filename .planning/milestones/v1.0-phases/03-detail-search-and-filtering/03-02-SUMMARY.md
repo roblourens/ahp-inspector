@@ -66,9 +66,9 @@ metrics:
 
 | Check | Result |
 |-------|--------|
-| `pnpm -F @ahp-viewer/ui test src/state/` | ✅ 20/20 tests passed |
+| `pnpm -F @ahp-inspector/ui test src/state/` | ✅ 20/20 tests passed |
 | Perf gate (50k rows, 1 facet filter) | ✅ 11 ms < 15 ms |
-| `pnpm -F @ahp-viewer/ui build` | ✅ 226 KB bundle, no errors |
+| `pnpm -F @ahp-inspector/ui build` | ✅ 226 KB bundle, no errors |
 | `pnpm typecheck` | ✅ All packages clean |
 | `pnpm lint` | ✅ Clean (no errors or warnings after fix) |
 | Hex-literal guard in state/ | ✅ 0 results |

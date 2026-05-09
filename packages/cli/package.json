@@ -1,5 +1,5 @@
 {
-  "name": "@ahp-viewer/cli",
+  "name": "@ahp-inspector/cli",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,18 +9,18 @@
     ".": "./src/index.ts"
   },
   "bin": {
-    "ahp-viewer": "./dist/index.js"
+    "ahp-inspector": "./dist/index.js"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsup"
   },
   "dependencies": {
-    "@ahp-viewer/core": "workspace:*",
-    "@ahp-viewer/host-node": "workspace:*",
-    "@ahp-viewer/parser": "workspace:*",
-    "@ahp-viewer/server": "workspace:*",
-    "@ahp-viewer/shared": "workspace:*",
+    "@ahp-inspector/core": "workspace:*",
+    "@ahp-inspector/host-node": "workspace:*",
+    "@ahp-inspector/parser": "workspace:*",
+    "@ahp-inspector/server": "workspace:*",
+    "@ahp-inspector/shared": "workspace:*",
     "commander": "^14.0.3",
     "open": "^11.0.0"
   }

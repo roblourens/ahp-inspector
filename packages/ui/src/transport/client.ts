@@ -9,7 +9,7 @@
  *     against a VS Code extension host bridge.
  *
  * This module MUST stay browser-safe: no `node:` imports, no `vscode`
- * imports, no `@ahp-viewer/server` or `@ahp-viewer/host-node` imports.
+ * imports, no `@ahp-inspector/server` or `@ahp-inspector/host-node` imports.
  */
 
 import type { OpenSessionResult } from "./sessions-client.js";

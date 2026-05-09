@@ -55,7 +55,7 @@ re_verification: false
 | `packages/core/src/correlator.ts` | Correlator pairing requests/responses | ✓ VERIFIED | `export class Correlator`; uses `correlationKeyForRequest/Response`; marks non-pairables `'n/a'` |
 | `packages/host-node/src/host-adapter.ts` | NodeHostAdapter implements HostAdapter | ✓ VERIFIED | `export class NodeHostAdapter implements HostAdapter`; uses `node:fs` + chokidar |
 | `packages/server/src/health-server.ts` | Hono server bound to 127.0.0.1 | ✓ VERIFIED | `const HOSTNAME = "127.0.0.1" as const`; bind-address test passes |
-| `packages/cli/src/index.ts` | ahp-viewer CLI entry — argv → openLog + start health server | ✓ VERIFIED | Imports `NodeHostAdapter`, `startHealthServer`; `.name("ahp-viewer")`; smoke tests pass |
+| `packages/cli/src/index.ts` | ahp-inspector CLI entry — argv → openLog + start health server | ✓ VERIFIED | Imports `NodeHostAdapter`, `startHealthServer`; `.name("ahp-inspector")`; smoke tests pass |
 
 ---
 

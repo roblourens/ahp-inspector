@@ -8,7 +8,7 @@
 
 Add `packages/protocol` as a generated private workspace package, add `pnpm sync:ahp`, copy canonical upstream protocol files plus reducer fixtures, write both `.ahp-version` and an importable generated source-info module, then migrate protocol imports away from the stale sibling `file:` dependency.
 
-The VS Code precedent is `/Users/roblou/code/vscode/scripts/sync-agent-host-protocol.ts`. It copies selected files from sibling `../agent-host-protocol/types`, records the source commit in `.ahp-version`, adds a generated banner, and performs formatting transforms for the target repo. AHP Viewer should follow the same deterministic-copy model but keep transformations minimal to preserve reducer parity.
+The VS Code precedent is `/Users/roblou/code/vscode/scripts/sync-agent-host-protocol.ts`. It copies selected files from sibling `../agent-host-protocol/types`, records the source commit in `.ahp-version`, adds a generated banner, and performs formatting transforms for the target repo. AHP Inspector should follow the same deterministic-copy model but keep transformations minimal to preserve reducer parity.
 
 ## Phase Requirements
 
@@ -17,7 +17,7 @@ The VS Code precedent is `/Users/roblou/code/vscode/scripts/sync-agent-host-prot
 | SYNC-01 | Use a root `scripts/sync-agent-host-protocol.ts` that copies from `../agent-host-protocol/types` into `packages/protocol/src`. |
 | SYNC-02 | Copy `state.ts`, `actions.ts`, `action-origin.generated.ts`, `reducers.ts`, `commands.ts`, `notifications.ts`, `messages.ts`, `errors.ts`, and `version/registry.ts`. |
 | SYNC-03 | Generate `.ahp-version` and an importable `src/source-info.ts` with the source commit for diagnostics/tests. |
-| SYNC-04 | Replace current protocol imports from the `agent-host-protocol` file dependency / `@ahp-viewer/shared/ahp` with `@ahp-viewer/protocol`. |
+| SYNC-04 | Replace current protocol imports from the `agent-host-protocol` file dependency / `@ahp-inspector/shared/ahp` with `@ahp-inspector/protocol`. |
 | VERIFY-01 | Copy/use upstream `types/test-cases/reducers/*.json` fixtures; upstream currently has root/session/terminal reducer coverage and mocks `Date.now()` to `9999`. |
 
 ## Generated Package Shape
@@ -44,7 +44,7 @@ packages/protocol/
   .ahp-version
 ```
 
-`package.json` should follow repo package conventions: private ESM package, `main`/`types` pointing to `src/index.ts`, `exports` for `.`, and scripts for `typecheck` and `build`. Add `@ahp-viewer/protocol` to workspace dependencies where reducer/types are consumed.
+`package.json` should follow repo package conventions: private ESM package, `main`/`types` pointing to `src/index.ts`, `exports` for `.`, and scripts for `typecheck` and `build`. Add `@ahp-inspector/protocol` to workspace dependencies where reducer/types are consumed.
 
 ## Sync Script Guidance
 
@@ -60,7 +60,7 @@ packages/protocol/
 
 ## Import Migration
 
-Current `packages/shared/package.json` depends on `agent-host-protocol` via `file:../../../agent-host-protocol`, and `packages/shared` exposes `./ahp`. Phase 6 should move canonical protocol consumption to `@ahp-viewer/protocol`. Keep compatibility exports only if needed for existing call sites, but avoid hiding the generated protocol package behind shared for new reducer work.
+Current `packages/shared/package.json` depends on `agent-host-protocol` via `file:../../../agent-host-protocol`, and `packages/shared` exposes `./ahp`. Phase 6 should move canonical protocol consumption to `@ahp-inspector/protocol`. Keep compatibility exports only if needed for existing call sites, but avoid hiding the generated protocol package behind shared for new reducer work.
 
 Check and update:
 
@@ -85,7 +85,7 @@ This provides immediate proof that copied reducers behave like upstream.
 
 - `pnpm sync:ahp`
 - `pnpm test`
-- `pnpm -F @ahp-viewer/protocol build`
+- `pnpm -F @ahp-inspector/protocol build`
 - `pnpm typecheck`
 - `pnpm lint`
 

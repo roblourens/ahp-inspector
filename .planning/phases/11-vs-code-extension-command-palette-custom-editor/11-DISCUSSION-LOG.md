@@ -14,7 +14,7 @@
 | Option | Description | Selected |
 |--------|-------------|----------|
 | Command opens custom editor | Command palette lets user choose/open a log and shows it as a custom editor tab. | |
-| File association custom editor | Register `.jsonl`/`.ahp-log` files so opening the file can use AHP Viewer. | |
+| File association custom editor | Register `.jsonl`/`.ahp-log` files so opening the file can use AHP Inspector. | |
 | Webview panel first | Use a command-created panel, defer custom editor API. | ✓ |
 
 **User's choice:** Webview panel first.

@@ -459,7 +459,7 @@ Rules:
 | Loading timeline | `Loading log…` |
 | Disconnected heading | `Connection lost` |
 | Disconnected body | `The local viewer server stopped sending updates. Reconnect to continue watching this log.` |
-| Server not running heading | `AHP Log Viewer is not running` |
+| Server not running heading | `AHP Inspector is not running` |
 | Server not running body | `Start the local CLI and refresh this page.` |
 | Parse-error-only heading | `No valid AHP events found` |
 | Parse-error-only body | `Every line in this log failed to parse. Check that VS Code is writing JSONL AHP traffic.` |

@@ -3,7 +3,7 @@
  * TimelineList (Plan 03-05). Environment: jsdom.
  */
 // biome-ignore-all lint/a11y/useSemanticElements: virtualized grid test
-import type { EventRow as EventRowData } from "@ahp-viewer/core";
+import type { EventRow as EventRowData } from "@ahp-inspector/core";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 // Fix import path: grouping.test.tsx is at .../timeline/, selectors is at .../state/

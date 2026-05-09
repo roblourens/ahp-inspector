@@ -39,14 +39,14 @@ result: [pending]
 expected: |
   In the Extension Development Host, open the Command Palette
   (Cmd+Shift+P / Ctrl+Shift+P) and type "AHP". The command
-  "AHP Log Viewer: Open" appears in the list under the
-  "AHP Log Viewer" category.
+  "AHP Inspector: Open" appears in the list under the
+  "AHP Inspector" category.
 result: [pending]
 
 ### 3. Open command creates webview panel
 expected: |
-  With no AHP-related editor active, run "AHP Log Viewer: Open" from
-  the command palette. A new editor tab titled "AHP Log Viewer" opens
+  With no AHP-related editor active, run "AHP Inspector: Open" from
+  the command palette. A new editor tab titled "AHP Inspector" opens
   in the active editor column. The viewer UI loads (header / picker
   visible). DevTools console (Help → Toggle Developer Tools) shows no
   CSP violations or asset 404s.
@@ -56,7 +56,7 @@ result: [pending]
 expected: |
   Open a real AHP JSONL log in a normal editor tab (e.g. open
   `test/fixtures/long-realistic-ahp.jsonl`), keep it focused, and run
-  "AHP Log Viewer: Open". The viewer panel opens already streaming
+  "AHP Inspector: Open". The viewer panel opens already streaming
   that log — timeline shows rows for the file, no manual "open log"
   step required.
 result: [pending]
@@ -64,7 +64,7 @@ result: [pending]
 ### 5. No-active-log shows discovery picker
 expected: |
   Close all editor tabs (or focus a non-JSONL document), then run
-  "AHP Log Viewer: Open". The viewer shows the same "no active log"
+  "AHP Inspector: Open". The viewer shows the same "no active log"
   picker that browser mode uses, listing discovered VS Code log roots
   (or the manual-path form). Selecting a discovered candidate begins
   streaming.
@@ -74,7 +74,7 @@ result: [pending]
 expected: |
   With the viewer panel open in the Extension Development Host,
   check that `lsof -iTCP -sTCP:LISTEN -P -n | grep -E ':51[0-9]{3}'`
-  (or any other "ahp-viewer started at http://127.0.0.1:..." log line)
+  (or any other "ahp-inspector started at http://127.0.0.1:..." log line)
   shows nothing started by the extension. Data flows over webview
   postMessage only.
 result: [pending]

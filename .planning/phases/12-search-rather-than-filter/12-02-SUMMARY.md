@@ -52,8 +52,8 @@ completed: 2026-05-09
 
 ## Verification
 
-- `pnpm --filter @ahp-viewer/ui test -- TimelineRegion.test.tsx FilterBar.test.tsx TimelineList.virt.test.tsx EventRow.columns.test.tsx AppShell.test.tsx`
-- Included in focused suite: `pnpm --filter @ahp-viewer/ui test -- selectors.test.ts store.test.ts search-client.test.ts TimelineRegion.test.tsx FilterBar.test.tsx TimelineList.virt.test.tsx EventRow.columns.test.tsx AppShell.test.tsx persistence.test.ts persist-effect.test.ts`
+- `pnpm --filter @ahp-inspector/ui test -- TimelineRegion.test.tsx FilterBar.test.tsx TimelineList.virt.test.tsx EventRow.columns.test.tsx AppShell.test.tsx`
+- Included in focused suite: `pnpm --filter @ahp-inspector/ui test -- selectors.test.ts store.test.ts search-client.test.ts TimelineRegion.test.tsx FilterBar.test.tsx TimelineList.virt.test.tsx EventRow.columns.test.tsx AppShell.test.tsx persistence.test.ts persist-effect.test.ts`
 
 ## Deviations from Plan
 

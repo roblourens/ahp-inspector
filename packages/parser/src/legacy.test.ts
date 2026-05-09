@@ -63,7 +63,7 @@ describe("legacy adapter isolation", () => {
 
   it("no non-parser package imports legacy", () => {
     const PROBE =
-      /from\s+["'](?:@ahp-viewer\/parser\/legacy|[^"']*parser\/src\/legacy|\.\/legacy|\.\.\/legacy)["']/;
+      /from\s+["'](?:@ahp-inspector\/parser\/legacy|[^"']*parser\/src\/legacy|\.\/legacy|\.\.\/legacy)["']/;
     const offenders: string[] = [];
     for (const pkg of ["shared", "core", "host-node", "server", "cli"]) {
       const root = resolve("packages", pkg, "src");

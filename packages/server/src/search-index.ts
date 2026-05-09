@@ -1,4 +1,4 @@
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { AhpEvent } from "@ahp-inspector/shared";
 
 /**
  * Per-event lowercased haystack for server-side substring search (SEARCH-01).

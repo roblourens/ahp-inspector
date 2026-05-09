@@ -168,7 +168,7 @@ function waitForPort(r: CliProc, timeoutMs = 5000): Promise<number> {
   return new Promise((res, rej) => {
     const start = Date.now();
     const tick = setInterval(() => {
-      const m = r.stdout.match(/AHP Log Viewer running at http:\/\/127\.0\.0\.1:(\d+)/);
+      const m = r.stdout.match(/AHP Inspector running at http:\/\/127\.0\.0\.1:(\d+)/);
       if (m) {
         clearInterval(tick);
         const portStr = m[1];
@@ -224,7 +224,7 @@ function ensureUiBuilt(): void {
   }
   // Build (synchronous for determinism).
   const { execSync } = require("node:child_process") as typeof import("node:child_process");
-  execSync("pnpm -F @ahp-viewer/ui build", { stdio: "inherit" });
+  execSync("pnpm -F @ahp-inspector/ui build", { stdio: "inherit" });
 }
 
 describe("vertical-slice — CLI → server → SSE → UI bundle", () => {

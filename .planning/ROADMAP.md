@@ -1,4 +1,4 @@
-# Roadmap: AHP Log Viewer
+# Roadmap: AHP Inspector
 
 **Created:** 2026-05-06  
 **Current milestone:** v1.1 Reducer-backed State Snapshots
@@ -38,7 +38,7 @@ Full phase details are archived in `.planning/milestones/v1.0-ROADMAP.md`.
 
 Plans:
 
-- [x] 06-01: Add generated `@ahp-viewer/protocol` package and sync script based on VS Code's AHP sync workflow.
+- [x] 06-01: Add generated `@ahp-inspector/protocol` package and sync script based on VS Code's AHP sync workflow.
 - [x] 06-02: Switch protocol imports away from stale sibling `file:` dependency behavior.
 - [x] 06-03: Add reducer parity fixtures and source-commit diagnostics.
 
@@ -137,7 +137,7 @@ Run `/gsd-complete-milestone` for v1.1 milestone verification/archive when reque
 
 ### Phase 11: VS Code extension command palette webview
 
-**Goal:** Let users open AHP Log Viewer from the VS Code Command Palette in a local-only webview backed by direct extension-host messaging.
+**Goal:** Let users open AHP Inspector from the VS Code Command Palette in a local-only webview backed by direct extension-host messaging.
 **Requirements:** EXT-01, EXT-02, EXT-03, EXT-04, EXT-05, EXT-06, EXT-07
 **Depends on:** Phase 10
 **Plans:** 4 plans

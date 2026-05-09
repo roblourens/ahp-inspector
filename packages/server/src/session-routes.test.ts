@@ -5,7 +5,7 @@
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { NodeHostAdapter } from "@ahp-viewer/host-node";
+import { NodeHostAdapter } from "@ahp-inspector/host-node";
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { createLogSessionManager } from "./session-manager.js";

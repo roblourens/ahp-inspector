@@ -2,7 +2,7 @@
 // Covers: 200 happy path, 404 out-of-range, 400 invalid/negative idx,
 // paired event, no absolute path leakage (T-03-01-04).
 
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import type { AppState, LogMeta } from "./app-state.js";
@@ -56,7 +56,7 @@ interface MockEntry {
   event: AhpEvent;
   pairIdx: number | null;
   latencyMs: number | null;
-  status: import("@ahp-viewer/core").Status;
+  status: import("@ahp-inspector/core").Status;
 }
 
 function makeDetailAppState(

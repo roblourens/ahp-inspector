@@ -26,7 +26,7 @@ human_verification: passed
 | SC2 | The browser renders a virtualized timeline that stays smooth and responsive on logs of tens of thousands of events | ✓ VERIFIED | `packages/ui/src/components/timeline/TimelineList.tsx` uses `@tanstack/react-virtual` `useVirtualizer` (estimateSize=28, overscan=12); `packages/server/src/sse-routes.ts` caps snapshot chunks at 2000 rows with a `stream.sleep(0)` yield; `test/vertical-slice.test.ts` asserts `rows.length ≤ 2000` per chunk; Playwright CLI UAT loaded a synthetic 50,000-line JSONL log, rendered only 43 DOM rows, and completed 80 rapid scroll steps with max observed frame gap 33ms |
 | SC3 | Each row shows timestamp, direction, kind, method/action type, status, latency, session, turn, key IDs, and short payload preview | ✓ VERIFIED | `packages/ui/src/components/timeline/EventRow.tsx` renders 11-column CSS grid (`2px 96px 16px 44px 220px 64px 48px 64px 72px 96px 1fr`): rail, tsFmt, DirectionGlyph, KindTag, ActionDot+method/actionType, sessionShort, turnShort, StatusCell, LatencyCell, keyId, PayloadPreview; `test/vertical-slice.test.ts` asserts all required EventRow keys (tsFmt, dirGlyph, kindTag, method, actionType, sessionShort, turnShort, status, latencyMs, keyId, payloadPreview, idx) on the first snapshot row |
 | SC4 | Visual encoding makes direction, event kind, success vs error, action taxonomy, and latency severity readable at a glance; unmatched/orphaned/failed/malformed events stand out | ✓ VERIFIED | `DirectionGlyph.tsx`: `→`/`←`/`·` with `var(--dir-c2s)`/`var(--dir-s2c)` colours; `KindTag.tsx`: coloured pill per kind using `color-mix` tint background; `StatusCell.tsx`: ok=success, error=destructive, orphan/unmatched=warning pills; `LatencyCell.tsx`: coloured bottom bar via `var(--latency-{band})`; `EventRow.tsx` rail colour driven by status; `ParseErrorRow.tsx` uses diagonal-stripe destructive rail; `test/vertical-slice.test.ts` SC4a asserts parse-error row has `kindTag='BAD'` + `parseErrorReason`; SC4b asserts correlated request row reaches `status='ok'` with non-null `latencyBand`; screenshots confirm REQ/RES glyphs, TIMEOUT status, parse-error banner/rows, and row density are visually legible |
-| SC5 | Empty, loading, no-results, parse-error, and disconnected states render with informative content instead of blank screens | ✓ VERIFIED | `LoadingState.tsx` (Loader2 icon + filename); `EmptyState.tsx` ("No events yet"); `DisconnectedBanner.tsx` (WifiOff icon + Retry button); `ServerNotRunningState.tsx` ("Start the viewer from the CLI" with `ahp-viewer` command); `NoResultsBanner.tsx` (shown when all rows are parse-errors); state routing in `TimelineRegion.tsx` dispatches to correct component; `packages/ui/src/components/states/states.test.tsx` covers all; Playwright CLI UAT verified no-server, empty, parse-error/no-valid-events, and disconnected+Retry live states |
+| SC5 | Empty, loading, no-results, parse-error, and disconnected states render with informative content instead of blank screens | ✓ VERIFIED | `LoadingState.tsx` (Loader2 icon + filename); `EmptyState.tsx` ("No events yet"); `DisconnectedBanner.tsx` (WifiOff icon + Retry button); `ServerNotRunningState.tsx` ("Start the viewer from the CLI" with `ahp-inspector` command); `NoResultsBanner.tsx` (shown when all rows are parse-errors); state routing in `TimelineRegion.tsx` dispatches to correct component; `packages/ui/src/components/states/states.test.tsx` covers all; Playwright CLI UAT verified no-server, empty, parse-error/no-valid-events, and disconnected+Retry live states |
 
 **Score: 5/5** truths verified in code, automated tests, and browser UAT.
 
@@ -95,8 +95,8 @@ human_verification: passed
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
 | 257 tests pass (23 files) | `pnpm vitest run` | `Test Files 23 passed (23), Tests 257 passed (257)` | ✓ PASS |
-| UI build succeeds | `pnpm -F @ahp-viewer/ui build` (confirmed in known_evidence) | dist/index.html + assets present | ✓ PASS |
-| CLI build succeeds | `pnpm -F @ahp-viewer/cli build` (confirmed in known_evidence) | Build clean | ✓ PASS |
+| UI build succeeds | `pnpm -F @ahp-inspector/ui build` (confirmed in known_evidence) | dist/index.html + assets present | ✓ PASS |
+| CLI build succeeds | `pnpm -F @ahp-inspector/cli build` (confirmed in known_evidence) | Build clean | ✓ PASS |
 | TypeCheck clean | `pnpm typecheck` (confirmed in known_evidence) | 0 errors across 7 packages | ✓ PASS |
 | Lint clean | `pnpm lint` (confirmed in known_evidence) | 0 findings | ✓ PASS |
 | Code review clean | 02-REVIEW.md (re-review) | `status: clean`, `total: 0`, all 5 prior findings confirmed fixed | ✓ PASS |
@@ -140,7 +140,7 @@ Status: **passed**. Browser UAT was executed with the installed `playwright-cli`
 
 ### 1. Timeline Smoothness on Large Logs
 
-**Test:** Build a synthetic JSONL file with 50,000 events and run `ahp-viewer large.jsonl`. Scroll the timeline rapidly.
+**Test:** Build a synthetic JSONL file with 50,000 events and run `ahp-inspector large.jsonl`. Scroll the timeline rapidly.
 **Result:** PASS — synthetic `phase2-large-50000.jsonl` rendered 50,000 events / 100 sessions, with 43 DOM rows visible under virtualization. Playwright CLI rapid-scroll probe completed 80 scroll steps with max observed frame gap 33ms.
 **Evidence:** `screenshots/phase2-uat-fixed-large.png`, `screenshots/phase2-uat-fixed-scrolled.png`.
 
@@ -164,7 +164,7 @@ Status: **passed**. Browser UAT was executed with the installed `playwright-cli`
 
 ### 4. CLI Browser Auto-Open
 
-**Test:** Run `ahp-viewer test/fixtures/phase2-mini.jsonl` (without `--no-open`) in a terminal on a machine with a default browser configured.
+**Test:** Run `ahp-inspector test/fixtures/phase2-mini.jsonl` (without `--no-open`) in a terminal on a machine with a default browser configured.
 **Result:** PASS — CLI printed the normal launch copy without the fallback `(could not auto-open...)` message. Direct built CLI runtime was also verified from `packages/cli/dist/index.js` after bundling workspace packages into the CLI output.
 
 ---

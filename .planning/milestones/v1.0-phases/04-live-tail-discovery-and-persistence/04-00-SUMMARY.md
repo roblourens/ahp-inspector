@@ -60,7 +60,7 @@ Wave 0 freezes every contract Phase 4 depends on (logKey, SsePayload extensions,
 - `SsePayload` union gained `rotation`, `watch-error`, and `log-reset` variants without removing existing kinds.
 - `Connection` type now accepts the `"no-log"` literal (D-21).
 - The store exposes the additive Phase 4 slice (`livePaused`, `pendingNewCount`, `followLatest`, `lastWatchError`, `logKey`) plus `setLivePaused` / `clearPendingNewCount` / `setLastWatchError` / `setLogKey` / `resetForRotation` / `resetForLogSwitch`. `appendRows` increments `pendingNewCount` while paused (RESEARCH §Project Constraints — conditional spread for `exactOptionalPropertyTypes`).
-- `WatchSink` is exported from `@ahp-viewer/host-node`; the existing `ChunkSink` alias remains for backwards-compat (Wave 1 adopts the rich sink).
+- `WatchSink` is exported from `@ahp-inspector/host-node`; the existing `ChunkSink` alias remains for backwards-compat (Wave 1 adopts the rich sink).
 - `loadPerLogPrefs` / `persistPerLogPrefs` / `clearPerLogPrefs` round-trip prefs against `localStorage["ahp-log-prefs-v1"]` with LRU cap (50) and `groupCollapsed` cap (1000); quota errors silently degrade.
 - Phase 4 design tokens (candidate row, paused indicator, NewEventsPill, rotation banner, watch-error banner) added under `:root, [data-theme="dark"]` using `color-mix` over existing semantic tokens — zero raw `#hex` literals (Phase 2 hex-literal guard test still passes).
 
@@ -94,7 +94,7 @@ Wave 0 freezes every contract Phase 4 depends on (logKey, SsePayload extensions,
 - **Commit:** 2d0736a (rolled into the contract task itself)
 
 **2. [Rule 3 - Blocking] StatusBar `visualFor` no longer exhaustive after Connection widened**
-- **Found during:** Task 2 (`pnpm -F @ahp-viewer/ui typecheck`)
+- **Found during:** Task 2 (`pnpm -F @ahp-inspector/ui typecheck`)
 - **Issue:** Adding `"no-log"` to `Connection` made the existing switch statement non-exhaustive (TS2366 — function lacks ending return statement).
 - **Fix:** Added a `case "no-log"` branch returning a subtle placeholder (`{ glyph: "○", dotColor: "var(--color-text-subtle)", label: "No log selected" }`) so the type widening compiles. Wave 1 will replace this with the proper UI per UI-SPEC.
 - **Files modified:** `packages/ui/src/components/shell/StatusBar.tsx`

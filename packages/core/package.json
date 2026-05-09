@@ -1,5 +1,5 @@
 {
-  "name": "@ahp-viewer/core",
+  "name": "@ahp-inspector/core",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "build": "tsup src/index.ts --format esm --dts"
   },
   "dependencies": {
-    "@ahp-viewer/protocol": "workspace:*",
-    "@ahp-viewer/shared": "workspace:*"
+    "@ahp-inspector/protocol": "workspace:*",
+    "@ahp-inspector/shared": "workspace:*"
   }
 }

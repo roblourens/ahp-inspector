@@ -1,5 +1,5 @@
 {
-  "name": "@ahp-viewer/server",
+  "name": "@ahp-inspector/server",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,14 +12,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ahp-viewer/shared": "workspace:*",
-    "@ahp-viewer/core": "workspace:*",
-    "@ahp-viewer/parser": "workspace:*",
+    "@ahp-inspector/shared": "workspace:*",
+    "@ahp-inspector/core": "workspace:*",
+    "@ahp-inspector/parser": "workspace:*",
     "hono": "^4.12.18",
     "@hono/node-server": "^1.13.7"
   },
   "devDependencies": {
-    "@ahp-viewer/host-node": "workspace:*",
-    "@ahp-viewer/protocol": "workspace:*"
+    "@ahp-inspector/host-node": "workspace:*",
+    "@ahp-inspector/protocol": "workspace:*"
   }
 }

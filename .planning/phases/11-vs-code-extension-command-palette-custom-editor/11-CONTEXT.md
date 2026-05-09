@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Phase 11 delivers a VS Code extension experience for AHP Log Viewer: a command palette command opens the viewer in a VS Code webview, preferably with the most recently active AHP JSONL log preselected when one is available, while preserving the existing local-first privacy posture. Despite the roadmap title's original wording, this phase is not a VS Code `CustomEditorProvider` phase.
+Phase 11 delivers a VS Code extension experience for AHP Inspector: a command palette command opens the viewer in a VS Code webview, preferably with the most recently active AHP JSONL log preselected when one is available, while preserving the existing local-first privacy posture. Despite the roadmap title's original wording, this phase is not a VS Code `CustomEditorProvider` phase.
 
 </domain>
 

@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run AHP Viewer Extension",
+      "name": "Run AHP Inspector Extension",
       "type": "extensionHost",
       "request": "launch",
       "args": [

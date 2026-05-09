@@ -109,12 +109,12 @@ metrics:
 
 | Check | Result |
 |-------|--------|
-| `pnpm -F @ahp-viewer/ui test src/components/detail/` | ✅ 19/19 tests pass (2 files) |
-| `pnpm -F @ahp-viewer/ui build` | ✅ 226KB bundle, no errors |
+| `pnpm -F @ahp-inspector/ui test src/components/detail/` | ✅ 19/19 tests pass (2 files) |
+| `pnpm -F @ahp-inspector/ui build` | ✅ 226KB bundle, no errors |
 | `pnpm test test/boundary.test.ts` | ✅ 72/72 tests pass |
 | `grep -rn '#[0-9a-fA-F]{3,8}' packages/ui/src/components/detail/` | ✅ 0 results |
 | `grep -rn 'dangerouslySetInnerHTML\s*=' packages/ui/src/components/detail/` | ✅ 0 results |
-| `pnpm -F @ahp-viewer/ui typecheck` | ✅ No errors |
+| `pnpm -F @ahp-inspector/ui typecheck` | ✅ No errors |
 
 ---
 

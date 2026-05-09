@@ -8,10 +8,10 @@ import type {
   StateAction,
   TerminalAction,
   TerminalState,
-} from "@ahp-viewer/protocol";
-import { rootReducer, sessionReducer, terminalReducer } from "@ahp-viewer/protocol";
-import type { AhpEvent, CorrelationKey } from "@ahp-viewer/shared";
-import { correlationKeyForRequest, correlationKeyForResponse } from "@ahp-viewer/shared";
+} from "@ahp-inspector/protocol";
+import { rootReducer, sessionReducer, terminalReducer } from "@ahp-inspector/protocol";
+import type { AhpEvent, CorrelationKey } from "@ahp-inspector/shared";
+import { correlationKeyForRequest, correlationKeyForResponse } from "@ahp-inspector/shared";
 
 const ROOT_RESOURCE = "agenthost:/root";
 

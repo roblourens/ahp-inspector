@@ -73,7 +73,7 @@ Output: Minimal CSS change in `DetailPanel.tsx` plus a regression test.
     Do not modify any existing tests. Do not add testids to product code from this task.
   </action>
   <verify>
-    <automated>pnpm --filter @ahp-viewer/ui test -- DetailPanel.test.tsx</automated>
+    <automated>pnpm --filter @ahp-inspector/ui test -- DetailPanel.test.tsx</automated>
   </verify>
   <done>New tests exist and FAIL with a message indicating `minHeight` is empty / not "0px".</done>
 </task>
@@ -117,7 +117,7 @@ Output: Minimal CSS change in `DetailPanel.tsx` plus a regression test.
     other sibling styles. Do not add new files. Do not introduce CSS classes.
   </action>
   <verify>
-    <automated>pnpm --filter @ahp-viewer/ui test -- DetailPanel.test.tsx</automated>
+    <automated>pnpm --filter @ahp-inspector/ui test -- DetailPanel.test.tsx</automated>
   </verify>
   <done>
     Both Task 1 regression tests pass. Existing DetailPanel tests still pass.
@@ -133,7 +133,7 @@ Output: Minimal CSS change in `DetailPanel.tsx` plus a regression test.
     damage from the style change.
   </action>
   <verify>
-    <automated>pnpm --filter @ahp-viewer/ui test && pnpm --filter @ahp-viewer/ui typecheck 2>/dev/null || pnpm --filter @ahp-viewer/ui exec tsc --noEmit</automated>
+    <automated>pnpm --filter @ahp-inspector/ui test && pnpm --filter @ahp-inspector/ui typecheck 2>/dev/null || pnpm --filter @ahp-inspector/ui exec tsc --noEmit</automated>
   </verify>
   <done>UI package tests pass and TypeScript reports no new errors.</done>
 </task>
@@ -144,7 +144,7 @@ Output: Minimal CSS change in `DetailPanel.tsx` plus a regression test.
     Pretty and Raw tabs by adding `minHeight: 0` to the tabpanel flex child.
   </what-built>
   <how-to-verify>
-    1. `pnpm --filter @ahp-viewer/ui dev` (or run the standard local launch).
+    1. `pnpm --filter @ahp-inspector/ui dev` (or run the standard local launch).
     2. Open a log with at least one event whose JSON payload is taller than the
        detail panel (any large `tools/list` response or a fixture from
        `test/fixtures/long-realistic-ahp.jsonl` works).
@@ -164,7 +164,7 @@ Output: Minimal CSS change in `DetailPanel.tsx` plus a regression test.
 <verification>
 - New regression tests in `DetailPanel.test.tsx` pass.
 - Existing `DetailPanel.test.tsx` suite remains green.
-- `pnpm --filter @ahp-viewer/ui test` passes overall.
+- `pnpm --filter @ahp-inspector/ui test` passes overall.
 - TypeScript: no new errors.
 - Manual: scrollbar appears and works in both Pretty and Raw tabs for tall payloads.
 </verification>

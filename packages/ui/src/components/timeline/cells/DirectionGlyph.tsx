@@ -1,8 +1,8 @@
-import type { Direction } from "@ahp-viewer/shared";
+import type { Direction } from "@ahp-inspector/shared";
 import type { JSX } from "react";
 
 // Plan 02-03 deviation (Rule 3): the canonical `Direction` from
-// @ahp-viewer/shared is "c2s" | "s2c". The plan called for an "unknown"
+// @ahp-inspector/shared is "c2s" | "s2c". The plan called for an "unknown"
 // fallback glyph (UI-SPEC §5.1). We widen the cell prop locally to keep
 // the renderer total without changing the shared type.
 export type DirectionInput = Direction | "unknown";

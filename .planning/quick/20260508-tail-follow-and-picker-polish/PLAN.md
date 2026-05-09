@@ -35,7 +35,7 @@ hadn't been updated, so origin would render blank).
 
 ## Verification
 
-- `pnpm -F @ahp-viewer/ui typecheck`
+- `pnpm -F @ahp-inspector/ui typecheck`
 - `pnpm vitest run packages/ui packages/host-node`
 - Manual: load a fixture log → timeline opens scrolled to the end. Click the
   filename in the source strip → picker opens. Picker rows show time on the left,

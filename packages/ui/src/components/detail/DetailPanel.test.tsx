@@ -3,8 +3,8 @@
  * T-03-04-01: contract test with <script> payload ensures no XSS.
  */
 
-import type { EventRow } from "@ahp-viewer/core";
-import type { AhpEvent } from "@ahp-viewer/shared";
+import type { EventRow } from "@ahp-inspector/core";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useAppStore } from "../../state/store.js";

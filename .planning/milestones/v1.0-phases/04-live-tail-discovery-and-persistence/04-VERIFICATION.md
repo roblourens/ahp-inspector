@@ -84,8 +84,8 @@ Evidence:
 
 | Behavior | Command | Result | Status |
 |---|---|---|---:|
-| Targeted gap-fix tests | `pnpm -F @ahp-viewer/ui test src/transport/sse-client.test.ts src/transport/sessions-client.test.ts src/components/shell/AppShell.test.tsx` | 3 files passed, 27 tests passed | Pass |
-| Full final gate | `pnpm vitest run test/phase4-vertical-slice.test.ts && pnpm test && pnpm -F @ahp-viewer/ui build && pnpm -F @ahp-viewer/cli build && pnpm typecheck && pnpm lint` | Passed | Pass |
+| Targeted gap-fix tests | `pnpm -F @ahp-inspector/ui test src/transport/sse-client.test.ts src/transport/sessions-client.test.ts src/components/shell/AppShell.test.tsx` | 3 files passed, 27 tests passed | Pass |
+| Full final gate | `pnpm vitest run test/phase4-vertical-slice.test.ts && pnpm test && pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/cli build && pnpm typecheck && pnpm lint` | Passed | Pass |
 | UAT artifacts | `screenshots/phase4/*.png` | 10 expected PNGs present | Pass |
 | USER_GUIDE Phase 4 docs | `USER_GUIDE.md` | Required Phase 4 headings and screenshots present | Pass |
 

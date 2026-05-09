@@ -1,7 +1,7 @@
 /**
  * Browser-only transport for lazy reconstructed state lookup.
  *
- * MUST NOT import node:, fs, path, hono, or @ahp-viewer/server.
+ * MUST NOT import node:, fs, path, hono, or @ahp-inspector/server.
  * boundary.test.ts enforces this at CI time.
  */
 
