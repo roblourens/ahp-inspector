@@ -1,6 +1,12 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      vscode: new URL("./packages/extension/src/__test__/vscode-stub.ts", import.meta.url)
+        .pathname,
+    },
+  },
   test: {
     environment: "jsdom",
     include: [

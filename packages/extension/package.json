@@ -22,7 +22,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsup",
+    "build": "tsup && node ./scripts/copy-ui-dist.cjs",
     "test": "vitest run"
   },
   "dependencies": {
@@ -33,6 +33,7 @@
     "@ahp-viewer/shared": "workspace:*"
   },
   "devDependencies": {
+    "@ahp-viewer/ui": "workspace:*",
     "@types/vscode": "^1.95.0"
   }
 }

@@ -81,6 +81,9 @@ importers:
         specifier: workspace:*
         version: link:../shared
     devDependencies:
+      '@ahp-viewer/ui':
+        specifier: workspace:*
+        version: link:../ui
       '@types/vscode':
         specifier: ^1.95.0
         version: 1.118.0

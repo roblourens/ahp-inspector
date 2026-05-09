@@ -21,3 +21,33 @@ owner explicitly asks for a scrubbed reproduction.
 - UI metadata should avoid exposing absolute paths unless the user explicitly
   provided a path for manual open.
 - Fixture logs committed to the repo must be synthetic or scrubbed.
+
+## VS Code extension (`packages/extension`)
+
+When the viewer runs inside VS Code, the loopback HTTP server is **not**
+started. Instead the extension host hosts a `ViewerSessionBridge` per
+webview panel and the React UI uses a typed `postMessage` transport.
+
+- The webview is created with `enableScripts: true` and
+  `localResourceRoots` pinned to the extension's `ui-dist/` folder, so
+  `webview.asWebviewUri` only resolves bundled local assets.
+- A strict CSP is injected into the webview HTML:
+  `default-src 'none'`, `script-src 'nonce-<random>'`,
+  `connect-src ${webview.cspSource}`. Inline scripts without a matching
+  nonce are blocked, and there is no allowlist for outbound network
+  origins.
+- Webview ↔ extension messages are typed `WebviewRequest` /
+  `ExtensionNotification` envelopes from `@ahp-viewer/shared`. Unknown
+  message kinds are ignored; invalid payloads return coded error
+  responses.
+- Absolute file paths only appear inside the extension host (for the
+  initial open hint and `path/openSession` requests). Paths are not put
+  into stream metadata frames, and discovery responses use opaque
+  candidate ids.
+
+The boundary is enforced by automated tests:
+`test/boundary.test.ts` forbids `vscode` imports and
+`@ahp-viewer/extension` imports outside `packages/extension`, and
+`test/security.test.ts` asserts that the extension runtime never imports
+`startLogServer` and that `renderWebviewHtml` emits the strict CSP with
+no external URLs.

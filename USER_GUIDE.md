@@ -30,6 +30,21 @@ The browser opens to a picker showing logs the viewer discovered automatically u
 
 ![No active log picker](screenshots/phase4/01-no-active-log.png)
 
+## Inside VS Code (extension)
+
+If you install the bundled VS Code extension (`packages/extension`), open
+the command palette and run **AHP Log Viewer: Open**. The viewer appears
+in a webview panel in the active editor column. The same React UI runs
+inside the webview; the extension host owns log discovery, file watchers,
+and the in-memory event store and talks to the webview over typed
+`postMessage` requests — no loopback HTTP server is started.
+
+If a `.jsonl` file (or a file with `ahp` / `ahp-log` / `ahp_log` in its
+name) is the active editor when you run the command, that file is
+preselected as the initial log and starts streaming immediately.
+Otherwise the same picker shown for browser launches appears, listing
+discovered VS Code log roots.
+
 ## The log picker
 
 - **Confidence dot** — green (JSONL), amber (Legacy heuristic match), grey (unknown).
