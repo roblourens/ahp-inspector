@@ -247,6 +247,40 @@ describe("DetailPanel — populated state", () => {
   });
 });
 
+describe("DetailPanel — scrollable JSON tabpanel", () => {
+  it("allows the Pretty tab panel to shrink and scroll inside the detail rail", async () => {
+    vi.mocked(fetchEvent).mockResolvedValue(makeDetailResponse());
+    useAppStore.setState({ selectedIdx: 0, rows: [makeRow()] });
+    render(<DetailPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("detail-summary")).toBeInTheDocument();
+    });
+
+    const tabPanel = screen.getByRole("tabpanel");
+    expect(tabPanel.style.overflow).toBe("auto");
+    expect(tabPanel.style.flex).toContain("1");
+    expect(tabPanel.style.minHeight).toBe("0px");
+  });
+
+  it("keeps the Raw tab panel scrollable after switching tabs", async () => {
+    vi.mocked(fetchEvent).mockResolvedValue(makeDetailResponse());
+    useAppStore.setState({ selectedIdx: 0, rows: [makeRow()] });
+    render(<DetailPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("detail-summary")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: /raw/i }));
+
+    const tabPanel = screen.getByRole("tabpanel");
+    expect(tabPanel.style.overflow).toBe("auto");
+    expect(tabPanel.style.flex).toContain("1");
+    expect(tabPanel.style.minHeight).toBe("0px");
+  });
+});
+
 describe("DetailPanel — retry", () => {
   it("calls fetchEvent again when Retry is clicked", async () => {
     vi.mocked(fetchEvent)
