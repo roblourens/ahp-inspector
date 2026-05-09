@@ -165,12 +165,12 @@ Plans:
 **Goal:** Ship the standalone viewer as a published npm package so a single `npx` invocation downloads, runs the loopback server, and opens the browser viewer streaming the most-recently-modified AHP JSONL log under the standard VS Code log roots.
 **Requirements:** NPX-01, NPX-02, NPX-03, NPX-04, NPX-05, NPX-06
 **Depends on:** Phase 11
-**Plans:** TBD (run `/gsd-plan-phase 13`)
+**Plans:** 3 plans
 
-Outline:
-- 13-01 — CLI: when launched without a path argument, reuse `discoverVsCodeLogs()` to pick the most-recently-modified JSONL candidate, then open it as the active log (treat "no candidate" the same as today's empty discovery state).
-- 13-02 — Packaging: choose a public scope/name, ensure the published tarball includes `packages/cli/dist`, `packages/ui/dist`, and the protocol/server/host-node bundles; add a `bin` entry so `npx <name>` runs the CLI; verify `npm pack` and a tarball install boot the viewer.
-- 13-03 — Release automation + docs: add a release script (or GH Actions workflow) that bumps version, builds, runs typecheck/test, and publishes (with a documented dry-run); update README/USER_GUIDE with the `npx` flow, auto-open behavior, and the local-only privacy posture.
+Plans:
+- [ ] 13-01-PLAN.md — CLI auto-discovery: findLatestAhpLog() in host-node + wire into CLI no-arg path (NPX-02, NPX-03)
+- [ ] 13-02-PLAN.md — Packaging: rename CLI package to `ahp-inspector` (unscoped), add bin/files/UI bundling, npm pack smoke test (NPX-01, NPX-04)
+- [ ] 13-03-PLAN.md — Release script (`scripts/release.sh --dry-run`) + manual publish workflow + README/USER_GUIDE quickstart (NPX-05, NPX-06)
 
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*
