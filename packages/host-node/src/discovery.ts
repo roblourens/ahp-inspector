@@ -15,14 +15,22 @@ const MAX_LAUNCH_LIST = 50;
 const MAX_RESULTS = 200;
 const MAX_DEPTH_BELOW_LAUNCH = 3;
 
+type Origin = "vscode" | "vscode-insiders" | "vscode-oss-dev";
+
 interface Root {
-  readonly origin: "vscode" | "vscode-insiders";
+  readonly origin: Origin;
   readonly dir: string;
 }
 
 function defaultRoots(): readonly Root[] {
   const home = homedir();
   const platform = process.platform;
+  // OSS dev build (Code OSS run from sources) writes to ~/.vscode-oss-agents-dev
+  // on every platform, alongside the platform-specific stable/insiders roots.
+  const ossDev: Root = {
+    origin: "vscode-oss-dev",
+    dir: join(home, ".vscode-oss-agents-dev", "logs"),
+  };
   if (platform === "darwin") {
     return [
       { origin: "vscode", dir: join(home, "Library", "Application Support", "Code", "logs") },
@@ -30,6 +38,7 @@ function defaultRoots(): readonly Root[] {
         origin: "vscode-insiders",
         dir: join(home, "Library", "Application Support", "Code - Insiders", "logs"),
       },
+      ossDev,
     ];
   }
   if (platform === "win32") {
@@ -37,24 +46,24 @@ function defaultRoots(): readonly Root[] {
     return [
       { origin: "vscode", dir: join(appData, "Code", "logs") },
       { origin: "vscode-insiders", dir: join(appData, "Code - Insiders", "logs") },
+      ossDev,
     ];
   }
   // linux + other unix
   return [
     { origin: "vscode", dir: join(home, ".config", "Code", "logs") },
     { origin: "vscode-insiders", dir: join(home, ".config", "Code - Insiders", "logs") },
+    ossDev,
   ];
 }
 
 const FILENAME_RE_AHP_JSONL = /^(agenthost|agent-host|ahp).*\.jsonl$/i;
 const FILENAME_RE_AHP_NAMED_JSONL = /(agent-host|agenthost|ahp|copilot-chat).*\.jsonl$/i;
-const FILENAME_RE_LEGACY_AGENTHOST = /^agenthost\..*\.log$/i;
 
 function score(name: string, mtimeMs: number, sizeBytes: number, parentPath: string): number {
   let s = 0;
   if (FILENAME_RE_AHP_JSONL.test(name)) s += 50;
   else if (FILENAME_RE_AHP_NAMED_JSONL.test(name)) s += 30;
-  if (FILENAME_RE_LEGACY_AGENTHOST.test(name)) s += 15;
   if (/copilot/i.test(parentPath)) s += 20;
   const ageMs = Date.now() - mtimeMs;
   if (ageMs <= 60 * 60 * 1000) s += 15;
@@ -182,7 +191,7 @@ export async function discoverVsCodeLogs(opts: DiscoverOptions = {}): Promise<Di
     absDir: string,
     launchDir: string,
     depthLeft: number,
-    origin: "vscode" | "vscode-insiders",
+    origin: Origin,
     sink: LogCandidate[],
     tickAndCheck: () => boolean,
   ): Promise<void> {
@@ -211,17 +220,12 @@ export async function discoverVsCodeLogs(opts: DiscoverOptions = {}): Promise<Di
       }
       if (!st.isFile()) continue;
       const ok =
-        FILENAME_RE_AHP_JSONL.test(name) ||
-        FILENAME_RE_AHP_NAMED_JSONL.test(name) ||
-        FILENAME_RE_LEGACY_AGENTHOST.test(name);
+        FILENAME_RE_AHP_JSONL.test(name) || FILENAME_RE_AHP_NAMED_JSONL.test(name);
       if (!ok) continue;
       const sc = score(name, st.mtimeMs, st.size, absDir);
       const id = makeId(abs);
       idToPath.set(id, abs);
-      // Legacy agenthost.*.log files are pinned to "low" per CONTEXT D-03 —
-      // they are useful as a fallback but never canonical AHP traffic.
-      const isLegacy = FILENAME_RE_LEGACY_AGENTHOST.test(name);
-      const confidence = isLegacy ? "low" : tier(sc);
+      const confidence = tier(sc);
       sink.push({
         id,
         label: basename(abs),

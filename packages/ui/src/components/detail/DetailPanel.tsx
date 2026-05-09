@@ -126,6 +126,8 @@ export function DetailPanel({
           position: "relative",
           flex: `0 0 ${detailWidth}px`,
           width: `${detailWidth}px`,
+          height: "100%",
+          minHeight: 0,
           display: "flex",
           flexDirection: "column",
           background: "var(--color-surface)",
@@ -189,6 +191,8 @@ export function DetailPanel({
           position: "relative",
           flex: `0 0 ${detailWidth}px`,
           width: `${detailWidth}px`,
+          height: "100%",
+          minHeight: 0,
           display: "flex",
           flexDirection: "column",
           background: "var(--color-surface)",
@@ -234,6 +238,8 @@ export function DetailPanel({
           position: "relative",
           flex: `0 0 ${detailWidth}px`,
           width: `${detailWidth}px`,
+          height: "100%",
+          minHeight: 0,
           display: "flex",
           flexDirection: "column",
           background: "var(--color-surface)",
@@ -316,6 +322,8 @@ export function DetailPanel({
         position: "relative",
         flex: `0 0 ${detailWidth}px`,
         width: `${detailWidth}px`,
+        height: "100%",
+        minHeight: 0,
         display: "flex",
         flexDirection: "column",
         background: "var(--color-surface)",
@@ -390,7 +398,13 @@ export function DetailPanel({
       {/* JSON view */}
       <div
         role="tabpanel"
-        style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column" }}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflow: "auto",
+          display: "flex",
+          flexDirection: "column",
+        }}
       >
         {activeTab === "pretty" ? (
           <PrettyJsonView data={event.raw} onOpenRaw={() => setActiveTab("raw")} />

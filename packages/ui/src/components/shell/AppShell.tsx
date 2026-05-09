@@ -69,7 +69,6 @@ export function AppShell(): JSX.Element {
   const connection = useAppStore((s) => s.connection);
   const rows = useAppStore((s) => s.rows);
   const filters = useAppStore((s) => s.filters);
-  const searchQuery = useAppStore((s) => s.searchQuery);
   const grouping = useAppStore((s) => s.grouping);
   const detailWidth = useAppStore((s) => s.detailWidth);
   const selectedIdx = useAppStore((s) => s.selectedIdx);
@@ -87,7 +86,7 @@ export function AppShell(): JSX.Element {
   const groupedItems = useGroupedItems(filteredRowIdxs);
 
   // Active filters check
-  const hasActiveFilters = !isFiltersEmpty(filters) || searchQuery !== "";
+  const hasActiveFilters = !isFiltersEmpty(filters);
 
   // StickyGroupBar state — updated via onTopGroupChange callback from TimelineList
   const [stickyGroup, setStickyGroup] = useState<{
@@ -192,7 +191,7 @@ export function AppShell(): JSX.Element {
       className="app-shell"
       style={{ display: "flex", flexDirection: "column", height: "100%" }}
     >
-      <HeaderBar version={__APP_VERSION__} onSwitchLog={onToggleSwitchLog} />
+      <HeaderBar version={__APP_VERSION__} />
       {lastWatchError && (
         <WatchErrorBanner
           code={lastWatchError.code}
@@ -204,6 +203,7 @@ export function AppShell(): JSX.Element {
         filename={meta?.filename ?? null}
         eventCount={meta?.eventCount ?? 0}
         sessionCount={meta?.sessionCount ?? 0}
+        onSwitchLog={onToggleSwitchLog}
       />
       <FilterBar searchInputRef={searchInputRef} />
       {hasActiveFilters && <ActiveFilterChips />}
@@ -220,7 +220,9 @@ export function AppShell(): JSX.Element {
             data-testid="detail-panel-wrapper"
             className="detail-rail"
             style={{
+              display: "flex",
               flex: `0 0 ${detailWidth}px`,
+              minHeight: 0,
               minWidth: 0,
               overflow: "hidden",
             }}

@@ -162,7 +162,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     }
   }
 
-  const lastSeenServerSeq = new Map<string | null, number>();
+  let lastSeenServerSeq: number | null = null;
 
   function buildRow(idx: number): EventRow {
     const ev = store.at(idx);
@@ -171,10 +171,11 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     const latency = correlator.latencyOf(idx);
 
     const evSeq = store.serverSeq[idx] ?? null;
-    const sessionKey = ev.sessionId ?? null;
-    const prevSeq = lastSeenServerSeq.get(sessionKey);
-    const gapBefore = evSeq != null && prevSeq != null && evSeq !== prevSeq + 1;
-    if (evSeq != null) lastSeenServerSeq.set(sessionKey, evSeq);
+    const previousServerSeq = lastSeenServerSeq;
+    const gapBefore = evSeq != null && previousServerSeq != null && evSeq > previousServerSeq + 1;
+    if (evSeq != null && (lastSeenServerSeq === null || evSeq > lastSeenServerSeq)) {
+      lastSeenServerSeq = evSeq;
+    }
 
     const rawRec =
       ev.raw != null && typeof ev.raw === "object" ? (ev.raw as Record<string, unknown>) : null;
@@ -194,6 +195,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     const extras: EventRowExtras = {
       errorCode,
       serverSeq: evSeq,
+      previousServerSeq,
       gapBefore,
       isAuthFailure,
       pairIdx,
@@ -298,7 +300,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       correlator.reset();
       rows.length = 0;
       searchIdx.reset();
-      lastSeenServerSeq.clear();
+      lastSeenServerSeq = null;
       emit({ kind: "rotation", newSize: info.newSize, reason: info.reason });
     },
     onError(err, fatal) {

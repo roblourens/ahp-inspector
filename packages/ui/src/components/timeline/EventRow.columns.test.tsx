@@ -32,6 +32,7 @@ const baseRow: EventRowData = {
   lineIndex: 1,
   errorCode: null,
   serverSeq: null,
+  previousServerSeq: null,
   gapBefore: false,
   isAuthFailure: false,
 };
@@ -106,6 +107,11 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
     expect(row.getAttribute("aria-rowindex")).toBe("5");
     expect(row.getAttribute("aria-selected")).toBe("true");
     expect(row.getAttribute("data-selected")).toBe("true");
+  });
+
+  it("marks a row as a search match", () => {
+    render(<EventRow row={baseRow} isSelected={false} isSearchMatch onClick={() => {}} />);
+    expect(screen.getByRole("row")).toHaveAttribute("data-search-match", "true");
   });
 
   it("does not expose action family marker copy", () => {

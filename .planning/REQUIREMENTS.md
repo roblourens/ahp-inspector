@@ -50,6 +50,16 @@ Requirements for reducer-backed state reconstruction.
 - [x] **VERIFY-03**: Browser E2E covers opening a log, selecting a row, viewing state, pinning two points, and seeing confidence diagnostics.
 - [x] **VERIFY-04**: Large-log tests confirm state-at-index lookup remains responsive and does not inflate timeline SSE payloads.
 
+### VS Code Extension Webview
+
+- [ ] **EXT-01**: User can run an AHP Viewer command from the VS Code Command Palette and open the viewer inside a VS Code webview.
+- [ ] **EXT-02**: If the active editor is an AHP JSONL log, the command opens the webview with that log selected by default; otherwise the webview shows log discovery/open options.
+- [ ] **EXT-03**: The VS Code webview runtime uses direct `postMessage` communication with the extension host instead of starting the loopback browser server.
+- [ ] **EXT-04**: The VS Code webview supports discovery/open, live timeline updates, event detail, search, and reconstructed state lookup through a shared transport contract.
+- [ ] **EXT-05**: The extension package has publishable manifest metadata, activation, command contribution, CSP-safe webview asset loading, and build/typecheck scripts.
+- [ ] **EXT-06**: The existing standalone CLI/browser viewer continues to build and run through the HTTP/SSE transport after the UI transport refactor.
+- [ ] **EXT-07**: Automated verification covers command activation, active-log detection, webview message handling, and local-only/no-outbound constraints.
+
 ## Future Requirements
 
 ### Advanced State Analysis
@@ -97,11 +107,18 @@ Requirements for reducer-backed state reconstruction.
 | VERIFY-02 | Phase 8 | Done |
 | VERIFY-03 | Phase 10 | Done |
 | VERIFY-04 | Phase 10 | Done |
+| EXT-01 | Phase 11 | Planned |
+| EXT-02 | Phase 11 | Planned |
+| EXT-03 | Phase 11 | Planned |
+| EXT-04 | Phase 11 | Planned |
+| EXT-05 | Phase 11 | Planned |
+| EXT-06 | Phase 11 | Planned |
+| EXT-07 | Phase 11 | Planned |
 
 **Coverage:**
 
-- v1.1 requirements: 25 total
-- Mapped to phases: 25
+- v1.1 requirements: 32 total
+- Mapped to phases: 32
 - Unmapped: 0
 
 ---

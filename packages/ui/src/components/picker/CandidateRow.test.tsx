@@ -16,14 +16,17 @@ const sample: SafeCandidate = {
 };
 
 describe("CandidateRow", () => {
-  it("renders basename, badge copy, and origin label", () => {
+  it("renders basename without .jsonl extension and origin label (no JSONL badge)", () => {
     render(
       <ul>
         <CandidateRow candidate={sample} onSelect={() => {}} />
       </ul>,
     );
-    expect(screen.getByText("agenthost.20260507.jsonl")).toBeTruthy();
-    expect(screen.getByText(/JSONL · VS Code/)).toBeTruthy();
+    // .jsonl extension is hidden — every candidate is jsonl now.
+    expect(screen.getByText("agenthost.20260507")).toBeTruthy();
+    expect(screen.queryByText("agenthost.20260507.jsonl")).toBeNull();
+    expect(screen.getByText("VS Code")).toBeTruthy();
+    expect(screen.queryByText(/JSONL/)).toBeNull();
   });
   it("does NOT render any absolute path text in the DOM", () => {
     const c2: SafeCandidate = { ...sample, label: "x.jsonl", contextLabel: "20260507 / window1" };

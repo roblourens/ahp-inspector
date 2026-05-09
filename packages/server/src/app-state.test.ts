@@ -312,7 +312,6 @@ describe("createAppState", () => {
       flushIntervalMs: 0,
       directionInference: ahpDirection,
     });
-
     host.push(initializeRequest());
     host.push(initializeRootSnapshotResponse());
 
@@ -324,6 +323,29 @@ describe("createAppState", () => {
     expect(first.result.resources[0]?.key).toEqual({ kind: "root", uri: "agenthost:/root" });
     expect(second.cache.hit).toBe(true);
     expect(second.result).toEqual(first.result);
+  });
+
+  it("tracks serverSeq gaps globally and preserves the actual previous sequence", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/x.log",
+      flushIntervalMs: 0,
+      directionInference: ahpDirection,
+    });
+
+    host.push(serverSessionTitleAction(1, "One"));
+    host.push(rootActiveSessionsAction(2, 1));
+    host.push(serverSessionTitleAction(3, "Three"));
+    host.push(serverSessionTitleAction(5, "Five"));
+
+    const rows = state.snapshot().rows;
+    expect(rows[0]?.gapBefore).toBe(false);
+    expect(rows[1]?.gapBefore).toBe(false);
+    expect(rows[2]?.gapBefore).toBe(false);
+    expect(rows[3]?.gapBefore).toBe(true);
+    expect(rows[3]?.previousServerSeq).toBe(3);
+    expect(rows[3]?.serverSeq).toBe(5);
   });
 
   it("clears stateAtIndex cache on rotation reset", async () => {

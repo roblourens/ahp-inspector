@@ -30,6 +30,21 @@ The browser opens to a picker showing logs the viewer discovered automatically u
 
 ![No active log picker](screenshots/phase4/01-no-active-log.png)
 
+## Inside VS Code (extension)
+
+If you install the bundled VS Code extension (`packages/extension`), open
+the command palette and run **AHP Log Viewer: Open**. The viewer appears
+in a webview panel in the active editor column. The same React UI runs
+inside the webview; the extension host owns log discovery, file watchers,
+and the in-memory event store and talks to the webview over typed
+`postMessage` requests — no loopback HTTP server is started.
+
+If a `.jsonl` file (or a file with `ahp` / `ahp-log` / `ahp_log` in its
+name) is the active editor when you run the command, that file is
+preselected as the initial log and starts streaming immediately.
+Otherwise the same picker shown for browser launches appears, listing
+discovered VS Code log roots.
+
 ## The log picker
 
 - **Confidence dot** — green (JSONL), amber (Legacy heuristic match), grey (unknown).
@@ -116,9 +131,10 @@ The current standalone app opens one log at a time. Multi-log comparison, export
 
 ## Searching events
 
-The search bar (top of the filter bar) performs an instant full-text substring search across every event's method name, session ID, turn ID, key ID, and payload preview. Search is case-insensitive. Results are highlighted in the timeline.
+The search bar (top of the filter bar) performs a case-insensitive full-text substring search across event method names, action types, IDs, session IDs, turn IDs, error text, and payload text. Search finds, counts, highlights, and navigates matching events without hiding the surrounding timeline context.
 
 - Press **`/`** from anywhere to focus the search input.
+- Use the **Prev** and **Next** search buttons, or press **`F3`** / **`Shift+F3`**, to move between matching rows.
 - Press **`Esc`** to clear the search query (press again to clear active filters, then again to deselect the current row).
 - Results are capped at **5,000 matches** to keep scrolling smooth on large logs. A "truncated" indicator appears when the cap is reached.
 
@@ -144,7 +160,7 @@ Click any of the **8 facet chips** in the filter bar to open a popover with the 
 Selecting a value within a popover adds an **active chip** below the filter bar. Multiple values within the same facet are OR-combined; values across different facets are AND-combined.
 
 - Click **✕** on an individual chip to remove that filter.
-- Click **Clear all** to reset all active chips and the search query.
+- Click **Clear all** to reset all active filter chips. The search query is cleared separately from the search input or with **`Esc`**.
 
 ![Filter bar with all facets](screenshots/phase3-filter-bar.png)
 

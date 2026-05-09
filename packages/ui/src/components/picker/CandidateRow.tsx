@@ -4,13 +4,8 @@ import type { SafeCandidate } from "../../types/safe-candidate.js";
 const ORIGIN_LABEL: Record<SafeCandidate["origin"], string> = {
   vscode: "VS Code",
   "vscode-insiders": "VS Code Insiders",
+  "vscode-oss-dev": "VS Code OSS (dev)",
   manual: "Manual",
-};
-
-const CONFIDENCE_BADGE: Record<SafeCandidate["confidence"], string> = {
-  high: "JSONL",
-  medium: "Legacy",
-  low: "Unknown",
 };
 
 function relTime(ms: number): string {
@@ -27,6 +22,10 @@ function formatBytes(n: number): string {
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
   if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
   return `${(n / 1024 / 1024 / 1024).toFixed(1)} GB`;
+}
+
+function stripJsonlExt(label: string): string {
+  return label.endsWith(".jsonl") ? label.slice(0, -".jsonl".length) : label;
 }
 
 export function CandidateRow({
@@ -76,6 +75,17 @@ export function CandidateRow({
         />
         <span
           style={{
+            width: 80,
+            flex: "0 0 80px",
+            textAlign: "left",
+            fontSize: "var(--text-ui-muted-size)",
+            color: "var(--color-text-muted)",
+          }}
+        >
+          {relTime(candidate.mtimeMs)}
+        </span>
+        <span
+          style={{
             flex: 1,
             minWidth: 0,
             fontFamily: "var(--font-mono)",
@@ -85,7 +95,7 @@ export function CandidateRow({
             whiteSpace: "nowrap",
           }}
         >
-          {candidate.label}
+          {stripJsonlExt(candidate.label)}
         </span>
         <span
           style={{
@@ -97,17 +107,7 @@ export function CandidateRow({
             letterSpacing: "0.04em",
           }}
         >
-          {CONFIDENCE_BADGE[candidate.confidence]} · {ORIGIN_LABEL[candidate.origin]}
-        </span>
-        <span
-          style={{
-            width: 64,
-            textAlign: "right",
-            fontSize: "var(--text-ui-muted-size)",
-            color: "var(--color-text-muted)",
-          }}
-        >
-          {relTime(candidate.mtimeMs)}
+          {ORIGIN_LABEL[candidate.origin]}
         </span>
         <span
           style={{

@@ -40,7 +40,17 @@ describe("useAppStore", () => {
     s.setMeta(null);
     s.selectIdx(null);
     s.setConnection("connecting");
-    useAppStore.setState({ livePaused: false, pendingBuffer: [], pendingNewCount: 0 });
+    useAppStore.setState({
+      livePaused: false,
+      pendingBuffer: [],
+      pendingNewCount: 0,
+      searchQuery: "",
+      searchMatches: null,
+      searchTotal: 0,
+      searchTruncated: false,
+      searchStatus: "idle",
+      searchError: null,
+    });
   });
 
   it("setRows replaces and updates meta when meta exists", () => {
@@ -132,5 +142,34 @@ describe("useAppStore", () => {
   it("setConnection updates connection", () => {
     useAppStore.getState().setConnection("connected");
     expect(useAppStore.getState().connection).toBe("connected");
+  });
+
+  it("stores search result metadata and clears only volatile results", () => {
+    const s = useAppStore.getState();
+    s.setSearchQuery("initialize");
+    s.setSearchPending();
+    expect(useAppStore.getState().searchStatus).toBe("searching");
+
+    s.setSearchResult([1, 3], 2, true);
+    expect(useAppStore.getState().searchMatches).toEqual(new Set([1, 3]));
+    expect(useAppStore.getState().searchTotal).toBe(2);
+    expect(useAppStore.getState().searchTruncated).toBe(true);
+    expect(useAppStore.getState().searchStatus).toBe("ready");
+
+    s.clearSearchResults();
+    expect(useAppStore.getState().searchQuery).toBe("initialize");
+    expect(useAppStore.getState().searchMatches).toBeNull();
+    expect(useAppStore.getState().searchTotal).toBe(0);
+    expect(useAppStore.getState().searchTruncated).toBe(false);
+    expect(useAppStore.getState().searchStatus).toBe("idle");
+  });
+
+  it("clearFilters does not clear search query or results", () => {
+    const s = useAppStore.getState();
+    s.setSearchQuery("needle");
+    s.setSearchResult([0], 1, false);
+    s.clearFilters();
+    expect(useAppStore.getState().searchQuery).toBe("needle");
+    expect(useAppStore.getState().searchMatches).toEqual(new Set([0]));
   });
 });

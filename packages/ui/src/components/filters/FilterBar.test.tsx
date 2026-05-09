@@ -40,6 +40,7 @@ function makeRow(overrides: Partial<EventRow> = {}): EventRow {
     lineIndex: null,
     errorCode: null,
     serverSeq: null,
+    previousServerSeq: null,
     gapBefore: false,
     isAuthFailure: false,
     ...overrides,
@@ -52,6 +53,10 @@ beforeEach(() => {
     filters: EMPTY_FILTERS,
     searchQuery: "",
     searchMatches: null,
+    searchTotal: 0,
+    searchTruncated: false,
+    searchStatus: "idle",
+    searchError: null,
     grouping: "none",
   });
 });
@@ -94,6 +99,19 @@ describe("FilterBar", () => {
     useAppStore.setState({ rows: [makeRow(), makeRow({ idx: 1 })] });
     render(<FilterBar />);
     expect(screen.getByText("2 events")).toBeTruthy();
+  });
+
+  it("renders search match count and navigation controls when query has results", () => {
+    useAppStore.setState({
+      searchQuery: "initialize",
+      searchMatches: new Set([0, 2]),
+      searchTotal: 2,
+      searchStatus: "ready",
+    });
+    render(<FilterBar />);
+    expect(screen.getByTestId("search-status").textContent).toContain("2 matches");
+    expect(screen.getByRole("button", { name: "Previous search match" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Next search match" })).toBeTruthy();
   });
 
   it("opens FacetPopover when Dir chip is clicked", () => {
@@ -186,17 +204,17 @@ describe("ActiveFilterChips", () => {
     expect(screen.getByText("Dir: c2s")).toBeTruthy();
   });
 
-  it("renders a search chip when searchQuery is non-empty", () => {
+  it("does not render a search chip when searchQuery is non-empty", () => {
     useAppStore.setState({ searchQuery: "initialize" });
     render(<ActiveFilterChips />);
-    expect(screen.getByText("initialize")).toBeTruthy();
+    expect(screen.queryByTestId("active-filter-chips")).toBeNull();
   });
 
-  it("truncates search chip label at 40 chars", () => {
+  it("keeps search text out of filter chips", () => {
     const longQuery = "a".repeat(50);
     useAppStore.setState({ searchQuery: longQuery });
     render(<ActiveFilterChips />);
-    expect(screen.getByText(`${"a".repeat(40)}…`)).toBeTruthy();
+    expect(screen.queryByText(`${"a".repeat(40)}…`)).toBeNull();
   });
 
   it("dismissing a direction chip calls patchFilter('direction', [])", () => {
@@ -214,17 +232,30 @@ describe("ActiveFilterChips", () => {
       filters: { ...EMPTY_FILTERS, direction: ["c2s"] },
     });
     render(<ActiveFilterChips />);
-    const clearBtn = screen.getByRole("button", { name: /Clear all filters and search/i });
+    const clearBtn = screen.getByRole("button", { name: /Clear all filters/i });
     fireEvent.click(clearBtn);
     const state = useAppStore.getState();
     expect(state.filters.direction).toEqual([]);
-    expect(state.searchQuery).toBe("");
+  });
+
+  it("Clear all button does not clear search", () => {
+    useAppStore.setState({
+      filters: { ...EMPTY_FILTERS, direction: ["c2s"] },
+      searchQuery: "foo",
+      searchMatches: new Set([0]),
+    });
+    render(<ActiveFilterChips />);
+    fireEvent.click(screen.getByRole("button", { name: /Clear all filters/i }));
+    const state = useAppStore.getState();
+    expect(state.filters.direction).toEqual([]);
+    expect(state.searchQuery).toBe("foo");
+    expect(state.searchMatches).toEqual(new Set([0]));
   });
 
   it("clear-all button is visible whenever chips row is rendered", () => {
-    useAppStore.setState({ searchQuery: "foo" });
+    useAppStore.setState({ filters: { ...EMPTY_FILTERS, direction: ["c2s"] } });
     render(<ActiveFilterChips />);
-    expect(screen.getByRole("button", { name: /Clear all filters and search/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Clear all filters/i })).toBeTruthy();
   });
 });
 

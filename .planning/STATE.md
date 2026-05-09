@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: milestone
-status: complete
-stopped_at: Completed 10-03-PLAN.md; ready for v1.1 milestone verification
-last_updated: "2026-05-08T18:16:00.000Z"
-last_activity: 2026-05-08 -- Phase 10 verified complete
+milestone_name: Reducer-backed State Snapshots
+status: verifying
+stopped_at: Phase 11 executed (verification pending)
+last_updated: "2026-05-09T07:00:00.000Z"
+last_activity: 2026-05-09 -- Phase 11 VS Code extension command palette webview executed (4/4 plans)
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 7
+  completed_phases: 6
+  total_plans: 22
+  completed_plans: 22
   percent: 100
 ---
 
@@ -19,14 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 10 — pinned comparison and milestone verification
+**Current Focus:** Phase 11 — VS Code extension command palette webview
 
 ## Current Position
 
-Phase: 10 (pinned comparison and milestone verification) — COMPLETE
-Plan: 3 of 3 complete
-Status: Phase 10 verified complete; ready for v1.1 milestone verification
-Last activity: 2026-05-08 -- Phase 10 verified complete
+Phase: 11 (VS Code extension command palette webview) — EXECUTED
+Plan: 4 of 4 complete
+Status: Phase 11 executed; all plans committed; full pnpm typecheck/test/build green; verification pending
+Last activity: 2026-05-09 -- Phase 11 executed: extension package + webview bridge + UI transport abstraction + boundary/security/docs
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Last activity: 2026-05-08 -- Phase 10 verified complete
 | Phase 08 plans | 3 complete | 8 tasks | validated |
 | Phase 09 plans | 3 complete / 3 planned | verified | complete |
 | Phase 10 plans | 3 complete / 3 planned | verified | complete |
+| Phase 12 plans | 3 complete / 3 planned | verified | complete |
 | Phase 10 P10-03 | 6m24s | 3 tasks | 14 files |
 
 ## Accumulated Context
@@ -138,12 +139,24 @@ Last activity: 2026-05-08 -- Phase 10 verified complete
 - Phase 04.1 completed: ID-first timeline rows, Summary column, request/response pair highlighting, nested session/turn extraction, expanded Pretty JSON defaults, and privacy-safe real-log structural validation are in place.
 - Phase 05 completed: polished dark/light/hacker themes, responsive drawer/rail layout, theme persistence hardening, integrated UI coverage, Playwright E2E, UAT screenshots, and final verification gate are complete.
 - Milestone v1.0 archived: roadmap, requirements, audit, milestones index, project state, and retrospective are updated.
+- Phase 11 added: VS Code extension command palette custom editor
+- Phase 12 added: Search rather than filter
+- Phase 12 completed: free-text search now highlights and navigates matches without filtering out nonmatching rows; faceted filters remain the only row-narrowing controls.
 
 ## Session Continuity
 
-**Last session:** 2026-05-08T18:04:28.329Z
+**Last session:** 2026-05-09T00:42:29.706Z
 **Next action:** `/gsd-complete-milestone` when ready to archive v1.1
-**Stopped at:** Completed 10-03-PLAN.md; ready for v1.1 milestone verification
+**Stopped at:** Phase 12 executed and verified
+
+## Quick Tasks Completed
+
+| Date | Slug | Summary |
+|------|------|---------|
+| 2026-05-09 | scrolling-the-response-is-not-working-co | Fixed response detail scrolling and corrected serverSeq gap banners to use real global sequence gaps instead of fabricating missing-0 rows. |
+| 2026-05-09 | in-the-response-viewer-on-the-right-side | Restored vertical scrolling in the response viewer Pretty/Raw tabs by allowing the shared JSON tabpanel flex child to shrink. |
+| 2026-05-08 | discover-oss-dev-jsonl | Discover Code OSS dev AHP JSONL logs under `~/.vscode-oss-agents-dev/logs`; drop legacy `agenthost.*.log` matching. |
+| 2026-05-08 | tail-follow-and-picker-polish | Tail-follow timeline auto-scroll, clickable filename opens picker (removed Switch Log button), picker rows show left-aligned time, no `.jsonl` extension, no JSONL badge. |
 
 ---
 *State initialized: 2026-05-06*

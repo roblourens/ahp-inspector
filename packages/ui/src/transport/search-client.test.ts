@@ -93,7 +93,14 @@ describe("useSearch", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.stubGlobal("fetch", mockFetch);
-    useAppStore.setState({ searchQuery: "", searchMatches: null });
+    useAppStore.setState({
+      searchQuery: "",
+      searchMatches: null,
+      searchTotal: 0,
+      searchTruncated: false,
+      searchStatus: "idle",
+      searchError: null,
+    });
   });
 
   afterEach(() => {
@@ -103,10 +110,19 @@ describe("useSearch", () => {
     cleanup();
   });
 
-  it("dispatches setSearchMatches(null) immediately when query is empty", () => {
-    useAppStore.setState({ searchQuery: "", searchMatches: new Set([1, 2]) });
+  it("clears volatile search results immediately when query is empty", () => {
+    useAppStore.setState({
+      searchQuery: "",
+      searchMatches: new Set([1, 2]),
+      searchTotal: 2,
+      searchTruncated: true,
+      searchStatus: "ready",
+    });
     renderHook(() => useSearch());
     expect(useAppStore.getState().searchMatches).toBeNull();
+    expect(useAppStore.getState().searchTotal).toBe(0);
+    expect(useAppStore.getState().searchTruncated).toBe(false);
+    expect(useAppStore.getState().searchStatus).toBe("idle");
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -151,10 +167,10 @@ describe("useSearch", () => {
     expect(mockFetch.mock.calls[0]?.[0]).toMatch("q=ini");
   });
 
-  it("dispatches setSearchMatches with returned matches", async () => {
+  it("dispatches search result metadata with returned matches", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: async () => ({ matches: [2, 5, 8], total: 3, truncated: false }),
+      json: async () => ({ matches: [2, 5, 8], total: 3, truncated: true }),
     });
 
     renderHook(() => useSearch());
@@ -163,6 +179,10 @@ describe("useSearch", () => {
 
     const s = useAppStore.getState();
     expect(s.searchMatches).toEqual(new Set([2, 5, 8]));
+    expect(s.searchTotal).toBe(3);
+    expect(s.searchTruncated).toBe(true);
+    expect(s.searchStatus).toBe("ready");
+    expect(s.searchError).toBeNull();
   });
 
   it("dispatches setSearchMatches(null) when query becomes empty", async () => {

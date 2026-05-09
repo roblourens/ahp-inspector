@@ -5,3 +5,4 @@ export * from "./correlation.js";
 export * from "./event.js";
 export * from "./host-protocol.js";
 export * from "./parse-error.js";
+export * from "./webview-message.js";

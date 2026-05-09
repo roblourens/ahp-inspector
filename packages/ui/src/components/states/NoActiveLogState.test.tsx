@@ -27,7 +27,7 @@ describe("NoActiveLogState", () => {
     );
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("No log open");
     expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("Discovered logs");
-    expect(screen.getByText("agenthost.x.jsonl")).toBeTruthy();
+    expect(screen.getByText("agenthost.x")).toBeTruthy();
   });
 
   it("body copy adapts when there are no candidates", () => {
@@ -54,7 +54,7 @@ describe("NoActiveLogState", () => {
         onRefresh={() => {}}
       />,
     );
-    fireEvent.click(screen.getByText("agenthost.x.jsonl"));
+    fireEvent.click(screen.getByText("agenthost.x"));
     expect(onSelect).toHaveBeenCalledWith("id1");
   });
 

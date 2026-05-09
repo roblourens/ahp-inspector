@@ -21,6 +21,8 @@ const FORBIDDEN_PATTERNS: RegExp[] = [
   /^vite$/,
   /^hono($|\/)/,
   /^@ahp-viewer\/host-node($|\/)/,
+  /^vscode$/,
+  /^@ahp-viewer\/extension($|\/)/,
 ];
 
 const UI_FORBIDDEN_PATTERNS: RegExp[] = [
@@ -34,6 +36,16 @@ const UI_FORBIDDEN_PATTERNS: RegExp[] = [
   /^@ahp-viewer\/host-node($|\/)/,
   /^@ahp-viewer\/server($|\/)/,
   /^@ahp-viewer\/parser\/legacy/,
+  /^vscode$/,
+  /^@ahp-viewer\/extension($|\/)/,
+];
+
+// Server package boundary — must not import the extension package, since the
+// extension links the server but not the other way around.
+const SERVER_ROOTS = ["packages/server/src"];
+const SERVER_FORBIDDEN_PATTERNS: RegExp[] = [
+  /^vscode$/,
+  /^@ahp-viewer\/extension($|\/)/,
 ];
 
 // Capture the import specifier in either `import ... from "x"` or bare `from "x"`.
@@ -115,6 +127,34 @@ describe("import boundary (browser UI)", () => {
           const spec = m[1];
           if (!spec) continue;
           const hit = isForbidden(spec, UI_FORBIDDEN_PATTERNS);
+          if (hit) offenders.push(`"${spec}" (matched ${hit})`);
+        }
+        IMPORT_RE.lastIndex = 0;
+        expect(offenders, `${file}: forbidden imports: ${offenders.join(", ")}`).toEqual([]);
+      });
+    }
+  }
+});
+
+describe("import boundary (server)", () => {
+  for (const root of SERVER_ROOTS) {
+    const absRoot = resolve(root);
+    const files = walk(absRoot);
+    if (files.length === 0) {
+      it(`${root}: no files yet (vacuously safe)`, () => {
+        expect(true).toBe(true);
+      });
+      continue;
+    }
+    for (const file of files) {
+      it(`${file.replace(`${process.cwd()}/`, "")} has no forbidden server imports`, () => {
+        const body = readFileSync(file, "utf8");
+        const offenders: string[] = [];
+        // biome-ignore lint/suspicious/noAssignInExpressions: regex iteration
+        for (let m: RegExpExecArray | null; (m = IMPORT_RE.exec(body)); ) {
+          const spec = m[1];
+          if (!spec) continue;
+          const hit = isForbidden(spec, SERVER_FORBIDDEN_PATTERNS);
           if (hit) offenders.push(`"${spec}" (matched ${hit})`);
         }
         IMPORT_RE.lastIndex = 0;

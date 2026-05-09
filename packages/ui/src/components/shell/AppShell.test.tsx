@@ -136,7 +136,7 @@ describe("AppShell — Plan 04-05 wiring", () => {
 
     render(<AppShell />);
     fireEvent.click(screen.getByRole("button", { name: "Switch log" }));
-    fireEvent.click(await screen.findByText("next.jsonl"));
+    fireEvent.click(await screen.findByText("next"));
 
     await waitFor(() => expect(openSessionByCandidate).toHaveBeenCalledWith("cand-next"));
     expect(oldHandle.close).toHaveBeenCalled();

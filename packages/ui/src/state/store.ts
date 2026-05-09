@@ -10,6 +10,7 @@ import { EMPTY_FILTERS, type FilterState } from "./filters.js";
 export type { FilterState } from "./filters.js";
 
 export type GroupingMode = "none" | "session" | "session+turn";
+export type SearchStatus = "idle" | "searching" | "ready" | "error";
 
 export interface DetailData {
   idx: number;
@@ -54,8 +55,16 @@ export interface AppStoreState {
   // Phase 3: search
   searchQuery: string;
   searchMatches: Set<number> | null;
+  searchTotal: number;
+  searchTruncated: boolean;
+  searchStatus: SearchStatus;
+  searchError: string | null;
   setSearchQuery(q: string): void;
   setSearchMatches(matches: number[] | null): void;
+  setSearchPending(): void;
+  setSearchResult(matches: number[], total: number, truncated: boolean): void;
+  setSearchError(message: string): void;
+  clearSearchResults(): void;
   // Phase 3: filters
   filters: FilterState;
   setFilters(f: FilterState): void;
@@ -169,6 +178,10 @@ export const useAppStore = create<AppStoreState>((set) => ({
   // Phase 3 initial state
   searchQuery: "",
   searchMatches: null,
+  searchTotal: 0,
+  searchTruncated: false,
+  searchStatus: "idle",
+  searchError: null,
   filters: EMPTY_FILTERS,
   grouping: "none",
   groupCollapsed: new Set<string>(),
@@ -177,9 +190,34 @@ export const useAppStore = create<AppStoreState>((set) => ({
   // Phase 3 actions
   setSearchQuery: (q) => set({ searchQuery: q }),
   setSearchMatches: (matches) => set({ searchMatches: matches !== null ? new Set(matches) : null }),
+  setSearchPending: () => set({ searchStatus: "searching", searchError: null }),
+  setSearchResult: (matches, total, truncated) =>
+    set({
+      searchMatches: new Set(matches),
+      searchTotal: total,
+      searchTruncated: truncated,
+      searchStatus: "ready",
+      searchError: null,
+    }),
+  setSearchError: (message) =>
+    set({
+      searchMatches: null,
+      searchTotal: 0,
+      searchTruncated: false,
+      searchStatus: "error",
+      searchError: message,
+    }),
+  clearSearchResults: () =>
+    set({
+      searchMatches: null,
+      searchTotal: 0,
+      searchTruncated: false,
+      searchStatus: "idle",
+      searchError: null,
+    }),
   setFilters: (f) => set({ filters: f }),
   patchFilter: (key, value) => set((s) => ({ filters: { ...s.filters, [key]: value } })),
-  clearFilters: () => set({ filters: EMPTY_FILTERS, searchQuery: "", searchMatches: null }),
+  clearFilters: () => set({ filters: EMPTY_FILTERS }),
   setGrouping: (mode) => set({ grouping: mode }),
   toggleGroupCollapsed: (key) =>
     set((s) => {
@@ -228,6 +266,10 @@ export const useAppStore = create<AppStoreState>((set) => ({
       selectedIdx: null,
       selectedDetail: null,
       searchMatches: null,
+      searchTotal: 0,
+      searchTruncated: false,
+      searchStatus: "idle",
+      searchError: null,
       pendingBuffer: [],
       pendingNewCount: 0,
     }),
@@ -237,6 +279,10 @@ export const useAppStore = create<AppStoreState>((set) => ({
       selectedIdx: null,
       selectedDetail: null,
       searchMatches: null,
+      searchTotal: 0,
+      searchTruncated: false,
+      searchStatus: "idle",
+      searchError: null,
       pendingBuffer: [],
       pendingNewCount: 0,
       meta: null,

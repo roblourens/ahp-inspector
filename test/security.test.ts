@@ -49,6 +49,8 @@ const ALLOW = new Set<string>([
   "@types/react-dom",
   // Phase-3 UI runtime dep (plan 03-00)
   "react-json-view-lite",
+  // Phase-11 VS Code extension (plan 11-01)
+  "@types/vscode",
 ]);
 
 interface PkgJson {
@@ -175,4 +177,64 @@ describe("no CDN URLs in UI source", () => {
       expect(matches, `${file}: external URL(s) found: ${matches.join(", ")}`).toEqual([]);
     });
   }
+});
+
+// VS Code extension local-only guards (T-11-04).
+//
+// 1. Extension runtime source must not call `startLogServer` / start the
+//    loopback HTTP server. The webview transport is direct postMessage.
+// 2. The webview HTML produced by `renderWebviewHtml` must contain a strict
+//    CSP and no CDN URLs.
+describe("vs code extension local-only guards", () => {
+  const extRoot = resolve("packages/extension/src");
+  let extStat: ReturnType<typeof statSync> | null = null;
+  try {
+    extStat = statSync(extRoot);
+  } catch {
+    extStat = null;
+  }
+  if (!extStat || !extStat.isDirectory()) {
+    it("extension package not present yet (vacuously safe)", () => {
+      expect(true).toBe(true);
+    });
+    return;
+  }
+  const allFiles = walkUi(extRoot);
+  const runtimeFiles = allFiles.filter((f) => {
+    const n = f.split("/").pop() ?? "";
+    if (n.endsWith(".test.ts") || n.endsWith(".test.tsx")) return false;
+    if (f.includes("/__test__/")) return false;
+    return n.endsWith(".ts") || n.endsWith(".tsx");
+  });
+
+  it("extension runtime does not import startLogServer or open()", () => {
+    const offenders: string[] = [];
+    for (const file of runtimeFiles) {
+      const body = readFileSync(file, "utf8");
+      const stripped = stripComments(body, file);
+      if (/\bstartLogServer\b/.test(stripped)) offenders.push(`${file}: startLogServer`);
+      if (/from\s+["']open["']/.test(stripped)) offenders.push(`${file}: open package`);
+    }
+    expect(offenders, `local-only violations: ${offenders.join(", ")}`).toEqual([]);
+  });
+
+  it("renderWebviewHtml output has restrictive CSP and no CDN URLs", async () => {
+    const mod = (await import(
+      "../packages/extension/src/webviewHtml.ts"
+    )) as typeof import("../packages/extension/src/webviewHtml.js");
+    const html = mod.renderWebviewHtml({
+      scriptUri: "webview-uri:/main.js",
+      stylesheetUri: "webview-uri:/main.css",
+      nonce: "test-nonce",
+      cspSource: "vscode-webview://test",
+    });
+    expect(html).toMatch(/Content-Security-Policy/);
+    expect(html).toMatch(/default-src\s+'none'/);
+    expect(html).toMatch(/script-src\s+'nonce-test-nonce'/);
+    const stripped = stripComments(html, "webview.html");
+    const urls = (stripped.match(URL_RE) ?? []).filter(
+      (u) => !/^https?:\/\/(?:localhost|127\.0\.0\.1)/.test(u),
+    );
+    expect(urls, `external URLs in webview HTML: ${urls.join(", ")}`).toEqual([]);
+  });
 });

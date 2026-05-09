@@ -8,9 +8,15 @@ interface SourceStripProps {
   filename: string | null;
   eventCount: number;
   sessionCount: number;
+  onSwitchLog?: () => void;
 }
 
-export function SourceStrip({ filename, eventCount, sessionCount }: SourceStripProps): JSX.Element {
+export function SourceStrip({
+  filename,
+  eventCount,
+  sessionCount,
+  onSwitchLog,
+}: SourceStripProps): JSX.Element {
   return (
     <div
       style={{
@@ -31,7 +37,30 @@ export function SourceStrip({ filename, eventCount, sessionCount }: SourceStripP
       ) : (
         <>
           <FileBraces size={14} aria-hidden />
-          <span className="mono">{filename}</span>
+          {onSwitchLog ? (
+            <button
+              type="button"
+              onClick={onSwitchLog}
+              aria-label="Switch log"
+              title="Switch log"
+              className="mono"
+              style={{
+                background: "transparent",
+                border: "none",
+                padding: 0,
+                color: "var(--color-text)",
+                cursor: "pointer",
+                font: "inherit",
+                textDecoration: "underline",
+                textDecorationColor: "var(--color-border)",
+                textUnderlineOffset: 3,
+              }}
+            >
+              {filename}
+            </button>
+          ) : (
+            <span className="mono">{filename}</span>
+          )}
           <span style={{ color: "var(--color-text-muted)" }}>
             {" · "}
             {eventCount} events

@@ -33,7 +33,6 @@ function mkEvent(over: Partial<AhpEvent> = {}): AhpEvent {
   };
   return { ...base, ...over };
 }
-
 describe("bandFor()", () => {
   it.each([
     [null, null],
@@ -173,6 +172,7 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
     const row = projectRow(mkEvent(), 0, "ok", 12, {
       errorCode: null,
       serverSeq: null,
+      previousServerSeq: null,
       gapBefore: false,
       isAuthFailure: false,
       pairIdx: 1,
@@ -193,6 +193,7 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
       {
         errorCode: null,
         serverSeq: null,
+        previousServerSeq: null,
         gapBefore: false,
         isAuthFailure: false,
         pairIdx: 0,
@@ -399,6 +400,7 @@ describe("Phase 3 EventRow extras", () => {
     const row = projectRow(e, 0, "ok", null, {
       errorCode: -32007,
       serverSeq: null,
+      previousServerSeq: null,
       gapBefore: false,
       isAuthFailure: true,
     });
@@ -420,6 +422,7 @@ describe("Phase 3 EventRow extras", () => {
     const row = projectRow(e, 0, "n/a", null, {
       errorCode: null,
       serverSeq: null,
+      previousServerSeq: null,
       gapBefore: false,
       isAuthFailure: true,
     });
@@ -431,11 +434,13 @@ describe("Phase 3 EventRow extras", () => {
     const row = projectRow(e, 0, "n/a", null, {
       errorCode: null,
       serverSeq: 3,
+      previousServerSeq: 1,
       gapBefore: true,
       isAuthFailure: false,
     });
     expect(row.gapBefore).toBe(true);
     expect(row.serverSeq).toBe(3);
+    expect(row.previousServerSeq).toBe(1);
   });
 
   it("row with gapBefore:false extras propagates gapBefore:false", () => {
@@ -443,10 +448,12 @@ describe("Phase 3 EventRow extras", () => {
     const row = projectRow(e, 0, "n/a", null, {
       errorCode: null,
       serverSeq: 2,
+      previousServerSeq: 1,
       gapBefore: false,
       isAuthFailure: false,
     });
     expect(row.gapBefore).toBe(false);
+    expect(row.previousServerSeq).toBe(1);
   });
 
   it("row with no serverSeq extras gets gapBefore:false, serverSeq:null", () => {
@@ -454,11 +461,13 @@ describe("Phase 3 EventRow extras", () => {
     const row = projectRow(e, 0, "pending", null, {
       errorCode: null,
       serverSeq: null,
+      previousServerSeq: null,
       gapBefore: false,
       isAuthFailure: false,
     });
     expect(row.gapBefore).toBe(false);
     expect(row.serverSeq).toBeNull();
+    expect(row.previousServerSeq).toBeNull();
   });
 
   it("normal ok response gets isAuthFailure:false, errorCode:null", () => {
@@ -470,6 +479,7 @@ describe("Phase 3 EventRow extras", () => {
     const row = projectRow(e, 0, "ok", 50, {
       errorCode: null,
       serverSeq: null,
+      previousServerSeq: null,
       gapBefore: false,
       isAuthFailure: false,
     });

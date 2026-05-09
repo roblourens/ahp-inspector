@@ -3,7 +3,7 @@
 import { type EventRow as EventRowData, formatSessionShort } from "@ahp-viewer/core";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { CSSProperties, JSX } from "react";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { VirtualItem } from "../../state/selectors.js";
 import { EventRow, TIMELINE_GRID_COLUMNS } from "./EventRow.js";
 import { GapBannerRow } from "./GapBannerRow.js";
@@ -42,6 +42,7 @@ export interface TimelineListProps {
   selectedIdx: number | null;
   onSelect: (idx: number) => void;
   searchQuery?: string;
+  searchMatches?: Set<number> | null;
   onTopGroupChange?: (group: { level: "session" | "turn"; label: string } | null) => void;
   groupCollapsed?: Set<string>;
   onToggleGroup?: (key: string) => void;
@@ -53,6 +54,7 @@ export function TimelineList({
   selectedIdx,
   onSelect,
   searchQuery = "",
+  searchMatches = null,
   onTopGroupChange,
   groupCollapsed,
   onToggleGroup,
@@ -87,6 +89,36 @@ export function TimelineList({
     },
     overscan: 12,
   });
+
+  // Auto tail-follow: scroll to bottom on first load and on append while the
+  // user is parked at the bottom. User scroll-up disables follow; scrolling
+  // back to bottom re-enables it. Threshold is generous (4px) to absorb
+  // virtualizer rounding.
+  const followTailRef = useRef(true);
+  const SCROLL_BOTTOM_THRESHOLD_PX = 4;
+
+  const scrollToBottom = useCallback((): void => {
+    const el = parentRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, []);
+
+  // Scroll to end whenever item count changes while following. Runs once on
+  // initial non-empty mount (followTailRef defaults to true) and on every
+  // append after that. Uses rAF so the virtualizer has measured the new total.
+  useEffect(() => {
+    if (!followTailRef.current) return;
+    if (items.length === 0) return;
+    const raf = requestAnimationFrame(scrollToBottom);
+    return () => cancelAnimationFrame(raf);
+  }, [items.length, scrollToBottom]);
+
+  const onScroll = useCallback((): void => {
+    const el = parentRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    followTailRef.current = distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD_PX;
+  }, []);
 
   // Compute topmost visible group for StickyGroupBar.
   const virtualItems = v.getVirtualItems();
@@ -175,6 +207,7 @@ export function TimelineList({
       </div>
       <div
         ref={parentRef}
+        onScroll={onScroll}
         role="grid"
         aria-label="AHP event timeline"
         aria-rowcount={items.length}
@@ -270,6 +303,7 @@ export function TimelineList({
                 isSelected={isSelected}
                 onClick={() => onSelect(row.idx)}
                 searchQuery={searchQuery}
+                isSearchMatch={searchMatches?.has(row.idx) ?? false}
                 pairHighlight={pairHighlight}
                 pairHidden={pairHidden}
                 style={style}

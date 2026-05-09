@@ -16,6 +16,7 @@ export interface EventRowProps {
   onClick: () => void;
   style?: CSSProperties;
   searchQuery?: string;
+  isSearchMatch?: boolean;
   pairHighlight?: "request" | "response" | null;
   pairHidden?: "request" | "response" | null;
 }
@@ -118,6 +119,7 @@ export const EventRow = memo(function EventRow({
   onClick,
   style,
   searchQuery = "",
+  isSearchMatch = false,
   pairHighlight = null,
   pairHidden = null,
 }: EventRowProps): JSX.Element {
@@ -150,6 +152,7 @@ export const EventRow = memo(function EventRow({
       tabIndex={isSelected ? 0 : -1}
       data-testid={`row-${row.idx}`}
       data-selected={isSelected ? "true" : undefined}
+      data-search-match={isSearchMatch ? "true" : undefined}
       data-pair-highlight={pairHighlight ?? undefined}
       data-pair-hidden={pairHidden ?? undefined}
       style={{
@@ -163,7 +166,11 @@ export const EventRow = memo(function EventRow({
           ? "var(--row-selected-bg)"
           : pairHighlight
             ? "color-mix(in srgb, var(--color-info) 14%, transparent)"
-            : "transparent",
+            : isSearchMatch
+              ? "color-mix(in srgb, var(--color-search-match-bg) 35%, transparent)"
+              : "transparent",
+        outline: isSearchMatch ? "1px solid var(--color-search-match-bg)" : undefined,
+        outlineOffset: isSearchMatch ? -1 : undefined,
         ...style,
       }}
     >

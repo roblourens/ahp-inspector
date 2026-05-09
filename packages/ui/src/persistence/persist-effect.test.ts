@@ -36,6 +36,10 @@ function resetStore(): void {
     meta: null,
     searchQuery: "",
     searchMatches: null,
+    searchTotal: 0,
+    searchTruncated: false,
+    searchStatus: "idle",
+    searchError: null,
     filters: EMPTY_FILTERS,
     grouping: "none",
     groupCollapsed: new Set<string>(),
@@ -87,6 +91,13 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
       livePaused: false,
     });
 
+    useAppStore.setState({
+      searchMatches: new Set([0, 1]),
+      searchTotal: 2,
+      searchTruncated: true,
+      searchStatus: "ready",
+      searchError: "stale",
+    });
     renderHook(() => usePersistEffect());
     useAppStore.setState({
       logKey: "lk-A",
@@ -95,6 +106,11 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
 
     const s = useAppStore.getState();
     expect(s.searchQuery).toBe("hello");
+    expect(s.searchMatches).toBeNull();
+    expect(s.searchTotal).toBe(0);
+    expect(s.searchTruncated).toBe(false);
+    expect(s.searchStatus).toBe("idle");
+    expect(s.searchError).toBeNull();
     expect(s.grouping).toBe("session");
     expect(s.detailWidth).toBe(500);
     expect(s.selectedIdx).toBe(5);

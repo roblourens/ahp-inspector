@@ -7,7 +7,12 @@ import type { EventRow } from "@ahp-viewer/core";
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { applyFacets, EMPTY_FILTERS } from "./filters.js";
-import { useFacetCounts, useFilteredRows, useGroupedItems } from "./selectors.js";
+import {
+  useFacetCounts,
+  useFilteredRows,
+  useGroupedItems,
+  useVisibleSearchMatches,
+} from "./selectors.js";
 import { useAppStore } from "./store.js";
 
 function makeRow(overrides: Partial<EventRow> = {}): EventRow {
@@ -36,6 +41,7 @@ function makeRow(overrides: Partial<EventRow> = {}): EventRow {
     lineIndex: null,
     errorCode: null,
     serverSeq: null,
+    previousServerSeq: null,
     gapBefore: false,
     isAuthFailure: false,
     ...overrides,
@@ -47,6 +53,10 @@ function resetStore(rows: EventRow[] = []) {
     rows,
     filters: EMPTY_FILTERS,
     searchMatches: null,
+    searchTotal: 0,
+    searchTruncated: false,
+    searchStatus: "idle",
+    searchError: null,
     searchQuery: "",
     grouping: "none",
     groupCollapsed: new Set(),
@@ -104,15 +114,15 @@ describe("useFilteredRows", () => {
     expect(result.current).toEqual([0, 1, 2]);
   });
 
-  it("with searchMatches = Set([0,2]) and 3 rows returns [0, 2]", () => {
+  it("with searchMatches = Set([0,2]) and 3 rows still returns all row indices", () => {
     const rows = [makeRow({ idx: 0 }), makeRow({ idx: 1 }), makeRow({ idx: 2 })];
     resetStore(rows);
     useAppStore.setState({ searchMatches: new Set([0, 2]) });
     const { result } = renderHook(() => useFilteredRows());
-    expect(result.current).toEqual([0, 2]);
+    expect(result.current).toEqual([0, 1, 2]);
   });
 
-  it("with direction filter ['c2s'] AND searchMatches = Set([0,1]) returns intersection of matching direction rows", () => {
+  it("with direction filter ['c2s'] and searchMatches = Set([0,1]) returns all matching direction rows", () => {
     const rows = [
       makeRow({ idx: 0, dir: "c2s" }),
       makeRow({ idx: 1, dir: "s2c", dirGlyph: "←" }),
@@ -124,7 +134,27 @@ describe("useFilteredRows", () => {
       searchMatches: new Set([0, 1]),
     });
     const { result } = renderHook(() => useFilteredRows());
-    // idx 0 passes both; idx 1 is s2c (fails direction); idx 2 passes direction but not search
+    expect(result.current).toEqual([0, 2]);
+  });
+});
+
+describe("useVisibleSearchMatches", () => {
+  beforeEach(() => resetStore());
+
+  afterEach(() => resetStore());
+
+  it("returns visible search matches after applying facets", () => {
+    const rows = [
+      makeRow({ idx: 0, dir: "c2s" }),
+      makeRow({ idx: 1, dir: "s2c", dirGlyph: "←" }),
+      makeRow({ idx: 2, dir: "c2s" }),
+    ];
+    resetStore(rows);
+    useAppStore.setState({
+      filters: { ...EMPTY_FILTERS, direction: ["c2s"] },
+      searchMatches: new Set([0, 1, 99]),
+    });
+    const { result } = renderHook(() => useVisibleSearchMatches());
     expect(result.current).toEqual([0]);
   });
 });
@@ -202,14 +232,22 @@ describe("useGroupedItems", () => {
   it("a row with gapBefore:true causes a gap-banner item to be inserted before it", () => {
     const rows = [
       makeRow({ idx: 0, gapBefore: false, serverSeq: 10 }),
-      makeRow({ idx: 1, gapBefore: true, serverSeq: 15 }),
+      makeRow({ idx: 1, gapBefore: true, previousServerSeq: 10, serverSeq: 15 }),
     ];
     resetStore(rows);
     useAppStore.setState({ grouping: "none" });
     const { result } = renderHook(() => useGroupedItems([0, 1]));
     // Should have: row(0), gap-banner, row(1)
     expect(result.current[0]).toEqual({ kind: "row", rowIdx: 0 });
-    expect(result.current[1]).toMatchObject({ kind: "gap-banner", curr: 15 });
+    expect(result.current[1]).toMatchObject({ kind: "gap-banner", prev: 10, curr: 15 });
     expect(result.current[2]).toEqual({ kind: "row", rowIdx: 1 });
+  });
+
+  it("does not insert a gap-banner when previous serverSeq is unavailable", () => {
+    const rows = [makeRow({ idx: 0, gapBefore: true, previousServerSeq: null, serverSeq: 15 })];
+    resetStore(rows);
+    useAppStore.setState({ grouping: "none" });
+    const { result } = renderHook(() => useGroupedItems([0]));
+    expect(result.current).toEqual([{ kind: "row", rowIdx: 0 }]);
   });
 });
