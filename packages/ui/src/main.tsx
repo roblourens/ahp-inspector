@@ -5,13 +5,15 @@ import "./styles/global.css";
 import { applyTheme, readStoredTheme } from "./theme/theme.js";
 import { createBrowserAhpViewerClient } from "./transport/browser-client.js";
 import { AhpViewerClientProvider } from "./transport/transport-context.js";
+import { createWebviewAhpViewerClient, isVsCodeWebviewRuntime } from "./transport/webview-client.js";
 
 applyTheme(readStoredTheme());
 
 const el = document.getElementById("root");
 if (el) {
-  // Plan 11-03 will swap this for the webview client when running inside VS Code.
-  const client = createBrowserAhpViewerClient();
+  const client = isVsCodeWebviewRuntime()
+    ? createWebviewAhpViewerClient()
+    : createBrowserAhpViewerClient();
   createRoot(el).render(
     <StrictMode>
       <AhpViewerClientProvider client={client}>

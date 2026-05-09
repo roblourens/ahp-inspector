@@ -21,6 +21,7 @@ import {
   type ActiveLogWindowState,
   detectActiveAhpLog,
 } from "./activeLog.js";
+import { ViewerSessionBridge } from "./viewerSession.js";
 import { generateNonce, renderWebviewHtml } from "./webviewHtml.js";
 
 const COMMAND_ID = "ahpViewer.open";
@@ -45,18 +46,23 @@ function openViewer(context: vscode.ExtensionContext): vscode.WebviewPanel {
     localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "ui-dist")],
   });
   panel.webview.html = buildPanelHtml(panel.webview, context.extensionUri);
-  // Plan 11-03 will replace this stub with the full ViewerSessionBridge wiring.
-  void panel.webview.postMessage(buildInitialLogMessage(candidate));
+
+  const bridge = new ViewerSessionBridge({
+    postMessage: (notification) => {
+      void panel.webview.postMessage(notification);
+    },
+  });
+  bridge.notifyInitialLog(candidate ? candidate.fsPath : null);
+  if (candidate) void bridge.openInitialLogPath(candidate.fsPath);
+
+  const sub = panel.webview.onDidReceiveMessage((message: unknown) => {
+    void bridge.handle(message);
+  });
+  panel.onDidDispose(() => {
+    sub.dispose();
+    void bridge.dispose();
+  });
   return panel;
-}
-
-interface InitialLogMessage {
-  readonly kind: "initialLog";
-  readonly path: string | null;
-}
-
-function buildInitialLogMessage(candidate: ActiveAhpLogCandidate | null): InitialLogMessage {
-  return { kind: "initialLog", path: candidate ? candidate.fsPath : null };
 }
 
 function snapshotWindowState(): ActiveLogWindowState {
@@ -87,3 +93,6 @@ function buildPanelHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
     cspSource: webview.cspSource,
   });
 }
+
+// Re-exports kept silent to avoid unused-symbol warnings in the bundle entrypoint.
+export type { ActiveAhpLogCandidate };
