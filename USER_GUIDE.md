@@ -1,8 +1,26 @@
 # AHP Inspector User Guide
 
-## Open a JSONL log
+## Install and run
 
-Run the viewer from the repository root with a JSONL file path:
+The fastest path is `npx` — no clone, no build:
+
+```bash
+npx ahp-inspector
+```
+
+This auto-opens the most recent AHP JSONL log under your standard VS Code log
+roots. To open a specific file:
+
+```bash
+npx ahp-inspector path/to/log.jsonl
+```
+
+Flags: `--port <n>`, `--no-open`, `--no-auto-discover`.
+
+## Open a JSONL log (from source)
+
+If you've cloned this repo, run the viewer from the repository root with a
+JSONL file path:
 
 ```bash
 pnpm exec tsx packages/cli/src/index.ts path/to/log.jsonl
@@ -12,7 +30,7 @@ For a built CLI smoke test, build first and run:
 
 ```bash
 pnpm -F @ahp-inspector/ui build
-pnpm -F @ahp-inspector/cli build
+pnpm -F ahp-inspector build
 node packages/cli/dist/index.js path/to/log.jsonl
 ```
 

@@ -20,6 +20,50 @@ faceted filters narrow rows, and event details are expandable.
 - Local-only architecture: no telemetry, no CDN assets, loopback server only,
   and a host adapter boundary for future VS Code/webview hosting.
 
+## Quickstart
+
+Open the most recent VS Code Agent Host log in the browser:
+
+```bash
+npx ahp-inspector
+```
+
+This downloads `ahp-inspector` to npx's cache, starts a local HTTP server on
+`127.0.0.1`, opens your default browser, and streams the most-recently-modified
+AHP JSONL log it can find under your standard VS Code log roots.
+
+Open a specific file:
+
+```bash
+npx ahp-inspector path/to/agent-host.jsonl
+```
+
+Flags:
+
+- `--port <n>` — choose a specific port (default: 5173; `0` for ephemeral).
+- `--no-open` — start the server but don't auto-open the browser.
+- `--no-auto-discover` — skip the auto-open-latest-log step on no-arg launches.
+
+### Auto-discovery rule
+
+When invoked with no path argument, `ahp-inspector`:
+
+1. Scans the standard VS Code log roots (Code, Code - Insiders, OSS dev) up to
+   a bounded time/stat budget (~1.5s).
+2. Skips empty (0-byte) files.
+3. For each candidate (newest mtime first), probes the first line to verify it
+   parses as an AHP event.
+4. Opens the first match. If none qualify, the browser opens to the discovery
+   picker so you can browse manually — no error.
+
+### Privacy posture
+
+`ahp-inspector` is local-only by design:
+
+- Server binds to `127.0.0.1` (loopback only).
+- No telemetry, no update checks, no outbound network calls.
+- Log files are read locally; nothing is uploaded anywhere.
+
 ## Status
 
 This is an active private project. Phases 1-3 are complete: core parsing and
@@ -55,7 +99,7 @@ For a built CLI smoke test:
 
 ```bash
 pnpm -F @ahp-inspector/ui build
-pnpm -F @ahp-inspector/cli build
+pnpm -F ahp-inspector build
 node packages/cli/dist/index.js path/to/log.jsonl
 ```
 
@@ -96,13 +140,13 @@ pnpm test
 pnpm typecheck
 pnpm lint
 pnpm -F @ahp-inspector/ui build
-pnpm -F @ahp-inspector/cli build
+pnpm -F ahp-inspector build
 ```
 
 The full local verification gate used during development is:
 
 ```bash
-pnpm test && pnpm -F @ahp-inspector/ui build && pnpm -F @ahp-inspector/cli build && pnpm typecheck && pnpm lint
+pnpm test && pnpm -F @ahp-inspector/ui build && pnpm -F ahp-inspector build && pnpm typecheck && pnpm lint
 ```
 
 ## Privacy and security posture
@@ -125,4 +169,6 @@ search, detail inspection, keyboard shortcuts, and current limitations.
 
 ## License
 
-No license is granted. This private repository is for internal development.
+The published `ahp-inspector` CLI package on npm is MIT-licensed (see
+`packages/cli/package.json`). The rest of this repository is currently
+unlicensed and is for development of that package.
