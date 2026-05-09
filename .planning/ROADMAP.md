@@ -172,6 +172,19 @@ Plans:
 - [x] 13-02-PLAN.md — Packaging: rename CLI package to `ahp-inspector` (unscoped), add bin/files/UI bundling, npm pack smoke test (NPX-01, NPX-04)
 - [x] 13-03-PLAN.md — Release script (`scripts/release.sh --dry-run`) + manual publish workflow + README/USER_GUIDE quickstart (NPX-05, NPX-06)
 
+### Phase 14: Hardening: state diagnostics scrolling and parsing, row highlighting cleanup, smarter event/notification summaries, search ergonomics (Enter/Shift+Enter/F3 cycling, scroll to current match)
+
+**Goal:** Polish four post-v1.1 roughness areas: state diagnostics layout, row highlight precedence, notification summaries, and search keyboard navigation.
+**Requirements**: HARDEN-01, HARDEN-02, HARDEN-03, HARDEN-04
+**Depends on:** Phase 13
+**Plans:** 4 plans
+
+Plans:
+- [ ] 14-01-PLAN.md — State diagnostics scrolling + parsed row layout (HARDEN-01)
+- [ ] 14-02-PLAN.md — Row highlighting precedence cleanup (HARDEN-02)
+- [ ] 14-03-PLAN.md — Smarter notification/event summaries (HARDEN-03)
+- [ ] 14-04-PLAN.md — Search ergonomics: Enter/Shift+Enter + scroll-to-current-match (HARDEN-04)
+
 ---
 *Roadmap updated after v1.1 milestone start: 2026-05-08*
 *Phase 13 added: 2026-05-09 (npx publishing).*
