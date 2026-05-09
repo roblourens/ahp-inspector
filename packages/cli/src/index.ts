@@ -61,6 +61,8 @@ function locateUiDist(): string | undefined {
     new Set([
       // Workspace sibling: packages/cli/{src,dist} → packages/ui/dist
       resolvePath(workspacePackagesDir, "ui", "dist"),
+      // Packaged tarball: ahp-inspector/ui-dist/ (postbuild copy)
+      resolvePath(cliPackageDir, "ui-dist"),
       // Packaged CLI layout if the UI bundle is embedded with the CLI.
       resolvePath(cliPackageDir, "ui", "dist"),
       // Monorepo root fallback when launched from a relocated package dir.
@@ -105,7 +107,11 @@ const program = new Command()
   )
   .option("--port <n>", "local server port (0 = ephemeral)", "5173")
   .option("--no-open", "do not auto-open the default browser")
-  .action(async (file: string | undefined, opts: { port: string; open: boolean }) => {
+  .option(
+    "--no-auto-discover",
+    "do not auto-open the latest AHP log when no path argument is provided",
+  )
+  .action(async (file: string | undefined, opts: { port: string; open: boolean; autoDiscover: boolean }) => {
     const port = parsePort(opts.port);
     const host = new NodeHostAdapter();
     const sessions: LogSessionManager = createLogSessionManager({
@@ -141,7 +147,8 @@ const program = new Command()
       // No path argument — try to auto-open the newest AHP-shape log under the
       // standard VS Code log roots (Phase 13, CONTEXT D-3). If none qualify,
       // fall back to the discovery picker UI without erroring.
-      const auto = await findLatestAhpLog();
+      const autoDiscoverEnabled = opts.autoDiscover !== false;
+      const auto = autoDiscoverEnabled ? await findLatestAhpLog() : null;
       if (auto) {
         absPath = auto;
         try {
@@ -151,7 +158,7 @@ const program = new Command()
           await sessions.dispose().catch(() => undefined);
           fail(`Error: cannot open ${absPath}: ${e.message ?? "unknown"}\nCheck file permissions.`);
         }
-      } else {
+      } else if (autoDiscoverEnabled) {
         process.stderr.write(
           "No AHP logs found under VS Code log roots — opened picker UI.\n",
         );

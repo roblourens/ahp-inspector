@@ -28,7 +28,7 @@ const ALLOW = new Set<string>([
   "@ahp-inspector/core",
   "@ahp-inspector/host-node",
   "@ahp-inspector/server",
-  "@ahp-inspector/cli",
+  "ahp-inspector",
   "@ahp-inspector/ui",
   // Phase-2 UI runtime + dev deps (allow-listed at plan 02-00)
   "react",

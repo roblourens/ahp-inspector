@@ -10,7 +10,9 @@ describe("ahp-inspector CLI errors (Plan 02-05)", () => {
     // Phase 04-03 D-01/D-08 changed CLI to allow no-file launch. The CLI now
     // starts the server and prints a "no log file selected" hint instead of
     // failing. We invoke with --no-open and kill it after the banner appears.
-    const proc = spawnCliRaw(["--no-open", "--port", "0"]);
+    // Phase 13: pass --no-auto-discover so this stays a no-active-log test
+    // even after auto-open-latest-log shipped.
+    const proc = spawnCliRaw(["--no-open", "--no-auto-discover", "--port", "0"]);
     try {
       const banner = await waitForLine(proc, /AHP Inspector running at http:\/\/127\.0\.0\.1:\d+/);
       expect(banner).toMatch(/127\.0\.0\.1/);

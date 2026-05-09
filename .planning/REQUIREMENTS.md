@@ -62,7 +62,7 @@ Requirements for reducer-backed state reconstruction.
 
 ### npx Publishing and Auto-open Latest Log
 
-- [ ] **NPX-01**: User can install or invoke the viewer with `npx @ahp-inspector/cli` (or equivalent published package name) without cloning the repository.
+- [ ] **NPX-01**: User can install or invoke the viewer with `npx ahp-inspector` (unscoped, top-level) without cloning the repository.
 - [ ] **NPX-02**: Running the published binary with no arguments discovers the most-recently-modified AHP JSONL log under the standard VS Code log roots, opens the viewer browser tab, and streams that log immediately.
 - [ ] **NPX-03**: Running the published binary with an explicit path argument behaves the same as today's CLI (open that file, ignore auto-discovery).
 - [ ] **NPX-04**: The published package bundles the prebuilt UI assets (`packages/ui/dist`) so the binary works without a post-install build step.
