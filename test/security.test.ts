@@ -49,6 +49,8 @@ const ALLOW = new Set<string>([
   "@types/react-dom",
   // Phase-3 UI runtime dep (plan 03-00)
   "react-json-view-lite",
+  // Phase-11 VS Code extension (plan 11-01)
+  "@types/vscode",
 ]);
 
 interface PkgJson {

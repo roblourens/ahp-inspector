@@ -63,6 +63,28 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
+  packages/extension:
+    dependencies:
+      '@ahp-viewer/core':
+        specifier: workspace:*
+        version: link:../core
+      '@ahp-viewer/host-node':
+        specifier: workspace:*
+        version: link:../host-node
+      '@ahp-viewer/parser':
+        specifier: workspace:*
+        version: link:../parser
+      '@ahp-viewer/server':
+        specifier: workspace:*
+        version: link:../server
+      '@ahp-viewer/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@types/vscode':
+        specifier: ^1.95.0
+        version: 1.118.0
+
   packages/host-node:
     dependencies:
       '@ahp-viewer/shared':
@@ -886,6 +908,9 @@ packages:
 
   '@types/react@19.2.0':
     resolution: {integrity: sha512-1LOH8xovvsKsCBq1wnT4ntDUdCJKmnEakhsuoUSy6ExlHCkGP2hqnatagYTgFk6oeL0VU31u7SNjunPN+GchtA==}
+
+  '@types/vscode@1.118.0':
+    resolution: {integrity: sha512-Ah6eTlqDcwIMELEVwQMO++rJAFBRz/oLluLD/vWdYrH1KuI9kfpaM+7pg0OvvascgcJy+ghLCERAYouM4QbzGw==}
 
   '@vitejs/plugin-react@6.0.1':
     resolution: {integrity: sha512-l9X/E3cDb+xY3SWzlG1MOGt2usfEHGMNIaegaUGFsLkb3RCn/k8/TOXBcab+OndDI4TBtktT8/9BwwW8Vi9KUQ==}
@@ -2198,6 +2223,8 @@ snapshots:
   '@types/react@19.2.0':
     dependencies:
       csstype: 3.2.3
+
+  '@types/vscode@1.118.0': {}
 
   '@vitejs/plugin-react@6.0.1(vite@8.0.10(@types/node@22.19.17)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.21.0))':
     dependencies:

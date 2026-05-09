@@ -1,0 +1,38 @@
+{
+  "name": "@ahp-viewer/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "displayName": "AHP Log Viewer",
+  "description": "Local-first viewer for Agent Host Protocol JSONL traffic logs.",
+  "publisher": "ahp-viewer",
+  "main": "./dist/extension.cjs",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": ["Other"],
+  "contributes": {
+    "commands": [
+      {
+        "command": "ahpViewer.open",
+        "title": "AHP Log Viewer: Open",
+        "category": "AHP Log Viewer"
+      }
+    ]
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsup",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ahp-viewer/core": "workspace:*",
+    "@ahp-viewer/host-node": "workspace:*",
+    "@ahp-viewer/parser": "workspace:*",
+    "@ahp-viewer/server": "workspace:*",
+    "@ahp-viewer/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.95.0"
+  }
+}
