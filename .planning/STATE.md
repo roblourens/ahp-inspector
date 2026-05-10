@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Reducer-backed State Snapshots
-status: phase_14_complete
-stopped_at: Phase 14 (hardening) planned and executed
-last_updated: "2026-05-09T21:30:00.000Z"
-last_activity: 2026-05-09 -- Phase 14 hardening plans 14-01..14-04 executed and tested
+status: completed
+stopped_at: Phase 12 executed and verified
+last_updated: "2026-05-10T21:27:25.219Z"
+last_activity: 2026-05-10
 progress:
   total_phases: 9
   completed_phases: 9
@@ -26,7 +26,7 @@ progress:
 Phase: 13
 Plan: Not started
 Status: Milestone complete
-Last activity: 2026-05-09
+Last activity: 2026-05-10
 
 ## Performance Metrics
 
@@ -161,3 +161,13 @@ Last activity: 2026-05-09
 
 ---
 *State initialized: 2026-05-06*
+
+## Deferred Items
+
+Items acknowledged and deferred at v1.1 milestone close on 2026-05-10:
+
+| Category | Item | Status | Note |
+|----------|------|--------|------|
+| uat_gap | 11-UAT.md | 7 manual scenarios pending | Phase 11 manual UAT was scripted but never marked off; automated equivalents in `extension.test.ts`, `activeLog.test.ts`, `viewerSession.test.ts`, `boundary.test.ts`, `security.test.ts` cover the same surface. |
+| uat_gap | 14-UAT.md | 4 manual scenarios pending | Phase 14 manual UAT was scripted but never marked off; automated equivalents in `FilterBar.test.tsx`, `TimelineList.virt.test.tsx`, `EventRow.columns.test.tsx`, `row-projection.test.ts`, and `e2e/phase14.spec.ts` cover the same behaviors. |
+| context_question | 13-CONTEXT.md | 3 open questions | All resolved during execution: npm name `ahp-inspector` confirmed available and published; `--no-open` flag not needed (CI publish uses `workflow_dispatch`, browser-open is interactive-only); CI publish trigger landed as `workflow_dispatch` with `dry_run` default true. The questions were never moved to the resolved section. |
