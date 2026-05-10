@@ -258,10 +258,10 @@ describe("DetailPanel — scrollable JSON tabpanel", () => {
       expect(screen.getByTestId("detail-summary")).toBeInTheDocument();
     });
 
-    const tabPanel = screen.getByRole("tabpanel");
-    expect(tabPanel.style.overflow).toBe("auto");
-    expect(tabPanel.style.flex).toContain("1");
-    expect(tabPanel.style.minHeight).toBe("0px");
+    const scroll = screen.getByTestId("detail-scroll-region");
+    expect(scroll.style.overflow).toBe("auto");
+    expect(scroll.style.flex).toContain("1");
+    expect(scroll.style.minHeight).toBe("0px");
     expect(screen.getByTestId("detail-panel").style.height).toBe("100%");
     expect(screen.getByTestId("detail-panel").style.minHeight).toBe("0px");
   });
@@ -277,10 +277,10 @@ describe("DetailPanel — scrollable JSON tabpanel", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: /raw/i }));
 
-    const tabPanel = screen.getByRole("tabpanel");
-    expect(tabPanel.style.overflow).toBe("auto");
-    expect(tabPanel.style.flex).toContain("1");
-    expect(tabPanel.style.minHeight).toBe("0px");
+    const scroll = screen.getByTestId("detail-scroll-region");
+    expect(scroll.style.overflow).toBe("auto");
+    expect(scroll.style.flex).toContain("1");
+    expect(scroll.style.minHeight).toBe("0px");
   });
 });
 

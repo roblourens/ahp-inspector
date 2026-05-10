@@ -365,39 +365,9 @@ export function DetailPanel({
       {/* AHP field strip */}
       {row && <AhpFieldStrip row={row} rawEvent={event} />}
 
-      <StateInspectorPanel
-        idx={selectedIdx}
-        logKey={logKey}
-        eventLabel={event.method ?? event.actionType ?? event.kind}
-        eventTimestamp={event.ts}
-        pinnedPoints={pinnedPoints}
-        onPinnedPointsChange={setPinnedPoints}
-      />
-
-      {/* Tab strip + copy menu header */}
+      {/* Scrollable lower region: state inspector + tabs + JSON + privacy share one scroll */}
       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingRight: "var(--space-3)",
-          borderBottom: "1px solid var(--color-border)",
-        }}
-      >
-        <DetailTabs active={activeTab} onChange={setActiveTab} />
-        <CopyMenu
-          event={event}
-          pairEvent={pairEvent}
-          pairIdx={detail.pairIdx}
-          latencyMs={liveLatencyMs}
-          status={liveStatus}
-          onCopy={(msg, ok) => setToast({ message: msg, kind: ok ? "success" : "error" })}
-        />
-      </div>
-
-      {/* JSON view */}
-      <div
-        role="tabpanel"
+        data-testid="detail-scroll-region"
         style={{
           flex: 1,
           minHeight: 0,
@@ -406,15 +376,52 @@ export function DetailPanel({
           flexDirection: "column",
         }}
       >
-        {activeTab === "pretty" ? (
-          <PrettyJsonView data={event.raw} onOpenRaw={() => setActiveTab("raw")} />
-        ) : (
-          <RawJsonView data={event.raw} />
-        )}
-      </div>
+        <StateInspectorPanel
+          idx={selectedIdx}
+          logKey={logKey}
+          eventLabel={event.method ?? event.actionType ?? event.kind}
+          eventTimestamp={event.ts}
+          pinnedPoints={pinnedPoints}
+          onPinnedPointsChange={setPinnedPoints}
+        />
 
-      {/* Privacy caption */}
-      <PrivacyCaption />
+        {/* Tab strip + copy menu header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingRight: "var(--space-3)",
+            borderBottom: "1px solid var(--color-border)",
+            position: "sticky",
+            top: 0,
+            background: "var(--color-surface)",
+            zIndex: 1,
+          }}
+        >
+          <DetailTabs active={activeTab} onChange={setActiveTab} />
+          <CopyMenu
+            event={event}
+            pairEvent={pairEvent}
+            pairIdx={detail.pairIdx}
+            latencyMs={liveLatencyMs}
+            status={liveStatus}
+            onCopy={(msg, ok) => setToast({ message: msg, kind: ok ? "success" : "error" })}
+          />
+        </div>
+
+        {/* JSON view — natural height inside the shared scroller */}
+        <div role="tabpanel" style={{ display: "flex", flexDirection: "column" }}>
+          {activeTab === "pretty" ? (
+            <PrettyJsonView data={event.raw} onOpenRaw={() => setActiveTab("raw")} />
+          ) : (
+            <RawJsonView data={event.raw} />
+          )}
+        </div>
+
+        {/* Privacy caption */}
+        <PrivacyCaption />
+      </div>
 
       {/* Copy toast */}
       {toast && (
