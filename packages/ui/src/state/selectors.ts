@@ -13,8 +13,7 @@ export type VirtualItem =
       turnId?: string;
       count: number;
       durationMs: number;
-    }
-  | { kind: "gap-banner"; prev: number; curr: number; virtualIdx: number };
+    };
 
 // ── filteredRows ──────────────────────────────────────────────────────────────
 export function useFilteredRows(): number[] {
@@ -116,14 +115,6 @@ function buildGroupedItems(
     for (const rowIdx of idxs) {
       const row = rows[rowIdx];
       if (!row) continue;
-      if (row.gapBefore && row.previousServerSeq !== null && row.serverSeq !== null) {
-        items.push({
-          kind: "gap-banner",
-          prev: row.previousServerSeq,
-          curr: row.serverSeq,
-          virtualIdx: items.length,
-        });
-      }
       items.push({ kind: "row", rowIdx });
     }
     return items;
@@ -182,14 +173,6 @@ function buildGroupedItems(
         ...(row.turnId !== null ? { turnId: row.turnId } : {}),
         count: groupCount.get(key) ?? 1,
         durationMs: end - start,
-      });
-    }
-    if (row.gapBefore && row.previousServerSeq !== null && row.serverSeq !== null) {
-      items.push({
-        kind: "gap-banner",
-        prev: row.previousServerSeq,
-        curr: row.serverSeq,
-        virtualIdx: items.length,
       });
     }
     items.push({ kind: "row", rowIdx });

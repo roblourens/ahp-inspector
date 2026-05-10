@@ -6,7 +6,6 @@ import type { CSSProperties, JSX } from "react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { VirtualItem } from "../../state/selectors.js";
 import { EventRow, TIMELINE_GRID_COLUMNS } from "./EventRow.js";
-import { GapBannerRow } from "./GapBannerRow.js";
 import { GroupHeaderRow } from "./GroupHeaderRow.js";
 import { ParseErrorRow } from "./ParseErrorRow.js";
 
@@ -14,7 +13,6 @@ const ITEM_HEIGHT = {
   row: 28,
   "parse-error": 28,
   header: 24,
-  "gap-banner": 20,
 } as const;
 
 const COLUMN_LABELS = [
@@ -32,7 +30,6 @@ const COLUMN_LABELS = [
 
 function getItemKindKey(item: VirtualItem): keyof typeof ITEM_HEIGHT {
   if (item.kind === "header") return "header";
-  if (item.kind === "gap-banner") return "gap-banner";
   return "row";
 }
 
@@ -272,25 +269,6 @@ export function TimelineList({
                   durationMs={item.durationMs}
                   isCollapsed={groupCollapsed?.has(item.groupKey) ?? false}
                   onToggle={() => onToggleGroup?.(item.groupKey)}
-                  virtualStyle={style}
-                />
-              );
-            }
-
-            if (item.kind === "gap-banner") {
-              const style: CSSProperties = {
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 20,
-                transform: `translateY(${vi.start}px)`,
-              };
-              return (
-                <GapBannerRow
-                  key={`gap-${item.virtualIdx}`}
-                  prev={item.prev}
-                  curr={item.curr}
                   virtualStyle={style}
                 />
               );
