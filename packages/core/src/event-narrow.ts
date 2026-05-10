@@ -6,14 +6,8 @@
 // from `@ahp-inspector/protocol` so callers get autocomplete and exhaustive
 // switching.
 
+import type { ActionEnvelope, ProtocolNotification, StateAction } from "@ahp-inspector/protocol";
 import type { AhpEvent } from "@ahp-inspector/shared";
-import {
-  type ActionEnvelope,
-  ActionType,
-  NotificationType,
-  type ProtocolNotification,
-  type StateAction,
-} from "@ahp-inspector/protocol";
 
 // ── Public types ─────────────────────────────────────────────────────────────
 
@@ -192,18 +186,31 @@ export function narrowEvent(event: AhpEvent, pairMethod: string | null = null): 
 }
 
 // ── Type guards ──────────────────────────────────────────────────────────────
+//
+// `ActionType` / `NotificationType` are `const enum`s so we can't enumerate
+// them at runtime. All canonical AHP action types use `root/`, `session/` or
+// `terminal/` prefixes (see `packages/protocol/src/actions.ts`), and all
+// canonical notifications use `notify/`. That's enough to distinguish the
+// typed protocol shapes from legacy / provider-specific envelopes.
 
-const KNOWN_ACTION_TYPES = new Set<string>(Object.values(ActionType));
-const KNOWN_NOTIFICATION_TYPES = new Set<string>(Object.values(NotificationType));
+function isKnownActionType(type: string): boolean {
+  return type.startsWith("root/") || type.startsWith("session/") || type.startsWith("terminal/");
+}
 
-export function isKnownAction(action: { type: string | null } | StateAction): action is StateAction {
-  return typeof action.type === "string" && KNOWN_ACTION_TYPES.has(action.type);
+function isKnownNotificationType(type: string): boolean {
+  return type.startsWith("notify/");
+}
+
+export function isKnownAction(
+  action: { type: string | null } | StateAction,
+): action is StateAction {
+  return typeof action.type === "string" && isKnownActionType(action.type);
 }
 
 export function isKnownNotification(
   notif: { type: string | null } | ProtocolNotification,
 ): notif is ProtocolNotification {
-  return typeof notif.type === "string" && KNOWN_NOTIFICATION_TYPES.has(notif.type);
+  return typeof notif.type === "string" && isKnownNotificationType(notif.type);
 }
 
 // ── Internal readers ─────────────────────────────────────────────────────────
@@ -238,7 +245,7 @@ function readInnerAction(params: unknown): StateAction | UnknownTypedPayload | n
 }
 
 function readKnownAction(value: Record<string, unknown>): StateAction | null {
-  if (typeof value.type !== "string" || !KNOWN_ACTION_TYPES.has(value.type)) return null;
+  if (typeof value.type !== "string" || !isKnownActionType(value.type)) return null;
   // Trust the discriminant; protocol shapes are validated upstream.
   return value as unknown as StateAction;
 }
@@ -269,7 +276,7 @@ function readProtocolNotification(
   value: Record<string, unknown> | null,
 ): ProtocolNotification | null {
   if (!value || typeof value.type !== "string") return null;
-  if (!KNOWN_NOTIFICATION_TYPES.has(value.type)) return null;
+  if (!isKnownNotificationType(value.type)) return null;
   return value as unknown as ProtocolNotification;
 }
 

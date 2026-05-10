@@ -23,14 +23,16 @@
 // • Truncate / redact differently  → edit `clip`, `safePrimitive`, or
 //                                    `summarizeValue` at the bottom.
 
-import type { AhpEvent } from "@ahp-inspector/shared";
 import {
   ActionType,
   NotificationType,
   type ProtocolNotification,
   type StateAction,
 } from "@ahp-inspector/protocol";
+import type { AhpEvent } from "@ahp-inspector/shared";
 import {
+  isKnownAction,
+  isKnownNotification,
   type NarrowedAction,
   type NarrowedClientNotification,
   type NarrowedLog,
@@ -39,10 +41,8 @@ import {
   type NarrowedRequest,
   type NarrowedResponse,
   type NarrowedServerNotification,
-  type UnknownTypedPayload,
-  isKnownAction,
-  isKnownNotification,
   narrowEvent,
+  type UnknownTypedPayload,
 } from "./event-narrow.js";
 
 // ── Public entry point ───────────────────────────────────────────────────────
@@ -295,7 +295,12 @@ function toUnknownPayload(value: object): UnknownTypedPayload {
  * Render `<type> <detail>` for a typed-but-unhandled payload, dropping the
  * `type` field from the detail. Used as the generic fallback.
  */
-function innerActionTypeAndDetail(payload: { type: string | null; fields?: Record<string, unknown> } | StateAction | UnknownTypedPayload): string {
+function innerActionTypeAndDetail(
+  payload:
+    | { type: string | null; fields?: Record<string, unknown> }
+    | StateAction
+    | UnknownTypedPayload,
+): string {
   if ("fields" in payload && payload.fields) {
     if (!payload.type) return summarizeValue(payload.fields);
     const rest = { ...payload.fields };
