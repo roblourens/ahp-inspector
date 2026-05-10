@@ -1,4 +1,5 @@
 import type { AhpEvent, Direction, EventKind } from "@ahp-inspector/shared";
+import { summarizeEvent } from "./summary.js";
 import type { Status } from "./types.js";
 
 export type LatencyBand = "fast" | "normal" | "slow" | "critical";
@@ -139,197 +140,33 @@ export function payloadPreviewOf(raw: unknown): string {
   return s.length > 120 ? s.slice(0, 120) : s;
 }
 
-function objectRecord(v: unknown): Record<string, unknown> | null {
-  return typeof v === "object" && v !== null ? (v as Record<string, unknown>) : null;
-}
-
-function childRecord(
-  parent: Record<string, unknown> | null,
-  key: string,
-): Record<string, unknown> | null {
-  if (!parent) return null;
-  return objectRecord(parent[key]);
-}
-
-function stringField(parent: Record<string, unknown> | null, key: string): string | null {
-  if (!parent) return null;
-  const value = parent[key];
-  return typeof value === "string" ? value : null;
-}
-
-function firstString(...values: Array<unknown>): string | null {
-  for (const value of values) {
-    if (typeof value === "string") return value;
-  }
-  return null;
-}
-
-function clip(text: string, max = 80): string {
-  const trimmed = text.trim().replace(/\s+/g, " ");
-  if (trimmed.length === 0) return "empty";
-  return trimmed.length > max ? `${trimmed.slice(0, max - 1)}…` : trimmed;
-}
-
-function safePathLabel(value: string): string {
-  const parts = value.split(/[\\/]/).filter(Boolean);
-  const last = parts.at(-1);
-  return last ?? value;
-}
-
-function safePrimitive(key: string, value: unknown): string | null {
-  if (value === null || value === undefined) return null;
-  if (Array.isArray(value)) return `${key}=[${value.length}]`;
-  if (typeof value === "object") return `${key}={…}`;
-  if (typeof value === "string") {
-    if (/token|secret|cookie|authorization|key/i.test(key)) return `${key}=redacted`;
-    if (/path|uri|file/i.test(key)) return `${key}=${safePathLabel(value)}`;
-    return `${key}=${clip(value, 32)}`;
-  }
-  if (typeof value === "number" || typeof value === "boolean") return `${key}=${String(value)}`;
-  return null;
-}
-
-function summarizeValue(value: unknown): string {
-  if (value === null || value === undefined) return "empty";
-  if (typeof value === "string") return clip(value);
-  if (Array.isArray(value)) return `[${value.length} items]`;
-  if (typeof value === "object") {
-    const rec = value as Record<string, unknown>;
-    const parts = Object.entries(rec)
-      .map(([key, item]) => safePrimitive(key, item))
-      .filter((item): item is string => item !== null)
-      .slice(0, 3);
-    return parts.length > 0 ? parts.join(" ") : "{…}";
-  }
-  return String(value);
-}
-
-function paramsOf(raw: unknown): Record<string, unknown> | null {
-  return childRecord(objectRecord(raw), "params");
-}
-
-function resultOf(raw: unknown): unknown {
-  return objectRecord(raw)?.result;
-}
-
-function errorSummary(raw: unknown): string | null {
-  const error = childRecord(objectRecord(raw), "error");
-  if (!error) return null;
-  const code = error.code;
-  const message = firstString(error.message, stringField(childRecord(error, "data"), "message"));
-  const codeText = typeof code === "number" || typeof code === "string" ? String(code) : "unknown";
-  return `error ${codeText}: ${message ? clip(message) : "details unavailable"}`;
-}
-
-function resourceUri(params: Record<string, unknown> | null): string | null {
-  if (!params) return null;
-  const resource = params.resource;
-  const resources = params.resources;
-  const fromResource =
-    typeof resource === "string"
-      ? resource
-      : typeof resource === "object" && resource !== null
-        ? stringField(resource as Record<string, unknown>, "uri")
-        : null;
-  const firstResource =
-    Array.isArray(resources) && typeof resources[0] === "object" && resources[0] !== null
-      ? stringField(resources[0] as Record<string, unknown>, "uri")
-      : null;
-  return firstString(params.uri, fromResource, firstResource, params.path);
-}
-
-function actionOf(params: Record<string, unknown> | null): Record<string, unknown> | null {
-  return childRecord(params, "action");
-}
-
-function notificationOf(params: Record<string, unknown> | null): Record<string, unknown> | null {
-  return childRecord(params, "notification");
-}
-
-function eventSummaryOf(event: AhpEvent, _status: Status, pairMethod: string | null): string {
-  if (event.kind === "parse-error") {
-    return `parse error line ${event.seq + 1}: ${event.parseError?.reason ?? "unknown parse error"}`;
-  }
-  const raw = objectRecord(event.raw);
-  const params = paramsOf(event.raw);
-  const action = actionOf(params);
-  const notification = notificationOf(params);
-
-  const err = errorSummary(event.raw);
-  if (err) return err;
-
-  if (event.kind === "response") {
-    const result = resultOf(event.raw);
-    const resultText = result === undefined ? "empty result" : summarizeValue(result);
-    return pairMethod ? `${pairMethod} result ${resultText}` : `result ${resultText}`;
-  }
-
-  const methodOrType = event.method ?? event.actionType;
-  if (methodOrType === "resourceList" || event.method === "resourceList") {
-    const uri = resourceUri(params);
-    return `resourceList uri=${uri ? safePathLabel(uri) : "details unavailable"}`;
-  }
-
-  const delta = firstString(
-    params?.delta,
-    params?.content,
-    params?.text,
-    params?.message,
-    action?.delta,
-    action?.content,
-    action?.text,
-    action?.message,
-    childRecord(raw, "result")?.content,
-    childRecord(raw, "result")?.text,
-  );
-  const type = event.actionType ?? "";
-  if (/delta/i.test(type) && delta) return `delta "${clip(delta)}"`;
-  if (/^text$/i.test(type) && delta) return `text "${clip(delta)}"`;
-
-  const toolName = firstString(
-    params?.toolName,
-    params?.name,
-    stringField(childRecord(params, "tool"), "name"),
-    action?.toolName,
-    action?.name,
-  );
-  const toolCallId = event.toolCallId ?? firstString(params?.toolCallId, action?.toolCallId);
-  if (/tool[._-]?call/i.test(type)) {
-    const args = action?.args ?? params?.args ?? {};
-    const details = summarizeValue(args);
-    return `tool call ${toolName ?? toolCallId ?? "unknown"} ${details}`;
-  }
-  if (/tool[._-]?result/i.test(type)) {
-    const details = summarizeValue(action?.result ?? params?.result ?? resultOf(event.raw));
-    return `tool result ${toolName ?? toolCallId ?? "unknown"} ${details}`;
-  }
-
-  if (/status|progress/i.test(type)) {
-    const state = firstString(action?.state, action?.message, params?.state, params?.message);
-    return `status ${state ? clip(state) : "details unavailable"}`;
-  }
-
-  if (event.kind === "protocol-notification") {
-    const notifType = event.actionType ?? stringField(notification, "type") ?? "notification";
-    return `notification ${notifType} ${summarizeValue(notification ?? params)}`;
-  }
-  if (event.kind === "client-notification" || event.kind === "server-notification") {
-    return `${event.method ?? "notification"} ${summarizeValue(params)}`;
-  }
-  if (event.kind === "request") {
-    return `${event.method ?? "request"} ${summarizeValue(params)}`;
-  }
-  if (event.kind === "log") {
-    return `log ${clip(firstString(params?.message, raw?.message) ?? "details unavailable")}`;
-  }
-  if (event.kind === "action") {
-    return event.actionType ? `action ${event.actionType}` : "action details unavailable";
-  }
-  return `${methodOrType ?? "event"} details unavailable`;
-}
-
 function capSummary(summary: string): string {
   return summary.length > 160 ? `${summary.slice(0, 159)}…` : summary;
+}
+
+/**
+ * Compute the label shown in the timeline's Event column. Mirrors the UI's
+ * `primaryLabel` so projection-side post-processing can avoid emitting a
+ * summary that just repeats it.
+ */
+function primaryLabelFor(
+  kind: AhpEvent["kind"],
+  method: string | null,
+  actionType: string | null,
+): string | null {
+  if (kind === "action" || kind === "protocol-notification") return actionType ?? method;
+  return method ?? actionType;
+}
+
+/** Strip the Event-column label from the start of summary so it adds info. */
+function dropLabelPrefix(summary: string, label: string | null): string {
+  if (!label) return summary;
+  const lc = summary.toLowerCase();
+  const lcLabel = label.toLowerCase();
+  if (lc === lcLabel) return summary;
+  if (!lc.startsWith(`${lcLabel} `)) return summary;
+  const stripped = summary.slice(label.length).trim();
+  return stripped.length > 0 ? stripped : summary;
 }
 
 export function projectRow(
@@ -362,7 +199,7 @@ export function projectRow(
       latencyMs: null,
       latencyBand: null,
       payloadPreview: "",
-      summary: capSummary(eventSummaryOf(event, "n/a", null)),
+      summary: capSummary(summarizeEvent(event, null)),
       pairIdx: null,
       parseErrorReason: event.parseError?.reason ?? "unknown parse error",
       lineIndex: event.seq + 1,
@@ -393,7 +230,12 @@ export function projectRow(
     latencyMs,
     latencyBand: bandFor(latencyMs),
     payloadPreview: payloadPreviewOf(event.raw),
-    summary: capSummary(eventSummaryOf(event, status, pairMethod)),
+    summary: capSummary(
+      dropLabelPrefix(
+        summarizeEvent(event, pairMethod),
+        primaryLabelFor(event.kind, event.method, event.actionType),
+      ),
+    ),
     pairIdx: extras.pairIdx ?? null,
     parseErrorReason: null,
     lineIndex: null,

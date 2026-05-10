@@ -14,11 +14,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  findLatestAhpLog,
-  NodeHostAdapter,
-  resolveCandidateId,
-} from "@ahp-inspector/host-node";
+import { findLatestAhpLog, NodeHostAdapter, resolveCandidateId } from "@ahp-inspector/host-node";
 import {
   createLogSessionManager,
   type LogServerHandle,
@@ -111,46 +107,35 @@ const program = new Command()
     "--no-auto-discover",
     "do not auto-open the latest AHP log when no path argument is provided",
   )
-  .action(async (file: string | undefined, opts: { port: string; open: boolean; autoDiscover: boolean }) => {
-    const port = parsePort(opts.port);
-    const host = new NodeHostAdapter();
-    const sessions: LogSessionManager = createLogSessionManager({
-      host,
-      resolveCandidateId,
-      directionInference: classifyDirection,
-    });
+  .action(
+    async (
+      file: string | undefined,
+      opts: { port: string; open: boolean; autoDiscover: boolean },
+    ) => {
+      const port = parsePort(opts.port);
+      const host = new NodeHostAdapter();
+      const sessions: LogSessionManager = createLogSessionManager({
+        host,
+        resolveCandidateId,
+        directionInference: classifyDirection,
+      });
 
-    let absPath: string | undefined;
-    if (file) {
-      absPath = resolvePath(file);
-      let stat: ReturnType<typeof statSync>;
-      try {
-        stat = statSync(absPath);
-      } catch (err) {
-        const e = err as NodeJS.ErrnoException;
-        if (e.code === "ENOENT") {
+      let absPath: string | undefined;
+      if (file) {
+        absPath = resolvePath(file);
+        let stat: ReturnType<typeof statSync>;
+        try {
+          stat = statSync(absPath);
+        } catch (err) {
+          const e = err as NodeJS.ErrnoException;
+          if (e.code === "ENOENT") {
+            fail(`Error: log file not found: ${absPath}\nUsage: ahp-inspector [path-to-log.jsonl]`);
+          }
+          fail(`Error: cannot read ${absPath}: ${e.message}\nCheck file permissions.`);
+        }
+        if (!stat.isFile()) {
           fail(`Error: log file not found: ${absPath}\nUsage: ahp-inspector [path-to-log.jsonl]`);
         }
-        fail(`Error: cannot read ${absPath}: ${e.message}\nCheck file permissions.`);
-      }
-      if (!stat.isFile()) {
-        fail(`Error: log file not found: ${absPath}\nUsage: ahp-inspector [path-to-log.jsonl]`);
-      }
-      try {
-        await sessions.open({ path: absPath });
-      } catch (err) {
-        const e = err as { code?: string; message?: string };
-        await sessions.dispose().catch(() => undefined);
-        fail(`Error: cannot open ${absPath}: ${e.message ?? "unknown"}\nCheck file permissions.`);
-      }
-    } else {
-      // No path argument — try to auto-open the newest AHP-shape log under the
-      // standard VS Code log roots (Phase 13, CONTEXT D-3). If none qualify,
-      // fall back to the discovery picker UI without erroring.
-      const autoDiscoverEnabled = opts.autoDiscover !== false;
-      const auto = autoDiscoverEnabled ? await findLatestAhpLog() : null;
-      if (auto) {
-        absPath = auto;
         try {
           await sessions.open({ path: absPath });
         } catch (err) {
@@ -158,77 +143,93 @@ const program = new Command()
           await sessions.dispose().catch(() => undefined);
           fail(`Error: cannot open ${absPath}: ${e.message ?? "unknown"}\nCheck file permissions.`);
         }
-      } else if (autoDiscoverEnabled) {
-        process.stderr.write(
-          "No AHP logs found under VS Code log roots — opened picker UI.\n",
-        );
+      } else {
+        // No path argument — try to auto-open the newest AHP-shape log under the
+        // standard VS Code log roots (Phase 13, CONTEXT D-3). If none qualify,
+        // fall back to the discovery picker UI without erroring.
+        const autoDiscoverEnabled = opts.autoDiscover !== false;
+        const auto = autoDiscoverEnabled ? await findLatestAhpLog() : null;
+        if (auto) {
+          absPath = auto;
+          try {
+            await sessions.open({ path: absPath });
+          } catch (err) {
+            const e = err as { code?: string; message?: string };
+            await sessions.dispose().catch(() => undefined);
+            fail(
+              `Error: cannot open ${absPath}: ${e.message ?? "unknown"}\nCheck file permissions.`,
+            );
+          }
+        } else if (autoDiscoverEnabled) {
+          process.stderr.write("No AHP logs found under VS Code log roots — opened picker UI.\n");
+        }
       }
-    }
 
-    let serverHandle: LogServerHandle;
-    const uiDistDir = locateUiDist();
-    try {
-      const serverOpts: Parameters<typeof startLogServer>[0] = {
-        sessions,
-        port,
-        version: VERSION,
-        ...(uiDistDir ? { uiDistDir } : {}),
+      let serverHandle: LogServerHandle;
+      const uiDistDir = locateUiDist();
+      try {
+        const serverOpts: Parameters<typeof startLogServer>[0] = {
+          sessions,
+          port,
+          version: VERSION,
+          ...(uiDistDir ? { uiDistDir } : {}),
+        };
+        serverHandle = await startLogServer(serverOpts);
+      } catch (err) {
+        const e = err as NodeJS.ErrnoException;
+        await sessions.dispose().catch(() => undefined);
+        if (e.code === "EADDRINUSE") {
+          fail(
+            `Error: port ${port} is in use. Try: ahp-inspector --port ${port + 1}${file ? ` ${file}` : ""}`,
+          );
+        }
+        fail(`Error: failed to start server: ${e.message}`);
+      }
+
+      // URL is constructed from server-controlled host (127.0.0.1, hard-coded
+      // in startLogServer) + the bound port. NEVER from user-supplied input.
+      // T-02-05b: open() only ever receives this loopback URL.
+      const url = `http://127.0.0.1:${serverHandle.port}`;
+      if (absPath) {
+        process.stdout.write(
+          `AHP Inspector running at ${url}\nOpening browser…\nWatching ${absPath}\n`,
+        );
+      } else {
+        process.stdout.write(`AHP Inspector running at ${url}\nOpening browser…\n`);
+      }
+
+      if (opts.open !== false) {
+        try {
+          await open(url, { wait: false });
+        } catch {
+          process.stdout.write(`(could not auto-open; visit ${url})\n`);
+        }
+      }
+
+      let shuttingDown = false;
+      const shutdown = async (): Promise<void> => {
+        if (shuttingDown) return;
+        shuttingDown = true;
+        try {
+          await sessions.dispose();
+        } catch {
+          // ignore — best-effort
+        }
+        try {
+          await serverHandle.close();
+        } catch {
+          // ignore — best-effort
+        }
+        process.exit(0);
       };
-      serverHandle = await startLogServer(serverOpts);
-    } catch (err) {
-      const e = err as NodeJS.ErrnoException;
-      await sessions.dispose().catch(() => undefined);
-      if (e.code === "EADDRINUSE") {
-        fail(
-          `Error: port ${port} is in use. Try: ahp-inspector --port ${port + 1}${file ? ` ${file}` : ""}`,
-        );
-      }
-      fail(`Error: failed to start server: ${e.message}`);
-    }
-
-    // URL is constructed from server-controlled host (127.0.0.1, hard-coded
-    // in startLogServer) + the bound port. NEVER from user-supplied input.
-    // T-02-05b: open() only ever receives this loopback URL.
-    const url = `http://127.0.0.1:${serverHandle.port}`;
-    if (absPath) {
-      process.stdout.write(
-        `AHP Inspector running at ${url}\nOpening browser…\nWatching ${absPath}\n`,
-      );
-    } else {
-      process.stdout.write(`AHP Inspector running at ${url}\nOpening browser…\n`);
-    }
-
-    if (opts.open !== false) {
-      try {
-        await open(url, { wait: false });
-      } catch {
-        process.stdout.write(`(could not auto-open; visit ${url})\n`);
-      }
-    }
-
-    let shuttingDown = false;
-    const shutdown = async (): Promise<void> => {
-      if (shuttingDown) return;
-      shuttingDown = true;
-      try {
-        await sessions.dispose();
-      } catch {
-        // ignore — best-effort
-      }
-      try {
-        await serverHandle.close();
-      } catch {
-        // ignore — best-effort
-      }
-      process.exit(0);
-    };
-    process.on("SIGINT", () => {
-      void shutdown();
-    });
-    process.on("SIGTERM", () => {
-      void shutdown();
-    });
-  });
+      process.on("SIGINT", () => {
+        void shutdown();
+      });
+      process.on("SIGTERM", () => {
+        void shutdown();
+      });
+    },
+  );
 
 program.parseAsync().catch((err) => {
   process.stderr.write(`Error: ${(err as Error).message}\n`);

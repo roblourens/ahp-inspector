@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Reducer-backed State Snapshots
-status: milestone_complete
-stopped_at: Phase 12 executed and verified
-last_updated: "2026-05-09T16:52:18.397Z"
-last_activity: 2026-05-09 -- Phase 13 execution started
+milestone: v1.2
+milestone_name: TBD (lean open)
+status: in_progress
+stopped_at: Phase 15 seeded; discuss-phase pending
+last_updated: "2026-05-10T22:00:00.000Z"
+last_activity: 2026-05-10
 progress:
-  total_phases: 8
-  completed_phases: 7
-  total_plans: 25
-  completed_plans: 20
-  percent: 88
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: AHP Inspector
@@ -19,14 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 13 — npx-publishing-and-auto-open-latest-log
+**Current Focus:** Phase 15 — vs-code-extension-stabilization
 
 ## Current Position
 
-Phase: 13
+Phase: 15
 Plan: Not started
-Status: Milestone complete
-Last activity: 2026-05-09
+Status: Discuss-phase pending
+Last activity: 2026-05-10 — Opened v1.2 milestone (lean) with Phase 15 seeded after extension regression diagnosed: row-click triggers 403 because `DetailPanel.tsx` and 4 other components import HTTP transports directly, bypassing the postMessage `AhpViewerClient` injected for the webview.
 
 ## Performance Metrics
 
@@ -142,6 +142,7 @@ Last activity: 2026-05-09
 - Phase 11 added: VS Code extension command palette custom editor
 - Phase 12 added: Search rather than filter
 - Phase 12 completed: free-text search now highlights and navigates matches without filtering out nonmatching rows; faceted filters remain the only row-narrowing controls.
+- Phase 14 added: Hardening: state diagnostics scrolling and parsing, row highlighting cleanup, smarter event/notification summaries, search ergonomics (Enter/Shift+Enter/F3 cycling, scroll to current match)
 
 ## Session Continuity
 
@@ -153,6 +154,7 @@ Last activity: 2026-05-09
 
 | Date | Slug | Summary |
 |------|------|---------|
+| 2026-05-10 | remember-filters-per-jsonl-file-when-swi | Reset filters/search/grouping when switching to a JSONL log with no stored prefs (stored prefs still hydrate for files that have them). |
 | 2026-05-09 | scrolling-the-response-is-not-working-co | Fixed response detail scrolling and corrected serverSeq gap banners to use real global sequence gaps instead of fabricating missing-0 rows. |
 | 2026-05-09 | in-the-response-viewer-on-the-right-side | Restored vertical scrolling in the response viewer Pretty/Raw tabs by allowing the shared JSON tabpanel flex child to shrink. |
 | 2026-05-08 | discover-oss-dev-jsonl | Discover Code OSS dev AHP JSONL logs under `~/.vscode-oss-agents-dev/logs`; drop legacy `agenthost.*.log` matching. |
@@ -160,3 +162,13 @@ Last activity: 2026-05-09
 
 ---
 *State initialized: 2026-05-06*
+
+## Deferred Items
+
+Items acknowledged and deferred at v1.1 milestone close on 2026-05-10:
+
+| Category | Item | Status | Note |
+|----------|------|--------|------|
+| uat_gap | 11-UAT.md | 7 manual scenarios pending | Phase 11 manual UAT was scripted but never marked off; automated equivalents in `extension.test.ts`, `activeLog.test.ts`, `viewerSession.test.ts`, `boundary.test.ts`, `security.test.ts` cover the same surface. |
+| uat_gap | 14-UAT.md | 4 manual scenarios pending | Phase 14 manual UAT was scripted but never marked off; automated equivalents in `FilterBar.test.tsx`, `TimelineList.virt.test.tsx`, `EventRow.columns.test.tsx`, `row-projection.test.ts`, and `e2e/phase14.spec.ts` cover the same behaviors. |
+| context_question | 13-CONTEXT.md | 3 open questions | All resolved during execution: npm name `ahp-inspector` confirmed available and published; `--no-open` flag not needed (CI publish uses `workflow_dispatch`, browser-open is interactive-only); CI publish trigger landed as `workflow_dispatch` with `dry_run` default true. The questions were never moved to the resolved section. |

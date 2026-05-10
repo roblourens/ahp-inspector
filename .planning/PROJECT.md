@@ -2,73 +2,66 @@
 
 ## What This Is
 
-AHP Inspector is a shipped local-first GUI for discovering, watching, searching, and understanding Agent Host Protocol JSONL traffic logs. It runs as a standalone CLI-launched local web app and keeps the architecture compatible with a future VS Code extension/webview host. It turns raw VS Code-to-agent-host JSON-RPC traffic into a fast, information-dense, polished timeline with expandable details.
+AHP Inspector is a shipped local-first GUI for discovering, watching, searching, and understanding Agent Host Protocol JSONL traffic logs. It runs both as a standalone CLI-launched local web app (`npx ahp-inspector`) and inside VS Code as a webview-backed extension command (`AHP Inspector: Open`). It turns raw VS Code-to-agent-host JSON-RPC traffic into a fast, information-dense, polished timeline with expandable details and reconstructed reducer-backed state at any point in the log.
 
 ## Core Value
 
-Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
+Make AHP traffic understandable at a glance while preserving fast access to exact raw event details and reconstructed state.
 
 ## Current State
 
-**v1.0 Initial MVP shipped:** 2026-05-08
+**v1.1 Reducer-backed State Snapshots shipped:** 2026-05-10
 
-The v1.0 milestone delivered:
+The v1.1 milestone delivered:
 
-- Local CLI/server/UI workflow for opening AHP JSONL logs.
-- Canonical event normalization sourced from `../agent-host-protocol`, legacy sample support, scrubbed fixtures, and robust parser/correlation tests.
-- Virtualized timeline with row summaries, ID-first scan layout, pair highlighting, error annotations, grouping, keyboard navigation, and large-log responsiveness.
-- Detail view with AHP field highlights, correlation metadata, expanded Pretty JSON, raw JSON, truncation, and copy actions.
-- Search and filtering across payloads, methods/actions, IDs, session/turn, status/error, and time ranges.
-- Auto-discovery, manual open, live tail, pause/resume, log switch, rotation/watch-error handling, and per-log preference persistence.
-- Polished dark, light, and hacker themes through design tokens, responsive detail layouts, browser UAT screenshots, and Playwright E2E coverage.
+- **Protocol sync foundation:** Generated `@ahp-inspector/protocol` workspace package syncing canonical reducers/actions/state from sibling `../agent-host-protocol`, with recorded source commit and fixture parity tests.
+- **Deterministic replay engine:** Pure `replayToIndex()` reconstructing root/session/terminal state from snapshots and server action envelopes, with diagnostics for missing baselines, unknown actions, sequence gaps, and ignored client intent.
+- **Lazy state-at-index API + UI inspector:** `/api/state-at` endpoint backed by `StateReplayIndex` LRU cache; detail-panel "State at this point" action, resource selector, Summary/Pretty/Raw views, confidence badge, diagnostics panel, copy actions — themed across dark/light/hacker.
+- **Pinned comparison:** Memory-only two-pin state model with top-level changed-path comparison and confidence-aware incomplete-comparison warning.
+- **VS Code extension webview:** Command-palette entry, active-`.jsonl` preselect, typed `postMessage` transport replacing loopback HTTP/SSE inside VS Code, CSP-safe webview HTML, boundary and security gates.
+- **Search rather than filter:** Free-text search now highlights and navigates matches with Enter/Shift+Enter while faceted filters remain the row-narrowing mechanism.
+- **`npx ahp-inspector` publishing:** Bounded VS Code log-roots walker auto-opens the most-recently-modified JSONL; CLI package publishable to npm with bundled UI assets, `release.sh --dry-run`, and `workflow_dispatch` publish workflow with `--provenance`.
+- **Hardening pass:** State diagnostics scroll/wrap, row-highlight precedence cleanup, smarter notification summaries, scroll-to-current-match search ergonomics.
 
-Final gate passed: `pnpm test`, UI build, CLI build, typecheck, lint, E2E, state validation, roadmap analysis, and milestone integration re-audit.
+Final gates: 91 vitest files / 1095 tests, `pnpm -r typecheck`, biome lint, E2E specs `phase10`/`phase12`/`phase14`, UI/CLI/extension builds — all green. Milestone audit re-run passed; 38/38 v1.1 requirements satisfied; all 9 phases Nyquist compliant. See `.planning/milestones/v1.1-MILESTONE-AUDIT.md`.
 
-## Current Milestone: v1.1 Reducer-backed State Snapshots
+## Next Milestone
 
-**Goal:** Reconstruct and inspect the actual AHP root/session/terminal state at selected log events by replaying canonical Agent Host Protocol reducers over captured JSON-RPC traffic.
-
-**Target features:**
-
-- Sync canonical AHP reducer/state/action code from the sibling `../agent-host-protocol` repo using a deterministic generated-package workflow similar to VS Code's sync script.
-- Build deterministic server-side state replay over snapshots, server action envelopes, reconnect replay, and client dispatch intent diagnostics.
-- Add a state-at-event API and UI inspector so users can click a message and see the reconstructed state at that point.
-- Let users pin and compare state points to reason about how state changed over time.
-- Surface confidence and diagnostics when logs are incomplete, missing a baseline snapshot, contain unknown actions, or only show client intent.
+v1.2 is undefined. Run `/gsd-new-milestone` to scope and plan. Open candidates (from v1.1 deferred and `Future Candidates`): continuous scrub-through state, deep semantic diff for nested paths, multi-log state comparison, snapshot/diff export, saved searches and bookmarks, advanced filter DSL.
 
 ## Requirements
 
 ### Validated
 
-- ✓ FOUND-01 through FOUND-04 — install/run, package boundaries, AHP source-of-truth usage, local-only security posture — v1.0
-- ✓ INGEST-01 through INGEST-07 — CLI open, discovery, manual open, live tail, pause/resume, parse errors, legacy adapter — v1.0
-- ✓ EVENT-01 through EVENT-06 — canonical model, classification, correlation, latency/status updates, visual distinguishability, gap/auth surfacing — v1.0
-- ✓ TIME-01 through TIME-06 — virtualized timeline, scan fields, visual encoding, selection, grouping, states — v1.0
-- ✓ DETAIL-01 through DETAIL-04 — detail inspector, normalized metadata, Pretty/Raw JSON, truncation, copy, AHP field highlights — v1.0
-- ✓ SEARCH-01 through SEARCH-05 — free-text search, facets, non-blocking updates, clear filters, per-log persistence — v1.0
-- ✓ THEME-01 through THEME-05 — dark/light/hacker themes, token architecture, persistence, responsive layout — v1.0
-- ✓ VERIFY-01 through VERIFY-04 — parser/unit coverage, UI coverage, E2E coverage, scrubbed fixtures — v1.0
+- ✓ FOUND-01..04, INGEST-01..07, EVENT-01..06, TIME-01..06, DETAIL-01..04, SEARCH-01..05, THEME-01..05, VERIFY-01..04 — v1.0 (full list in `.planning/milestones/v1.0-REQUIREMENTS.md`)
+- ✓ SYNC-01..04 — Protocol sync foundation — v1.1
+- ✓ REPLAY-01..06 — Deterministic replay engine — v1.1
+- ✓ CONF-01..03 — State confidence and diagnostics — v1.1
+- ✓ STATE-01..05 — State inspector UI — v1.1
+- ✓ COMPARE-01..03 — Pinned comparison with local-only privacy — v1.1
+- ✓ VERIFY-01..04 (v1.1 scope) — Parity fixtures, integration tests, browser E2E, large-log responsiveness — v1.1
+- ✓ EXT-01..07 — VS Code extension command palette + webview, transport abstraction, CSP-safe assets, no-loopback in extension mode — v1.1
+- ✓ NPX-01..06 — `npx ahp-inspector` publishing, auto-discovery, dry-run release script, docs — v1.1
 
 ### Active
 
-- [ ] Sync canonical AHP protocol reducer code into a generated local package and track the source commit.
-- [ ] Reconstruct root, session, and terminal state at selected event indexes using upstream reducers.
-- [ ] Clearly distinguish complete, partial, and unknown reconstructed state.
-- [ ] Expose reconstructed state through lazy server endpoints and a themed UI inspector.
-- [ ] Support pinned before/after state points for practical debugging.
+(None — next milestone scope to be defined by `/gsd-new-milestone`.)
 
 ### Future Candidates
 
-- VS Code extension/webview host using the same UI and core model.
-- Multi-log comparison, saved searches/filter presets, bookmarks/annotations, filtered exports, aggregate dashboards, advanced filter DSL, session/range diffing, and full AHP schema validation.
+- Continuous scrub-through timeline with live state updates (FUTURE-01).
+- Deep semantic diff for arbitrary nested state paths (FUTURE-02).
+- Reconstructed state comparison across multiple log files (FUTURE-03).
+- Export selected state snapshots or diffs (FUTURE-04).
+- Saved searches, filter presets, bookmarks/annotations, advanced filter DSL, aggregate dashboards, session/range diffing, and full AHP schema validation.
 
-### Out of Scope for v1.0
+### Out of Scope (carried forward)
 
-- Editing or replaying protocol traffic — v1 is an observer/debugger, not a protocol mutator.
-- Remote hosted log viewing — logs can contain sensitive tokens, prompts, paths, and model output.
-- Telemetry, analytics, CDN fonts, or external AI explanations — violates local-only privacy posture.
-- Full VS Code extension packaging — standalone app shipped first; extension compatibility remains architectural.
-- Custom filter DSL and multi-file workspace — single-log excellence came first.
+- Editing or replaying protocol traffic — viewer remains an observer/debugger, not a mutator.
+- Treating partial reconstructed state as authoritative truth — confidence must remain explicit.
+- Remote hosted log viewing — logs can contain sensitive tokens, prompts, paths, and outputs.
+- Telemetry, analytics, CDN fonts, or external AI explanation — violates local-only privacy posture.
+- Full semantic diff for every protocol field — useful but larger than v1.1's top-level comparison.
 
 ## Context
 
@@ -99,15 +92,25 @@ VS Code can emit AHP traffic as JSONL logs. AHP Inspector treats the real JSONL 
 | Use lazy server endpoints for raw detail/search | Keeps SSE rows compact and large-log rendering fast | ✓ Good |
 | Insert Phase 04.1 before theme work | Real-shaped row information needed to be correct before visual polish | ✓ Good |
 | Run milestone integration audit before archive | Caught and fixed paused-buffer, detail-cache, rotation, and pair-metadata gaps | ✓ Good |
-| Reconstruct state by replaying AHP reducers server-side | AHP state is defined by snapshots plus pure reducers, and logs contain the ordered traffic needed to replay them | — Pending |
-| Treat client dispatch requests as intent until server echo | Prevents rejected or unobserved client actions from corrupting reconstructed host state | — Pending |
+| Reconstruct state by replaying AHP reducers server-side | AHP state is defined by snapshots plus pure reducers, and logs contain the ordered traffic needed to replay them | ✓ Good |
+| Treat client dispatch requests as intent until server echo | Prevents rejected or unobserved client actions from corrupting reconstructed host state | ✓ Good |
+| Generate `@ahp-inspector/protocol` from sibling repo with a sync script | Single source of truth for actions/reducers/state; sync commit recorded in diagnostics | ✓ Good |
+| Cap pinned state points at exactly two in v1.1 | Forced focus on a useful, shippable diff surface; full multi-pin and deep semantic diff stay in FUTURE-02/03 | ✓ Good |
+| Lazy `/api/state-at` with bounded LRU cache | Keeps SSE row payloads compact; large-log state lookup remains responsive | ✓ Good |
+| Typed `postMessage` transport for VS Code extension instead of loopback server | Avoids any port-binding in extension mode and lets the same UI run unchanged | ✓ Good |
+| Search highlights+navigates rather than filters | Preserves user mental model; faceted filters remain the row-narrowing mechanism | ✓ Good |
+| Publish `ahp-inspector` unscoped on npm with bundled UI assets | Single `npx` command, no install step; release behind `workflow_dispatch` + `--provenance` | ✓ Good |
+| Backfill missing VERIFICATION/VALIDATION at milestone-audit time | Preserves documentation integrity even when in-flight scope insertions skipped the rolled-up artifacts | ✓ Good |
 
 ## Archives
 
 - v1.0 roadmap: `.planning/milestones/v1.0-ROADMAP.md`
 - v1.0 requirements: `.planning/milestones/v1.0-REQUIREMENTS.md`
 - v1.0 audit: `.planning/milestones/v1.0-MILESTONE-AUDIT.md`
+- v1.1 roadmap: `.planning/milestones/v1.1-ROADMAP.md`
+- v1.1 requirements: `.planning/milestones/v1.1-REQUIREMENTS.md`
+- v1.1 audit: `.planning/milestones/v1.1-MILESTONE-AUDIT.md`
 - milestone index: `.planning/MILESTONES.md`
 
 ---
-*Last updated: 2026-05-08 after starting v1.1 milestone*
+*Last updated: 2026-05-10 after v1.1 milestone close*

@@ -229,7 +229,7 @@ describe("useGroupedItems", () => {
     expect(result.current[4]).toEqual({ kind: "row", rowIdx: 2 });
   });
 
-  it("a row with gapBefore:true causes a gap-banner item to be inserted before it", () => {
+  it("does not insert a gap-banner when a row has gapBefore:true (cross-subscription jumps are expected)", () => {
     const rows = [
       makeRow({ idx: 0, gapBefore: false, serverSeq: 10 }),
       makeRow({ idx: 1, gapBefore: true, previousServerSeq: 10, serverSeq: 15 }),
@@ -237,10 +237,10 @@ describe("useGroupedItems", () => {
     resetStore(rows);
     useAppStore.setState({ grouping: "none" });
     const { result } = renderHook(() => useGroupedItems([0, 1]));
-    // Should have: row(0), gap-banner, row(1)
-    expect(result.current[0]).toEqual({ kind: "row", rowIdx: 0 });
-    expect(result.current[1]).toMatchObject({ kind: "gap-banner", prev: 10, curr: 15 });
-    expect(result.current[2]).toEqual({ kind: "row", rowIdx: 1 });
+    expect(result.current).toEqual([
+      { kind: "row", rowIdx: 0 },
+      { kind: "row", rowIdx: 1 },
+    ]);
   });
 
   it("does not insert a gap-banner when previous serverSeq is unavailable", () => {

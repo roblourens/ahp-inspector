@@ -8,7 +8,6 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 // Fix import path: grouping.test.tsx is at .../timeline/, selectors is at .../state/
 import type { VirtualItem } from "../../state/selectors.js";
-import { GapBannerRow } from "./GapBannerRow.js";
 import { GroupHeaderRow } from "./GroupHeaderRow.js";
 import { StickyGroupBar } from "./StickyGroupBar.js";
 import { TimelineList } from "./TimelineList.js";
@@ -181,31 +180,6 @@ describe("GroupHeaderRow", () => {
   });
 });
 
-// ── GapBannerRow ──────────────────────────────────────────────────────────────
-
-describe("GapBannerRow", () => {
-  afterEach(() => cleanup());
-
-  it("renders serverSeq gap text with correct counts", () => {
-    render(<GapBannerRow prev={12} curr={17} virtualStyle={{}} />);
-    // missing = 17 - 12 - 1 = 4
-    expect(screen.getByText(/serverSeq gap: 12 → 17 \(missing 4\)/)).toBeTruthy();
-  });
-
-  it("has correct aria-label", () => {
-    render(<GapBannerRow prev={12} curr={17} virtualStyle={{}} />);
-    const el = screen.getByLabelText(/Server sequence gap of 4 events between 12 and 17/);
-    expect(el).toBeTruthy();
-  });
-
-  it("renders AlertTriangle glyph indicator", () => {
-    const { container } = render(<GapBannerRow prev={5} curr={8} virtualStyle={{}} />);
-    // AlertTriangle should be present as an svg
-    const svg = container.querySelector("svg");
-    expect(svg).toBeTruthy();
-  });
-});
-
 // ── StickyGroupBar ────────────────────────────────────────────────────────────
 
 describe("StickyGroupBar", () => {
@@ -296,7 +270,6 @@ describe("TimelineList — polymorphic VirtualItem rendering", () => {
       count: 2,
       durationMs: 100,
     },
-    { kind: "gap-banner", prev: 3, curr: 7, virtualIdx: 1 },
     { kind: "row", rowIdx: 0 },
     { kind: "row", rowIdx: 1 },
   ];
@@ -310,16 +283,6 @@ describe("TimelineList — polymorphic VirtualItem rendering", () => {
     // GroupHeaderRow should render the session label
     const headers = await screen.findAllByText(/Session abc12345/);
     expect(headers.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("renders GapBannerRow for gap-banner items", async () => {
-    render(
-      <div style={{ height: 400 }}>
-        <TimelineList items={items} rows={rows} selectedIdx={null} onSelect={() => {}} />
-      </div>,
-    );
-    const gap = await screen.findByText(/serverSeq gap: 3 → 7/);
-    expect(gap).toBeTruthy();
   });
 
   it("renders EventRow for row items", async () => {

@@ -41,9 +41,7 @@ interface PathCandidate {
  * none qualify. Bounded by time, stat count, and a max-probe cap so it cannot
  * block CLI startup for more than ~2s on a populated profile.
  */
-export async function findLatestAhpLog(
-  opts: FindLatestAhpLogOptions = {},
-): Promise<string | null> {
+export async function findLatestAhpLog(opts: FindLatestAhpLogOptions = {}): Promise<string | null> {
   const roots = opts.rootsOverride ?? defaultRoots();
   const startedAt = Date.now();
   let stats = 0;
@@ -118,7 +116,10 @@ async function probeAhpShape(absPath: string): Promise<boolean> {
     // Need a complete line to probe — partial trailing line is unreliable.
     const firstLine = newlineIdx >= 0 ? text.slice(0, newlineIdx) : text;
     // Strip a leading BOM and trailing CR.
-    const stripped = firstLine.replace(/^\uFEFF/, "").replace(/\r$/, "").trim();
+    const stripped = firstLine
+      .replace(/^\uFEFF/, "")
+      .replace(/\r$/, "")
+      .trim();
     if (stripped.length === 0) return false;
     const parsed = parseLine(stripped, 0, Buffer.byteLength(stripped));
     if (parsed.error) return false;

@@ -56,7 +56,7 @@ async function waitForIngest(bridge: ViewerSessionBridge): Promise<void> {
       (n): n is Extract<ExtensionNotification, { kind: "response" }> =>
         n.kind === "response" && n.requestId === `__wait${i}__`,
     );
-    if (resp && resp.ok && resp.value !== null) return;
+    if (resp?.ok && resp.value !== null) return;
     await new Promise((r) => setTimeout(r, 10));
   }
   throw new Error("ingest did not complete within 1s");

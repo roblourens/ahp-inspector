@@ -14,13 +14,10 @@
  */
 
 import type { EventRow, LatencyBand, Status } from "@ahp-inspector/core";
-import type {
-  ExtensionNotification,
-  WebviewRequest,
-  WebviewSsePayload,
-} from "@ahp-inspector/shared";
+import type { WebviewRequest, WebviewSsePayload } from "@ahp-inspector/shared";
 import { isExtensionNotification } from "@ahp-inspector/shared";
 import { useAppStore } from "../state/store.js";
+import type { SafeCandidate } from "../types/safe-candidate.js";
 import type {
   AhpViewerClient,
   DetailResponse,
@@ -31,7 +28,6 @@ import type {
   StateAtSuccessResponse,
 } from "./client.js";
 import type { FetchStateAtOptions } from "./state-client.js";
-import type { SafeCandidate } from "../types/safe-candidate.js";
 
 interface VsCodeApi {
   postMessage(message: unknown): void;

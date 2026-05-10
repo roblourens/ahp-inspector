@@ -193,7 +193,7 @@ describe("vs code extension local-only guards", () => {
   } catch {
     extStat = null;
   }
-  if (!extStat || !extStat.isDirectory()) {
+  if (!extStat?.isDirectory()) {
     it("extension package not present yet (vacuously safe)", () => {
       expect(true).toBe(true);
     });

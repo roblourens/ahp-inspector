@@ -185,6 +185,41 @@ describe("FilterBar", () => {
     fireEvent.click(sessionOption);
     expect(useAppStore.getState().grouping).toBe("session");
   });
+
+  it("Enter in the search input dispatches ahp-search-nav next", () => {
+    useAppStore.setState({ searchQuery: "initialize" });
+    render(<FilterBar />);
+    const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
+    const events: ("previous" | "next")[] = [];
+    const onNav = (e: Event): void => {
+      events.push((e as CustomEvent<"previous" | "next">).detail);
+    };
+    window.addEventListener("ahp-search-nav", onNav);
+    try {
+      fireEvent.keyDown(input, { key: "Enter" });
+      fireEvent.keyDown(input, { key: "Enter", shiftKey: true });
+    } finally {
+      window.removeEventListener("ahp-search-nav", onNav);
+    }
+    expect(events).toEqual(["next", "previous"]);
+  });
+
+  it("Enter with empty query does not dispatch ahp-search-nav", () => {
+    useAppStore.setState({ searchQuery: "" });
+    render(<FilterBar />);
+    const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
+    const events: string[] = [];
+    const onNav = (e: Event): void => {
+      events.push((e as CustomEvent<"previous" | "next">).detail);
+    };
+    window.addEventListener("ahp-search-nav", onNav);
+    try {
+      fireEvent.keyDown(input, { key: "Enter" });
+    } finally {
+      window.removeEventListener("ahp-search-nav", onNav);
+    }
+    expect(events).toEqual([]);
+  });
 });
 
 // ── ActiveFilterChips ─────────────────────────────────────────────────────────

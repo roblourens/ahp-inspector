@@ -12,13 +12,13 @@
  * imports, no `@ahp-inspector/server` or `@ahp-inspector/host-node` imports.
  */
 
-import type { OpenSessionResult } from "./sessions-client.js";
+import type { SafeCandidate } from "../types/safe-candidate.js";
 import type { DetailResponse } from "./http-client.js";
 import type { SearchResult } from "./search-client.js";
+import type { OpenSessionResult } from "./sessions-client.js";
 import type { FetchStateAtOptions, StateAtSuccessResponse } from "./state-client.js";
-import type { SafeCandidate } from "../types/safe-candidate.js";
 
-export type { OpenSessionResult, DetailResponse, SearchResult, StateAtSuccessResponse };
+export type { DetailResponse, OpenSessionResult, SearchResult, StateAtSuccessResponse };
 
 export type LogMetaProbeResult = "no-log" | "no-server" | "ready";
 
@@ -40,8 +40,5 @@ export interface AhpViewerClient {
     logKey?: string | null,
   ): Promise<DetailResponse | null>;
   searchEvents(q: string, signal?: AbortSignal): Promise<SearchResult>;
-  fetchStateAt(
-    idx: number,
-    options?: FetchStateAtOptions,
-  ): Promise<StateAtSuccessResponse | null>;
+  fetchStateAt(idx: number, options?: FetchStateAtOptions): Promise<StateAtSuccessResponse | null>;
 }

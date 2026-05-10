@@ -152,7 +152,7 @@ describe("projectRow() — request paired (latency bands)", () => {
     expect(row.latencyMs).toBe(42);
     expect(row.latencyBand).toBe("fast");
     expect(row.payloadPreview).toBe('{"v":1}');
-    expect(row.summary).toBe("initialize v=1");
+    expect(row.summary).toBe("v=1");
     expect(row.pairIdx).toBeNull();
     expect(row.parseErrorReason).toBeNull();
     expect(row.lineIndex).toBeNull();
@@ -232,7 +232,7 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
       "pending",
       null,
     );
-    expect(row.summary).toBe("resourceList uri=doc.md");
+    expect(row.summary).toBe("uri=doc.md");
   });
 
   it("summarizes delta and tool actions", () => {
@@ -251,7 +251,7 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
       "n/a",
       null,
     );
-    expect(delta.summary).toBe('delta "hello"');
+    expect(delta.summary).toBe('"hello"');
 
     const tool = projectRow(
       mkEvent({
@@ -366,6 +366,91 @@ describe("projectRow() — tabular field formatting", () => {
   it("dirGlyph for s2c", () => {
     const row = projectRow(mkEvent({ dir: "s2c" }), 0, "ok", 0);
     expect(row.dirGlyph).toBe("←");
+  });
+});
+
+describe("projectRow() — notification summaries", () => {
+  it("protocol-notification with state extracts state into summary", () => {
+    const e = mkEvent({
+      kind: "protocol-notification",
+      method: null,
+      actionType: "session/update",
+      raw: {
+        jsonrpc: "2.0",
+        method: "session/notification",
+        params: { notification: { type: "session/update", state: "running" } },
+      },
+    });
+    const row = projectRow(e, 0, "n/a", null);
+    expect(row.summary).toBe("running");
+  });
+
+  it("server-notification with message renders method: message", () => {
+    const e = mkEvent({
+      kind: "server-notification",
+      dir: "s2c",
+      method: "window/showMessage",
+      actionType: null,
+      raw: {
+        jsonrpc: "2.0",
+        method: "window/showMessage",
+        params: { message: "Build failed: foo" },
+      },
+    });
+    const row = projectRow(e, 0, "n/a", null);
+    expect(row.summary).toBe("Build failed: foo");
+  });
+
+  it("protocol-notification without state/message strips repeated type, falls back to JSON-ish", () => {
+    const e = mkEvent({
+      kind: "protocol-notification",
+      method: null,
+      actionType: "telemetry/event",
+      raw: {
+        jsonrpc: "2.0",
+        method: "session/notification",
+        params: { notification: { type: "telemetry/event" } },
+      },
+    });
+    const row = projectRow(e, 0, "n/a", null);
+    // "telemetry/event" already shows in the Event column; summary should not
+    // start with it.
+    expect(row.summary).toBe("type=telemetry/event");
+  });
+
+  it("dispatchAction request surfaces action.type", () => {
+    const e = mkEvent({
+      kind: "request",
+      method: "dispatchAction",
+      raw: {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "dispatchAction",
+        params: {
+          clientSeq: 10,
+          action: { type: "session/turnStarted", session: "copilot:/session/x" },
+        },
+      },
+    });
+    const row = projectRow(e, 0, "pending", null);
+    expect(row.summary?.startsWith("session/turnStarted")).toBe(true);
+  });
+
+  it("dispatchAction client-notification surfaces action.type", () => {
+    const e = mkEvent({
+      kind: "client-notification",
+      method: "dispatchAction",
+      raw: {
+        jsonrpc: "2.0",
+        method: "dispatchAction",
+        params: {
+          clientSeq: 10,
+          action: { type: "session/turnStarted", session: "copilot:/session/x" },
+        },
+      },
+    });
+    const row = projectRow(e, 0, "n/a", null);
+    expect(row.summary?.startsWith("session/turnStarted")).toBe(true);
   });
 });
 

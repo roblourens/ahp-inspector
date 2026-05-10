@@ -11,11 +11,7 @@
 import type { AhpViewerClient, LogMetaProbeResult, LogStreamHandle } from "./client.js";
 import { fetchEvent } from "./http-client.js";
 import { searchEvents } from "./search-client.js";
-import {
-  fetchCandidates,
-  openSessionByCandidate,
-  openSessionByPath,
-} from "./sessions-client.js";
+import { fetchCandidates, openSessionByCandidate, openSessionByPath } from "./sessions-client.js";
 import { connectLogStream } from "./sse-client.js";
 import { fetchStateAt } from "./state-client.js";
 

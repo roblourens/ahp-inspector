@@ -41,6 +41,7 @@ export function ParseErrorRow({
         gridTemplateColumns: "2px 1fr",
         alignItems: "center",
         height: "var(--row-height)",
+        boxSizing: "border-box",
         padding: "4px 8px",
         cursor: "pointer",
         background: isSelected ? "var(--color-surface-raised)" : "transparent",

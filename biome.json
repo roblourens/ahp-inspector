@@ -22,6 +22,7 @@
     "includes": [
       "**",
       "!**/dist",
+      "!**/ui-dist",
       "!**/node_modules",
       "!**/coverage",
       "!test/fixtures",

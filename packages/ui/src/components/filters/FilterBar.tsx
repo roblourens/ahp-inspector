@@ -265,7 +265,9 @@ export function FilterBar({
           <FacetPopover
             options={mapToOptions(facetCounts.status)}
             selected={filters.status}
-            onChange={(vals) => patchFilter("status", vals as import("@ahp-inspector/core").Status[])}
+            onChange={(vals) =>
+              patchFilter("status", vals as import("@ahp-inspector/core").Status[])
+            }
             onClose={close}
           />
         )}

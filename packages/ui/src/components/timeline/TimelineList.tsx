@@ -6,7 +6,6 @@ import type { CSSProperties, JSX } from "react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { VirtualItem } from "../../state/selectors.js";
 import { EventRow, TIMELINE_GRID_COLUMNS } from "./EventRow.js";
-import { GapBannerRow } from "./GapBannerRow.js";
 import { GroupHeaderRow } from "./GroupHeaderRow.js";
 import { ParseErrorRow } from "./ParseErrorRow.js";
 
@@ -14,7 +13,6 @@ const ITEM_HEIGHT = {
   row: 28,
   "parse-error": 28,
   header: 24,
-  "gap-banner": 20,
 } as const;
 
 const COLUMN_LABELS = [
@@ -32,7 +30,6 @@ const COLUMN_LABELS = [
 
 function getItemKindKey(item: VirtualItem): keyof typeof ITEM_HEIGHT {
   if (item.kind === "header") return "header";
-  if (item.kind === "gap-banner") return "gap-banner";
   return "row";
 }
 
@@ -113,6 +110,30 @@ export function TimelineList({
     return () => cancelAnimationFrame(raf);
   }, [items.length, scrollToBottom]);
 
+  // Scroll the selected row into view only when it's currently off-screen
+  // (e.g., keyboard navigation or search-match jump). Clicking a visible row
+  // must not scroll the timeline.
+  useEffect(() => {
+    if (selectedIdx === null) return;
+    const targetVi = items.findIndex(
+      (it) => it.kind === "row" && rows[it.rowIdx]?.idx === selectedIdx,
+    );
+    if (targetVi < 0) return;
+    const visible = v.getVirtualItems();
+    if (visible.length > 0) {
+      const first = visible[0]?.index ?? 0;
+      const last = visible[visible.length - 1]?.index ?? 0;
+      // Treat overscan rows as off-screen too: only skip when comfortably
+      // inside the visible window.
+      const margin = 2;
+      if (targetVi >= first + margin && targetVi <= last - margin) {
+        return;
+      }
+    }
+    followTailRef.current = false;
+    v.scrollToIndex(targetVi, { align: "center" });
+  }, [selectedIdx, items, rows, v]);
+
   const onScroll = useCallback((): void => {
     const el = parentRef.current;
     if (!el) return;
@@ -172,40 +193,6 @@ export function TimelineList({
       }}
     >
       <div
-        role="row"
-        tabIndex={-1}
-        data-testid="timeline-column-header"
-        style={{
-          display: "grid",
-          gridTemplateColumns: TIMELINE_GRID_COLUMNS,
-          minWidth: "max-content",
-          alignItems: "center",
-          height: 24,
-          padding: "3px 8px",
-          flexShrink: 0,
-          background: "var(--color-surface)",
-          borderBottom: "1px solid var(--color-border)",
-          color: "var(--color-text-muted)",
-          fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-ui-muted-size)",
-          fontWeight: "var(--weight-semibold)",
-          textTransform: "uppercase",
-          letterSpacing: "0.04em",
-        }}
-      >
-        {COLUMN_LABELS.map(({ key, label, ariaLabel }) => (
-          <div
-            key={key}
-            role="columnheader"
-            aria-label={ariaLabel}
-            tabIndex={-1}
-            style={headerCellStyle}
-          >
-            {label}
-          </div>
-        ))}
-      </div>
-      <div
         ref={parentRef}
         onScroll={onScroll}
         role="grid"
@@ -220,96 +207,116 @@ export function TimelineList({
           minWidth: 0,
         }}
       >
-        <div style={{ height: v.getTotalSize(), position: "relative", minWidth: "max-content" }}>
-          {v.getVirtualItems().map((vi) => {
-            const item = items[vi.index];
-            if (!item) return null;
-
-            if (item.kind === "header") {
-              const style: CSSProperties = {
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 24,
-                transform: `translateY(${vi.start}px)`,
-              };
-              return (
-                <GroupHeaderRow
-                  key={`header-${item.groupKey}`}
-                  level={item.level}
-                  sessionId={item.sessionId}
-                  {...(item.turnId !== undefined ? { turnId: item.turnId } : {})}
-                  count={item.count}
-                  durationMs={item.durationMs}
-                  isCollapsed={groupCollapsed?.has(item.groupKey) ?? false}
-                  onToggle={() => onToggleGroup?.(item.groupKey)}
-                  virtualStyle={style}
-                />
-              );
-            }
-
-            if (item.kind === "gap-banner") {
-              const style: CSSProperties = {
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 20,
-                transform: `translateY(${vi.start}px)`,
-              };
-              return (
-                <GapBannerRow
-                  key={`gap-${item.virtualIdx}`}
-                  prev={item.prev}
-                  curr={item.curr}
-                  virtualStyle={style}
-                />
-              );
-            }
-
-            // kind === "row"
-            const row = rows[item.rowIdx];
-            if (!row) return null;
-            const isSelected = row.idx === selectedIdx;
-            const pairHighlight =
-              selectedPairIdx !== null && row.idx === selectedPairIdx && selectedPairVisible
-                ? row.kind === "response"
-                  ? "response"
-                  : "request"
-                : null;
-            const pairHidden = isSelected ? hiddenPairKind : null;
-            const style: CSSProperties = {
-              position: "absolute",
+        <div style={{ minWidth: "max-content" }}>
+          <div
+            role="row"
+            tabIndex={-1}
+            data-testid="timeline-column-header"
+            style={{
+              display: "grid",
+              gridTemplateColumns: TIMELINE_GRID_COLUMNS,
+              minWidth: "max-content",
+              alignItems: "center",
+              height: 24,
+              boxSizing: "border-box",
+              padding: "3px 8px",
+              position: "sticky",
               top: 0,
-              left: 0,
-              right: 0,
-              height: 28,
-              transform: `translateY(${vi.start}px)`,
-            };
+              zIndex: 1,
+              background: "var(--color-surface)",
+              borderBottom: "1px solid var(--color-border)",
+              color: "var(--color-text-muted)",
+              fontFamily: "var(--font-sans)",
+              fontSize: "var(--text-ui-muted-size)",
+              fontWeight: "var(--weight-semibold)",
+              textTransform: "uppercase",
+              letterSpacing: "0.04em",
+            }}
+          >
+            {COLUMN_LABELS.map(({ key, label, ariaLabel }) => (
+              <div
+                key={key}
+                role="columnheader"
+                aria-label={ariaLabel}
+                tabIndex={-1}
+                style={headerCellStyle}
+              >
+                {label}
+              </div>
+            ))}
+          </div>
+          <div style={{ height: v.getTotalSize(), position: "relative" }}>
+            {v.getVirtualItems().map((vi) => {
+              const item = items[vi.index];
+              if (!item) return null;
 
-            return row.kind === "parse-error" ? (
-              <ParseErrorRow
-                key={row.idx}
-                row={row}
-                isSelected={isSelected}
-                onClick={() => onSelect(row.idx)}
-                style={style}
-              />
-            ) : (
-              <EventRow
-                key={row.idx}
-                row={row}
-                isSelected={isSelected}
-                onClick={() => onSelect(row.idx)}
-                searchQuery={searchQuery}
-                isSearchMatch={searchMatches?.has(row.idx) ?? false}
-                pairHighlight={pairHighlight}
-                pairHidden={pairHidden}
-                style={style}
-              />
-            );
-          })}
+              if (item.kind === "header") {
+                const style: CSSProperties = {
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 24,
+                  transform: `translateY(${vi.start}px)`,
+                };
+                return (
+                  <GroupHeaderRow
+                    key={`header-${item.groupKey}`}
+                    level={item.level}
+                    sessionId={item.sessionId}
+                    {...(item.turnId !== undefined ? { turnId: item.turnId } : {})}
+                    count={item.count}
+                    durationMs={item.durationMs}
+                    isCollapsed={groupCollapsed?.has(item.groupKey) ?? false}
+                    onToggle={() => onToggleGroup?.(item.groupKey)}
+                    virtualStyle={style}
+                  />
+                );
+              }
+
+              // kind === "row"
+              const row = rows[item.rowIdx];
+              if (!row) return null;
+              const isSelected = row.idx === selectedIdx;
+              const pairHighlight =
+                selectedPairIdx !== null && row.idx === selectedPairIdx && selectedPairVisible
+                  ? row.kind === "response"
+                    ? "response"
+                    : "request"
+                  : null;
+              const pairHidden = isSelected ? hiddenPairKind : null;
+              const style: CSSProperties = {
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 28,
+                transform: `translateY(${vi.start}px)`,
+              };
+
+              return row.kind === "parse-error" ? (
+                <ParseErrorRow
+                  key={row.idx}
+                  row={row}
+                  isSelected={isSelected}
+                  onClick={() => onSelect(row.idx)}
+                  style={style}
+                />
+              ) : (
+                <EventRow
+                  key={row.idx}
+                  row={row}
+                  isSelected={isSelected}
+                  onClick={() => onSelect(row.idx)}
+                  searchQuery={searchQuery}
+                  isSearchMatch={searchMatches?.has(row.idx) ?? false}
+                  pairHighlight={pairHighlight}
+                  pairHidden={pairHidden}
+                  style={style}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

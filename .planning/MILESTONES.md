@@ -1,5 +1,49 @@
 # Milestones
 
+## v1.1 Reducer-backed State Snapshots (Shipped: 2026-05-10)
+
+**Status:** shipped
+**Phases completed:** 9 phases (06–14), 29 plans
+**Audit:** `.planning/milestones/v1.1-MILESTONE-AUDIT.md` — passed (re-audited 2026-05-10)
+**Archive:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`
+
+### What Shipped
+
+- **Protocol sync foundation (Phase 6):** Generated `@ahp-inspector/protocol` workspace package with deterministic sync from sibling `../agent-host-protocol`, recorded source commit, reducer parity fixtures, and migrated all consumers off the stale file dependency.
+- **Deterministic replay engine (Phase 7):** Pure `replayToIndex()` API reconstructing root/session/terminal state from snapshots and server action envelopes, with diagnostics for malformed payloads, missing baselines, unknown actions, sequence gaps, and ignored client intent; reducer-derived `Date.now()` made deterministic.
+- **Server state-at-index API (Phase 8):** `StateReplayIndex` lifecycle alongside EventStore/Correlator/SearchIndex with bounded LRU cache; lazy `/api/state-at` endpoint with confidence and diagnostics; SSE row payloads stay free of replay fields.
+- **State inspector UI (Phase 9):** Explicit "State at this point" action, root/session/terminal resource selector, Summary/Pretty JSON/Raw JSON views, confidence badge, diagnostics panel, and copy actions — all themed across dark/light/hacker.
+- **Pinned comparison (Phase 10):** Memory-only two-pin state model with top-level changed-path comparison, confidence-aware incomplete-comparison warning, Playwright E2E for pinning/comparison, and large-log responsiveness verification.
+- **VS Code extension webview (Phase 11):** Command palette entry, active-`.jsonl` preselect, typed `postMessage` transport replacing loopback HTTP/SSE, CSP-safe webview HTML, boundary + security gates, and standalone CLI mode preserved.
+- **Search rather than filter (Phase 12):** Free-text search highlights and navigates matches instead of filtering; faceted filters remain row-narrowing; volatile match metadata sanitized at persist/hydrate boundaries.
+- **`npx ahp-inspector` publishing (Phase 13):** Bounded VS Code log-roots walker auto-opens the most recent JSONL; publishable CLI package with bundled UI assets; `release.sh --dry-run` and `workflow_dispatch` publish workflow with `--provenance`.
+- **Hardening pass (Phase 14):** State diagnostics scroll/wrap, row-highlight precedence (selected > pair > search), smarter notification summaries extracting `state`/`status`/`message`, and Enter/Shift+Enter search navigation with scroll-to-current-match.
+
+### Quality Gates
+
+- `pnpm test` — 91 files / 1095 tests passed
+- `pnpm -F @ahp-inspector/ui build` — passed
+- `pnpm -F @ahp-inspector/cli build` — passed
+- `pnpm -F @ahp-inspector/extension build` — passed
+- `pnpm -r typecheck` — passed (10 packages)
+- `pnpm lint` — passed (biome)
+- E2E specs `phase10`, `phase12`, `phase14` — passed
+- Milestone audit re-run — passed; 38/38 v1.1 requirements satisfied; 9/9 phases verified; all 9 phases Nyquist compliant.
+
+### Audit Remediation (before close)
+
+- Backfilled missing rolled-up `VERIFICATION.md` for phases 11, 12, 14.
+- Backfilled `VALIDATION.md` (Nyquist) for phases 11, 12, 13, 14, marked `backfilled: true`.
+- Renamed phase 13 `VERIFICATION.md` → `13-VERIFICATION.md` to match repo convention.
+- Backfilled phase 10 plan summaries 10-01 and 10-02.
+- Committed phase 14 e2e spec, UAT.md, and screenshot that had been left untracked locally.
+
+### Known deferred items at close
+
+3 items recorded in `STATE.md` Deferred Items table — 2 phase UAT scripts that were never marked off (covered by automated tests) and 3 phase-13 CONTEXT.md questions that were resolved in execution but never moved to the resolved section.
+
+---
+
 ## v1.0 Initial MVP (Shipped: 2026-05-08)
 
 **Status:** shipped  
