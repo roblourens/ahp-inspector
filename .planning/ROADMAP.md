@@ -1,7 +1,7 @@
 # Roadmap: AHP Inspector
 
 **Created:** 2026-05-06
-**Current milestone:** None — v1.2 to be planned next
+**Current milestone:** v1.2 (in progress)
 **Archives:** `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.1-ROADMAP.md`
 
 ## Vision
@@ -12,7 +12,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 
 - ✅ **v1.0 Initial MVP** — shipped 2026-05-08. Standalone local viewer, JSONL ingestion, virtualized timeline, detail/search/filtering, live discovery/tail/persistence, three themes, full verification.
 - ✅ **v1.1 Reducer-backed State Snapshots** — shipped 2026-05-10. Protocol sync, deterministic replay engine, lazy state-at-index API, state inspector UI, pinned comparison, VS Code extension webview, search-rather-than-filter UX, `npx ahp-inspector` publishing, and hardening pass.
-- 📋 **v1.2 (planned)** — to be defined via `/gsd-new-milestone`.
+- � **v1.2 (in progress)** — opened lean. Seeded with one stabilization phase; further phases will be added as scope emerges.
 
 ## Phases
 
@@ -47,9 +47,11 @@ Full phase details: `.planning/milestones/v1.1-ROADMAP.md`.
 
 </details>
 
-### 📋 v1.2 (to be planned)
+### � v1.2 (in progress)
 
-No phases yet. Run `/gsd-new-milestone` to define the next milestone scope, requirements, and roadmap.
+- [ ] Phase 15: VS Code extension stabilization — discuss / plan / execute pending
+
+Further v1.2 phases will be added as scope emerges. Lean milestone open — defer broader scoping until needed.
 
 ## Progress
 
@@ -57,10 +59,12 @@ No phases yet. Run `/gsd-new-milestone` to define the next milestone scope, requ
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
 | v1.1 Reducer-backed State Snapshots | 9/9 | 29/29 | Shipped | 2026-05-10 |
+| v1.2 (in progress) | 0/1 | 0/0 | Phase 15 pending | — |
 
 ## Next
 
-Run `/gsd-new-milestone` to start planning v1.2.
+Run `/gsd-discuss-phase 15` to start scoping the VS Code extension stabilization phase.
 
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
+*v1.2 opened lean with Phase 15 seed: 2026-05-10*

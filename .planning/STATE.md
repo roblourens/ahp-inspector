@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Reducer-backed State Snapshots
-status: completed
-stopped_at: Phase 12 executed and verified
-last_updated: "2026-05-10T21:27:25.219Z"
+milestone: v1.2
+milestone_name: TBD (lean open)
+status: in_progress
+stopped_at: Phase 15 seeded; discuss-phase pending
+last_updated: "2026-05-10T22:00:00.000Z"
 last_activity: 2026-05-10
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 29
-  completed_plans: 29
-  percent: 100
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: AHP Inspector
@@ -19,14 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 13 — npx-publishing-and-auto-open-latest-log
+**Current Focus:** Phase 15 — vs-code-extension-stabilization
 
 ## Current Position
 
-Phase: 13
+Phase: 15
 Plan: Not started
-Status: Milestone complete
-Last activity: 2026-05-10 - Completed quick task 260510-kuo: Remember filters per-jsonl file
+Status: Discuss-phase pending
+Last activity: 2026-05-10 — Opened v1.2 milestone (lean) with Phase 15 seeded after extension regression diagnosed: row-click triggers 403 because `DetailPanel.tsx` and 4 other components import HTTP transports directly, bypassing the postMessage `AhpViewerClient` injected for the webview.
 
 ## Performance Metrics
 
