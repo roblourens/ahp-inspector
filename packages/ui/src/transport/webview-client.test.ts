@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ExtensionNotification, WebviewRequest } from "@ahp-inspector/shared";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAppStore } from "../state/store.js";
 import { createWebviewAhpViewerClient } from "./webview-client.js";
 

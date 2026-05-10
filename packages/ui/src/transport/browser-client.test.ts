@@ -11,7 +11,10 @@ afterEach(() => {
 
 describe("createBrowserAhpViewerClient.probeLogMeta", () => {
   it("returns 'no-log' on 204", async () => {
-    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(new Response(null, { status: 204 }))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve(new Response(null, { status: 204 }))),
+    );
     const client = createBrowserAhpViewerClient();
     expect(await client.probeLogMeta()).toBe("no-log");
   });

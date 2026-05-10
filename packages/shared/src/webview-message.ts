@@ -81,7 +81,11 @@ export interface WebviewStateAtSuccessResponse {
 // mutations regardless of transport.
 export type WebviewSsePayload =
   | { readonly kind: "snapshot-begin"; readonly meta: WebviewLogMeta; readonly total: number }
-  | { readonly kind: "snapshot-chunk"; readonly rows: ReadonlyArray<unknown>; readonly from: number }
+  | {
+      readonly kind: "snapshot-chunk";
+      readonly rows: ReadonlyArray<unknown>;
+      readonly from: number;
+    }
   | { readonly kind: "snapshot-end" }
   | { readonly kind: "append"; readonly rows: ReadonlyArray<unknown>; readonly from: number }
   | { readonly kind: "patch"; readonly updates: ReadonlyArray<unknown> }

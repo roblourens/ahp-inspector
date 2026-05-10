@@ -219,8 +219,7 @@ export async function discoverVsCodeLogs(opts: DiscoverOptions = {}): Promise<Di
         continue;
       }
       if (!st.isFile()) continue;
-      const ok =
-        FILENAME_RE_AHP_JSONL.test(name) || FILENAME_RE_AHP_NAMED_JSONL.test(name);
+      const ok = FILENAME_RE_AHP_JSONL.test(name) || FILENAME_RE_AHP_NAMED_JSONL.test(name);
       if (!ok) continue;
       const sc = score(name, st.mtimeMs, st.size, absDir);
       const id = makeId(abs);

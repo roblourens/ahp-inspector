@@ -8,8 +8,7 @@ let tmpRoot: string;
 let logsRoot: string;
 
 // A line that normalizes successfully (request shape: has method + id).
-const VALID_AHP_LINE =
-  '{"jsonrpc":"2.0","method":"someRequest","params":{},"id":1}\n';
+const VALID_AHP_LINE = '{"jsonrpc":"2.0","method":"someRequest","params":{},"id":1}\n';
 
 // A JSON line that does NOT match any AHP discriminator (no method/id/result/error).
 const NON_AHP_LINE = '{"foo":"bar"}\n';

@@ -43,10 +43,7 @@ const UI_FORBIDDEN_PATTERNS: RegExp[] = [
 // Server package boundary — must not import the extension package, since the
 // extension links the server but not the other way around.
 const SERVER_ROOTS = ["packages/server/src"];
-const SERVER_FORBIDDEN_PATTERNS: RegExp[] = [
-  /^vscode$/,
-  /^@ahp-inspector\/extension($|\/)/,
-];
+const SERVER_FORBIDDEN_PATTERNS: RegExp[] = [/^vscode$/, /^@ahp-inspector\/extension($|\/)/];
 
 // Capture the import specifier in either `import ... from "x"` or bare `from "x"`.
 const IMPORT_RE = /(?:^|\b)(?:import\s[^"';]*?from\s*|export\s[^"';]*?from\s*)["']([^"']+)["']/g;

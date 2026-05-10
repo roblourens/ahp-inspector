@@ -13,8 +13,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 const CLI_ENTRY = resolve(__dirname, "index.ts");
 const TSX_BIN = resolve(process.cwd(), "node_modules/.bin/tsx");
 
-const VALID_AHP_LINE =
-  '{"jsonrpc":"2.0","method":"someRequest","params":{},"id":1}\n';
+const VALID_AHP_LINE = '{"jsonrpc":"2.0","method":"someRequest","params":{},"id":1}\n';
 
 let tmpHome: string;
 
@@ -45,11 +44,7 @@ function spawnWithHome(args: string[]): {
   return r;
 }
 
-async function waitFor(
-  read: () => string,
-  regex: RegExp,
-  timeoutMs = 8000,
-): Promise<string> {
+async function waitFor(read: () => string, regex: RegExp, timeoutMs = 8000): Promise<string> {
   const start = Date.now();
   return new Promise((resolveP, reject) => {
     const tick = setInterval(() => {

@@ -207,117 +207,117 @@ export function TimelineList({
           minWidth: 0,
         }}
       >
-      <div style={{ minWidth: "max-content" }}>
-        <div
-          role="row"
-          tabIndex={-1}
-          data-testid="timeline-column-header"
-          style={{
-            display: "grid",
-            gridTemplateColumns: TIMELINE_GRID_COLUMNS,
-            minWidth: "max-content",
-            alignItems: "center",
-            height: 24,
-            boxSizing: "border-box",
-            padding: "3px 8px",
-            position: "sticky",
-            top: 0,
-            zIndex: 1,
-            background: "var(--color-surface)",
-            borderBottom: "1px solid var(--color-border)",
-            color: "var(--color-text-muted)",
-            fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-ui-muted-size)",
-            fontWeight: "var(--weight-semibold)",
-            textTransform: "uppercase",
-            letterSpacing: "0.04em",
-          }}
-        >
-          {COLUMN_LABELS.map(({ key, label, ariaLabel }) => (
-            <div
-              key={key}
-              role="columnheader"
-              aria-label={ariaLabel}
-              tabIndex={-1}
-              style={headerCellStyle}
-            >
-              {label}
-            </div>
-          ))}
-        </div>
-        <div style={{ height: v.getTotalSize(), position: "relative" }}>
-          {v.getVirtualItems().map((vi) => {
-            const item = items[vi.index];
-            if (!item) return null;
+        <div style={{ minWidth: "max-content" }}>
+          <div
+            role="row"
+            tabIndex={-1}
+            data-testid="timeline-column-header"
+            style={{
+              display: "grid",
+              gridTemplateColumns: TIMELINE_GRID_COLUMNS,
+              minWidth: "max-content",
+              alignItems: "center",
+              height: 24,
+              boxSizing: "border-box",
+              padding: "3px 8px",
+              position: "sticky",
+              top: 0,
+              zIndex: 1,
+              background: "var(--color-surface)",
+              borderBottom: "1px solid var(--color-border)",
+              color: "var(--color-text-muted)",
+              fontFamily: "var(--font-sans)",
+              fontSize: "var(--text-ui-muted-size)",
+              fontWeight: "var(--weight-semibold)",
+              textTransform: "uppercase",
+              letterSpacing: "0.04em",
+            }}
+          >
+            {COLUMN_LABELS.map(({ key, label, ariaLabel }) => (
+              <div
+                key={key}
+                role="columnheader"
+                aria-label={ariaLabel}
+                tabIndex={-1}
+                style={headerCellStyle}
+              >
+                {label}
+              </div>
+            ))}
+          </div>
+          <div style={{ height: v.getTotalSize(), position: "relative" }}>
+            {v.getVirtualItems().map((vi) => {
+              const item = items[vi.index];
+              if (!item) return null;
 
-            if (item.kind === "header") {
+              if (item.kind === "header") {
+                const style: CSSProperties = {
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 24,
+                  transform: `translateY(${vi.start}px)`,
+                };
+                return (
+                  <GroupHeaderRow
+                    key={`header-${item.groupKey}`}
+                    level={item.level}
+                    sessionId={item.sessionId}
+                    {...(item.turnId !== undefined ? { turnId: item.turnId } : {})}
+                    count={item.count}
+                    durationMs={item.durationMs}
+                    isCollapsed={groupCollapsed?.has(item.groupKey) ?? false}
+                    onToggle={() => onToggleGroup?.(item.groupKey)}
+                    virtualStyle={style}
+                  />
+                );
+              }
+
+              // kind === "row"
+              const row = rows[item.rowIdx];
+              if (!row) return null;
+              const isSelected = row.idx === selectedIdx;
+              const pairHighlight =
+                selectedPairIdx !== null && row.idx === selectedPairIdx && selectedPairVisible
+                  ? row.kind === "response"
+                    ? "response"
+                    : "request"
+                  : null;
+              const pairHidden = isSelected ? hiddenPairKind : null;
               const style: CSSProperties = {
                 position: "absolute",
                 top: 0,
                 left: 0,
                 right: 0,
-                height: 24,
+                height: 28,
                 transform: `translateY(${vi.start}px)`,
               };
-              return (
-                <GroupHeaderRow
-                  key={`header-${item.groupKey}`}
-                  level={item.level}
-                  sessionId={item.sessionId}
-                  {...(item.turnId !== undefined ? { turnId: item.turnId } : {})}
-                  count={item.count}
-                  durationMs={item.durationMs}
-                  isCollapsed={groupCollapsed?.has(item.groupKey) ?? false}
-                  onToggle={() => onToggleGroup?.(item.groupKey)}
-                  virtualStyle={style}
+
+              return row.kind === "parse-error" ? (
+                <ParseErrorRow
+                  key={row.idx}
+                  row={row}
+                  isSelected={isSelected}
+                  onClick={() => onSelect(row.idx)}
+                  style={style}
+                />
+              ) : (
+                <EventRow
+                  key={row.idx}
+                  row={row}
+                  isSelected={isSelected}
+                  onClick={() => onSelect(row.idx)}
+                  searchQuery={searchQuery}
+                  isSearchMatch={searchMatches?.has(row.idx) ?? false}
+                  pairHighlight={pairHighlight}
+                  pairHidden={pairHidden}
+                  style={style}
                 />
               );
-            }
-
-            // kind === "row"
-            const row = rows[item.rowIdx];
-            if (!row) return null;
-            const isSelected = row.idx === selectedIdx;
-            const pairHighlight =
-              selectedPairIdx !== null && row.idx === selectedPairIdx && selectedPairVisible
-                ? row.kind === "response"
-                  ? "response"
-                  : "request"
-                : null;
-            const pairHidden = isSelected ? hiddenPairKind : null;
-            const style: CSSProperties = {
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 28,
-              transform: `translateY(${vi.start}px)`,
-            };
-
-            return row.kind === "parse-error" ? (
-              <ParseErrorRow
-                key={row.idx}
-                row={row}
-                isSelected={isSelected}
-                onClick={() => onSelect(row.idx)}
-                style={style}
-              />
-            ) : (
-              <EventRow
-                key={row.idx}
-                row={row}
-                isSelected={isSelected}
-                onClick={() => onSelect(row.idx)}
-                searchQuery={searchQuery}
-                isSearchMatch={searchMatches?.has(row.idx) ?? false}
-                pairHighlight={pairHighlight}
-                pairHidden={pairHidden}
-                style={style}
-              />
-            );
-          })}
+            })}
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );

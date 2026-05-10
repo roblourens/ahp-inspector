@@ -117,9 +117,7 @@ describe("Phase 04.1 vertical slice — safe real-shaped row polish fixture", ()
     expect(sessionRow?.turnShort).toBe("000003");
 
     expect(rows.some((row) => row.summary === "error -32001: safe synthetic failure")).toBe(true);
-    expect(rows.some((row) => row.summary.startsWith('"Synthetic assistant delta'))).toBe(
-      true,
-    );
+    expect(rows.some((row) => row.summary.startsWith('"Synthetic assistant delta'))).toBe(true);
     expect(rows.some((row) => row.summary.startsWith("tool call readFile"))).toBe(true);
     expect(rows.some((row) => row.summary.startsWith("tool result readFile"))).toBe(true);
     expect(

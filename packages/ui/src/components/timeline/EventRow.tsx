@@ -47,7 +47,11 @@ function primaryLabel(row: EventRowData): string | null {
 
 function primaryLabelTitle(row: EventRowData): string {
   const label = primaryLabel(row);
-  if ((row.kind === "action" || row.kind === "protocol-notification") && row.method && row.actionType) {
+  if (
+    (row.kind === "action" || row.kind === "protocol-notification") &&
+    row.method &&
+    row.actionType
+  ) {
     return `${row.actionType} (${row.method})`;
   }
   return label ?? "";
