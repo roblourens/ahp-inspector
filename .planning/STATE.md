@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
 status: in_progress
-stopped_at: Phase 15 seeded; discuss-phase pending
-last_updated: "2026-05-10T22:00:00.000Z"
+stopped_at: Phase 15 context gathered
+last_updated: "2026-05-10T22:30:00.000Z"
 last_activity: 2026-05-10
 progress:
   total_phases: 1
@@ -25,8 +25,8 @@ progress:
 
 Phase: 15
 Plan: Not started
-Status: Discuss-phase pending
-Last activity: 2026-05-10 — Opened v1.2 milestone (lean) with Phase 15 seeded after extension regression diagnosed: row-click triggers 403 because `DetailPanel.tsx` and 4 other components import HTTP transports directly, bypassing the postMessage `AhpViewerClient` injected for the webview.
+Status: Context gathered — ready to plan
+Last activity: 2026-05-10 — Captured Phase 15 CONTEXT.md (aggressive refactor: route 5 components through AhpViewerClient + boundary-test enforcement; tests included).
 
 ## Performance Metrics
 
