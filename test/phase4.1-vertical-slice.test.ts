@@ -104,7 +104,7 @@ describe("Phase 04.1 vertical slice — safe real-shaped row polish fixture", ()
     expect(request.keyId).toBe("1001");
     expect(request.sessionShort).toBeNull();
     expect(request.turnShort).toBeNull();
-    expect(request.summary).toBe("resourceList uri=safe-resource.md");
+    expect(request.summary).toBe("uri=safe-resource.md");
     expect(request.pairIdx).not.toBeNull();
 
     const response = request.pairIdx !== null ? rows[request.pairIdx] : undefined;
@@ -117,7 +117,7 @@ describe("Phase 04.1 vertical slice — safe real-shaped row polish fixture", ()
     expect(sessionRow?.turnShort).toBe("000003");
 
     expect(rows.some((row) => row.summary === "error -32001: safe synthetic failure")).toBe(true);
-    expect(rows.some((row) => row.summary.startsWith('delta "Synthetic assistant delta'))).toBe(
+    expect(rows.some((row) => row.summary.startsWith('"Synthetic assistant delta'))).toBe(
       true,
     );
     expect(rows.some((row) => row.summary.startsWith("tool call readFile"))).toBe(true);
@@ -161,7 +161,7 @@ describe("Phase 04.1 vertical slice — safe real-shaped row polish fixture", ()
       (payload) =>
         payload.kind === "append" &&
         payload.from === beforeAppendCount &&
-        payload.rows.some((row) => row.summary === 'delta "Safe appended event"'),
+        payload.rows.some((row) => row.summary === '"Safe appended event"'),
     );
     expect(append).toBeTruthy();
   });

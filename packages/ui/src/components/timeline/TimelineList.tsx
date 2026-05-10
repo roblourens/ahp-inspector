@@ -113,13 +113,26 @@ export function TimelineList({
     return () => cancelAnimationFrame(raf);
   }, [items.length, scrollToBottom]);
 
-  // Scroll the selected row into view (e.g., after search match navigation).
+  // Scroll the selected row into view only when it's currently off-screen
+  // (e.g., keyboard navigation or search-match jump). Clicking a visible row
+  // must not scroll the timeline.
   useEffect(() => {
     if (selectedIdx === null) return;
     const targetVi = items.findIndex(
       (it) => it.kind === "row" && rows[it.rowIdx]?.idx === selectedIdx,
     );
     if (targetVi < 0) return;
+    const visible = v.getVirtualItems();
+    if (visible.length > 0) {
+      const first = visible[0]?.index ?? 0;
+      const last = visible[visible.length - 1]?.index ?? 0;
+      // Treat overscan rows as off-screen too: only skip when comfortably
+      // inside the visible window.
+      const margin = 2;
+      if (targetVi >= first + margin && targetVi <= last - margin) {
+        return;
+      }
+    }
     followTailRef.current = false;
     v.scrollToIndex(targetVi, { align: "center" });
   }, [selectedIdx, items, rows, v]);
@@ -183,40 +196,6 @@ export function TimelineList({
       }}
     >
       <div
-        role="row"
-        tabIndex={-1}
-        data-testid="timeline-column-header"
-        style={{
-          display: "grid",
-          gridTemplateColumns: TIMELINE_GRID_COLUMNS,
-          minWidth: "max-content",
-          alignItems: "center",
-          height: 24,
-          padding: "3px 8px",
-          flexShrink: 0,
-          background: "var(--color-surface)",
-          borderBottom: "1px solid var(--color-border)",
-          color: "var(--color-text-muted)",
-          fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-ui-muted-size)",
-          fontWeight: "var(--weight-semibold)",
-          textTransform: "uppercase",
-          letterSpacing: "0.04em",
-        }}
-      >
-        {COLUMN_LABELS.map(({ key, label, ariaLabel }) => (
-          <div
-            key={key}
-            role="columnheader"
-            aria-label={ariaLabel}
-            tabIndex={-1}
-            style={headerCellStyle}
-          >
-            {label}
-          </div>
-        ))}
-      </div>
-      <div
         ref={parentRef}
         onScroll={onScroll}
         role="grid"
@@ -231,7 +210,45 @@ export function TimelineList({
           minWidth: 0,
         }}
       >
-        <div style={{ height: v.getTotalSize(), position: "relative", minWidth: "max-content" }}>
+      <div style={{ minWidth: "max-content" }}>
+        <div
+          role="row"
+          tabIndex={-1}
+          data-testid="timeline-column-header"
+          style={{
+            display: "grid",
+            gridTemplateColumns: TIMELINE_GRID_COLUMNS,
+            minWidth: "max-content",
+            alignItems: "center",
+            height: 24,
+            boxSizing: "border-box",
+            padding: "3px 8px",
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+            background: "var(--color-surface)",
+            borderBottom: "1px solid var(--color-border)",
+            color: "var(--color-text-muted)",
+            fontFamily: "var(--font-sans)",
+            fontSize: "var(--text-ui-muted-size)",
+            fontWeight: "var(--weight-semibold)",
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+          }}
+        >
+          {COLUMN_LABELS.map(({ key, label, ariaLabel }) => (
+            <div
+              key={key}
+              role="columnheader"
+              aria-label={ariaLabel}
+              tabIndex={-1}
+              style={headerCellStyle}
+            >
+              {label}
+            </div>
+          ))}
+        </div>
+        <div style={{ height: v.getTotalSize(), position: "relative" }}>
           {v.getVirtualItems().map((vi) => {
             const item = items[vi.index];
             if (!item) return null;
@@ -322,6 +339,7 @@ export function TimelineList({
             );
           })}
         </div>
+      </div>
       </div>
     </div>
   );

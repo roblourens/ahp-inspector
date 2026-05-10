@@ -267,7 +267,7 @@ function eventSummaryOf(event: AhpEvent, _status: Status, pairMethod: string | n
   const methodOrType = event.method ?? event.actionType;
   if (methodOrType === "resourceList" || event.method === "resourceList") {
     const uri = resourceUri(params);
-    return `resourceList uri=${uri ? safePathLabel(uri) : "details unavailable"}`;
+    return `uri=${uri ? safePathLabel(uri) : "details unavailable"}`;
   }
 
   const delta = firstString(
@@ -319,21 +319,41 @@ function eventSummaryOf(event: AhpEvent, _status: Status, pairMethod: string | n
       notifPayload?.detail,
       notifPayload?.reason,
     );
-    if (notifType && state) return `notification ${notifType} ${clip(state)}`;
-    if (notifType && message) return `notification ${notifType} ${clip(message)}`;
-    if (notifType) return `notification ${notifType} ${summarizeValue(notifPayload)}`;
-    return `notification ${summarizeValue(notifPayload)}`;
+    if (notifType && state) return `${notifType} ${clip(state)}`;
+    if (notifType && message) return `${notifType} ${clip(message)}`;
+    if (notifType) return `${notifType} ${summarizeValue(notifPayload)}`;
+    return summarizeValue(notifPayload);
   }
   if (event.kind === "client-notification" || event.kind === "server-notification") {
-    const methodLabel = event.method ?? "notification";
+    if (action) {
+      const actionType = stringField(action, "type");
+      if (actionType) {
+        // For dispatchAction the action.type is the only useful payload.
+        if (event.method === "dispatchAction") return actionType;
+        const rest = { ...action };
+        delete (rest as Record<string, unknown>).type;
+        const detail = summarizeValue(rest);
+        return detail === "{…}" || detail === "empty" ? actionType : `${actionType} ${detail}`;
+      }
+    }
     const message = firstString(params?.message, params?.text, params?.detail, params?.reason);
     const state = firstString(params?.state, params?.status);
-    if (message) return `${methodLabel}: ${clip(message)}`;
-    if (state) return `${methodLabel} ${clip(state)}`;
-    return `${methodLabel} ${summarizeValue(params)}`;
+    if (message) return clip(message);
+    if (state) return clip(state);
+    return summarizeValue(params);
   }
   if (event.kind === "request") {
-    return `${event.method ?? "request"} ${summarizeValue(params)}`;
+    if (action) {
+      const actionType = stringField(action, "type");
+      if (actionType) {
+        if (event.method === "dispatchAction") return actionType;
+        const rest = { ...action };
+        delete (rest as Record<string, unknown>).type;
+        const detail = summarizeValue(rest);
+        return detail === "{…}" || detail === "empty" ? actionType : `${actionType} ${detail}`;
+      }
+    }
+    return summarizeValue(params);
   }
   if (event.kind === "log") {
     return `log ${clip(firstString(params?.message, raw?.message) ?? "details unavailable")}`;
@@ -346,6 +366,31 @@ function eventSummaryOf(event: AhpEvent, _status: Status, pairMethod: string | n
 
 function capSummary(summary: string): string {
   return summary.length > 160 ? `${summary.slice(0, 159)}…` : summary;
+}
+
+/**
+ * Compute the label shown in the timeline's Event column. Mirrors the UI's
+ * `primaryLabel` so projection-side post-processing can avoid emitting a
+ * summary that just repeats it.
+ */
+function primaryLabelFor(
+  kind: AhpEvent["kind"],
+  method: string | null,
+  actionType: string | null,
+): string | null {
+  if (kind === "action" || kind === "protocol-notification") return actionType ?? method;
+  return method ?? actionType;
+}
+
+/** Strip the Event-column label from the start of summary so it adds info. */
+function dropLabelPrefix(summary: string, label: string | null): string {
+  if (!label) return summary;
+  const lc = summary.toLowerCase();
+  const lcLabel = label.toLowerCase();
+  if (lc === lcLabel) return summary;
+  if (!lc.startsWith(`${lcLabel} `)) return summary;
+  const stripped = summary.slice(label.length).trim();
+  return stripped.length > 0 ? stripped : summary;
 }
 
 export function projectRow(
@@ -409,7 +454,12 @@ export function projectRow(
     latencyMs,
     latencyBand: bandFor(latencyMs),
     payloadPreview: payloadPreviewOf(event.raw),
-    summary: capSummary(eventSummaryOf(event, status, pairMethod)),
+    summary: capSummary(
+      dropLabelPrefix(
+        eventSummaryOf(event, status, pairMethod),
+        primaryLabelFor(event.kind, event.method, event.actionType),
+      ),
+    ),
     pairIdx: extras.pairIdx ?? null,
     parseErrorReason: null,
     lineIndex: null,

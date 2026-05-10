@@ -39,13 +39,15 @@ function railColor(row: EventRowData, isSelected: boolean): string {
 }
 
 function primaryLabel(row: EventRowData): string | null {
-  if (row.kind === "action") return row.actionType ?? row.method;
+  if (row.kind === "action" || row.kind === "protocol-notification") {
+    return row.actionType ?? row.method;
+  }
   return row.method ?? row.actionType;
 }
 
 function primaryLabelTitle(row: EventRowData): string {
   const label = primaryLabel(row);
-  if (row.kind === "action" && row.method && row.actionType) {
+  if ((row.kind === "action" || row.kind === "protocol-notification") && row.method && row.actionType) {
     return `${row.actionType} (${row.method})`;
   }
   return label ?? "";
@@ -160,8 +162,10 @@ export const EventRow = memo(function EventRow({
         gridTemplateColumns: TIMELINE_GRID_COLUMNS,
         alignItems: "center",
         height: "var(--row-height)",
+        boxSizing: "border-box",
         padding: "4px 8px",
         cursor: "pointer",
+        minWidth: "max-content",
         background: isSelected
           ? "var(--row-selected-bg)"
           : pairHighlight
