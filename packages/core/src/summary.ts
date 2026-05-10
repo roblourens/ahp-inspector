@@ -2,341 +2,324 @@
 //
 // HOW THIS WORKS
 // ──────────────
-// `summarizeEvent(event, pairMethod)` walks `SUMMARY_RULES` in order. The
-// first rule whose handler returns a non-null string wins. If none match,
-// `FALLBACK_SUMMARY` is returned.
+// `summarizeEvent(event, pairMethod)` first narrows the opaque AhpEvent into
+// a typed view (`narrowEvent` in `./event-narrow.ts`), then dispatches on
+// `narrowed.kind`. Each kind has its own dedicated `summarize*` function so
+// you can find — and tweak — the wording for one event shape without touching
+// the others.
 //
-// Each rule is one small named function focused on a single event shape.
-// Rules read from `SummaryContext` (a pre-extracted view of the event) and
-// use the helpers below to format their payload.
+// For `action` and `protocol-notification` kinds the inner discriminant
+// (`action.type`, `notification.type`) is a real protocol enum, so those
+// handlers `switch` over `ActionType` / `NotificationType` and access the
+// typed fields directly (e.g. `action.content`, `action.toolName`).
 //
 // HOW TO TWEAK
 // ────────────
-// • Change wording for a kind          → edit that rule's handler.
-// • Add a special case (e.g. a method) → write a new rule, insert it into
-//                                        SUMMARY_RULES *before* the generic
-//                                        rule it should override.
-// • Truncate / redact differently      → edit `clip`, `safePrimitive`, or
-//                                        `summarizeValue`.
-//
-// Order matters. Specific rules go first, generic kind-based rules last.
+// • Reword a known action          → edit the matching `case` in
+//                                    `summarizeKnownAction`.
+// • Add a new known action case    → add a `case ActionType.X:` clause.
+// • Reword a generic kind          → edit `summarizeRequest`,
+//                                    `summarizeResponse`, etc.
+// • Truncate / redact differently  → edit `clip`, `safePrimitive`, or
+//                                    `summarizeValue` at the bottom.
 
 import type { AhpEvent } from "@ahp-inspector/shared";
-
-// ── Context ──────────────────────────────────────────────────────────────────
-
-/** Pre-extracted view of an event, passed to every summary rule. */
-export interface SummaryContext {
-  readonly event: AhpEvent;
-  /** `event.raw` as a plain object record, or null if not an object. */
-  readonly raw: Record<string, unknown> | null;
-  /** `raw.params` as a record, or null. */
-  readonly params: Record<string, unknown> | null;
-  /** `params.action` as a record, or null. */
-  readonly action: Record<string, unknown> | null;
-  /** `params.notification` as a record, or null. */
-  readonly notification: Record<string, unknown> | null;
-  /** Method of the correlated request, when this event is a response. */
-  readonly pairMethod: string | null;
-}
-
-/** A summary rule. Return null to defer to the next rule. */
-export interface SummaryRule {
-  readonly name: string;
-  readonly handler: (ctx: SummaryContext) => string | null;
-}
-
-const FALLBACK_SUMMARY = "event details unavailable";
+import {
+  ActionType,
+  NotificationType,
+  type ProtocolNotification,
+  type StateAction,
+} from "@ahp-inspector/protocol";
+import {
+  type NarrowedAction,
+  type NarrowedClientNotification,
+  type NarrowedLog,
+  type NarrowedParseError,
+  type NarrowedProtocolNotification,
+  type NarrowedRequest,
+  type NarrowedResponse,
+  type NarrowedServerNotification,
+  type UnknownTypedPayload,
+  isKnownAction,
+  isKnownNotification,
+  narrowEvent,
+} from "./event-narrow.js";
 
 // ── Public entry point ───────────────────────────────────────────────────────
 
 export function summarizeEvent(event: AhpEvent, pairMethod: string | null): string {
-  const ctx = makeContext(event, pairMethod);
-  for (const rule of SUMMARY_RULES) {
-    const result = rule.handler(ctx);
-    if (result !== null) return result;
+  const view = narrowEvent(event, pairMethod);
+  switch (view.kind) {
+    case "parse-error":
+      return summarizeParseError(view);
+    case "request":
+      return summarizeRequest(view);
+    case "response":
+      return summarizeResponse(view);
+    case "client-notification":
+      return summarizeClientNotification(view);
+    case "server-notification":
+      return summarizeServerNotification(view);
+    case "action":
+      return summarizeAction(view);
+    case "protocol-notification":
+      return summarizeProtocolNotification(view);
+    case "log":
+      return summarizeLog(view);
   }
-  const methodOrType = event.method ?? event.actionType;
-  return `${methodOrType ?? "event"} details unavailable` || FALLBACK_SUMMARY;
 }
 
-function makeContext(event: AhpEvent, pairMethod: string | null): SummaryContext {
-  const raw = objectRecord(event.raw);
-  const params = childRecord(raw, "params");
-  return {
-    event,
-    raw,
-    params,
-    action: childRecord(params, "action"),
-    notification: childRecord(params, "notification"),
-    pairMethod,
-  };
+// ── Per-kind handlers ────────────────────────────────────────────────────────
+
+function summarizeParseError(view: NarrowedParseError): string {
+  return `parse error line ${view.event.seq + 1}: ${view.reason}`;
 }
 
-// ── Rules (order matters: specific → generic) ────────────────────────────────
+function summarizeRequest(view: NarrowedRequest): string {
+  if (view.method === "resourceList") return summarizeResourceList(view.params);
+  if (view.method === "dispatchAction" && view.innerAction) {
+    return innerActionTypeLine(view.innerAction);
+  }
+  if (view.innerAction) return innerActionTypeAndDetail(view.innerAction);
+  return summarizeValue(view.params);
+}
 
-/** Tolerant fallback envelopes emitted when JSONL parsing fails. */
-const parseErrorRule: SummaryRule = {
-  name: "parse-error",
-  handler: ({ event }) => {
-    if (event.kind !== "parse-error") return null;
-    const reason = event.parseError?.reason ?? "unknown parse error";
-    return `parse error line ${event.seq + 1}: ${reason}`;
-  },
-};
+function summarizeClientNotification(view: NarrowedClientNotification): string {
+  if (view.method === "dispatchAction" && view.innerAction) {
+    return innerActionTypeLine(view.innerAction);
+  }
+  if (view.innerAction) return innerActionTypeAndDetail(view.innerAction);
+  const params = asRecord(view.params);
+  const message = firstString(params?.message, params?.text, params?.detail, params?.reason);
+  if (message) return clip(message);
+  const state = firstString(params?.state, params?.status);
+  if (state) return clip(state);
+  return summarizeValue(view.params);
+}
 
-/** Any JSON-RPC response carrying an `error` object. */
-const errorResponseRule: SummaryRule = {
-  name: "error-response",
-  handler: ({ raw }) => {
-    const error = childRecord(raw, "error");
-    if (!error) return null;
-    const code = error.code;
-    const message = firstString(error.message, stringField(childRecord(error, "data"), "message"));
-    const codeText = typeof code === "number" || typeof code === "string" ? String(code) : "unknown";
-    return `error ${codeText}: ${message ? clip(message) : "details unavailable"}`;
-  },
-};
+function summarizeServerNotification(view: NarrowedServerNotification): string {
+  const params = asRecord(view.params);
+  const message = firstString(params?.message, params?.text, params?.detail, params?.reason);
+  if (message) return clip(message);
+  const state = firstString(params?.state, params?.status);
+  if (state) return clip(state);
+  return summarizeValue(view.params);
+}
 
-/** Successful JSON-RPC response — pulled to top so other rules don't snag it. */
-const responseRule: SummaryRule = {
-  name: "response",
-  handler: ({ event, raw, pairMethod }) => {
-    if (event.kind !== "response") return null;
-    const result = raw?.result;
-    const resultText = result === undefined ? "empty result" : summarizeValue(result);
-    return pairMethod ? `${pairMethod} result ${resultText}` : `result ${resultText}`;
-  },
-};
+function summarizeResponse(view: NarrowedResponse): string {
+  if (view.error) {
+    const code = view.error.code === null ? "unknown" : String(view.error.code);
+    const message = view.error.message ? clip(view.error.message) : "details unavailable";
+    return `error ${code}: ${message}`;
+  }
+  const resultText = view.result ? summarizeValue(view.result.value) : "empty result";
+  return view.pairMethod ? `${view.pairMethod} result ${resultText}` : `result ${resultText}`;
+}
 
-/** `resourceList` always reports a single URI in a stable shape. */
-const resourceListRule: SummaryRule = {
-  name: "resourceList",
-  handler: ({ event, params }) => {
-    if (event.method !== "resourceList") return null;
-    const uri = resourceUri(params);
-    return `uri=${uri ? safePathLabel(uri) : "details unavailable"}`;
-  },
-};
+function summarizeAction(view: NarrowedAction): string {
+  if (isKnownAction(view.action as StateAction)) {
+    return summarizeKnownAction(view.action as StateAction);
+  }
+  return summarizeUnknownAction(view.action as UnknownTypedPayload);
+}
 
-/**
- * `dispatchAction` wraps an inner `action.type` that is the entire useful
- * payload for the timeline. Show just the type so it doesn't repeat the
- * Event-column label.
- */
-const dispatchActionRule: SummaryRule = {
-  name: "dispatchAction",
-  handler: ({ event, action, params }) => {
-    if (event.method !== "dispatchAction") return null;
-    return stringField(action, "type") ?? summarizeValue(params);
-  },
-};
+function summarizeProtocolNotification(view: NarrowedProtocolNotification): string {
+  if (isKnownNotification(view.notification as ProtocolNotification)) {
+    return summarizeKnownNotification(view.notification as ProtocolNotification);
+  }
+  return summarizeUnknownNotification(view.notification as UnknownTypedPayload);
+}
 
-/** Streaming text deltas from the model: `delta` or `text` action envelopes. */
-const deltaTextRule: SummaryRule = {
-  name: "delta/text",
-  handler: ({ event, params, action, raw }) => {
-    const type = event.actionType ?? "";
-    if (!/delta/i.test(type) && !/^text$/i.test(type)) return null;
-    const text = firstString(
-      params?.delta,
-      params?.content,
-      params?.text,
-      params?.message,
-      action?.delta,
-      action?.content,
-      action?.text,
-      action?.message,
-      childRecord(raw, "result")?.content,
-      childRecord(raw, "result")?.text,
-    );
-    if (!text) return null;
-    return /delta/i.test(type) ? `delta "${clip(text)}"` : `text "${clip(text)}"`;
-  },
-};
+function summarizeLog(view: NarrowedLog): string {
+  return `log ${clip(view.message ?? "details unavailable")}`;
+}
 
-/** `tool.call` action — name + summarized args. */
-const toolCallRule: SummaryRule = {
-  name: "tool-call",
-  handler: ({ event, action, params }) => {
-    if (!/tool[._-]?call/i.test(event.actionType ?? "")) return null;
-    const name = toolName(action, params) ?? toolCallId(event, action, params) ?? "unknown";
-    const args = action?.args ?? params?.args ?? {};
-    return `tool call ${name} ${summarizeValue(args)}`;
-  },
-};
+// ── Known-action handler (one case per ActionType) ───────────────────────────
+//
+// Edit a `case` to change wording for that exact action. Add a new `case` to
+// surface a richer summary for an action that currently falls through.
 
-/** `tool.result` action — name + summarized result payload. */
-const toolResultRule: SummaryRule = {
-  name: "tool-result",
-  handler: ({ event, action, params, raw }) => {
-    if (!/tool[._-]?result/i.test(event.actionType ?? "")) return null;
-    const name = toolName(action, params) ?? toolCallId(event, action, params) ?? "unknown";
-    const payload = action?.result ?? params?.result ?? raw?.result;
-    return `tool result ${name} ${summarizeValue(payload)}`;
-  },
-};
+function summarizeKnownAction(action: StateAction): string {
+  switch (action.type) {
+    case ActionType.SessionDelta:
+      return `delta "${clip(action.content)}"`;
+    case ActionType.SessionResponsePart:
+      return `responsePart ${summarizeResponsePart(action.part)}`;
+    case ActionType.SessionToolCallStart:
+      return `tool start ${action.toolName}${action.displayName ? ` (${clip(action.displayName, 32)})` : ""}`;
+    case ActionType.SessionToolCallDelta:
+      return `tool delta ${action.toolCallId} +${action.content.length}b`;
+    case ActionType.SessionToolCallReady:
+      return `tool ready ${action.toolCallId} ${stringOrMd(action.invocationMessage, 48)}`;
+    case ActionType.SessionToolCallComplete:
+      return `tool result ${action.toolCallId} success=${action.result.success}`;
+    case ActionType.SessionToolCallContentChanged:
+      return `tool content ${action.toolCallId} (${action.content.length} parts)`;
+    case ActionType.SessionTurnStarted:
+      return `turn start ${shortId(action.turnId)}`;
+    case ActionType.SessionTurnComplete:
+      return `turn complete ${shortId(action.turnId)}`;
+    case ActionType.SessionTurnCancelled:
+      return `turn cancelled ${shortId(action.turnId)}`;
+    case ActionType.SessionError:
+      return `error ${clip(action.error.message, 60)}`;
+    case ActionType.SessionTitleChanged:
+      return `title "${clip(action.title, 48)}"`;
+    case ActionType.SessionUsage: {
+      const { inputTokens, outputTokens } = action.usage;
+      return `usage in=${inputTokens ?? "?"} out=${outputTokens ?? "?"}`;
+    }
+    case ActionType.SessionReasoning:
+      return `reasoning "${clip(action.content, 60)}"`;
+    case ActionType.SessionReady:
+      return `session ready ${shortId(action.session)}`;
+    case ActionType.TerminalData:
+      return `terminal data ${shortId(action.terminal)} +${action.data.length}b`;
+    case ActionType.TerminalCommandFinished:
+      return `terminal cmd done exit=${action.exitCode ?? "?"}`;
+    default:
+      // Known type with no custom phrasing yet — show the type plus a generic
+      // dump of its non-discriminant fields. Add a `case` above to improve.
+      return innerActionTypeAndDetail(toUnknownPayload(action));
+  }
+}
 
-/** `status` / `progress` action envelopes — show the state/message. */
-const statusProgressRule: SummaryRule = {
-  name: "status/progress",
-  handler: ({ event, action, params }) => {
-    if (!/status|progress/i.test(event.actionType ?? "")) return null;
-    const state = firstString(action?.state, action?.message, params?.state, params?.message);
+function summarizeUnknownAction(action: UnknownTypedPayload): string {
+  if (!action.type) return "action details unavailable";
+
+  // Heuristic shortcuts for common legacy / provider-specific shapes that the
+  // protocol union doesn't cover. Keep these tight — anything reusable should
+  // become its own typed case in `summarizeKnownAction` once it's added to
+  // the protocol.
+  const t = action.type;
+  const f = action.fields;
+  if (/delta/i.test(t)) {
+    const text = firstString(f.delta, f.content, f.text, f.message);
+    if (text) return `delta "${clip(text)}"`;
+  }
+  if (/^text$/i.test(t)) {
+    const text = firstString(f.text, f.content, f.message);
+    if (text) return `text "${clip(text)}"`;
+  }
+  if (/tool[._-]?call/i.test(t)) {
+    const name = firstString(f.toolName, f.name) ?? "unknown";
+    return `tool call ${name} ${summarizeValue(f.args ?? {})}`;
+  }
+  if (/tool[._-]?result/i.test(t)) {
+    const name = firstString(f.toolName, f.name) ?? "unknown";
+    return `tool result ${name} ${summarizeValue(f.result)}`;
+  }
+  if (/status|progress/i.test(t)) {
+    const state = firstString(f.state, f.message);
     return `status ${state ? clip(state) : "details unavailable"}`;
-  },
-};
+  }
+  return innerActionTypeAndDetail(action);
+}
 
-/** Server-emitted protocol notifications (`method: "notification"`). */
-const protocolNotificationRule: SummaryRule = {
-  name: "protocol-notification",
-  handler: ({ event, notification, params }) => {
-    if (event.kind !== "protocol-notification") return null;
-    const notifType = event.actionType ?? stringField(notification, "type") ?? null;
-    const payload = notification ?? params;
-    const state = firstString(payload?.state, payload?.status);
-    const message = firstString(payload?.message, payload?.text, payload?.detail, payload?.reason);
-    if (notifType && state) return `${notifType} ${clip(state)}`;
-    if (notifType && message) return `${notifType} ${clip(message)}`;
-    if (notifType) return `${notifType} ${summarizeValue(payload)}`;
-    return summarizeValue(payload);
-  },
-};
+// ── Known-notification handler ───────────────────────────────────────────────
 
-/** Generic client/server notifications. dispatchAction is handled earlier. */
-const notificationRule: SummaryRule = {
-  name: "notification",
-  handler: ({ event, action, params }) => {
-    if (event.kind !== "client-notification" && event.kind !== "server-notification") return null;
-    const inner = innerActionTypeAndDetail(action);
-    if (inner) return inner;
-    const message = firstString(params?.message, params?.text, params?.detail, params?.reason);
-    if (message) return clip(message);
-    const state = firstString(params?.state, params?.status);
-    if (state) return clip(state);
-    return summarizeValue(params);
-  },
-};
+function summarizeKnownNotification(notif: ProtocolNotification): string {
+  switch (notif.type) {
+    case NotificationType.SessionAdded:
+      return `${notif.type} ${clip(notif.summary.title ?? notif.summary.resource, 48)}`;
+    case NotificationType.SessionRemoved:
+      return `${notif.type} ${shortId(notif.session)}`;
+    case NotificationType.SessionSummaryChanged: {
+      const fields = Object.keys(notif.changes).join(",") || "(none)";
+      return `${notif.type} ${shortId(notif.session)} [${fields}]`;
+    }
+    case NotificationType.AuthRequired:
+      return `${notif.type} ${notif.resource}${notif.reason ? ` (${notif.reason})` : ""}`;
+    default:
+      return innerActionTypeAndDetail(toUnknownPayload(notif));
+  }
+}
 
-/** Generic JSON-RPC requests not handled by a method-specific rule above. */
-const requestRule: SummaryRule = {
-  name: "request",
-  handler: ({ event, action, params }) => {
-    if (event.kind !== "request") return null;
-    const inner = innerActionTypeAndDetail(action);
-    if (inner) return inner;
-    return summarizeValue(params);
-  },
-};
+function summarizeUnknownNotification(notif: UnknownTypedPayload): string {
+  const type = notif.type;
+  const f = notif.fields;
+  const state = firstString(f.state, f.status);
+  const message = firstString(f.message, f.text, f.detail, f.reason);
+  if (type && /status|progress/i.test(type)) {
+    const detail = state ?? message;
+    return `status ${detail ? clip(detail) : "details unavailable"}`;
+  }
+  if (type && state) return `${type} ${clip(state)}`;
+  if (type && message) return `${type} ${clip(message)}`;
+  if (type) return `${type} ${summarizeValue(f)}`;
+  return summarizeValue(f);
+}
 
-/** Transport-level log lines. */
-const logRule: SummaryRule = {
-  name: "log",
-  handler: ({ event, params, raw }) => {
-    if (event.kind !== "log") return null;
-    const message = firstString(params?.message, raw?.message) ?? "details unavailable";
-    return `log ${clip(message)}`;
-  },
-};
+// ── Helpers shared across handlers ───────────────────────────────────────────
 
-/** Bare `action` envelopes that didn't match a more specific action rule. */
-const actionRule: SummaryRule = {
-  name: "action",
-  handler: ({ event }) => {
-    if (event.kind !== "action") return null;
-    return event.actionType ? `action ${event.actionType}` : "action details unavailable";
-  },
-};
+function summarizeResourceList(params: unknown): string {
+  const p = asRecord(params);
+  if (!p) return "uri=details unavailable";
+  const resource = p.resource;
+  const resources = p.resources;
+  const fromResource =
+    typeof resource === "string"
+      ? resource
+      : isRecord(resource)
+        ? stringField(resource, "uri")
+        : null;
+  const firstResource =
+    Array.isArray(resources) && isRecord(resources[0]) ? stringField(resources[0], "uri") : null;
+  const uri = firstString(p.uri, fromResource, firstResource, p.path);
+  return `uri=${uri ? safePathLabel(uri) : "details unavailable"}`;
+}
 
-/**
- * Last-resort rule. Always matches; emits `<method-or-type> details unavailable`.
- * Keep at the end of SUMMARY_RULES.
- */
-const fallbackRule: SummaryRule = {
-  name: "fallback",
-  handler: ({ event }) => {
-    const methodOrType = event.method ?? event.actionType;
-    return `${methodOrType ?? "event"} details unavailable`;
-  },
-};
+function summarizeResponsePart(part: unknown): string {
+  if (isRecord(part) && typeof part.markdown === "string") {
+    return `markdown "${clip(part.markdown, 48)}"`;
+  }
+  return summarizeValue(part);
+}
 
-/** Ordered list of rules. First non-null match wins. */
-export const SUMMARY_RULES: readonly SummaryRule[] = [
-  parseErrorRule,
-  errorResponseRule,
-  responseRule,
-  resourceListRule,
-  dispatchActionRule,
-  deltaTextRule,
-  toolCallRule,
-  toolResultRule,
-  statusProgressRule,
-  protocolNotificationRule,
-  notificationRule,
-  requestRule,
-  logRule,
-  actionRule,
-  fallbackRule,
-];
+function stringOrMd(value: { markdown: string } | string, max = 80): string {
+  if (typeof value === "string") return clip(value, max);
+  return clip(value.markdown, max);
+}
 
-// ── Shared shape helpers (used by multiple rules) ────────────────────────────
+function shortId(id: string): string {
+  return id.length > 12 ? `${id.slice(-8)}` : id;
+}
+
+function toUnknownPayload(value: object): UnknownTypedPayload {
+  const rec = value as Record<string, unknown>;
+  const type = typeof rec.type === "string" ? rec.type : null;
+  return { type, fields: rec };
+}
 
 /**
- * For request / notification envelopes whose `params.action` carries an inner
- * `type` plus extra fields. Returns `"<type> <detail>"` or just `"<type>"` if
- * the rest summarizes to nothing useful.
+ * Render `<type> <detail>` for a typed-but-unhandled payload, dropping the
+ * `type` field from the detail. Used as the generic fallback.
  */
-function innerActionTypeAndDetail(
-  action: Record<string, unknown> | null,
-): string | null {
-  if (!action) return null;
-  const type = stringField(action, "type");
-  if (!type) return null;
-  const rest = { ...action };
-  delete (rest as Record<string, unknown>).type;
+function innerActionTypeAndDetail(payload: { type: string | null; fields?: Record<string, unknown> } | StateAction | UnknownTypedPayload): string {
+  if ("fields" in payload && payload.fields) {
+    if (!payload.type) return summarizeValue(payload.fields);
+    const rest = { ...payload.fields };
+    delete rest.type;
+    const detail = summarizeValue(rest);
+    return detail === "{…}" || detail === "empty" ? payload.type : `${payload.type} ${detail}`;
+  }
+  // StateAction-shaped object
+  const rec = payload as unknown as Record<string, unknown>;
+  const type = typeof rec.type === "string" ? rec.type : null;
+  if (!type) return summarizeValue(rec);
+  const rest = { ...rec };
+  delete rest.type;
   const detail = summarizeValue(rest);
   return detail === "{…}" || detail === "empty" ? type : `${type} ${detail}`;
 }
 
-function toolName(
-  action: Record<string, unknown> | null,
-  params: Record<string, unknown> | null,
-): string | null {
-  return firstString(
-    params?.toolName,
-    params?.name,
-    stringField(childRecord(params, "tool"), "name"),
-    action?.toolName,
-    action?.name,
-  );
+function innerActionTypeLine(payload: StateAction | UnknownTypedPayload): string {
+  if ("fields" in payload) return payload.type ?? summarizeValue(payload.fields);
+  const rec = payload as unknown as Record<string, unknown>;
+  return typeof rec.type === "string" ? rec.type : summarizeValue(rec);
 }
 
-function toolCallId(
-  event: AhpEvent,
-  action: Record<string, unknown> | null,
-  params: Record<string, unknown> | null,
-): string | null {
-  return event.toolCallId ?? firstString(params?.toolCallId, action?.toolCallId);
-}
-
-function resourceUri(params: Record<string, unknown> | null): string | null {
-  if (!params) return null;
-  const resource = params.resource;
-  const resources = params.resources;
-  const fromResource =
-    typeof resource === "string"
-      ? resource
-      : typeof resource === "object" && resource !== null
-        ? stringField(resource as Record<string, unknown>, "uri")
-        : null;
-  const firstResource =
-    Array.isArray(resources) && typeof resources[0] === "object" && resources[0] !== null
-      ? stringField(resources[0] as Record<string, unknown>, "uri")
-      : null;
-  return firstString(params.uri, fromResource, firstResource, params.path);
-}
-
-// ── Generic value formatters (exported so custom rules can reuse them) ───────
+// ── Generic value formatters (exported for custom callers) ───────────────────
 
 /** Trim, collapse whitespace, ellipsize. Returns `"empty"` for blank input. */
 export function clip(text: string, max = 80): string {
@@ -351,10 +334,7 @@ export function safePathLabel(value: string): string {
   return parts.at(-1) ?? value;
 }
 
-/**
- * Render a single key/value pair for `summarizeValue`. Redacts secrets and
- * shortens path-ish values; objects/arrays get a placeholder.
- */
+/** Render a single key/value pair; redacts secrets, shortens path-ish values. */
 export function safePrimitive(key: string, value: unknown): string | null {
   if (value === null || value === undefined) return null;
   if (Array.isArray(value)) return `${key}=[${value.length}]`;
@@ -368,10 +348,7 @@ export function safePrimitive(key: string, value: unknown): string | null {
   return null;
 }
 
-/**
- * One-line description of an unknown value. Used as the generic last-resort
- * formatter inside most rules.
- */
+/** One-line description of an unknown value. */
 export function summarizeValue(value: unknown): string {
   if (value === null || value === undefined) return "empty";
   if (typeof value === "string") return clip(value);
@@ -387,32 +364,23 @@ export function summarizeValue(value: unknown): string {
   return String(value);
 }
 
-// ── Tiny accessor helpers ────────────────────────────────────────────────────
+// ── Tiny accessors ───────────────────────────────────────────────────────────
 
-export function objectRecord(v: unknown): Record<string, unknown> | null {
-  return typeof v === "object" && v !== null ? (v as Record<string, unknown>) : null;
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
-export function childRecord(
-  parent: Record<string, unknown> | null,
-  key: string,
-): Record<string, unknown> | null {
-  if (!parent) return null;
-  return objectRecord(parent[key]);
+function asRecord(v: unknown): Record<string, unknown> | null {
+  return isRecord(v) ? v : null;
 }
 
-export function stringField(
-  parent: Record<string, unknown> | null,
-  key: string,
-): string | null {
+function stringField(parent: Record<string, unknown> | null, key: string): string | null {
   if (!parent) return null;
   const value = parent[key];
   return typeof value === "string" ? value : null;
 }
 
-export function firstString(...values: Array<unknown>): string | null {
-  for (const value of values) {
-    if (typeof value === "string") return value;
-  }
+function firstString(...values: Array<unknown>): string | null {
+  for (const v of values) if (typeof v === "string") return v;
   return null;
 }
