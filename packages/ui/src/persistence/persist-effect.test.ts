@@ -180,6 +180,58 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     expect(flushed?.[1].searchQuery).toBe("a-query");
   });
 
+  it("switching to a logKey with no stored prefs resets filters/search/grouping", () => {
+    renderHook(() => usePersistEffect());
+
+    // Hydrate lk-A with active filters/search/grouping.
+    useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0)] });
+    useAppStore.getState().setFilters({ ...EMPTY_FILTERS, direction: ["c2s"] });
+    useAppStore.getState().setSearchQuery("alpha");
+    useAppStore.getState().setGrouping("session");
+    useAppStore.setState({ groupCollapsed: new Set(["g1"]) });
+
+    // Switch to lk-B which has no stored prefs.
+    useAppStore.setState({ logKey: "lk-B", rows: [] });
+
+    const s = useAppStore.getState();
+    expect(s.filters).toEqual(EMPTY_FILTERS);
+    expect(s.searchQuery).toBe("");
+    expect(s.searchMatches).toBeNull();
+    expect(s.grouping).toBe("none");
+    expect(Array.from(s.groupCollapsed)).toEqual([]);
+  });
+
+  it("switching to a logKey with stored prefs restores them after reset", () => {
+    persistenceModule.persistPerLogPrefs("lk-B", {
+      v: 1,
+      searchQuery: "from-B",
+      filters: { ...EMPTY_FILTERS, kind: ["request"] as never },
+      grouping: "session+turn",
+      groupCollapsed: ["bg1"],
+      selectedIdx: null,
+      detailWidth: 420,
+      livePaused: false,
+    });
+
+    renderHook(() => usePersistEffect());
+
+    // Active state on lk-A.
+    useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0)] });
+    useAppStore.getState().setSearchQuery("from-A");
+    useAppStore.getState().setGrouping("session");
+
+    // Switch to lk-B (filters first reset, then hydrate on snapshot-end).
+    useAppStore.setState({ logKey: "lk-B", rows: [] });
+    expect(useAppStore.getState().searchQuery).toBe("");
+
+    // Snapshot-end on lk-B: stored prefs hydrate.
+    useAppStore.setState({ rows: Array.from({ length: 3 }, (_, i) => makeRow(i)) });
+    const s = useAppStore.getState();
+    expect(s.searchQuery).toBe("from-B");
+    expect(s.grouping).toBe("session+turn");
+    expect(Array.from(s.groupCollapsed)).toEqual(["bg1"]);
+  });
+
   it("saveForLogKey throws QuotaExceededError → subsequent mutations no-op (disabled)", () => {
     const spy = vi.spyOn(persistenceModule, "persistPerLogPrefs").mockImplementation(() => {
       const e = new Error("quota");

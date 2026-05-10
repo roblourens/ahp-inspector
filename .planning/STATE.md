@@ -26,7 +26,7 @@ progress:
 Phase: 13
 Plan: Not started
 Status: Milestone complete
-Last activity: 2026-05-10
+Last activity: 2026-05-10 - Completed quick task 260510-kuo: Remember filters per-jsonl file
 
 ## Performance Metrics
 
@@ -154,6 +154,7 @@ Last activity: 2026-05-10
 
 | Date | Slug | Summary |
 |------|------|---------|
+| 2026-05-10 | remember-filters-per-jsonl-file-when-swi | Reset filters/search/grouping when switching to a JSONL log with no stored prefs (stored prefs still hydrate for files that have them). |
 | 2026-05-09 | scrolling-the-response-is-not-working-co | Fixed response detail scrolling and corrected serverSeq gap banners to use real global sequence gaps instead of fabricating missing-0 rows. |
 | 2026-05-09 | in-the-response-viewer-on-the-right-side | Restored vertical scrolling in the response viewer Pretty/Raw tabs by allowing the shared JSON tabpanel flex child to shrink. |
 | 2026-05-08 | discover-oss-dev-jsonl | Discover Code OSS dev AHP JSONL logs under `~/.vscode-oss-agents-dev/logs`; drop legacy `agenthost.*.log` matching. |

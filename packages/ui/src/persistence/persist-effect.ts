@@ -8,6 +8,7 @@
 // `loadForLogKey` / `saveForLogKey` so call sites match UI-SPEC vocabulary.
 
 import { useEffect, useRef } from "react";
+import { EMPTY_FILTERS } from "../state/filters.js";
 import {
   loadPerLogPrefs as loadForLogKey,
   type PerLogPrefs,
@@ -123,12 +124,23 @@ export function usePersistEffect(): void {
       const currKey = curr.logKey;
 
       // logKey switch — flush previous log's pending save synchronously
-      // before tracking the new one. Covers null→A→B and A→B transitions.
+      // before tracking the new one, then reset per-log view state so the
+      // new file starts fresh (the new file's stored prefs, if any, are
+      // applied later by hydrate() on snapshot-end).
       if (prevKey && prevKey !== currKey) {
         if (ref.debounceTimer && ref.pendingSaveLogKey === prevKey) {
           flushSave(prevKey);
         }
         ref.hydratedFor = null;
+        // Update lastLogKey BEFORE the reset writes so re-entrant subscribe
+        // callbacks see prevKey === currKey and skip this branch.
+        ref.lastLogKey = currKey;
+        const s = useAppStore.getState();
+        s.setFilters(EMPTY_FILTERS);
+        s.setSearchQuery("");
+        s.clearSearchResults();
+        s.setGrouping("none");
+        useAppStore.setState({ groupCollapsed: new Set<string>() });
       }
       ref.lastLogKey = currKey;
 
