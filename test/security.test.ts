@@ -130,6 +130,9 @@ function walkUi(dir: string): string[] {
 }
 
 const URL_RE = /https?:\/\/[^\s"'<>`)]+/g;
+// Loopback URLs (localhost / 127.0.0.1 / ::1) are allowed everywhere — they
+// are the Phase-15 server-in-extension transport, not external CDNs.
+const LOOPBACK_RE = /^https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:\/|$)/;
 
 function stripComments(source: string, file: string): string {
   // Strip line comments (// ...) and block comments (/* ... */).
@@ -171,20 +174,23 @@ describe("no CDN URLs in UI source", () => {
     it(`${file.replace(`${process.cwd()}/`, "")} contains no CDN URLs`, () => {
       const body = readFileSync(file, "utf8");
       const stripped = stripComments(body, file);
-      const matches = stripped.match(URL_RE) ?? [];
+      const matches = (stripped.match(URL_RE) ?? []).filter((u) => !LOOPBACK_RE.test(u));
       // Allow well-known schemas in source (e.g. xmlns) — none expected, but
-      // narrow the match to http(s) URLs only.
+      // narrow the match to non-loopback http(s) URLs only.
       expect(matches, `${file}: external URL(s) found: ${matches.join(", ")}`).toEqual([]);
     });
   }
 });
 
-// VS Code extension local-only guards (T-11-04).
+// VS Code extension local-only guards (Phase 15 server-in-extension).
 //
-// 1. Extension runtime source must not call `startLogServer` / start the
-//    loopback HTTP server. The webview transport is direct postMessage.
+// 1. Extension runtime must not call the `open` package (browser-launching)
+//    — the loopback server is reached via WebviewOptions.portMapping, not
+//    via an external browser. (Phase 11's prohibition on `startLogServer`
+//    was explicitly REVERSED in Phase 15: the extension now hosts the
+//    same Hono server the standalone CLI uses.)
 // 2. The webview HTML produced by `renderWebviewHtml` must contain a strict
-//    CSP and no CDN URLs.
+//    CSP and no non-loopback CDN URLs.
 describe("vs code extension local-only guards", () => {
   const extRoot = resolve("packages/extension/src");
   let extStat: ReturnType<typeof statSync> | null = null;
@@ -207,12 +213,11 @@ describe("vs code extension local-only guards", () => {
     return n.endsWith(".ts") || n.endsWith(".tsx");
   });
 
-  it("extension runtime does not import startLogServer or open()", () => {
+  it("extension runtime does not import the open package (browser launcher)", () => {
     const offenders: string[] = [];
     for (const file of runtimeFiles) {
       const body = readFileSync(file, "utf8");
       const stripped = stripComments(body, file);
-      if (/\bstartLogServer\b/.test(stripped)) offenders.push(`${file}: startLogServer`);
       if (/from\s+["']open["']/.test(stripped)) offenders.push(`${file}: open package`);
     }
     expect(offenders, `local-only violations: ${offenders.join(", ")}`).toEqual([]);

@@ -10,6 +10,7 @@
  */
 
 import type { Status } from "@ahp-inspector/core";
+import { apiUrl } from "./api-base.js";
 import type { AhpEvent } from "@ahp-inspector/shared";
 
 export type { AhpEvent };
@@ -73,7 +74,7 @@ export async function fetchEvent(
   const cached = cacheGet(key);
   if (cached) return cached;
   const init: RequestInit = signal !== undefined ? { signal } : {};
-  const resp = await fetch(`/api/log/event/${idx}`, init);
+  const resp = await fetch(apiUrl(`/api/log/event/${idx}`), init);
   if (resp.status === 404) return null;
   if (!resp.ok) throw new Error(`Failed to load event: ${resp.status}`);
   const data: DetailResponse = (await resp.json()) as DetailResponse;

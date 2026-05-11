@@ -5,6 +5,8 @@
  * boundary.test.ts enforces this at CI time.
  */
 
+import { apiUrl } from "./api-base.js";
+
 export type ReplayConfidence = "complete" | "partial" | "unknown";
 export type StateResourceKind = "root" | "session" | "terminal" | "unknown";
 
@@ -96,7 +98,7 @@ export async function fetchStateAt(
   }
 
   const init: RequestInit = options.signal !== undefined ? { signal: options.signal } : {};
-  const resp = await fetch(`/api/state-at?${params.toString()}`, init);
+  const resp = await fetch(apiUrl(`/api/state-at?${params.toString()}`), init);
   if (resp.status === 404) return null;
   if (!resp.ok) {
     const body = await readErrorBody(resp);

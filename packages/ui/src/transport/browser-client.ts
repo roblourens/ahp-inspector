@@ -9,6 +9,7 @@
  */
 
 import type { AhpViewerClient, LogMetaProbeResult, LogStreamHandle } from "./client.js";
+import { apiUrl } from "./api-base.js";
 import { fetchEvent } from "./http-client.js";
 import { searchEvents } from "./search-client.js";
 import { fetchCandidates, openSessionByCandidate, openSessionByPath } from "./sessions-client.js";
@@ -18,7 +19,7 @@ import { fetchStateAt } from "./state-client.js";
 async function probeLogMeta(): Promise<LogMetaProbeResult> {
   let resp: Response;
   try {
-    resp = await fetch("/api/log/meta");
+    resp = await fetch(apiUrl("/api/log/meta"));
   } catch {
     return "no-server";
   }

@@ -12,6 +12,7 @@
 
 import type { EventRow, LatencyBand, Status } from "@ahp-inspector/core";
 import { useAppStore } from "../state/store.js";
+import { apiUrl } from "./api-base.js";
 
 export interface ConnectionHandle {
   close(): void;
@@ -48,7 +49,7 @@ export interface ConnectOpts {
 }
 
 export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
-  const url = opts.url ?? "/api/log/stream";
+  const url = opts.url ?? apiUrl("/api/log/stream");
   const Ctor = opts.EventSourceCtor ?? globalThis.EventSource;
   if (!Ctor) {
     // Defensive: in jsdom without a polyfill, return a no-op handle so the

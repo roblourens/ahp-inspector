@@ -1,3 +1,5 @@
+import { apiUrl } from "./api-base.js";
+
 export interface SearchResult {
   matches: number[];
   total: number;
@@ -16,7 +18,7 @@ export async function searchEvents(q: string, signal?: AbortSignal): Promise<Sea
   const init: RequestInit = {
     ...(signal !== undefined ? { signal } : {}),
   };
-  const resp = await fetch(`/api/log/search?${params.toString()}`, init);
+  const resp = await fetch(apiUrl(`/api/log/search?${params.toString()}`), init);
   if (!resp.ok) throw new Error(`Search failed: ${resp.status}`);
   return resp.json() as Promise<SearchResult>;
 }
