@@ -30,6 +30,14 @@ Planning artifacts live in `.planning/`:
 
 Current focus: Phase 4 — Live Tail, Discovery, and Persistence. The next GSD step is `/gsd-plan-phase 4`.
 
+# Branching Workflow
+
+- One dev branch per phase. Name it after the phase (e.g. `phase-15`, `phase-16-foo`). All `gsd-execute-phase` work and `.planning/` updates for that phase live on the phase branch.
+- When the phase is complete and verified, squash the phase branch into `main` as a single commit (`git merge --squash` then commit, or `gh pr merge --squash`). Per-plan atomic commits are preserved on the phase branch but collapse into one phase-sized commit on `main`.
+- Quick fixes that fit in a single commit may go directly to `main`. Anything larger gets a phase branch.
+- `.planning/` bookkeeping that happens between phases (backlog grooming, STATE updates) is a quick fix and may go straight to `main`.
+- Do not force-push `main` without explicit per-operation approval from Rob.
+
 # Engineering Constraints
 
 - Build standalone first; defer VS Code extension packaging until after v1.
