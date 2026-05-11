@@ -49,17 +49,15 @@ Full phase details: `.planning/milestones/v1.1-ROADMAP.md`.
 
 ### � v1.2 (in progress)
 
-- [ ] Phase 15: VS Code extension stabilization — 0/7 plans
-  **Goal:** Route the five webview-bypassing UI components through the injected `AhpViewerClient`, add a boundary test that forbids future runtime imports of `transport/*-client.js` from `packages/ui/src/components/**`, migrate component tests to the injected-client pattern, and verify the bug class is gone via an end-to-end webview UAT.
-  **Requirements:** STAB-15-01, STAB-15-02, STAB-15-03, STAB-15-04
+- [ ] Phase 15: VS Code extension stabilization — 0/5 plans
+  **Goal:** Pivot the webview from a postMessage bridge to a singleton in-extension `LogServer` (Hono on 127.0.0.1) reached via `WebviewOptions.portMapping`. Reverses Phase 11's EXT-03 / postMessage decisions. The webview now uses the same HTTP+SSE transport as the standalone CLI build, fixing the bug class where UI components that bypass the bridge silently fail in the webview. Replaces the original "thread `AhpViewerClient`" plan set (archived under `_superseded/`).
+  **Requirements:** STAB-15-A, STAB-15-CSP, STAB-15-CORS, STAB-15-B, STAB-15-API-BASE, STAB-15-EXT, STAB-15-LIFECYCLE, STAB-15-CLEANUP, STAB-15-UAT
   **Plans:**
-    - [ ] 15-01-PLAN.md — Shared `fakeAhpViewerClient` + `renderWithClient` test helper; adopted in App.test.tsx
-    - [ ] 15-02-PLAN.md — Detail subsystem: DetailPanel.tsx + StateInspectorPanel.tsx + tests use injected client
-    - [ ] 15-03-PLAN.md — Search: useSearch.ts uses injected client; FilterBar.test.tsx covers it
-    - [ ] 15-04-PLAN.md — Shell: AppShell.tsx uses injected client; AppShell.test.tsx migrated off vi.mock(transport/*)
-    - [ ] 15-05-PLAN.md — Timeline: TimelineRegion.defaultReconnect uses injected client; reconnect test added
-    - [ ] 15-06-PLAN.md — Transport-import boundary test under `test/transport-boundary.test.ts`
-    - [ ] 15-07-PLAN.md — Manual webview UAT (checkpoint): row-click, search, state inspector, log switch, reconnect
+    - [ ] 15-01-PLAN.md — Server CORS middleware + extend `renderWebviewHtml` with `loopbackOrigin` + `apiBaseUrl` options
+    - [ ] 15-02-PLAN.md — UI `apiUrl(path)` helper + route all transport callsites through it
+    - [ ] 15-03-PLAN.md — Singleton `extensionServer.ts` lifecycle + rewrite `extension.ts` to use `portMapping`, drop bridge wiring, seed initial log via `sessions.open`
+    - [ ] 15-04-PLAN.md — Delete dead bridge code (`viewerSession.ts`, `messageProtocol.ts`, `webview-client.ts`) and simplify `main.tsx`
+    - [ ] 15-05-PLAN.md — Manual UAT (checkpoint): local + remote-dev panel, row click, search, state, log switch, reconnect, no orphan processes
 
 Further v1.2 phases will be added as scope emerges. Lean milestone open — defer broader scoping until needed.
 
@@ -69,11 +67,11 @@ Further v1.2 phases will be added as scope emerges. Lean milestone open — defe
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
 | v1.1 Reducer-backed State Snapshots | 9/9 | 29/29 | Shipped | 2026-05-10 |
-| v1.2 (in progress) | 0/1 | 0/7 | Phase 15 planned | — |
+| v1.2 (in progress) | 0/1 | 0/5 | Phase 15 planned (server-in-extension pivot) | — |
 
 ## Next
 
-Run `/gsd-discuss-phase 15` to start scoping the VS Code extension stabilization phase.
+Run `/gsd-execute-phase 15` to execute the 5 plans (server-in-extension pivot).
 
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
