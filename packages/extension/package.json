@@ -17,7 +17,7 @@
     "commands": [
       {
         "command": "ahpInspector.open",
-        "title": "AHP Inspector: Open",
+        "title": "Open",
         "category": "AHP Inspector"
       }
     ]

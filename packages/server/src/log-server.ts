@@ -10,6 +10,7 @@
 
 import { type ServerType, serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { corsMiddleware } from "./cors.js";
 import { cspMiddleware } from "./csp.js";
 import { registerDetailRoutes } from "./detail-routes.js";
 import { hostGuardMiddleware } from "./host-guard.js";
@@ -47,6 +48,7 @@ export function startLogServer(opts: LogServerOptions): Promise<LogServerHandle>
   const { sessions } = opts;
   const app = new Hono();
   app.use("*", hostGuardMiddleware);
+  app.use("*", corsMiddleware);
   app.use("*", cspMiddleware);
   app.get("/health", (c) => c.json({ status: "ok", version: opts.version }));
   registerLogRoutes(app, sessions);

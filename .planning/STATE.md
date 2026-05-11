@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
 status: in_progress
-stopped_at: Phase 15 seeded; discuss-phase pending
-last_updated: "2026-05-10T22:00:00.000Z"
+stopped_at: Phase 15 plans 01–04 landed; manual UAT (15-05) pending
+last_updated: "2026-05-10T22:30:00.000Z"
 last_activity: 2026-05-10
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 5
+  completed_plans: 4
+  percent: 80
 ---
 
 # State: AHP Inspector
@@ -19,14 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 15 — vs-code-extension-stabilization
+**Current Focus:** Phase 15 — vs-code-extension-stabilization (manual UAT pending)
 
 ## Current Position
 
 Phase: 15
-Plan: Not started
-Status: Discuss-phase pending
-Last activity: 2026-05-10 — Opened v1.2 milestone (lean) with Phase 15 seeded after extension regression diagnosed: row-click triggers 403 because `DetailPanel.tsx` and 4 other components import HTTP transports directly, bypassing the postMessage `AhpViewerClient` injected for the webview.
+Plan: 15-05 (manual UAT)
+Status: 4/5 plans landed and committed; UAT plan needs user-driven scenarios in real VS Code (local + remote-dev).
+Last activity: 2026-05-10 — Executed plans 15-01 → 15-04: server CORS middleware + webviewHtml options, UI apiUrl helper routed through all 6 transport callsites, extensionServer singleton + extension.ts rewrite using WebviewOptions.portMapping, deleted postMessage bridge (5 files). Workspace test suite: 1104 tests pass; typechecks clean; UI + extension bundles build.
 
 ## Performance Metrics
 

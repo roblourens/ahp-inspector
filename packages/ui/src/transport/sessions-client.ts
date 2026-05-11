@@ -11,6 +11,7 @@
  */
 
 import type { SafeCandidate } from "../types/safe-candidate.js";
+import { apiUrl } from "./api-base.js";
 
 export interface ActiveLogMeta {
   readonly filename: string;
@@ -38,7 +39,7 @@ export class SessionOpenError extends Error {
 export async function fetchCandidates(): Promise<readonly SafeCandidate[]> {
   let res: Response;
   try {
-    res = await fetch("/api/sessions/discover");
+    res = await fetch(apiUrl("/api/sessions/discover"));
   } catch {
     throw new SessionOpenError("network", "fetch failed");
   }
@@ -86,7 +87,7 @@ function parseOpenResult(value: unknown): OpenSessionResult {
 async function postOpen(body: unknown): Promise<OpenSessionResult> {
   let res: Response;
   try {
-    res = await fetch("/api/sessions/open", {
+    res = await fetch(apiUrl("/api/sessions/open"), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
