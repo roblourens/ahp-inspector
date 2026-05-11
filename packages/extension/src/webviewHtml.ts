@@ -20,6 +20,17 @@ export interface WebviewHtmlOptions {
   readonly cspSource: string;
   /** Page title (defaults to "AHP Inspector"). */
   readonly title?: string;
+  /**
+   * Loopback HTTP origin (e.g. "http://localhost:51234") that the webview
+   * will call for /api/* and /health. When set, added to CSP connect-src.
+   */
+  readonly loopbackOrigin?: string;
+  /**
+   * API base URL to inject as window.__AHP_API_BASE__ for the UI bundle.
+   * Typically equals loopbackOrigin. When set, an inline <script nonce=..>
+   * is emitted BEFORE the main bundle.
+   */
+  readonly apiBaseUrl?: string;
 }
 
 const HTML_ESCAPE_RE = /[&<>"']/g;
@@ -59,16 +70,30 @@ export function renderWebviewHtml(opts: WebviewHtmlOptions): string {
   //     the only inline style we ship is the bundled stylesheet link plus
   //     React-injected component styles
   //   script-src 'nonce-${nonce}' → exactly one bundled UI script
+  //   connect-src ${cspSource} [+ loopbackOrigin]
+  //
+  // Backwards compat: when loopbackOrigin/apiBaseUrl are absent, the rendered
+  // HTML is byte-identical to the pre-Phase-15 standalone-only output.
+  const connectSrc = opts.loopbackOrigin
+    ? `${cspSource} ${escapeHtml(opts.loopbackOrigin)}`
+    : `${cspSource}`;
   const csp = [
     "default-src 'none'",
     `img-src ${cspSource} data:`,
     `font-src ${cspSource}`,
     `style-src ${cspSource} 'unsafe-inline'`,
     `script-src 'nonce-${nonce}'`,
-    `connect-src ${cspSource}`,
+    `connect-src ${connectSrc}`,
   ].join("; ");
 
   const styleLink = styleHref ? `<link rel="stylesheet" href="${styleHref}" />` : "";
+  // JSON.stringify produces a safely-quoted string literal; we additionally
+  // escape `<` so any inline `</script>` sequence in attacker-controlled input
+  // cannot break out of the inline script. Prepended with a leading newline
+  // only when set so backwards-compat (byte-identical output) holds when not.
+  const apiBaseScript = opts.apiBaseUrl
+    ? `\n<script nonce="${nonce}">window.__AHP_API_BASE__ = ${JSON.stringify(opts.apiBaseUrl).replace(/</g, "\\u003c")};</script>`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -77,7 +102,7 @@ export function renderWebviewHtml(opts: WebviewHtmlOptions): string {
 <meta http-equiv="Content-Security-Policy" content="${csp}" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${title}</title>
-${styleLink}
+${styleLink}${apiBaseScript}
 </head>
 <body>
 <div id="root"></div>
