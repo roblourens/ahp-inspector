@@ -49,7 +49,17 @@ Full phase details: `.planning/milestones/v1.1-ROADMAP.md`.
 
 ### � v1.2 (in progress)
 
-- [ ] Phase 15: VS Code extension stabilization — discuss / plan / execute pending
+- [ ] Phase 15: VS Code extension stabilization — 0/7 plans
+  **Goal:** Route the five webview-bypassing UI components through the injected `AhpViewerClient`, add a boundary test that forbids future runtime imports of `transport/*-client.js` from `packages/ui/src/components/**`, migrate component tests to the injected-client pattern, and verify the bug class is gone via an end-to-end webview UAT.
+  **Requirements:** STAB-15-01, STAB-15-02, STAB-15-03, STAB-15-04
+  **Plans:**
+    - [ ] 15-01-PLAN.md — Shared `fakeAhpViewerClient` + `renderWithClient` test helper; adopted in App.test.tsx
+    - [ ] 15-02-PLAN.md — Detail subsystem: DetailPanel.tsx + StateInspectorPanel.tsx + tests use injected client
+    - [ ] 15-03-PLAN.md — Search: useSearch.ts uses injected client; FilterBar.test.tsx covers it
+    - [ ] 15-04-PLAN.md — Shell: AppShell.tsx uses injected client; AppShell.test.tsx migrated off vi.mock(transport/*)
+    - [ ] 15-05-PLAN.md — Timeline: TimelineRegion.defaultReconnect uses injected client; reconnect test added
+    - [ ] 15-06-PLAN.md — Transport-import boundary test under `test/transport-boundary.test.ts`
+    - [ ] 15-07-PLAN.md — Manual webview UAT (checkpoint): row-click, search, state inspector, log switch, reconnect
 
 Further v1.2 phases will be added as scope emerges. Lean milestone open — defer broader scoping until needed.
 
@@ -59,7 +69,7 @@ Further v1.2 phases will be added as scope emerges. Lean milestone open — defe
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
 | v1.1 Reducer-backed State Snapshots | 9/9 | 29/29 | Shipped | 2026-05-10 |
-| v1.2 (in progress) | 0/1 | 0/0 | Phase 15 pending | — |
+| v1.2 (in progress) | 0/1 | 0/7 | Phase 15 planned | — |
 
 ## Next
 
