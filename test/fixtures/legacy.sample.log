@@ -1,0 +1,12 @@
+[2026-01-01T00:00:00.000Z] >> listSessions
+  {"jsonrpc":"2.0","id":1,"method":"listSessions","params":{}}
+[2026-01-01T00:00:00.010Z] << listSessions
+  {"jsonrpc":"2.0","id":1,"result":{"sessions":[]}}
+[2026-01-01T00:00:00.020Z] >> dispatch
+  {"jsonrpc":"2.0","method":"dispatch","params":{"action":{"type":"noop"}}}
+[2026-01-01T00:00:00.030Z] ** rootState.onDidChange
+  {"jsonrpc":"2.0","method":"action","params":{"action":{"type":"rootState.onDidChange","payload":{}},"serverSeq":1,"origin":"server"}}
+[2026-01-01T00:00:00.040Z] ** onDidNotification
+  {"jsonrpc":"2.0","method":"notification","params":{"notification":{"type":"log","message":"hi"}}}
+[2026-01-01T00:00:00.050Z] !! authenticate
+  {"jsonrpc":"2.0","id":2,"error":{"code":-32000,"message":"unauthorized"}}

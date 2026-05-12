@@ -4,6 +4,7 @@ dist
 .vite
 coverage
 *.log
+!test/fixtures/*.log
 .env
 .env.*
 .playwright-cli
