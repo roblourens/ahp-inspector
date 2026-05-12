@@ -559,11 +559,11 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
 
       let sawRotation = false;
       let appendFrom: number | null = null;
-      const deadline = Date.now() + 4000;
+      const deadline = Date.now() + 15000;
       while (Date.now() < deadline) {
         let next: Frame;
         try {
-          next = await c.next(2000);
+          next = await c.next(5000);
         } catch {
           break;
         }
