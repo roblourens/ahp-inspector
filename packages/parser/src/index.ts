@@ -5,3 +5,4 @@
 export type { ParsedLine } from "./jsonl.js";
 export { LineSplitter, MAX_BUF_BYTES, ParseOverflowError, parseLine } from "./jsonl.js";
 export { normalize } from "./normalizer.js";
+export { extractWireMeta, type WireMeta } from "./wire-meta.js";

@@ -9,7 +9,7 @@ import {
   TerminalClaimKind,
 } from "@ahp-inspector/protocol";
 import type { DiscoveryResult, Disposable, HostAdapter, LogHandle } from "@ahp-inspector/shared";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { type AppState, createAppState, type SsePayload } from "./app-state.js";
 
 interface FakeLogHandle extends LogHandle {
@@ -525,6 +525,115 @@ describe("createAppState", () => {
 
     expect(captured).toEqual([]);
     expectNoReplayFields(JSON.stringify(state.snapshot().rows));
+  });
+});
+
+describe("AppState wire timestamp ingest (Phase 16)", () => {
+  let state: AppState | undefined;
+
+  afterEach(async () => {
+    if (state) {
+      await state.dispose();
+      state = undefined;
+    }
+  });
+
+  it("uses _ahpLog.ts as the row timestamp when present", async () => {
+    const host = makeFakeHost("/tmp/wire.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/wire.log",
+      flushIntervalMs: 0,
+      directionInference: ahpDirection,
+    });
+    const wireTs = "2026-05-11T17:11:14.356Z";
+    host.push(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "ping",
+        params: {},
+        _ahpLog: { ts: wireTs, dir: "c2s", byteLength: 1 },
+      })}\n`,
+    );
+    const row = state.snapshot().rows[0];
+    if (!row) throw new Error("expected row");
+    expect(row.ts).toBe(Date.parse(wireTs));
+    expect(row.tsFmt).toBe("17:11:14.356");
+  });
+
+  it("honours _ahpLog.dir over the directionInference callback", async () => {
+    const host = makeFakeHost("/tmp/wire.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/wire.log",
+      flushIntervalMs: 0,
+      // Always claim c2s — wire dir should win.
+      directionInference: () => "c2s",
+    });
+    host.push(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "ping",
+        params: {},
+        _ahpLog: { ts: "2026-05-11T17:11:14.356Z", dir: "s2c" },
+      })}\n`,
+    );
+    const row = state.snapshot().rows[0];
+    if (!row) throw new Error("expected row");
+    expect(row.dir).toBe("s2c");
+  });
+
+  it("falls back to ingest time and inferred direction when _ahpLog is absent", async () => {
+    const host = makeFakeHost("/tmp/wire.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/wire.log",
+      flushIntervalMs: 0,
+      directionInference: ahpDirection,
+    });
+    const fakeNow = 1_700_000_000_000;
+    const spy = vi.spyOn(Date, "now").mockReturnValue(fakeNow);
+    try {
+      host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 1, result: { ok: true } })}\n`);
+    } finally {
+      spy.mockRestore();
+    }
+    const row = state.snapshot().rows[0];
+    if (!row) throw new Error("expected row");
+    expect(row.ts).toBe(fakeNow);
+    // ahpDirection treats `result` as s2c.
+    expect(row.dir).toBe("s2c");
+  });
+
+  it("falls back to ingest time when _ahpLog.ts is malformed", async () => {
+    const host = makeFakeHost("/tmp/wire.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/wire.log",
+      flushIntervalMs: 0,
+      directionInference: ahpDirection,
+    });
+    const fakeNow = 1_700_000_000_000;
+    const spy = vi.spyOn(Date, "now").mockReturnValue(fakeNow);
+    try {
+      host.push(
+        `${JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "ping",
+          params: {},
+          _ahpLog: { ts: "not-a-date" },
+        })}\n`,
+      );
+    } finally {
+      spy.mockRestore();
+    }
+    const row = state.snapshot().rows[0];
+    if (!row) throw new Error("expected row");
+    expect(row.ts).toBe(fakeNow);
+    expect(row.kind).toBe("request");
   });
 });
 

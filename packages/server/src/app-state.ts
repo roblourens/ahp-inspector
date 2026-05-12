@@ -17,7 +17,7 @@ import {
   projectRow,
   type Status,
 } from "@ahp-inspector/core";
-import { LineSplitter, normalize, parseLine } from "@ahp-inspector/parser";
+import { extractWireMeta, LineSplitter, normalize, parseLine } from "@ahp-inspector/parser";
 import {
   type Direction,
   type HostAdapter,
@@ -272,10 +272,13 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       }
       for (const line of lines) {
         const byteLength = Buffer.byteLength(line, "utf8");
-        const ts = Date.now();
         const parsed = parseLine(line, byteOffset, byteLength);
-        const dir: Direction = parsed.error ? "c2s" : inferDir(parsed.raw);
-        const m = { seq, ts, tsRaw: String(ts), dir, byteOffset, byteLength };
+        const wire = parsed.error ? null : extractWireMeta(parsed.raw);
+        const ingestNow = Date.now();
+        const ts = wire?.ts ?? ingestNow;
+        const tsRaw = wire?.tsRaw ?? String(ingestNow);
+        const dir: Direction = parsed.error ? "c2s" : (wire?.dir ?? inferDir(parsed.raw));
+        const m = { seq, ts, tsRaw, dir, byteOffset, byteLength };
         const ev = parsed.error
           ? makeParseErrorEvent(m, parsed.error.reason, parsed.text)
           : normalize(parsed.raw, m);

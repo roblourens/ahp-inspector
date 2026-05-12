@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
 status: in_progress
-stopped_at: Phase 15 plans 01–04 landed; manual UAT (15-05) pending
-last_updated: "2026-05-10T22:30:00.000Z"
-last_activity: 2026-05-10
+stopped_at: Phase 16 plan 01 landed; Phase 15 manual UAT (15-05) still pending
+last_updated: "2026-05-11T19:15:00.000Z"
+last_activity: 2026-05-11
 progress:
-  total_phases: 1
-  completed_phases: 0
-  total_plans: 5
-  completed_plans: 4
-  percent: 80
+  total_phases: 2
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 5
+  percent: 83
 ---
 
 # State: AHP Inspector
@@ -19,13 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 15 — vs-code-extension-stabilization (manual UAT pending)
+**Current Focus:** Phase 16 — timestamp column wire-time fix landed; Phase 15 manual UAT still pending.
 
 ## Current Position
 
-Phase: 15
-Plan: 15-05 (manual UAT)
-Status: 4/5 plans landed and committed; UAT plan needs user-driven scenarios in real VS Code (local + remote-dev).
+Phase: 16 (complete) → next: Phase 17 (drag-and-drop) or revisit Phase 15-05 UAT
+Plan: 16-01 landed (commits bd4f258, c3fa633)
+Status: Phase 16 plan 01 complete — wire timestamps + direction flow from `_ahpLog` sidecar; full workspace test suite (1116 tests) passes; both bundles build.
+Last activity: 2026-05-11 — Added `extractWireMeta` parser helper and rewired the AppState ingest loop to honour `_ahpLog.ts` and `_ahpLog.dir`, with a clean fallback to `Date.now()` + `inferDir` for legacy / fixture lines.
 Last activity: 2026-05-10 — Executed plans 15-01 → 15-04: server CORS middleware + webviewHtml options, UI apiUrl helper routed through all 6 transport callsites, extensionServer singleton + extension.ts rewrite using WebviewOptions.portMapping, deleted postMessage bridge (5 files). Workspace test suite: 1104 tests pass; typechecks clean; UI + extension bundles build.
 
 ## Performance Metrics
@@ -143,6 +144,8 @@ Last activity: 2026-05-10 — Executed plans 15-01 → 15-04: server CORS middle
 - Phase 12 added: Search rather than filter
 - Phase 12 completed: free-text search now highlights and navigates matches without filtering out nonmatching rows; faceted filters remain the only row-narrowing controls.
 - Phase 14 added: Hardening: state diagnostics scrolling and parsing, row highlighting cleanup, smarter event/notification summaries, search ergonomics (Enter/Shift+Enter/F3 cycling, scroll to current match)
+- Phase 16 added: Fix timestamp column to show real event time from JSONL, not render time
+- Phase 17 added: Add drag-and-drop support for opening JSONL files
 
 ## Session Continuity
 

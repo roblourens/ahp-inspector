@@ -67,11 +67,31 @@ Further v1.2 phases will be added as scope emerges. Lean milestone open — defe
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
 | v1.1 Reducer-backed State Snapshots | 9/9 | 29/29 | Shipped | 2026-05-10 |
-| v1.2 (in progress) | 0/1 | 4/5 | Phase 15 in execution — 4/5 plans landed, manual UAT pending | — |
+| v1.2 (in progress) | 1/2 | 5/6 | Phase 16 landed (wire-time timestamps); Phase 15 manual UAT still pending | — |
 
 ## Next
 
 Phase 15 plans 01–04 are landed and committed (1104 tests pass; both bundles build). Plan 15-05 is a manual UAT in real VS Code (local + remote-dev) — run those scenarios, capture screenshots under `screenshots/phase15/`, and write `.planning/phases/15-vs-code-extension-stabilization/15-05-UAT.md`.
+
+### Phase 16: Fix timestamp column to show real event time from JSONL, not render time
+
+**Goal:** Timeline timestamp column displays the wire time recorded in each JSONL event's `_ahpLog.ts` sidecar instead of the server-side ingest time, with graceful fallback when the sidecar is absent.
+**Requirements**: TBD
+**Depends on:** Phase 15
+**Plans:** 1 plan
+
+Plans:
+- [x] 16-01-PLAN.md — Add `extractWireMeta` parser helper and wire it into the server ingest loop (with tests)
+
+### Phase 17: Add drag-and-drop support for opening JSONL files
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 16
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 17 to break down)
 
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
