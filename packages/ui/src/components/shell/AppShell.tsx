@@ -7,6 +7,7 @@ import {
   fetchCandidates,
   openSessionByCandidate,
   openSessionByPath,
+  uploadSessionFile,
 } from "../../transport/sessions-client.js";
 import { type ConnectionHandle, connectLogStream } from "../../transport/sse-client.js";
 import type { SafeCandidate } from "../../types/safe-candidate.js";
@@ -143,9 +144,18 @@ export function AppShell(): JSX.Element {
     setPickerOpen(false);
   }, []);
 
+  const onDropUploadFile = useCallback(async (file: File): Promise<void> => {
+    const result = await uploadSessionFile(file);
+    useAppStore.getState().setLogKey(result.active.logKey);
+    // No lastOpenRef — uploaded sessions live in a temp file and can't be
+    // re-opened by path/id after the server cleans them up.
+    replaceLogStream();
+  }, []);
+
   const { overlayState, toast, dismissError, dismissToast } = useDropZone({
     hasActiveLog: meta !== null,
     onOpenPath: onPickerOpenPath,
+    onUploadFile: onDropUploadFile,
   });
 
   const onWatchErrorRetry = useCallback((): void => {

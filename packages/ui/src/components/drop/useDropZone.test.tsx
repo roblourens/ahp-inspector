@@ -8,12 +8,27 @@ afterEach(() => cleanup());
 interface FakeDataTransfer {
   types: readonly string[];
   getData: (mime: string) => string;
+  files: FileList;
 }
 
-function makeDt(uriList: string | null): FakeDataTransfer {
+function makeFileList(files: File[]): FileList {
+  const list = {
+    length: files.length,
+    item: (i: number) => files[i] ?? null,
+  } as unknown as FileList;
+  for (let i = 0; i < files.length; i++) {
+    (list as unknown as Record<number, File>)[i] = files[i];
+  }
+  return list;
+}
+
+function makeDt(uriList: string | null, files: File[] = []): FakeDataTransfer {
+  const types: string[] = [];
+  if (uriList !== null || files.length > 0) types.push("Files");
   return {
-    types: uriList === null ? [] : ["Files"],
+    types,
     getData: (mime: string) => (mime === "text/uri-list" && uriList !== null ? uriList : ""),
+    files: makeFileList(files),
   };
 }
 
@@ -39,6 +54,7 @@ function fireDrag(
 interface HarnessProps {
   hasActiveLog: boolean;
   onOpenPath: (p: string) => Promise<void>;
+  onUploadFile?: (file: File) => Promise<void>;
 }
 
 function Harness(props: HarnessProps): JSX.Element {
@@ -161,5 +177,75 @@ describe("useDropZone", () => {
     unmount();
     fireDrag("drop", makeDt("file:///tmp/x.jsonl"));
     expect(onOpenPath).not.toHaveBeenCalled();
+  });
+
+  it("falls back to onUploadFile when no URI but a .jsonl File is present", async () => {
+    const onOpenPath = vi.fn().mockResolvedValue(undefined);
+    const onUploadFile = vi.fn().mockResolvedValue(undefined);
+    const file = new File(["{}\n"], "finder-drag.jsonl", { type: "" });
+    render(
+      <Harness
+        hasActiveLog={false}
+        onOpenPath={onOpenPath}
+        onUploadFile={onUploadFile}
+      />,
+    );
+    fireDrag("drop", makeDt(null, [file]));
+    await waitFor(() => {
+      expect(onUploadFile).toHaveBeenCalledTimes(1);
+    });
+    expect(onUploadFile.mock.calls[0][0]).toBe(file);
+    expect(onOpenPath).not.toHaveBeenCalled();
+  });
+
+  it("upload fallback: multiple jsonl files set toast with first as basename", async () => {
+    const onUploadFile = vi.fn().mockResolvedValue(undefined);
+    const a = new File(["{}\n"], "a.jsonl");
+    const b = new File(["{}\n"], "b.jsonl");
+    const { getByTestId } = render(
+      <Harness
+        hasActiveLog={false}
+        onOpenPath={vi.fn().mockResolvedValue(undefined)}
+        onUploadFile={onUploadFile}
+      />,
+    );
+    fireDrag("drop", makeDt(null, [a, b]));
+    await waitFor(() => {
+      expect(getByTestId("harness").dataset.toastBasename).toBe("a.jsonl");
+    });
+    expect(getByTestId("harness").dataset.toastIgnored).toBe("1");
+  });
+
+  it("upload fallback: no .jsonl Files surfaces NO_FILE_COPY error", () => {
+    const onUploadFile = vi.fn();
+    const png = new File([""], "image.png");
+    const { getByTestId } = render(
+      <Harness
+        hasActiveLog={false}
+        onOpenPath={vi.fn().mockResolvedValue(undefined)}
+        onUploadFile={onUploadFile}
+      />,
+    );
+    fireDrag("drop", makeDt(null, [png]));
+    expect(onUploadFile).not.toHaveBeenCalled();
+    expect(getByTestId("harness").dataset.overlayMessage).toBe(NO_FILE_COPY);
+  });
+
+  it("upload fallback: too-large error shows the size message", async () => {
+    const err = Object.assign(new Error("x"), { code: "too-large" });
+    const onUploadFile = vi.fn().mockRejectedValue(err);
+    const file = new File(["{}\n"], "big.jsonl");
+    const { getByTestId } = render(
+      <Harness
+        hasActiveLog={false}
+        onOpenPath={vi.fn().mockResolvedValue(undefined)}
+        onUploadFile={onUploadFile}
+      />,
+    );
+    fireDrag("drop", makeDt(null, [file]));
+    await waitFor(() => {
+      const msg = getByTestId("harness").dataset.overlayMessage ?? "";
+      expect(msg).toContain("too large");
+    });
   });
 });

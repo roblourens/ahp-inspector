@@ -9,10 +9,19 @@ import { parseDroppedUri } from "./parseDroppedUri.js";
 const NO_FILE_COPY =
   "That drop didn't include a file path. Try dragging from Finder or VS Code's file tree, or paste a path in the picker below.";
 const WRONG_EXT_COPY = "Only .jsonl files are supported. Drop the raw AHP log file.";
+const UPLOAD_FAILED_COPY =
+  "Couldn't open the dropped file. Try again or paste a path in the picker below.";
 
 export interface UseDropZoneArgs {
   hasActiveLog: boolean;
   onOpenPath: (path: string) => Promise<void>;
+  /**
+   * Fallback for browser drops that expose a `File` object but no real
+   * filesystem path (e.g. Finder → Chrome on http://localhost). The hook
+   * uploads the bytes via this callback when `parseDroppedUri` returns
+   * `no-uri` and the drop carries at least one .jsonl File.
+   */
+  onUploadFile?: (file: File) => Promise<void>;
 }
 
 export interface UseDropZoneResult {
@@ -32,7 +41,7 @@ function isCodeError(err: unknown): err is { code: string } {
 }
 
 export function useDropZone(args: UseDropZoneArgs): UseDropZoneResult {
-  const { hasActiveLog, onOpenPath } = args;
+  const { hasActiveLog, onOpenPath, onUploadFile } = args;
   const [overlayState, setOverlayState] = useState<DropOverlayState>({
     kind: "idle",
   });
@@ -45,6 +54,8 @@ export function useDropZone(args: UseDropZoneArgs): UseDropZoneResult {
   hasActiveLogRef.current = hasActiveLog;
   const onOpenPathRef = useRef(onOpenPath);
   onOpenPathRef.current = onOpenPath;
+  const onUploadFileRef = useRef(onUploadFile);
+  onUploadFileRef.current = onUploadFile;
 
   const dismissError = useCallback((): void => {
     setOverlayState({ kind: "idle" });
@@ -100,6 +111,43 @@ export function useDropZone(args: UseDropZoneArgs): UseDropZoneResult {
       }
       const result = parseDroppedUri(dt);
       if (result.kind === "error") {
+        // Fallback: browser stripped the URI but still gave us File objects
+        // (typical for Finder → Chrome on http://localhost). Pick the first
+        // .jsonl File and upload its bytes.
+        if (result.code === "no-uri" && onUploadFileRef.current) {
+          const files = dt.files;
+          let chosen: File | null = null;
+          let extraJsonl = 0;
+          for (let i = 0; i < files.length; i++) {
+            const f = files.item(i);
+            if (f !== null && f.name.toLowerCase().endsWith(".jsonl")) {
+              if (chosen === null) chosen = f;
+              else extraJsonl += 1;
+            }
+          }
+          if (chosen !== null) {
+            const uploadFn = onUploadFileRef.current;
+            const file = chosen;
+            const ignoredCount = extraJsonl + (files.length - extraJsonl - 1);
+            setOverlayState({ kind: "idle" });
+            void (async () => {
+              try {
+                await uploadFn(file);
+                if (ignoredCount > 0) {
+                  setToast({ basename: file.name, ignoredCount });
+                }
+              } catch (err) {
+                const code = isCodeError(err) ? err.code : null;
+                const message =
+                  code === "too-large"
+                    ? "That file is too large to upload. Use a smaller log or paste a path in the picker below."
+                    : (code !== null && ERROR_COPY[code]) || UPLOAD_FAILED_COPY;
+                setOverlayState({ kind: "error", message });
+              }
+            })();
+            return;
+          }
+        }
         const message = result.code === "no-uri" ? NO_FILE_COPY : WRONG_EXT_COPY;
         setOverlayState({ kind: "error", message });
         return;

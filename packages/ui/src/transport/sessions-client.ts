@@ -117,3 +117,35 @@ export const openSessionByCandidate = (candidateId: string): Promise<OpenSession
   postOpen({ id: candidateId });
 
 export const openSessionByPath = (path: string): Promise<OpenSessionResult> => postOpen({ path });
+
+export async function uploadSessionFile(file: File): Promise<OpenSessionResult> {
+  let res: Response;
+  try {
+    res = await fetch(apiUrl("/api/sessions/upload"), {
+      method: "POST",
+      headers: {
+        "content-type": "application/octet-stream",
+        "x-filename": encodeURIComponent(file.name),
+      },
+      body: file,
+    });
+  } catch {
+    throw new SessionOpenError("network", "fetch failed");
+  }
+  if (res.ok) {
+    try {
+      return parseOpenResult(await res.json());
+    } catch (err) {
+      if (err instanceof SessionOpenError) throw err;
+      throw new SessionOpenError("bad-response", "upload response was not JSON");
+    }
+  }
+  let code = "bad-request";
+  try {
+    const json = (await res.json()) as { code?: string };
+    if (json && typeof json.code === "string") code = json.code;
+  } catch {
+    /* unparseable body — keep fallback */
+  }
+  throw new SessionOpenError(code, `upload failed ${res.status}`);
+}
