@@ -17,13 +17,11 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -51,6 +49,19 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance
+      - name: Tag release
+        if: inputs.dry_run == false
+        run: |
+          VERSION=$(node -p "require('./packages/cli/package.json').version")
+          TAG="v$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists; skipping."
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
       - name: Dry-run notice
         if: inputs.dry_run == true
         run: echo "Dry run — npm publish skipped."
