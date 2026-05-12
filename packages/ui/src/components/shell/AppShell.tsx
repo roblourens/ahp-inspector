@@ -14,6 +14,9 @@ import { __APP_VERSION__ } from "../../version.js";
 import { WatchErrorBanner } from "../banners/WatchErrorBanner.js";
 import { DETAIL_DESKTOP_BREAKPOINT } from "../detail/detail-layout.js";
 import { DetailPanel } from "../detail/index.js";
+import { DropOverlay } from "../drop/DropOverlay.js";
+import { MultiFileToast } from "../drop/MultiFileToast.js";
+import { useDropZone } from "../drop/useDropZone.js";
 import { ActiveFilterChips, FilterBar } from "../filters/index.js";
 import { useSearch } from "../filters/useSearch.js";
 import { LogPickerPanel } from "../picker/LogPickerPanel.js";
@@ -139,6 +142,11 @@ export function AppShell(): JSX.Element {
     replaceLogStream();
     setPickerOpen(false);
   }, []);
+
+  const { overlayState, toast, dismissError, dismissToast } = useDropZone({
+    hasActiveLog: meta !== null,
+    onOpenPath: onPickerOpenPath,
+  });
 
   const onWatchErrorRetry = useCallback((): void => {
     replaceLogStream();
@@ -268,6 +276,14 @@ export function AppShell(): JSX.Element {
         onRefresh={() => void refreshPickerCandidates()}
         onClose={() => setPickerOpen(false)}
       />
+      <DropOverlay state={overlayState} onDismiss={dismissError} />
+      {toast !== null && (
+        <MultiFileToast
+          basename={toast.basename}
+          ignoredCount={toast.ignoredCount}
+          onDismiss={dismissToast}
+        />
+      )}
     </div>
   );
 }

@@ -85,13 +85,22 @@ Plans:
 
 ### Phase 17: Add drag-and-drop support for opening JSONL files
 
-**Goal:** [To be planned]
+**Goal:** Standalone web UI accepts a JSONL file dropped anywhere in the window and opens it as the active log, using `text/uri-list` to recover a real filesystem path so the existing tail-by-path pipeline is reused unchanged.
 **Requirements**: TBD
 **Depends on:** Phase 16
-**Plans:** 0 plans
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 17 to break down)
+- **Wave 1**
+- [x] 17-01-PLAN.md — Pure `parseDroppedUri` helper (text/uri-list → path | typed error) with unit tests (D-02, D-04)
+- [x] 17-02-PLAN.md — Presentational `DropOverlay` + `MultiFileToast` components per UI-SPEC (locked copy, tokens only)
+- **Wave 2** *(blocked on Wave 1 completion)*
+- [x] 17-03-PLAN.md — `useDropZone` hook, AppShell mount, shared ERROR_COPY extraction, Playwright E2E (D-01, D-03, D-05)
+
+Cross-cutting constraints:
+- All visible strings come from the locked UI-SPEC copy table — no ad-hoc copy in components or hook.
+- All visual values use existing `var(--*)` tokens; `no-hex-in-components.test.ts` must continue to pass.
+- Error responses never echo the dropped path or `file://` URI — only the basename appears in the toast (Phase 11 trust posture).
 
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*

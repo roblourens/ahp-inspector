@@ -1,15 +1,7 @@
 import { type FormEvent, type JSX, useId, useState } from "react";
+import { ERROR_COPY, FALLBACK_ERROR } from "./error-copy.js";
 
 const MAX_PATH_LEN = 4096;
-
-const ERROR_COPY: Record<string, string> = {
-  "path-too-long": "Path is too long.",
-  "not-found": "File not found. Check the path and try again.",
-  "not-a-file": "That path is not a readable file.",
-  "not-readable": "That path is not a readable file.",
-  "bad-request": "Could not open that file. Check that it exists and is readable.",
-};
-const FALLBACK_ERROR = "Could not open that file. Check that it exists and is readable.";
 
 export function ManualOpenInput({
   onOpen,

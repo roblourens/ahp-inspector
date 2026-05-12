@@ -3,7 +3,7 @@
 // tests focus on Plan-04-05 wiring: WatchErrorBanner, LogPickerPanel, SwitchLogButton,
 // and the negative — RotationBanner is NOT rendered by AppShell.
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -200,5 +200,20 @@ describe("AppShell — responsive detail layout", () => {
     render(<AppShell />);
     fireEvent.keyDown(window, { key: "Escape" });
     expect(useAppStore.getState().selectedIdx).toBeNull();
+  });
+});
+
+describe("AppShell — drop overlay mount", () => {
+  it("dragenter on window mounts the DropOverlay armed when no log is active", () => {
+    render(<AppShell />);
+    const event = new Event("dragenter", { bubbles: true, cancelable: true });
+    Object.defineProperty(event, "dataTransfer", {
+      value: { types: ["Files"], getData: () => "" },
+      configurable: true,
+    });
+    act(() => {
+      window.dispatchEvent(event);
+    });
+    expect(screen.getByRole("region", { name: /drop a log file/i })).toBeInTheDocument();
   });
 });

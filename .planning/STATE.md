@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
-status: in_progress
-stopped_at: Phase 16 plan 01 landed; Phase 15 manual UAT (15-05) still pending
-last_updated: "2026-05-11T19:15:00.000Z"
-last_activity: 2026-05-11
+status: milestone_complete
+stopped_at: Phase 12 executed and verified
+last_updated: "2026-05-12T16:31:56.236Z"
+last_activity: 2026-05-12 -- Phase 17 execution started
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 1
+  percent: 100
 ---
 
 # State: AHP Inspector
@@ -19,14 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 16 — timestamp column wire-time fix landed; Phase 15 manual UAT still pending.
+**Current Focus:** Phase 17 — add-drag-and-drop-support-for-opening-jsonl-files
 
 ## Current Position
 
-Phase: 16 (complete) → next: Phase 17 (drag-and-drop) or revisit Phase 15-05 UAT
-Plan: 16-01 landed (commits bd4f258, c3fa633)
-Status: Phase 16 plan 01 complete — wire timestamps + direction flow from `_ahpLog` sidecar; full workspace test suite (1116 tests) passes; both bundles build.
-Last activity: 2026-05-11 — Added `extractWireMeta` parser helper and rewired the AppState ingest loop to honour `_ahpLog.ts` and `_ahpLog.dir`, with a clean fallback to `Date.now()` + `inferDir` for legacy / fixture lines.
+Phase: 17
+Plan: Not started
+Status: Milestone complete
+Last activity: 2026-05-12
 Last activity: 2026-05-10 — Executed plans 15-01 → 15-04: server CORS middleware + webviewHtml options, UI apiUrl helper routed through all 6 transport callsites, extensionServer singleton + extension.ts rewrite using WebviewOptions.portMapping, deleted postMessage bridge (5 files). Workspace test suite: 1104 tests pass; typechecks clean; UI + extension bundles build.
 
 ## Performance Metrics
