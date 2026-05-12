@@ -39,9 +39,9 @@ jobs:
         working-directory: packages/cli
         run: |
           pnpm pack
-          TARBALL=$(ls ahp-inspector-*.tgz | head -1)
+          TARBALL="$PWD/$(ls ahp-inspector-*.tgz | head -1)"
           TMP=$(mktemp -d)
-          ( cd "$TMP" && npm init -y > /dev/null && npm i "$PWD/$TARBALL" )
+          ( cd "$TMP" && npm init -y > /dev/null && npm i "$TARBALL" )
           echo "Smoke test passed."
       - name: Publish to npm
         if: inputs.dry_run == false
