@@ -45,6 +45,13 @@ Current focus: Phase 4 — Live Tail, Discovery, and Persistence. The next GSD s
 - `.planning/` bookkeeping that happens between phases (backlog grooming, STATE updates) is a quick fix and may go straight to `main`.
 - Do not force-push `main` without explicit per-operation approval from Rob.
 
+# Verification Screenshots
+
+- Any screenshot captured for phase verification, smoke tests, UAT, or PR evidence MUST be taken against the repo's fixture JSONL files (e.g. `test/fixtures/*.jsonl`) — NEVER against a real `~/.vscode-oss-agents-dev/logs/**` capture or any other real-world session log.
+- Real session logs may contain prompts, file paths, tool calls, or other sensitive content. Fixtures are the only source allowed in committed/saved screenshots.
+- Save screenshots under `screenshots/<phase>/` so they can be reviewed and committed safely.
+- If a real-data screenshot is created by mistake, delete it before continuing and re-take using a fixture.
+
 # Engineering Constraints
 
 - Build standalone first; defer VS Code extension packaging until after v1.
