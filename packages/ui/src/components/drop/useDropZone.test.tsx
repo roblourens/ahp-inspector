@@ -17,7 +17,7 @@ function makeFileList(files: File[]): FileList {
     item: (i: number) => files[i] ?? null,
   } as unknown as FileList;
   for (let i = 0; i < files.length; i++) {
-    (list as unknown as Record<number, File>)[i] = files[i];
+    (list as unknown as Record<number, File>)[i] = files[i] as File;
   }
   return list;
 }
@@ -194,7 +194,7 @@ describe("useDropZone", () => {
     await waitFor(() => {
       expect(onUploadFile).toHaveBeenCalledTimes(1);
     });
-    expect(onUploadFile.mock.calls[0][0]).toBe(file);
+    expect(onUploadFile.mock.calls[0]?.[0]).toBe(file);
     expect(onOpenPath).not.toHaveBeenCalled();
   });
 
