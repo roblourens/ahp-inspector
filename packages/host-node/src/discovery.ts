@@ -25,12 +25,14 @@ export interface Root {
 export function defaultRoots(): readonly Root[] {
   const home = homedir();
   const platform = process.platform;
-  // OSS dev build (Code OSS run from sources) writes to ~/.vscode-oss-agents-dev
-  // on every platform, alongside the platform-specific stable/insiders roots.
-  const ossDev: Root = {
-    origin: "vscode-oss-dev",
-    dir: join(home, ".vscode-oss-agents-dev", "logs"),
-  };
+  // OSS dev builds (Code OSS run from sources) write to either
+  // ~/.vscode-oss-dev or ~/.vscode-oss-agents-dev depending on the launch
+  // user-data-dir flag. Scan both so AHP logs from regular and agents-enabled
+  // OSS dev sessions both surface in the picker.
+  const ossDevRoots: Root[] = [
+    { origin: "vscode-oss-dev", dir: join(home, ".vscode-oss-dev", "logs") },
+    { origin: "vscode-oss-dev", dir: join(home, ".vscode-oss-agents-dev", "logs") },
+  ];
   if (platform === "darwin") {
     return [
       { origin: "vscode", dir: join(home, "Library", "Application Support", "Code", "logs") },
@@ -38,7 +40,7 @@ export function defaultRoots(): readonly Root[] {
         origin: "vscode-insiders",
         dir: join(home, "Library", "Application Support", "Code - Insiders", "logs"),
       },
-      ossDev,
+      ...ossDevRoots,
     ];
   }
   if (platform === "win32") {
@@ -46,14 +48,14 @@ export function defaultRoots(): readonly Root[] {
     return [
       { origin: "vscode", dir: join(appData, "Code", "logs") },
       { origin: "vscode-insiders", dir: join(appData, "Code - Insiders", "logs") },
-      ossDev,
+      ...ossDevRoots,
     ];
   }
   // linux + other unix
   return [
     { origin: "vscode", dir: join(home, ".config", "Code", "logs") },
     { origin: "vscode-insiders", dir: join(home, ".config", "Code - Insiders", "logs") },
-    ossDev,
+    ...ossDevRoots,
   ];
 }
 

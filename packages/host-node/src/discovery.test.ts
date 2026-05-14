@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { discoverVsCodeLogs, resolveCandidateId } from "./discovery.js";
+import { discoverVsCodeLogs, defaultRoots, resolveCandidateId } from "./discovery.js";
 
 let tmpRoot: string;
 let stableRoot: string;
@@ -107,5 +107,11 @@ describe("discoverVsCodeLogs", () => {
     expect(candidates.length).toBeGreaterThan(0);
     // All from stable root.
     for (const c of candidates) expect(c.origin).toBe("vscode");
+  });
+
+  it("defaultRoots includes both ~/.vscode-oss-dev/logs and ~/.vscode-oss-agents-dev/logs", () => {
+    const dirs = defaultRoots().map((r) => r.dir.replace(/\\/g, "/"));
+    expect(dirs.some((d) => d.endsWith("/.vscode-oss-dev/logs"))).toBe(true);
+    expect(dirs.some((d) => d.endsWith("/.vscode-oss-agents-dev/logs"))).toBe(true);
   });
 });

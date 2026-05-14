@@ -67,7 +67,7 @@ Further v1.2 phases will be added as scope emerges. Lean milestone open — defe
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
 | v1.1 Reducer-backed State Snapshots | 9/9 | 29/29 | Shipped | 2026-05-10 |
-| v1.2 (in progress) | 5/7 | 9/10 | Phases 16–19 landed; Phase 15 manual UAT pending; Phases 20–21 queued | — |
+| v1.2 (in progress) | 6/7 | 9/10 | Phases 16–20 landed; Phase 15 manual UAT pending; Phase 21 queued | — |
 
 ## Next
 
@@ -120,15 +120,14 @@ Done inline 2026-05-13: replaced `�` glyphs with 🚧, refreshed milestone bul
 
 Done inline 2026-05-13: removed the 8×8 `var(--color-accent)` swatch span from `HeaderBar.tsx`. UI tests still green (373/373).
 
-### Phase 20: Discover logs in both .vscode-oss-dev and .vscode-oss-agents-dev roots
+### Phase 20: Discover logs in both .vscode-oss-dev and .vscode-oss-agents-dev roots ✅
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Add `~/.vscode-oss-dev/logs` as a default discovery root alongside the existing `~/.vscode-oss-agents-dev/logs` so AHP JSONL logs from both OSS dev launch profiles surface in the picker.
+**Requirements**: N/A (discovery coverage)
 **Depends on:** Phase 19
-**Plans:** 0 plans
+**Plans:** 0 plans (trivial inline fix + unit test)
 
-Plans:
-- [ ] TBD (run /gsd-plan-phase 20 to break down)
+Done inline 2026-05-13: extracted `ossDevRoots` array in `defaultRoots()` and added a vitest assertion. Both roots share the `vscode-oss-dev` origin tag — the picker's `contextLabel` breadcrumb already disambiguates them. 7/7 host-node tests pass.
 
 ### Phase 21: Show response below request in detail side pane
 
