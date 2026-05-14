@@ -146,6 +146,10 @@ Last activity: 2026-05-10 — Executed plans 15-01 → 15-04: server CORS middle
 - Phase 14 added: Hardening: state diagnostics scrolling and parsing, row highlighting cleanup, smarter event/notification summaries, search ergonomics (Enter/Shift+Enter/F3 cycling, scroll to current match)
 - Phase 16 added: Fix timestamp column to show real event time from JSONL, not render time
 - Phase 17 added: Add drag-and-drop support for opening JSONL files
+- Phase 18 added: Refresh v1.2 milestone timestamp in ROADMAP.md
+- Phase 19 added: Remove colored dots from theme picker
+- Phase 20 added: Discover logs in both .vscode-oss-dev and .vscode-oss-agents-dev roots
+- Phase 21 added: Show response below request in detail side pane
 
 ## Session Continuity
 
