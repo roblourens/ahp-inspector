@@ -67,7 +67,7 @@ Further v1.2 phases will be added as scope emerges. Lean milestone open — defe
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
 | v1.1 Reducer-backed State Snapshots | 9/9 | 29/29 | Shipped | 2026-05-10 |
-| v1.2 (in progress) | 6/7 | 9/10 | Phases 16–20 landed; Phase 15 manual UAT pending; Phase 21 queued | — |
+| v1.2 (in progress) | 6/7 | 10/10 | Phases 16–21 landed; Phase 15 manual UAT pending | — |
 
 ## Next
 
@@ -129,16 +129,15 @@ Done inline 2026-05-13: removed the 8×8 `var(--color-accent)` swatch span from 
 
 Done inline 2026-05-13: extracted `ossDevRoots` array in `defaultRoots()` and added a vitest assertion. Both roots share the `vscode-oss-dev` origin tag — the picker's `contextLabel` breadcrumb already disambiguates them. 7/7 host-node tests pass.
 
-### Phase 21: Show response below request in detail side pane
+### Phase 21: Show response below request in detail side pane ✅
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** When a request/response pair is loaded in the detail side pane, render both JSON payloads stacked — request on top, response below — regardless of which row was clicked.
+**Requirements**: ad-hoc UX improvement (no formal REQ).
 **Depends on:** Phase 20
-**Plans:** 0 plans
+**Plans:** done inline (no PLAN.md)
 
-Plans:
-- [ ] TBD (run /gsd-plan-phase 21 to break down)
+Done inline 2026-05-13: added `orderedPair()` helper and `DetailJsonSection` component in `packages/ui/src/components/detail/DetailPanel.tsx`. The JSON tabpanel now renders two labelled sections (Request / Response) when `pairEvent` exists, sharing the single pretty/raw tab toggle. Unpaired events (notifications, pending requests, parse errors) still render a single section. New vitest assertion covers DOM ordering. 374/374 UI tests pass.
 
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
-*v1.2 opened 2026-05-10; last updated 2026-05-13 (phases 18–21 added)*
+*v1.2 opened 2026-05-10; last updated 2026-05-13 (phases 18–21 added; 18–21 completed inline)*

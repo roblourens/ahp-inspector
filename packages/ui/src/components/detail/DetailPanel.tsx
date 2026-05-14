@@ -15,7 +15,7 @@
  */
 
 import type { Status } from "@ahp-inspector/core";
-import type { AhpEvent } from "@ahp-inspector/shared";
+import type { AhpEvent, EventKind } from "@ahp-inspector/shared";
 import { Loader2 } from "lucide-react";
 import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "../../state/store.js";
@@ -39,6 +39,38 @@ interface LoadState {
   status: "idle" | "loading" | "error" | "ok";
   detail: DetailResponse | null;
   error: string | null;
+}
+
+const KIND_LABEL: Record<EventKind, string> = {
+  request: "Request",
+  response: "Response",
+  "client-notification": "Notification (client)",
+  "server-notification": "Notification (server)",
+  action: "Action",
+  "protocol-notification": "Notification",
+  log: "Log",
+  "parse-error": "Parse error",
+};
+
+/**
+ * Returns the (request, response) ordering when the selected event has a
+ * paired counterpart so we can render request-on-top, response-below
+ * regardless of which row the user clicked. Returns null when there's no
+ * pair to stack.
+ */
+function orderedPair(
+  selected: AhpEvent,
+  pair: AhpEvent | null,
+): { primary: AhpEvent; secondary: AhpEvent } | null {
+  if (!pair) return null;
+  if (selected.kind === "response" && pair.kind === "request") {
+    return { primary: pair, secondary: selected };
+  }
+  if (selected.kind === "request" && pair.kind === "response") {
+    return { primary: selected, secondary: pair };
+  }
+  // Any other paired combinations (rare): keep selected first.
+  return { primary: selected, secondary: pair };
 }
 
 interface DetailPanelProps {
@@ -410,13 +442,36 @@ export function DetailPanel({
           />
         </div>
 
-        {/* JSON view — natural height inside the shared scroller */}
+        {/* JSON view — natural height inside the shared scroller. When the
+            selected event has a paired counterpart we render request-on-top,
+            response-below regardless of which row the user clicked. */}
         <div role="tabpanel" style={{ display: "flex", flexDirection: "column" }}>
-          {activeTab === "pretty" ? (
-            <PrettyJsonView data={event.raw} onOpenRaw={() => setActiveTab("raw")} />
-          ) : (
-            <RawJsonView data={event.raw} />
-          )}
+          {(() => {
+            const ordered = orderedPair(event, pairEvent);
+            if (!ordered) {
+              return activeTab === "pretty" ? (
+                <PrettyJsonView data={event.raw} onOpenRaw={() => setActiveTab("raw")} />
+              ) : (
+                <RawJsonView data={event.raw} />
+              );
+            }
+            return (
+              <>
+                <DetailJsonSection
+                  label={KIND_LABEL[ordered.primary.kind]}
+                  data={ordered.primary.raw}
+                  activeTab={activeTab}
+                  onOpenRaw={() => setActiveTab("raw")}
+                />
+                <DetailJsonSection
+                  label={KIND_LABEL[ordered.secondary.kind]}
+                  data={ordered.secondary.raw}
+                  activeTab={activeTab}
+                  onOpenRaw={() => setActiveTab("raw")}
+                />
+              </>
+            );
+          })()}
         </div>
 
         {/* Privacy caption */}
@@ -428,5 +483,48 @@ export function DetailPanel({
         <CopyToast key={toast.message + Date.now()} message={toast.message} kind={toast.kind} />
       )}
     </aside>
+  );
+}
+
+interface DetailJsonSectionProps {
+  label: string;
+  data: unknown;
+  activeTab: "pretty" | "raw";
+  onOpenRaw: () => void;
+}
+
+function DetailJsonSection({
+  label,
+  data,
+  activeTab,
+  onOpenRaw,
+}: DetailJsonSectionProps): JSX.Element {
+  return (
+    <section
+      data-testid={`detail-json-section-${label.toLowerCase().replace(/\s+/g, "-")}`}
+      style={{ display: "flex", flexDirection: "column" }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          padding: "var(--space-2) var(--space-3)",
+          fontSize: "var(--text-ui-muted-size)",
+          fontFamily: "var(--font-sans)",
+          fontWeight: "var(--weight-semibold)",
+          color: "var(--color-text-muted)",
+          textTransform: "uppercase",
+          letterSpacing: "0.04em",
+          borderBottom: "1px solid var(--color-border)",
+          background: "var(--color-surface)",
+        }}
+      >
+        {label}
+      </h3>
+      {activeTab === "pretty" ? (
+        <PrettyJsonView data={data} onOpenRaw={onOpenRaw} />
+      ) : (
+        <RawJsonView data={data} />
+      )}
+    </section>
   );
 }

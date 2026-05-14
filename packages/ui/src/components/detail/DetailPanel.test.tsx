@@ -194,6 +194,28 @@ describe("DetailPanel — populated state", () => {
     expect(correlation).toHaveTextContent("id req-42 (string)");
     expect(correlation).toHaveTextContent("session sess-1");
     expect(correlation).toHaveTextContent("turn turn-1");
+
+    // Phase 21: when paired, JSON region renders both request and response
+    // sections (request on top, response below) regardless of which side
+    // was clicked.
+    const requestSection = screen.getByTestId("detail-json-section-request");
+    const responseSection = screen.getByTestId("detail-json-section-response");
+    expect(requestSection).toBeInTheDocument();
+    expect(responseSection).toBeInTheDocument();
+    expect(requestSection.compareDocumentPosition(responseSection)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+
+  it("renders only one JSON section when no pair is present", async () => {
+    vi.mocked(fetchEvent).mockResolvedValue(makeDetailResponse({ pair: null, pairIdx: null }));
+    useAppStore.setState({ selectedIdx: 0, rows: [makeRow()] });
+    render(<DetailPanel />);
+    await waitFor(() => {
+      expect(screen.getByTestId("detail-summary")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("detail-json-section-request")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("detail-json-section-response")).not.toBeInTheDocument();
   });
 
   it("does not render correlation metadata for unpaired details", async () => {
