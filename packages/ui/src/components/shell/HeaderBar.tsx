@@ -116,16 +116,6 @@ export function HeaderBar({ version }: HeaderBarProps): JSX.Element {
             }}
           >
             <Palette size={14} aria-hidden="true" />
-            <span
-              aria-hidden="true"
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: "var(--color-accent)",
-                boxShadow: "0 0 0 1px var(--color-border-strong)",
-              }}
-            />
             <ChevronDown
               size={12}
               aria-hidden="true"

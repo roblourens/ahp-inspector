@@ -67,7 +67,7 @@ Further v1.2 phases will be added as scope emerges. Lean milestone open — defe
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
 | v1.1 Reducer-backed State Snapshots | 9/9 | 29/29 | Shipped | 2026-05-10 |
-| v1.2 (in progress) | 4/7 | 9/10 | Phases 16–18 landed; Phase 15 manual UAT pending; Phases 19–21 queued | — |
+| v1.2 (in progress) | 5/7 | 9/10 | Phases 16–19 landed; Phase 15 manual UAT pending; Phases 20–21 queued | — |
 
 ## Next
 
@@ -111,15 +111,14 @@ Cross-cutting constraints:
 
 Done inline 2026-05-13: replaced `�` glyphs with 🚧, refreshed milestone bullet + footer date.
 
-### Phase 19: Remove colored dots from theme picker
+### Phase 19: Remove colored dots from theme picker ✅
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Drop the small accent-color swatch from the theme picker trigger button in `HeaderBar` so the control reads as a clean palette + chevron.
+**Requirements**: N/A (UI polish)
 **Depends on:** Phase 18
-**Plans:** 0 plans
+**Plans:** 0 plans (trivial inline fix)
 
-Plans:
-- [ ] TBD (run /gsd-plan-phase 19 to break down)
+Done inline 2026-05-13: removed the 8×8 `var(--color-accent)` swatch span from `HeaderBar.tsx`. UI tests still green (373/373).
 
 ### Phase 20: Discover logs in both .vscode-oss-dev and .vscode-oss-agents-dev roots
 
