@@ -1,5 +1,5 @@
 // usePersistEffect — Phase 4 Plan 06 Task 3.
-// Hydrates per-log prefs on snapshot-end; persists relevant store changes
+// Hydrates per-log prefs on explicit baseline completion; persists relevant store changes
 // (debounced 250ms) keyed by store.logKey. Quota errors disable persistence
 // for the rest of the session (D-17/D-18).
 //
@@ -48,14 +48,12 @@ export function usePersistEffect(): void {
     debounceTimer: ReturnType<typeof setTimeout> | null;
     pendingSaveLogKey: string | null;
     lastLogKey: string | null;
-    lastRowsLen: number;
   }>({
     hydratedFor: null,
     disabled: false,
     debounceTimer: null,
     pendingSaveLogKey: null,
     lastLogKey: null,
-    lastRowsLen: 0,
   });
 
   useEffect(() => {
@@ -87,6 +85,7 @@ export function usePersistEffect(): void {
     }
 
     function hydrate(logKey: string, rowsLen: number): void {
+      ref.hydratedFor = logKey;
       const stored = loadForLogKey(logKey);
       if (stored) {
         const s = useAppStore.getState();
@@ -105,16 +104,18 @@ export function usePersistEffect(): void {
           s.selectIdx(stored.selectedIdx);
         }
       }
-      ref.hydratedFor = logKey;
     }
 
-    // Initialize tracking from current state and hydrate if a snapshot is
-    // already present at mount time.
+    // Initialize tracking from current state and hydrate if baseline completion
+    // was already observed before this effect mounted.
     {
       const init = useAppStore.getState();
       ref.lastLogKey = init.logKey;
-      ref.lastRowsLen = init.rows.length;
-      if (init.logKey && init.rows.length > 0 && ref.hydratedFor !== init.logKey) {
+      if (
+        init.logKey &&
+        init.loadProgress.phase === "complete" &&
+        ref.hydratedFor !== init.logKey
+      ) {
         hydrate(init.logKey, init.rows.length);
       }
     }
@@ -144,14 +145,10 @@ export function usePersistEffect(): void {
       }
       ref.lastLogKey = currKey;
 
-      const rowsLen = curr.rows.length;
-      const prevLen = ref.lastRowsLen;
-      ref.lastRowsLen = rowsLen;
-
-      // Snapshot-end: rows transitioned 0 → N for the current logKey, not
-      // yet hydrated for this logKey.
-      if (currKey && rowsLen > 0 && prevLen === 0 && ref.hydratedFor !== currKey) {
-        hydrate(currKey, rowsLen);
+      // Progressive rows can arrive before the baseline is complete. Hydrate
+      // only after the explicit lifecycle reaches complete for this logKey.
+      if (currKey && curr.loadProgress.phase === "complete" && ref.hydratedFor !== currKey) {
+        hydrate(currKey, curr.rows.length);
         return;
       }
 
@@ -170,7 +167,8 @@ export function usePersistEffect(): void {
     });
 
     return () => {
-      if (ref.debounceTimer) clearTimeout(ref.debounceTimer);
+      if (ref.pendingSaveLogKey) flushSave(ref.pendingSaveLogKey);
+      else if (ref.debounceTimer) clearTimeout(ref.debounceTimer);
       unsub();
     };
   }, []);

@@ -19,6 +19,9 @@ interface FakeLogHandle extends LogHandle {
 
 interface FakeHost extends HostAdapter {
   push(text: string): void;
+  triggerInitialReadStart(info: { totalBytes: number }): void;
+  triggerInitialReadProgress(info: { loadedBytes: number; totalBytes: number }): void;
+  triggerInitialReadComplete(info: { loadedBytes: number; totalBytes: number }): void;
   /** Phase 4: directly invoke the active sink's onReset (if WatchSink). */
   triggerReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
   /** Phase 4: directly invoke the active sink's onError (if WatchSink). */
@@ -27,6 +30,9 @@ interface FakeHost extends HostAdapter {
 
 type WatchSinkObj = {
   onChunk(bytes: Uint8Array, byteOffset: number): void;
+  onInitialReadStart?(info: { totalBytes: number }): void;
+  onInitialReadProgress?(info: { loadedBytes: number; totalBytes: number }): void;
+  onInitialReadComplete?(info: { loadedBytes: number; totalBytes: number }): void;
   onReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
   onError(err: Error, fatal: boolean): void;
 };
@@ -62,6 +68,18 @@ function makeFakeHost(path: string): FakeHost {
       const bytes = encoder.encode(text);
       sink.onChunk(bytes, offset);
       offset += bytes.byteLength;
+    },
+    triggerInitialReadStart(info): void {
+      if (!sink) throw new Error("watchLog not subscribed");
+      sink.onInitialReadStart?.(info);
+    },
+    triggerInitialReadProgress(info): void {
+      if (!sink) throw new Error("watchLog not subscribed");
+      sink.onInitialReadProgress?.(info);
+    },
+    triggerInitialReadComplete(info): void {
+      if (!sink) throw new Error("watchLog not subscribed");
+      sink.onInitialReadComplete?.(info);
     },
     triggerReset(info): void {
       if (!sink) throw new Error("watchLog not subscribed");
@@ -223,6 +241,44 @@ describe("createAppState", () => {
     expect(firstRow.status).toBe("pending");
   });
 
+  it("emits trustworthy optional load-progress percentages from initial-read bytes", async () => {
+    const host = makeFakeHost("/private/tmp/progress.log");
+    state = await createAppState({ host, file: "/private/tmp/progress.log", flushIntervalMs: 0 });
+    const events: SsePayload[] = [];
+    state.subscribe((payload) => events.push(payload));
+
+    host.triggerInitialReadStart({ totalBytes: 100 });
+    host.push(initializeRequest());
+    host.triggerInitialReadProgress({ loadedBytes: 50, totalBytes: 100 });
+    host.triggerInitialReadComplete({ loadedBytes: 100, totalBytes: 100 });
+
+    const progress = events.filter((event) => event.kind === "load-progress");
+    expect(progress).toMatchObject([
+      { kind: "load-progress", phase: "loading", loadedRows: 0, loadedBytes: 0, totalBytes: 100, percent: 0 },
+      { kind: "load-progress", phase: "loading", loadedRows: 1, loadedBytes: 50, totalBytes: 100, percent: 50 },
+      { kind: "load-progress", phase: "complete", loadedRows: 1, loadedBytes: 100, totalBytes: 100, percent: 100 },
+    ]);
+    expect(state.snapshot().loadProgress).toMatchObject({ phase: "complete", percent: 100 });
+    expect(JSON.stringify(progress)).not.toContain("/private/tmp");
+  });
+
+  it("omits percentage when an empty initial read has no usable denominator", async () => {
+    const host = makeFakeHost("/tmp/empty.log");
+    state = await createAppState({ host, file: "/tmp/empty.log", flushIntervalMs: 0 });
+    const events: SsePayload[] = [];
+    state.subscribe((payload) => events.push(payload));
+
+    host.triggerInitialReadStart({ totalBytes: 0 });
+    host.triggerInitialReadComplete({ loadedBytes: 0, totalBytes: 0 });
+
+    const progress = events.filter((event) => event.kind === "load-progress");
+    expect(progress).toMatchObject([
+      { phase: "loading", loadedRows: 0, loadedBytes: 0, totalBytes: 0 },
+      { phase: "complete", loadedRows: 0, loadedBytes: 0, totalBytes: 0 },
+    ]);
+    for (const payload of progress) expect("percent" in payload).toBe(false);
+  });
+
   it("emits a patch when a late response pairs with an earlier request", async () => {
     const host = makeFakeHost("/tmp/x.log");
     state = await createAppState({
@@ -249,7 +305,7 @@ describe("createAppState", () => {
     const last = patches.at(-1);
     if (!last) throw new Error("expected patch payload");
     if (last.kind !== "patch") throw new Error("expected patch");
-    expect(last.updates.length).toBeGreaterThanOrEqual(1);
+    expect(last.updates.map((update) => update.idx)).toEqual([0]);
     const upd = last.updates.find((u) => u.idx === 0);
     if (!upd) throw new Error("expected patch update for row 0");
     expect(upd.status).toBe("ok");
@@ -261,6 +317,22 @@ describe("createAppState", () => {
     expect(rows[0]?.pairIdx).toBe(1);
     expect(rows[1]?.pairIdx).toBe(0);
     expect(rows[1]?.summary).toBe("doThing result ok=true");
+  });
+
+  it("patches only the displaced prior request during duplicate request churn", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({ host, file: "/tmp/x.log", flushIntervalMs: 0 });
+    const events: SsePayload[] = [];
+    state.subscribe((payload) => events.push(payload));
+
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "first", params: {} })}\n`);
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "unaffected", params: {} })}\n`);
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "replacement", params: {} })}\n`);
+
+    const patch = events.filter((event) => event.kind === "patch").at(-1);
+    if (!patch || patch.kind !== "patch") throw new Error("expected displaced-row patch");
+    expect(patch.updates).toMatchObject([{ idx: 0, status: "orphan" }]);
+    expect(patch.updates.map((update) => update.idx)).toEqual([0]);
   });
 
   it("flips a pending request to 'unmatched' on flush after the timeout", async () => {
@@ -294,6 +366,32 @@ describe("createAppState", () => {
     const unmatchedRow = state.snapshot().rows[0];
     if (!unmatchedRow) throw new Error("expected unmatched row");
     expect(unmatchedRow.status).toBe("unmatched");
+  });
+
+  it("keeps timeout patches bounded to the changed row after unaffected history", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/x.log",
+      flushIntervalMs: 0,
+      unmatchedTimeoutMs: 1,
+    });
+    const events: SsePayload[] = [];
+    state.subscribe((payload) => events.push(payload));
+
+    for (let idx = 0; idx < 20; idx++) {
+      host.push(`${JSON.stringify({ jsonrpc: "2.0", method: "notice", params: { idx } })}\n`);
+    }
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 99, method: "noReply", params: {} })}\n`);
+
+    state.runFlush(Number.MAX_SAFE_INTEGER);
+
+    const patches = events.filter((event) => event.kind === "patch");
+    const lastPatch = patches.at(-1);
+    if (!lastPatch || lastPatch.kind !== "patch") throw new Error("expected timeout patch");
+    expect(lastPatch.updates).toMatchObject([{ idx: 20, status: "unmatched" }]);
+    expect(lastPatch.updates).toHaveLength(1);
+    expectNoReplayFields(JSON.stringify(lastPatch.updates));
   });
 
   it("dispose() is idempotent and stops the watcher", async () => {

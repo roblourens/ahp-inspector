@@ -36,34 +36,17 @@ export function registerLogRoutes(app: Hono, sessions: LogSessionManager): void 
     return streamSSE(c, async (stream) => {
       const a: ActiveSession = initial;
 
-      // 1. Snapshot.
-      const snap = a.appState.snapshot();
-      await stream.writeSSE({
-        event: "snapshot-begin",
-        data: JSON.stringify({ meta: snap.meta, total: snap.rows.length }),
-      });
-      for (let i = 0; i < snap.rows.length; i += SNAPSHOT_CHUNK) {
-        if (stream.aborted || stream.closed) return;
-        const chunk = snap.rows.slice(i, i + SNAPSHOT_CHUNK);
-        await stream.writeSSE({
-          event: "snapshot-chunk",
-          data: JSON.stringify({ rows: chunk, from: i }),
-        });
-        // Yield so a huge baseline doesn't starve the event loop.
-        await stream.sleep(0);
-      }
-      if (stream.aborted || stream.closed) return;
-      await stream.writeSSE({ event: "snapshot-end", data: "{}" });
-
-      // 2. Live frames — fan out AppState payloads as SSE events.
       const queue: SsePayload[] = [];
+      let queueStart = 0;
       let pumping = false;
+      let snapshotStreaming = true;
+      const queuedFrameCount = (): number => queue.length - queueStart;
       const pump = async (): Promise<void> => {
-        if (pumping) return;
+        if (pumping || snapshotStreaming) return;
         pumping = true;
         try {
-          while (queue.length > 0 && !stream.aborted && !stream.closed) {
-            const msg = queue.shift();
+          while (queuedFrameCount() > 0 && !stream.aborted && !stream.closed) {
+            const msg = queue[queueStart++];
             if (!msg) break;
             try {
               await stream.writeSSE({ event: msg.kind, data: JSON.stringify(msg) });
@@ -72,6 +55,10 @@ export function registerLogRoutes(app: Hono, sessions: LogSessionManager): void 
             }
           }
         } finally {
+          if (queueStart === queue.length) {
+            queue.length = 0;
+            queueStart = 0;
+          }
           pumping = false;
         }
       };
@@ -79,6 +66,63 @@ export function registerLogRoutes(app: Hono, sessions: LogSessionManager): void 
         queue.push(msg);
         void pump();
       });
+
+      // 1. Snapshot.
+      const snap = a.appState.snapshot();
+      await stream.writeSSE({
+        event: "snapshot-begin",
+        data: JSON.stringify({ meta: snap.meta, total: snap.rows.length }),
+      });
+      for (let i = 0; i < snap.rows.length; i += SNAPSHOT_CHUNK) {
+        if (stream.aborted || stream.closed) {
+          off();
+          return;
+        }
+        const chunk = snap.rows.slice(i, i + SNAPSHOT_CHUNK);
+        await stream.writeSSE({
+          event: "snapshot-chunk",
+          data: JSON.stringify({ rows: chunk, from: i }),
+        });
+        // Yield so a huge baseline doesn't starve the event loop.
+        await stream.sleep(0);
+      }
+      if (stream.aborted || stream.closed) {
+        off();
+        return;
+      }
+      await stream.writeSSE({ event: "snapshot-end", data: "{}" });
+      if (snap.loadProgress.phase !== "idle") {
+        await stream.writeSSE({
+          event: snap.loadProgress.kind,
+          data: JSON.stringify(snap.loadProgress),
+        });
+      }
+      snapshotStreaming = false;
+      if (queuedFrameCount() > 0) {
+        const queuedRows = queue
+          .slice(queueStart)
+          .reduce((total, msg) => total + (msg.kind === "append" ? msg.rows.length : 0), 0);
+        const backlog: SsePayload = {
+          kind: "stream-backlog",
+          queuedFrames: queuedFrameCount(),
+          queuedRows,
+        };
+        await stream.writeSSE({ event: backlog.kind, data: JSON.stringify(backlog) });
+        await pump();
+        const clearedBacklog: SsePayload = {
+          kind: "stream-backlog",
+          queuedFrames: 0,
+          queuedRows: 0,
+        };
+        await stream.writeSSE({
+          event: clearedBacklog.kind,
+          data: JSON.stringify(clearedBacklog),
+        });
+      } else {
+        await pump();
+      }
+
+      // 2. Live frames — AppState payloads continue through the same queue.
 
       // 2b. Watch session transitions. On any onChange, emit log-reset and end.
       let endRequested = false;

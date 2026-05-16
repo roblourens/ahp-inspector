@@ -47,6 +47,8 @@ function resetStore(): void {
     livePaused: false,
     pendingBuffer: [],
     pendingNewCount: 0,
+    loadProgress: { phase: "idle", loadedRows: 0, loadedBytes: 0 },
+    streamBacklog: { queuedFrames: 0, queuedRows: 0 },
     logKey: null,
     rotationNotice: false,
     lastWatchError: null,
@@ -69,17 +71,26 @@ afterEach(() => {
 });
 
 describe("usePersistEffect — Plan 04-06 Task 3", () => {
-  it("snapshot-end with no stored prefs leaves store untouched", () => {
+  it("baseline complete with no stored prefs leaves store untouched", () => {
     renderHook(() => usePersistEffect());
     // Trigger snapshot-end: logKey set, rows populated.
     useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0), makeRow(1)] });
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 2,
+        loadedBytes: 20,
+        totalBytes: 20,
+        percent: 100,
+      },
+    });
     const s = useAppStore.getState();
     expect(s.searchQuery).toBe("");
     expect(s.grouping).toBe("none");
     expect(s.selectedIdx).toBeNull();
   });
 
-  it("snapshot-end with stored prefs applies filters/grouping/selectedIdx (in range)", () => {
+  it("baseline complete with stored prefs applies filters/grouping/selectedIdx in range", () => {
     persistenceModule.persistPerLogPrefs("lk-A", {
       v: 1,
       searchQuery: "hello",
@@ -103,6 +114,15 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
       logKey: "lk-A",
       rows: Array.from({ length: 10 }, (_, i) => makeRow(i)),
     });
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 10,
+        loadedBytes: 100,
+        totalBytes: 100,
+        percent: 100,
+      },
+    });
 
     const s = useAppStore.getState();
     expect(s.searchQuery).toBe("hello");
@@ -115,6 +135,44 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     expect(s.detailWidth).toBe(500);
     expect(s.selectedIdx).toBe(5);
     expect(Array.from(s.groupCollapsed).sort()).toEqual(["g1", "g2"]);
+  });
+
+  it("does not hydrate stored prefs for a partial progressive row before baseline completion", () => {
+    persistenceModule.persistPerLogPrefs("lk-partial", {
+      v: 1,
+      searchQuery: "wait-for-complete",
+      filters: EMPTY_FILTERS,
+      grouping: "session",
+      groupCollapsed: [],
+      selectedIdx: null,
+      detailWidth: 420,
+      livePaused: false,
+    });
+    renderHook(() => usePersistEffect());
+
+    useAppStore.setState({
+      logKey: "lk-partial",
+      rows: [makeRow(0)],
+      loadProgress: {
+        phase: "loading",
+        loadedRows: 1,
+        loadedBytes: 10,
+        totalBytes: 100,
+        percent: 10,
+      },
+    });
+    expect(useAppStore.getState().searchQuery).toBe("");
+
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 1,
+        loadedBytes: 100,
+        totalBytes: 100,
+        percent: 100,
+      },
+    });
+    expect(useAppStore.getState().searchQuery).toBe("wait-for-complete");
   });
 
   it("stored selectedIdx out of range is dropped", () => {
@@ -134,6 +192,15 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
       logKey: "lk-A",
       rows: Array.from({ length: 10 }, (_, i) => makeRow(i)),
     });
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 10,
+        loadedBytes: 100,
+        totalBytes: 100,
+        percent: 100,
+      },
+    });
 
     expect(useAppStore.getState().selectedIdx).toBeNull();
   });
@@ -144,6 +211,15 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
 
     // Establish snapshot for lk-A.
     useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0)] });
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 1,
+        loadedBytes: 10,
+        totalBytes: 10,
+        percent: 100,
+      },
+    });
     spy.mockClear();
 
     // Mutate something persistable.
@@ -160,18 +236,55 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     expect(spy.mock.calls[0]?.[1].searchQuery).toBe("query-1");
   });
 
+  it("flushes an accepted pending debounced save when the persistence effect unmounts", () => {
+    const spy = vi.spyOn(persistenceModule, "persistPerLogPrefs");
+    const hook = renderHook(() => usePersistEffect());
+
+    useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0)] });
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 1,
+        loadedBytes: 10,
+        totalBytes: 10,
+        percent: 100,
+      },
+    });
+    spy.mockClear();
+    useAppStore.getState().setSearchQuery("flush-on-unmount");
+
+    hook.unmount();
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls[0]?.[0]).toBe("lk-A");
+    expect(spy.mock.calls[0]?.[1].searchQuery).toBe("flush-on-unmount");
+  });
+
   it("switching logKey flushes prior log's prefs synchronously before subscribing for new log", () => {
     const spy = vi.spyOn(persistenceModule, "persistPerLogPrefs");
     renderHook(() => usePersistEffect());
 
     // Snapshot for A, mutate, but don't yet flush debounce.
     useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0)] });
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 1,
+        loadedBytes: 10,
+        totalBytes: 10,
+        percent: 100,
+      },
+    });
     spy.mockClear();
     useAppStore.getState().setSearchQuery("a-query");
     expect(spy).not.toHaveBeenCalled();
 
     // Now switch to logKey B (resetForLogSwitch-style).
-    useAppStore.setState({ logKey: "lk-B", rows: [] });
+    useAppStore.setState({
+      logKey: "lk-B",
+      rows: [],
+      loadProgress: { phase: "idle", loadedRows: 0, loadedBytes: 0 },
+    });
 
     // Old logKey A's pending save must have flushed synchronously.
     expect(spy).toHaveBeenCalled();
@@ -185,13 +298,26 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
 
     // Hydrate lk-A with active filters/search/grouping.
     useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0)] });
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 1,
+        loadedBytes: 10,
+        totalBytes: 10,
+        percent: 100,
+      },
+    });
     useAppStore.getState().setFilters({ ...EMPTY_FILTERS, direction: ["c2s"] });
     useAppStore.getState().setSearchQuery("alpha");
     useAppStore.getState().setGrouping("session");
     useAppStore.setState({ groupCollapsed: new Set(["g1"]) });
 
     // Switch to lk-B which has no stored prefs.
-    useAppStore.setState({ logKey: "lk-B", rows: [] });
+    useAppStore.setState({
+      logKey: "lk-B",
+      rows: [],
+      loadProgress: { phase: "idle", loadedRows: 0, loadedBytes: 0 },
+    });
 
     const s = useAppStore.getState();
     expect(s.filters).toEqual(EMPTY_FILTERS);
@@ -217,15 +343,37 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
 
     // Active state on lk-A.
     useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0)] });
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 1,
+        loadedBytes: 10,
+        totalBytes: 10,
+        percent: 100,
+      },
+    });
     useAppStore.getState().setSearchQuery("from-A");
     useAppStore.getState().setGrouping("session");
 
     // Switch to lk-B (filters first reset, then hydrate on snapshot-end).
-    useAppStore.setState({ logKey: "lk-B", rows: [] });
+    useAppStore.setState({
+      logKey: "lk-B",
+      rows: [],
+      loadProgress: { phase: "idle", loadedRows: 0, loadedBytes: 0 },
+    });
     expect(useAppStore.getState().searchQuery).toBe("");
 
-    // Snapshot-end on lk-B: stored prefs hydrate.
+    // Baseline complete on lk-B: stored prefs hydrate.
     useAppStore.setState({ rows: Array.from({ length: 3 }, (_, i) => makeRow(i)) });
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 3,
+        loadedBytes: 30,
+        totalBytes: 30,
+        percent: 100,
+      },
+    });
     const s = useAppStore.getState();
     expect(s.searchQuery).toBe("from-B");
     expect(s.grouping).toBe("session+turn");
@@ -241,6 +389,15 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
 
     renderHook(() => usePersistEffect());
     useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0)] });
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 1,
+        loadedBytes: 10,
+        totalBytes: 10,
+        percent: 100,
+      },
+    });
 
     useAppStore.getState().setSearchQuery("first");
     vi.advanceTimersByTime(300);
@@ -257,6 +414,15 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     renderHook(() => usePersistEffect());
 
     useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0)] });
+    useAppStore.setState({
+      loadProgress: {
+        phase: "complete",
+        loadedRows: 1,
+        loadedBytes: 10,
+        totalBytes: 10,
+        percent: 100,
+      },
+    });
     spy.mockClear();
 
     const big = new Set<string>();

@@ -32,11 +32,15 @@ function fakeSessions(appState: AppState): LogSessionManager {
 
 interface FakeHost extends HostAdapter {
   push(text: string): void;
+  triggerInitialReadProgress(info: { loadedBytes: number; totalBytes: number }): void;
+  triggerInitialReadComplete(info: { loadedBytes: number; totalBytes: number }): void;
 }
 
 function makeFakeHost(path: string): FakeHost {
   type WatchSinkObj = {
     onChunk(bytes: Uint8Array, byteOffset: number): void;
+    onInitialReadProgress?(info: { loadedBytes: number; totalBytes: number }): void;
+    onInitialReadComplete?(info: { loadedBytes: number; totalBytes: number }): void;
     onReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
     onError(err: Error, fatal: boolean): void;
   };
@@ -68,6 +72,14 @@ function makeFakeHost(path: string): FakeHost {
       const bytes = new TextEncoder().encode(text);
       sink.onChunk(bytes, offset);
       offset += bytes.byteLength;
+    },
+    triggerInitialReadProgress(info) {
+      if (!sink) throw new Error("watchLog not subscribed");
+      sink.onInitialReadProgress?.(info);
+    },
+    triggerInitialReadComplete(info) {
+      if (!sink) throw new Error("watchLog not subscribed");
+      sink.onInitialReadComplete?.(info);
     },
   };
 }
@@ -347,8 +359,79 @@ describe("SSE log stream", () => {
     );
     const append = await c.next();
     expect(append.event).toBe("append");
-    const appendPayload = JSON.parse(append.data) as { row: unknown };
-    expectNoReplayFieldsInRows([appendPayload.row]);
+    const appendPayload = JSON.parse(append.data) as { rows: readonly unknown[]; from: number };
+    expectNoReplayFieldsInRows(appendPayload.rows);
+  });
+
+  it("preserves progress and append frames queued during snapshot streaming with backlog metadata", async () => {
+    const host = makeFakeHost("/tmp/progressive-stream.log");
+    appState = await createAppState({
+      host,
+      file: "/tmp/progressive-stream.log",
+      flushIntervalMs: 0,
+      directionInference: inferDir,
+    });
+    for (let idx = 0; idx < 4_100; idx++) {
+      host.push(`${JSON.stringify({ jsonrpc: "2.0", method: "seed", params: { idx } })}\n`);
+    }
+
+    handle = await startLogServer({ sessions: fakeSessions(appState), port: 0, version: "0.1.0" });
+    const c = await openSseClient({
+      port: handle.port,
+      path: "/api/log/stream",
+      hostHeader: `127.0.0.1:${handle.port}`,
+    });
+    client = c;
+
+    host.triggerInitialReadProgress({ loadedBytes: 50, totalBytes: 100 });
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 99, method: "queued-during-snapshot" })}\n`);
+
+    let frame = await c.next();
+    expect(frame.event).toBe("snapshot-begin");
+    while (frame.event !== "snapshot-end") frame = await c.next();
+
+    const afterSnapshot = [await c.next(), await c.next(), await c.next()];
+    const backlog = afterSnapshot.find((candidate) => candidate.event === "stream-backlog");
+    const progress = afterSnapshot.find((candidate) => candidate.event === "load-progress");
+    const append = afterSnapshot.find((candidate) => candidate.event === "append");
+    expect(backlog?.data).toContain('"queuedFrames"');
+    expect(progress?.data).toContain('"percent":50');
+    expect(append?.data).toContain("queued-during-snapshot");
+    for (const queued of afterSnapshot) {
+      expect(queued.data).not.toContain("/tmp/progressive-stream.log");
+    }
+    const clearedBacklog = await c.next();
+    expect(clearedBacklog.event).toBe("stream-backlog");
+    expect(clearedBacklog.data).toContain('"queuedFrames":0');
+    expect(clearedBacklog.data).toContain('"queuedRows":0');
+  });
+
+  it("replays completed baseline progress to clients that subscribe after initial read finishes", async () => {
+    const host = makeFakeHost("/tmp/completed-progress.log");
+    appState = await createAppState({
+      host,
+      file: "/tmp/completed-progress.log",
+      flushIntervalMs: 0,
+      directionInference: inferDir,
+    });
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize" })}\n`);
+    host.triggerInitialReadComplete({ loadedBytes: 100, totalBytes: 100 });
+
+    handle = await startLogServer({ sessions: fakeSessions(appState), port: 0, version: "0.1.0" });
+    const c = await openSseClient({
+      port: handle.port,
+      path: "/api/log/stream",
+      hostHeader: `127.0.0.1:${handle.port}`,
+    });
+    client = c;
+
+    let frame = await c.next();
+    expect(frame.event).toBe("snapshot-begin");
+    while (frame.event !== "snapshot-end") frame = await c.next();
+    const progress = await c.next();
+    expect(progress.event).toBe("load-progress");
+    expect(progress.data).toContain('"phase":"complete"');
+    expect(progress.data).toContain('"percent":100');
   });
 });
 

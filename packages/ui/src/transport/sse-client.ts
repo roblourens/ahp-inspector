@@ -2,8 +2,8 @@
 // Zustand store. Maps each SSE event kind to one store mutation.
 //
 // Frame contract is defined by packages/server/src/app-state.ts SsePayload.
-// Snapshot rows are buffered locally until `snapshot-end` so the store sees
-// a single setRows() call (avoids transient flicker for large baselines).
+// Streamed row/progress frames drain in scheduled batches so snapshots become
+// visible progressively without forcing one store write per transport frame.
 //
 // T-02-06-02: graceful `bye` closes the EventSource and prevents browser
 // auto-reconnect storms. Before the first snapshot, transient `onerror` keeps
@@ -40,6 +40,27 @@ interface PatchPayload {
     pairIdx?: number | null;
   }>;
 }
+interface LoadProgressPayload {
+  phase: "idle" | "loading" | "complete";
+  loadedRows: number;
+  loadedBytes: number;
+  totalBytes?: number;
+  percent?: number;
+}
+interface StreamBacklogPayload {
+  queuedFrames: number;
+  queuedRows: number;
+}
+
+type QueuedFrame =
+  | { kind: "snapshot-chunk"; payload: SnapshotChunkPayload }
+  | { kind: "snapshot-end" }
+  | { kind: "append"; payload: AppendPayload }
+  | { kind: "patch"; payload: PatchPayload }
+  | { kind: "load-progress"; payload: LoadProgressPayload }
+  | { kind: "stream-backlog"; payload: StreamBacklogPayload };
+
+const MAX_DRAIN_FRAMES = 50;
 
 export interface ConnectOpts {
   /** Override stream URL. Default `/api/log/stream`. */
@@ -59,16 +80,69 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   useAppStore.getState().setConnection("connecting");
 
   const es = new Ctor(url);
-  let snapshotRows: EventRow[] = [];
+  const queuedFrames: QueuedFrame[] = [];
+  let queuedFrameStart = 0;
+  let drainScheduled = false;
+  let drainGeneration = 0;
   let graceful = false;
   let closedByCaller = false;
   let hasConnected = false;
 
+  const clearQueuedFrames = (): void => {
+    queuedFrames.length = 0;
+    queuedFrameStart = 0;
+    drainScheduled = false;
+    drainGeneration += 1;
+  };
+  const drainFrames = (): void => {
+    drainScheduled = false;
+    const store = useAppStore.getState();
+    let drained = 0;
+    while (drained < MAX_DRAIN_FRAMES && queuedFrameStart < queuedFrames.length) {
+      const frame = queuedFrames[queuedFrameStart++];
+      if (!frame) continue;
+      drained += 1;
+      if (frame.kind === "snapshot-chunk")
+        store.appendSnapshotRows(frame.payload.rows, frame.payload.from);
+      else if (frame.kind === "snapshot-end") {
+        hasConnected = true;
+        store.setConnection("connected");
+      } else if (frame.kind === "append") store.appendRows(frame.payload.rows, frame.payload.from);
+      else if (frame.kind === "patch") store.applyPatch(frame.payload.updates);
+      else if (frame.kind === "load-progress") store.setLoadProgress(frame.payload);
+      else store.setStreamBacklog(frame.payload);
+    }
+    if (queuedFrameStart === queuedFrames.length) {
+      queuedFrames.length = 0;
+      queuedFrameStart = 0;
+    }
+    if (queuedFrameStart < queuedFrames.length) scheduleDrain();
+  };
+  const scheduleDrain = (): void => {
+    if (drainScheduled || graceful || closedByCaller) return;
+    drainScheduled = true;
+    const generation = drainGeneration;
+    const run = (): void => {
+      if (generation !== drainGeneration || graceful || closedByCaller) return;
+      drainFrames();
+    };
+    if (typeof globalThis.requestAnimationFrame === "function") {
+      globalThis.requestAnimationFrame(() => run());
+    } else {
+      queueMicrotask(run);
+    }
+  };
+  const enqueue = (frame: QueuedFrame): void => {
+    queuedFrames.push(frame);
+    scheduleDrain();
+  };
+
   const onSnapshotBegin = (ev: Event): void => {
     try {
       const data = JSON.parse((ev as MessageEvent).data) as SnapshotBeginPayload;
-      snapshotRows = [];
+      clearQueuedFrames();
       const store = useAppStore.getState();
+      store.setRows([]);
       store.setMeta({
         filename: data.meta.filename,
         eventCount: 0,
@@ -84,21 +158,18 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   const onSnapshotChunk = (ev: Event): void => {
     try {
       const data = JSON.parse((ev as MessageEvent).data) as SnapshotChunkPayload;
-      snapshotRows = snapshotRows.concat(data.rows);
+      enqueue({ kind: "snapshot-chunk", payload: data });
     } catch {
       /* ignore */
     }
   };
   const onSnapshotEnd = (): void => {
-    useAppStore.getState().setRows(snapshotRows);
-    snapshotRows = [];
-    hasConnected = true;
-    useAppStore.getState().setConnection("connected");
+    enqueue({ kind: "snapshot-end" });
   };
   const onAppend = (ev: Event): void => {
     try {
       const data = JSON.parse((ev as MessageEvent).data) as AppendPayload;
-      useAppStore.getState().appendRows(data.rows, data.from);
+      enqueue({ kind: "append", payload: data });
     } catch {
       /* ignore */
     }
@@ -106,7 +177,27 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   const onPatch = (ev: Event): void => {
     try {
       const data = JSON.parse((ev as MessageEvent).data) as PatchPayload;
-      useAppStore.getState().applyPatch(data.updates);
+      enqueue({ kind: "patch", payload: data });
+    } catch {
+      /* ignore */
+    }
+  };
+  const onLoadProgress = (ev: Event): void => {
+    try {
+      enqueue({
+        kind: "load-progress",
+        payload: JSON.parse((ev as MessageEvent).data) as LoadProgressPayload,
+      });
+    } catch {
+      /* ignore */
+    }
+  };
+  const onStreamBacklog = (ev: Event): void => {
+    try {
+      enqueue({
+        kind: "stream-backlog",
+        payload: JSON.parse((ev as MessageEvent).data) as StreamBacklogPayload,
+      });
     } catch {
       /* ignore */
     }
@@ -117,7 +208,7 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   const onRotation = (): void => {
     useAppStore.getState().setRotationNotice(true);
     useAppStore.getState().resetForRotation();
-    snapshotRows = [];
+    clearQueuedFrames();
   };
   const onWatchError = (ev: Event): void => {
     try {
@@ -136,7 +227,7 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   };
   const onLogReset = (): void => {
     useAppStore.getState().resetForLogSwitch();
-    snapshotRows = [];
+    clearQueuedFrames();
   };
   const onBye = (): void => {
     if (closedByCaller) return;
@@ -165,6 +256,8 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   es.addEventListener("snapshot-end", onSnapshotEnd);
   es.addEventListener("append", onAppend);
   es.addEventListener("patch", onPatch);
+  es.addEventListener("load-progress", onLoadProgress);
+  es.addEventListener("stream-backlog", onStreamBacklog);
   es.addEventListener("ping", onPing);
   es.addEventListener("rotation", onRotation);
   es.addEventListener("watch-error", onWatchError);
@@ -176,6 +269,7 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
     close: () => {
       closedByCaller = true;
       graceful = true;
+      clearQueuedFrames();
       try {
         es.close();
       } catch {

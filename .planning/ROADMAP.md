@@ -138,6 +138,30 @@ Done inline 2026-05-13: extracted `ossDevRoots` array in `defaultRoots()` and ad
 
 Done inline 2026-05-13: added `orderedPair()` helper and `DetailJsonSection` component in `packages/ui/src/components/detail/DetailPanel.tsx`. The JSON tabpanel now renders two labelled sections (Request / Response) when `pairEvent` exists, sharing the single pretty/raw tab toggle. Unpaired events (notifications, pending requests, parse errors) still render a single section. New vitest assertion covers DOM ordering. 374/374 UI tests pass.
 
+### Phase 22: Improve large-log loading and high-throughput live tail performance
+
+**Goal:** Make large JSONL logs useful sooner and keep live-tail inspection responsive under append bursts through targeted patch locality, truthful progressive-load progress, bounded browser publication, and visible compact backlog state.
+**Requirements**: TBD
+**Depends on:** Phase 21
+**Plans:** 6/6 plans complete
+
+Plans:
+**Wave 1**
+- [x] 22-01-PLAN.md — Expose correlator changed-index locality for targeted metadata patching
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 22-02-PLAN.md — Replace AppState historical patch rescans with changed-index projection
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 22-03-PLAN.md — Carry truthful baseline progress and SSE backlog frames end to end
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 22-04-PLAN.md — Publish progressive rows and batched live updates through the browser store/client
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 22-05-PLAN.md — Render trustworthy loading status and compact transport backlog cues
+- [x] 22-06-PLAN.md — Preserve persistence hydration timing and stable viewport/tail-follow behavior
+
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
 *v1.2 opened 2026-05-10; last updated 2026-05-13 (phases 18–21 added; 18–21 completed inline)*

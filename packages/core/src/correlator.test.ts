@@ -104,6 +104,32 @@ describe("Correlator", () => {
     expect(c.statusOf(r)).toBe("ok");
   });
 
+  it("drains changed indexes for a late response once", () => {
+    const s = new EventStore();
+    const c = new Correlator(s);
+    const r = s.append(req(0, 100));
+    c.drainChangedIndexes();
+
+    const p = s.append(res(1, 130));
+
+    expect(c.drainChangedIndexes()).toEqual([r, p]);
+    expect(c.drainChangedIndexes()).toEqual([]);
+  });
+
+  it("drains displaced request changes without duplicating indexes", () => {
+    const s = new EventStore();
+    const c = new Correlator(s);
+    const displaced = s.append(req(0, 100));
+    c.drainChangedIndexes();
+
+    const replacement = s.append(req(1, 110, { method: "replacement" }));
+    const changed = c.drainChangedIndexes();
+
+    expect(changed).toEqual([displaced, replacement]);
+    expect(changed.filter((idx) => idx === displaced)).toHaveLength(1);
+    expect(c.drainChangedIndexes()).toEqual([]);
+  });
+
   it("notifications/actions/protocol-notifications/parse-errors NEVER touch correlation map", () => {
     const s = new EventStore();
     const c = new Correlator(s);
@@ -132,6 +158,30 @@ describe("Correlator", () => {
     expect(c.statusOf(r)).toBe("pending");
     c.flush(1000 + 31_000);
     expect(c.statusOf(r)).toBe("unmatched");
+  });
+
+  it("flush drains only changed timeout indexes and does not repeat them", () => {
+    const s = new EventStore();
+    const c = new Correlator(s);
+    const expired = s.append(req(0, 1000));
+    s.append(req(1, 31_500, { id: 2 }));
+    c.drainChangedIndexes();
+
+    c.flush(32_000);
+
+    expect(c.drainChangedIndexes()).toEqual([expired]);
+    c.flush(32_000);
+    expect(c.drainChangedIndexes()).toEqual([]);
+  });
+
+  it("reset clears pending changed indexes", () => {
+    const s = new EventStore();
+    const c = new Correlator(s);
+    s.append(req(0, 100));
+
+    c.reset();
+
+    expect(c.drainChangedIndexes()).toEqual([]);
   });
 
   it("dispose unsubscribes from store", () => {

@@ -49,6 +49,15 @@ export type SsePayload =
   | { kind: "snapshot-end" }
   | { kind: "append"; rows: EventRow[]; from: number }
   | {
+      kind: "load-progress";
+      phase: "idle" | "loading" | "complete";
+      loadedRows: number;
+      loadedBytes: number;
+      totalBytes?: number;
+      percent?: number;
+    }
+  | { kind: "stream-backlog"; queuedFrames: number; queuedRows: number }
+  | {
       kind: "patch";
       updates: Array<{
         idx: number;
@@ -65,6 +74,9 @@ export type SsePayload =
   | { kind: "rotation"; newSize: number; reason: "shrink" | "rename" }
   | { kind: "watch-error"; code: "read-error" | "watch-fatal"; message: string }
   | { kind: "log-reset" };
+
+type PatchUpdate = Extract<SsePayload, { kind: "patch" }>["updates"][number];
+type LoadProgressPayload = Extract<SsePayload, { kind: "load-progress" }>;
 
 export type Listener = (payload: SsePayload) => void;
 
@@ -100,7 +112,7 @@ export interface AppStateOptions {
 export interface AppState {
   readonly meta: LogMeta;
   readonly searchIndex: SearchIndex;
-  snapshot(): { meta: LogMeta; rows: EventRow[] };
+  snapshot(): { meta: LogMeta; rows: EventRow[]; loadProgress: LoadProgressPayload };
   subscribe(listener: Listener): () => void;
   /**
    * Manually drive the unmatched-timeout flush. Used by tests when
@@ -151,6 +163,9 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
 
   let seq = 0;
   let byteOffset = 0;
+  let initialReadLoadedBytes = 0;
+  let initialReadTotalBytes: number | undefined;
+  let initialReadPhase: LoadProgressPayload["phase"] = "idle";
 
   function emit(payload: SsePayload): void {
     for (const l of listeners) {
@@ -160,6 +175,27 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
         /* never let a bad listener block ingest */
       }
     }
+  }
+
+  function currentLoadProgress(phase = initialReadPhase): LoadProgressPayload {
+    const totalBytes = initialReadTotalBytes;
+    const percent =
+      totalBytes !== undefined && totalBytes > 0
+        ? Math.min(100, Math.round((initialReadLoadedBytes / totalBytes) * 100))
+        : undefined;
+    return {
+      kind: "load-progress",
+      phase,
+      loadedRows: rows.length,
+      loadedBytes: initialReadLoadedBytes,
+      ...(totalBytes !== undefined ? { totalBytes } : {}),
+      ...(percent !== undefined ? { percent } : {}),
+    };
+  }
+
+  function emitLoadProgress(phase: LoadProgressPayload["phase"]): void {
+    initialReadPhase = phase;
+    emit(currentLoadProgress());
   }
 
   let lastSeenServerSeq: number | null = null;
@@ -204,6 +240,31 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     return projectRow(ev, idx, status, latency, extras, pairMethod);
   }
 
+  function buildPatchUpdates(indexes: Iterable<number>): PatchUpdate[] {
+    const updates: PatchUpdate[] = [];
+    for (const idx of indexes) {
+      const prev = rows[idx];
+      if (!prev) continue;
+      const status = correlator.statusOf(idx);
+      const latencyMs = correlator.latencyOf(idx);
+      const pairIdx = correlator.pairOf(idx);
+      if (prev.status === status && prev.latencyMs === latencyMs && prev.pairIdx === pairIdx) {
+        continue;
+      }
+      const latencyBand = bandFor(latencyMs);
+      rows[idx] = { ...prev, status, latencyMs, latencyBand, pairIdx };
+      updates.push({
+        idx,
+        status,
+        latencyMs,
+        latencyBand,
+        ...(prev.summary !== undefined ? { summary: prev.summary } : {}),
+        pairIdx,
+      });
+    }
+    return updates;
+  }
+
   // Subscribe AFTER the Correlator so the correlator updates first and our
   // status/latency reads reflect the just-paired state.
   const offStore = store.subscribe((range) => {
@@ -219,41 +280,33 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
         if (ev) searchIdx.append(ev);
       }
     }
-    // 2. Detect retroactive patches: any earlier row whose status/latency
-    //    changed (e.g. pending → ok when a response paired the request).
-    const updates: Array<{
-      idx: number;
-      status: Status;
-      latencyMs: number | null;
-      latencyBand: LatencyBand | null;
-      summary?: string;
-      pairIdx: number | null;
-    }> = [];
-    for (let i = 0; i < range.from; i++) {
-      const prev = rows[i];
-      if (!prev) continue;
-      const status = correlator.statusOf(i);
-      const latencyMs = correlator.latencyOf(i);
-      const pairIdx = correlator.pairOf(i);
-      if (prev.status !== status || prev.latencyMs !== latencyMs || prev.pairIdx !== pairIdx) {
-        const latencyBand = bandFor(latencyMs);
-        rows[i] = { ...prev, status, latencyMs, latencyBand, pairIdx };
-        updates.push({
-          idx: i,
-          status,
-          latencyMs,
-          latencyBand,
-          ...(prev.summary !== undefined ? { summary: prev.summary } : {}),
-          pairIdx,
-        });
-      }
-    }
+    // 2. Retroactive patches are limited to pre-existing rows. New append rows
+    //    were already built from the correlator's latest metadata above.
+    const changedIndexes = correlator
+      .drainChangedIndexes()
+      .filter((idx) => idx < range.from);
+    const updates = buildPatchUpdates(changedIndexes);
     if (newRows.length > 0) emit({ kind: "append", rows: newRows, from: range.from });
     if (updates.length > 0) emit({ kind: "patch", updates });
   });
 
   // Ingest loop.
   const watcher = opts.host.watchLog(handle, {
+    onInitialReadStart(info) {
+      initialReadLoadedBytes = 0;
+      initialReadTotalBytes = info.totalBytes;
+      emitLoadProgress("loading");
+    },
+    onInitialReadProgress(info) {
+      initialReadLoadedBytes = info.loadedBytes;
+      initialReadTotalBytes = info.totalBytes;
+      emitLoadProgress("loading");
+    },
+    onInitialReadComplete(info) {
+      initialReadLoadedBytes = info.loadedBytes;
+      initialReadTotalBytes = info.totalBytes;
+      emitLoadProgress("complete");
+    },
     onChunk(chunk: Uint8Array, _byteOffset: number) {
       const text = decoder.decode(chunk, { stream: true });
       // Detect CRLF vs LF so byteOffset stays byte-accurate for Windows logs.
@@ -304,6 +357,9 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       rows.length = 0;
       searchIdx.reset();
       lastSeenServerSeq = null;
+      initialReadLoadedBytes = 0;
+      initialReadTotalBytes = undefined;
+      emitLoadProgress("idle");
       emit({ kind: "rotation", newSize: info.newSize, reason: info.reason });
     },
     onError(err, fatal) {
@@ -318,33 +374,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   function runFlush(nowMs?: number): void {
     const now = nowMs ?? Date.now();
     correlator.flush(now, unmatchedTimeoutMs);
-    const updates: Array<{
-      idx: number;
-      status: Status;
-      latencyMs: number | null;
-      latencyBand: LatencyBand | null;
-      summary?: string;
-      pairIdx: number | null;
-    }> = [];
-    for (let i = 0; i < store.size(); i++) {
-      const prev = rows[i];
-      if (!prev) continue;
-      const status = correlator.statusOf(i);
-      const latencyMs = correlator.latencyOf(i);
-      const pairIdx = correlator.pairOf(i);
-      if (prev.status !== status || prev.latencyMs !== latencyMs || prev.pairIdx !== pairIdx) {
-        const latencyBand = bandFor(latencyMs);
-        rows[i] = { ...prev, status, latencyMs, latencyBand, pairIdx };
-        updates.push({
-          idx: i,
-          status,
-          latencyMs,
-          latencyBand,
-          ...(prev.summary !== undefined ? { summary: prev.summary } : {}),
-          pairIdx,
-        });
-      }
-    }
+    const updates = buildPatchUpdates(correlator.drainChangedIndexes());
     if (updates.length > 0) emit({ kind: "patch", updates });
   }
 
@@ -357,7 +387,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     meta,
     searchIndex: searchIdx,
     snapshot() {
-      return { meta, rows: rows.slice() };
+      return { meta, rows: rows.slice(), loadProgress: currentLoadProgress() };
     },
     subscribe(l) {
       listeners.add(l);

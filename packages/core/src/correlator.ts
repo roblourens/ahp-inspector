@@ -21,6 +21,7 @@ export class Correlator {
   readonly #store: EventStore;
   readonly #pendingRequests = new Map<CorrelationKey, number>();
   readonly #pendingResponses = new Map<CorrelationKey, number>();
+  readonly #changedIndexes = new Set<number>();
   readonly #unsubscribe: () => void;
 
   readonly pairIdx: number[] = [];
@@ -46,6 +47,12 @@ export class Correlator {
     return this.status[idx] ?? "n/a";
   }
 
+  drainChangedIndexes(): number[] {
+    const indexes = [...this.#changedIndexes];
+    this.#changedIndexes.clear();
+    return indexes;
+  }
+
   /**
    * Advance time. Any request still pending older than `timeoutMs` becomes
    * 'unmatched'. Cheap O(pendingRequests).
@@ -55,6 +62,7 @@ export class Correlator {
       const ts = this.#store.ts[idx];
       if (ts !== undefined && nowMs - ts >= timeoutMs) {
         this.status[idx] = "unmatched";
+        this.#changedIndexes.add(idx);
         this.#pendingRequests.delete(key);
       }
     }
@@ -68,6 +76,7 @@ export class Correlator {
   reset(): void {
     this.#pendingRequests.clear();
     this.#pendingResponses.clear();
+    this.#changedIndexes.clear();
     this.pairIdx.length = 0;
     this.latencyMs.length = 0;
     this.status.length = 0;
@@ -109,9 +118,11 @@ export class Correlator {
     const displaced = this.#pendingRequests.get(key);
     if (displaced !== undefined) {
       this.status[displaced] = "orphan";
+      this.#changedIndexes.add(displaced);
     }
     this.#pendingRequests.set(key, idx);
     this.status[idx] = "pending";
+    this.#changedIndexes.add(idx);
   }
 
   #onResponse(idx: number, ev: AhpEvent): void {
@@ -127,6 +138,7 @@ export class Correlator {
     const displaced = this.#pendingResponses.get(key);
     if (displaced !== undefined) {
       this.status[displaced] = "orphan";
+      this.#changedIndexes.add(displaced);
     }
     this.#pendingResponses.set(key, idx);
   }
@@ -142,6 +154,8 @@ export class Correlator {
     const s: Status = isError ? "error" : "ok";
     this.status[reqIdx] = s;
     this.status[respIdx] = s;
+    this.#changedIndexes.add(reqIdx);
+    this.#changedIndexes.add(respIdx);
   }
 }
 

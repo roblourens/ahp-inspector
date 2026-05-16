@@ -13,6 +13,7 @@ import { useAppStore } from "../../state/store.js";
 import { connectLogStream } from "../../transport/sse-client.js";
 import { RotationBanner } from "../banners/RotationBanner.js";
 import { NewEventsPill } from "../shell/NewEventsPill.js";
+import { StreamBacklogPill } from "../shell/StreamBacklogPill.js";
 import { DisconnectedBanner } from "../states/DisconnectedBanner.js";
 import { EmptyState } from "../states/EmptyState.js";
 import { LoadingState } from "../states/LoadingState.js";
@@ -52,6 +53,8 @@ export function TimelineRegion({
   const rows = useAppStore((s) => s.rows);
   const connection = useAppStore((s) => s.connection);
   const meta = useAppStore((s) => s.meta);
+  const loadProgress = useAppStore((s) => s.loadProgress);
+  const streamBacklog = useAppStore((s) => s.streamBacklog);
   const selectedIdx = useAppStore((s) => s.selectedIdx);
   const select = useAppStore((s) => s.selectIdx);
   const clear = useAppStore((s) => s.clearSelection);
@@ -231,7 +234,7 @@ export function TimelineRegion({
   ]);
 
   if (connection === "connecting" && rows.length === 0) {
-    return <LoadingState filename={meta?.filename ?? ""} />;
+    return <LoadingState filename={meta?.filename ?? ""} progress={loadProgress} />;
   }
   if (connection === "connected" && rows.length === 0) {
     return <EmptyState />;
@@ -262,6 +265,16 @@ export function TimelineRegion({
       {connection === "disconnected" && (
         <DisconnectedBanner onReconnect={onReconnect ?? defaultReconnect} />
       )}
+      {loadProgress.phase === "loading" && (
+        <div
+          data-testid="timeline-load-progress"
+          style={{ padding: "var(--space-2) var(--space-4)", color: "var(--color-text-muted)" }}
+        >
+          {loadProgress.percent !== undefined
+            ? `${loadProgress.percent}% loaded`
+            : `${loadProgress.loadedRows.toLocaleString()} rows loaded`}
+        </div>
+      )}
       <TimelineList
         items={groupedItems}
         rows={rows}
@@ -275,6 +288,9 @@ export function TimelineRegion({
       />
       {livePaused && pendingNewCount > 0 && (
         <NewEventsPill count={pendingNewCount} onClick={onResumeFollowing} />
+      )}
+      {(streamBacklog.queuedRows > 0 || streamBacklog.queuedFrames > 0) && (
+        <StreamBacklogPill count={streamBacklog.queuedRows || streamBacklog.queuedFrames} />
       )}
     </div>
   );

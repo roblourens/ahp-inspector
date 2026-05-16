@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
 status: milestone_complete
-stopped_at: Phase 12 executed and verified
-last_updated: "2026-05-12T16:31:56.236Z"
-last_activity: 2026-05-12 -- Phase 17 execution started
+stopped_at: Completed 22-06-PLAN.md
+last_updated: "2026-05-16T18:43:22.385Z"
+last_activity: 2026-05-16
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 1
-  percent: 100
+  total_phases: 7
+  completed_phases: 4
+  total_plans: 10
+  completed_plans: 10
+  percent: 57
 ---
 
 # State: AHP Inspector
@@ -19,14 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 17 — add-drag-and-drop-support-for-opening-jsonl-files
+**Current Focus:** Phase 22 — Improve large-log loading and high-throughput live tail performance
 
 ## Current Position
 
-Phase: 17
+Phase: 22
 Plan: Not started
 Status: Milestone complete
-Last activity: 2026-05-12
+Last activity: 2026-05-16
 Last activity: 2026-05-10 — Executed plans 15-01 → 15-04: server CORS middleware + webviewHtml options, UI apiUrl helper routed through all 6 transport callsites, extensionServer singleton + extension.ts rewrite using WebviewOptions.portMapping, deleted postMessage bridge (5 files). Workspace test suite: 1104 tests pass; typechecks clean; UI + extension bundles build.
 
 ## Performance Metrics
@@ -62,6 +62,12 @@ Last activity: 2026-05-10 — Executed plans 15-01 → 15-04: server CORS middle
 | Phase 10 plans | 3 complete / 3 planned | verified | complete |
 | Phase 12 plans | 3 complete / 3 planned | verified | complete |
 | Phase 10 P10-03 | 6m24s | 3 tasks | 14 files |
+| Phase 22 P01 | 2min | 2 tasks | 2 files |
+| Phase 22 P02 | 2min | 2 tasks | 2 files |
+| Phase 22 P03 | 4min | 3 tasks | 7 files |
+| Phase 22 P04 | 3min | 2 tasks | 4 files |
+| Phase 22 P05 | 4min | 3 tasks | 6 files |
+| Phase 22 P06 | 4min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -150,12 +156,13 @@ Last activity: 2026-05-10 — Executed plans 15-01 → 15-04: server CORS middle
 - Phase 19 added: Remove colored dots from theme picker
 - Phase 20 added: Discover logs in both .vscode-oss-dev and .vscode-oss-agents-dev roots
 - Phase 21 added: Show response below request in detail side pane
+- Phase 22 added: Improve large-log loading and high-throughput live tail performance
 
 ## Session Continuity
 
-**Last session:** 2026-05-09T00:42:29.706Z
+**Last session:** 2026-05-16T18:43:22.374Z
 **Next action:** `/gsd-complete-milestone` when ready to archive v1.1
-**Stopped at:** Phase 12 executed and verified
+**Stopped at:** Completed 22-06-PLAN.md
 
 ## Quick Tasks Completed
 

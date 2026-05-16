@@ -1,7 +1,7 @@
 // SSE client tests (Plan 02-06 Task 1). Hand-rolled FakeEventSource because
 // jsdom does not implement real SSE. Each test asserts: SSE event → exact
-// store mutation. Snapshot rows must NOT appear in the store until
-// `snapshot-end`. `bye` flips to 'disconnected' without auto-reconnect.
+// store mutation. Snapshot rows appear mid-snapshot through the scheduled
+// drain. `bye` flips to 'disconnected' without auto-reconnect.
 
 import type { EventRow } from "@ahp-inspector/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -74,12 +74,18 @@ function row(idx: number, overrides: Partial<EventRow> = {}): EventRow {
 }
 
 beforeEach(() => {
+  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback): number => {
+    cb(0);
+    return 0;
+  });
   useAppStore.setState({
     rows: [],
     connection: "connecting",
     selectedIdx: null,
     meta: null,
     logKey: null,
+    loadProgress: { phase: "idle", loadedRows: 0, loadedBytes: 0 },
+    streamBacklog: { queuedFrames: 0, queuedRows: 0 },
   });
   FakeEventSource.instances = [];
 });
@@ -97,7 +103,7 @@ function firstInstance(): FakeEventSource {
 }
 
 describe("connectLogStream — snapshot lifecycle", () => {
-  it("buffers chunks until snapshot-end and then commits to the store", () => {
+  it("publishes chunks mid-snapshot before snapshot-end", () => {
     connectLogStream({ EventSourceCtor: Ctor });
     const es = firstInstance();
     expect(useAppStore.getState().connection).toBe("connecting");
@@ -110,11 +116,10 @@ describe("connectLogStream — snapshot lifecycle", () => {
     expect(useAppStore.getState().logKey).toBe("log-key-1");
 
     es.emit("snapshot-chunk", { rows: [row(0), row(1)], from: 0 });
-    // Rows MUST NOT appear in the store mid-snapshot.
-    expect(useAppStore.getState().rows).toHaveLength(0);
+    expect(useAppStore.getState().rows).toHaveLength(2);
 
     es.emit("snapshot-chunk", { rows: [row(2)], from: 2 });
-    expect(useAppStore.getState().rows).toHaveLength(0);
+    expect(useAppStore.getState().rows).toHaveLength(3);
 
     es.emit("snapshot-end", {});
     expect(useAppStore.getState().rows).toHaveLength(3);
@@ -153,6 +158,26 @@ describe("connectLogStream — append + patch", () => {
     expect(r?.status).toBe("ok");
     expect(r?.latencyMs).toBe(42);
     expect(r?.latencyBand).toBe("fast");
+  });
+
+  it("maps progress and backlog frames into store state", () => {
+    connectLogStream({ EventSourceCtor: Ctor });
+    const es = firstInstance();
+
+    es.emit("load-progress", {
+      phase: "loading",
+      loadedRows: 25,
+      loadedBytes: 50,
+      totalBytes: 100,
+      percent: 50,
+    });
+    es.emit("stream-backlog", { queuedFrames: 3, queuedRows: 9 });
+
+    expect(useAppStore.getState().loadProgress).toMatchObject({ phase: "loading", percent: 50 });
+    expect(useAppStore.getState().streamBacklog).toEqual({ queuedFrames: 3, queuedRows: 9 });
+
+    es.emit("stream-backlog", { queuedFrames: 0, queuedRows: 0 });
+    expect(useAppStore.getState().streamBacklog).toEqual({ queuedFrames: 0, queuedRows: 0 });
   });
 });
 

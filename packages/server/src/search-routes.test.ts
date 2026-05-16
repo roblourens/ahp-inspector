@@ -137,7 +137,11 @@ function makeSearchAppState(entries: Array<{ method: string }>): AppState {
   return {
     meta,
     searchIndex: si,
-    snapshot: () => ({ meta, rows: [] }),
+    snapshot: () => ({
+      meta,
+      rows: [],
+      loadProgress: { kind: "load-progress", phase: "idle", loadedRows: 0, loadedBytes: 0 },
+    }),
     subscribe: () => () => {},
     runFlush: () => {},
     eventAt: () => null,

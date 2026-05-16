@@ -40,14 +40,43 @@ export interface PatchUpdate {
   pairIdx?: number | null;
 }
 
+export interface LoadProgress {
+  phase: "idle" | "loading" | "complete";
+  loadedRows: number;
+  loadedBytes: number;
+  totalBytes?: number;
+  percent?: number;
+}
+
+export interface StreamBacklog {
+  queuedFrames: number;
+  queuedRows: number;
+}
+
+const IDLE_LOAD_PROGRESS: LoadProgress = {
+  phase: "idle",
+  loadedRows: 0,
+  loadedBytes: 0,
+};
+
+const EMPTY_STREAM_BACKLOG: StreamBacklog = {
+  queuedFrames: 0,
+  queuedRows: 0,
+};
+
 export interface AppStoreState {
   rows: EventRow[];
   connection: Connection;
   selectedIdx: number | null;
   meta: MetaSummary | null;
+  loadProgress: LoadProgress;
+  streamBacklog: StreamBacklog;
   setRows(rows: EventRow[]): void;
+  appendSnapshotRows(rows: EventRow[], from: number): void;
   appendRows(rows: EventRow[], from: number): void;
   applyPatch(updates: PatchUpdate[]): void;
+  setLoadProgress(progress: LoadProgress): void;
+  setStreamBacklog(backlog: StreamBacklog): void;
   setConnection(c: Connection): void;
   setMeta(m: MetaSummary | null): void;
   selectIdx(idx: number | null): void;
@@ -124,6 +153,8 @@ export const useAppStore = create<AppStoreState>((set) => ({
   connection: "connecting",
   selectedIdx: null,
   meta: null,
+  loadProgress: IDLE_LOAD_PROGRESS,
+  streamBacklog: EMPTY_STREAM_BACKLOG,
   setRows: (rows) =>
     set((s) => ({
       rows,
@@ -131,6 +162,20 @@ export const useAppStore = create<AppStoreState>((set) => ({
         ? { ...s.meta, eventCount: rows.length, sessionCount: deriveSessionCount(rows) }
         : s.meta,
     })),
+  appendSnapshotRows: (newRows, from) =>
+    set((s) => {
+      const next = s.rows.slice();
+      for (let i = 0; i < newRows.length; i++) {
+        const row = newRows[i];
+        if (row !== undefined) next[from + i] = row;
+      }
+      return {
+        rows: next,
+        meta: s.meta
+          ? { ...s.meta, eventCount: next.length, sessionCount: deriveSessionCount(next) }
+          : s.meta,
+      };
+    }),
   appendRows: (newRows, from) =>
     set((s) => {
       // Phase 4 D-13: while live-paused, incoming rows accumulate in a hidden
@@ -171,6 +216,8 @@ export const useAppStore = create<AppStoreState>((set) => ({
       }
       return { rows: next, pendingBuffer: pendingNext };
     }),
+  setLoadProgress: (loadProgress) => set({ loadProgress }),
+  setStreamBacklog: (streamBacklog) => set({ streamBacklog }),
   setConnection: (connection) => set({ connection }),
   setMeta: (meta) => set({ meta }),
   selectIdx: (selectedIdx) => set({ selectedIdx }),
@@ -272,6 +319,8 @@ export const useAppStore = create<AppStoreState>((set) => ({
       searchError: null,
       pendingBuffer: [],
       pendingNewCount: 0,
+      loadProgress: IDLE_LOAD_PROGRESS,
+      streamBacklog: EMPTY_STREAM_BACKLOG,
     }),
   resetForLogSwitch: () =>
     set({
@@ -285,6 +334,8 @@ export const useAppStore = create<AppStoreState>((set) => ({
       searchError: null,
       pendingBuffer: [],
       pendingNewCount: 0,
+      loadProgress: IDLE_LOAD_PROGRESS,
+      streamBacklog: EMPTY_STREAM_BACKLOG,
       meta: null,
       logKey: null,
       lastWatchError: null,

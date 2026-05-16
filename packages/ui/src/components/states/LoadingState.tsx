@@ -1,7 +1,14 @@
 import { Loader2 } from "lucide-react";
 import type { JSX } from "react";
+import type { LoadProgress } from "../../state/store.js";
 
-export function LoadingState({ filename }: { filename: string }): JSX.Element {
+export function LoadingState({
+  filename,
+  progress,
+}: {
+  filename: string;
+  progress?: LoadProgress;
+}): JSX.Element {
   return (
     <div
       data-testid="state-loading"
@@ -19,6 +26,11 @@ export function LoadingState({ filename }: { filename: string }): JSX.Element {
       <div>
         Reading <span className="mono">{filename}</span>
       </div>
+      {progress?.percent !== undefined ? (
+        <div>{progress.percent}% loaded</div>
+      ) : progress && (progress.loadedRows > 0 || progress.loadedBytes > 0) ? (
+        <div>{progress.loadedRows.toLocaleString()} rows loaded</div>
+      ) : null}
     </div>
   );
 }

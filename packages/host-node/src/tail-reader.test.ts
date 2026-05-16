@@ -14,17 +14,32 @@ let path: string;
 interface Sinks {
   sink: WatchSink;
   chunks: Array<{ bytes: Uint8Array; offset: number }>;
+  initialStarts: Array<{ totalBytes: number }>;
+  initialProgress: Array<{ loadedBytes: number; totalBytes: number }>;
+  initialCompletes: Array<{ loadedBytes: number; totalBytes: number }>;
   resets: Array<{ newSize: number; reason: "shrink" | "rename" }>;
   errors: Array<{ message: string; fatal: boolean }>;
 }
 
 function makeSink(): Sinks {
   const chunks: Sinks["chunks"] = [];
+  const initialStarts: Sinks["initialStarts"] = [];
+  const initialProgress: Sinks["initialProgress"] = [];
+  const initialCompletes: Sinks["initialCompletes"] = [];
   const resets: Sinks["resets"] = [];
   const errors: Sinks["errors"] = [];
   const sink: WatchSink = {
     onChunk(bytes, offset) {
       chunks.push({ bytes, offset });
+    },
+    onInitialReadStart(info) {
+      initialStarts.push(info);
+    },
+    onInitialReadProgress(info) {
+      initialProgress.push(info);
+    },
+    onInitialReadComplete(info) {
+      initialCompletes.push(info);
     },
     onReset(info) {
       resets.push(info);
@@ -33,7 +48,7 @@ function makeSink(): Sinks {
       errors.push({ message: err.message, fatal });
     },
   };
-  return { sink, chunks, resets, errors };
+  return { sink, chunks, initialStarts, initialProgress, initialCompletes, resets, errors };
 }
 
 const decode = (chunks: Array<{ bytes: Uint8Array }>): string =>
@@ -53,10 +68,26 @@ describe("TailReader", () => {
   it("readInitial reads existing content into onChunk", async () => {
     await writeFile(path, '{"a":1}\n{"b":2}\n');
     const reader = new TailReader(path);
-    const { sink, chunks } = makeSink();
+    const { sink, chunks, initialCompletes, initialProgress, initialStarts } = makeSink();
     await reader.readInitial(sink);
     expect(decode(chunks)).toBe('{"a":1}\n{"b":2}\n');
     expect(chunks[0]?.offset).toBe(0);
+    expect(initialStarts).toEqual([{ totalBytes: 16 }]);
+    expect(initialProgress.at(-1)).toEqual({ loadedBytes: 16, totalBytes: 16 });
+    expect(initialCompletes).toEqual([{ loadedBytes: 16, totalBytes: 16 }]);
+    await reader.dispose();
+  });
+
+  it("readInitial completes empty files without inventing byte progress", async () => {
+    await writeFile(path, "");
+    const reader = new TailReader(path);
+    const { sink, initialCompletes, initialProgress, initialStarts } = makeSink();
+
+    await reader.readInitial(sink);
+
+    expect(initialStarts).toEqual([{ totalBytes: 0 }]);
+    expect(initialProgress).toEqual([]);
+    expect(initialCompletes).toEqual([{ loadedBytes: 0, totalBytes: 0 }]);
     await reader.dispose();
   });
 
@@ -108,10 +139,12 @@ describe("TailReader", () => {
 
   it("onError(fatal=true) fires when initial stat fails", async () => {
     const reader = new TailReader(join(dir, "does-not-exist.jsonl"));
-    const { sink, errors } = makeSink();
+    const { sink, errors, initialCompletes, initialStarts } = makeSink();
     await reader.readInitial(sink);
     expect(errors.length).toBeGreaterThanOrEqual(1);
     expect(errors[0]?.fatal).toBe(true);
+    expect(initialStarts).toEqual([]);
+    expect(initialCompletes).toEqual([]);
     await reader.dispose();
   });
 

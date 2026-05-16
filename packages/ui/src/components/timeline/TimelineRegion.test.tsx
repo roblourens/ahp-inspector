@@ -50,6 +50,8 @@ beforeEach(() => {
     livePaused: false,
     pendingBuffer: [],
     pendingNewCount: 0,
+    loadProgress: { phase: "idle", loadedRows: 0, loadedBytes: 0 },
+    streamBacklog: { queuedFrames: 0, queuedRows: 0 },
     rotationNotice: false,
     meta: { filename: "x.jsonl", eventCount: 3, sessionCount: 1 },
     searchQuery: "",
@@ -85,6 +87,36 @@ describe("TimelineRegion — Plan 04-06 Task 2", () => {
   it("does NOT render RotationBanner when rotationNotice=false", () => {
     render(<TimelineRegion />);
     expect(screen.queryByTestId("rotation-banner")).toBeNull();
+  });
+
+  it("renders progress-aware LoadingState while connecting with zero partial rows", () => {
+    useAppStore.setState({
+      rows: [],
+      connection: "connecting",
+      loadProgress: {
+        phase: "loading",
+        loadedRows: 0,
+        loadedBytes: 50,
+        totalBytes: 100,
+        percent: 50,
+      },
+    });
+    render(<TimelineRegion />);
+    expect(screen.getByTestId("state-loading")).toBeInTheDocument();
+    expect(screen.getByText("50% loaded")).toBeInTheDocument();
+  });
+
+  it("keeps partial rows visible with inline progress and stream backlog status", () => {
+    useAppStore.setState({
+      connection: "connecting",
+      loadProgress: { phase: "loading", loadedRows: 3, loadedBytes: 64 },
+      streamBacklog: { queuedFrames: 2, queuedRows: 8 },
+    });
+    render(<TimelineRegion />);
+    expect(screen.getByTestId("timeline-region")).toBeInTheDocument();
+    expect(screen.getByTestId("timeline-load-progress").textContent).toContain("3 rows loaded");
+    expect(screen.getByTestId("stream-backlog-pill").textContent).toContain("8 stream events queued");
+    expect(screen.queryByTestId("new-events-pill")).toBeNull();
   });
 
   it("navigates between visible search matches", () => {

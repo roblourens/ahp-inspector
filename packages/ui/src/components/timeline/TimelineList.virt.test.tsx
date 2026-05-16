@@ -1,5 +1,5 @@
 import type { EventRow as EventRowData } from "@ahp-inspector/core";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { VirtualItem } from "../../state/selectors.js";
 import { TimelineList } from "./TimelineList.js";
@@ -187,5 +187,109 @@ describe("TimelineList — virtualization", () => {
     expect(selected.getAttribute("aria-label")).toContain(
       "Correlated request is hidden by current filters",
     );
+  });
+
+  it("keeps a progressive off-bottom inspection viewport stable when rows grow", () => {
+    const callbacks: FrameRequestCallback[] = [];
+    const originalRaf = globalThis.requestAnimationFrame;
+    const originalCancelRaf = globalThis.cancelAnimationFrame;
+    globalThis.requestAnimationFrame = ((cb: FrameRequestCallback): number => {
+      callbacks.push(cb);
+      return callbacks.length;
+    }) as typeof requestAnimationFrame;
+    globalThis.cancelAnimationFrame = (() => {}) as typeof cancelAnimationFrame;
+    try {
+      const initialRows = fixture.slice(0, 20);
+      const rendered = render(
+        <div style={{ height: 400 }}>
+          <TimelineList
+            items={initialRows.map((row) => ({ kind: "row", rowIdx: row.idx }))}
+            rows={initialRows}
+            selectedIdx={null}
+            onSelect={() => {}}
+          />
+        </div>,
+      );
+      const grid = screen.getByTestId("timeline-list");
+      let scrollTop = 0;
+      Object.defineProperties(grid, {
+        scrollTop: { configurable: true, get: () => scrollTop, set: (value) => (scrollTop = Number(value)) },
+        scrollHeight: { configurable: true, get: () => 2_000 },
+        clientHeight: { configurable: true, get: () => 400 },
+      });
+      for (const cb of callbacks.splice(0)) cb(0);
+      scrollTop = 100;
+      fireEvent.scroll(grid);
+
+      const grownRows = fixture.slice(0, 21);
+      rendered.rerender(
+        <div style={{ height: 400 }}>
+          <TimelineList
+            items={grownRows.map((row) => ({ kind: "row", rowIdx: row.idx }))}
+            rows={grownRows}
+            selectedIdx={null}
+            onSelect={() => {}}
+          />
+        </div>,
+      );
+      for (const cb of callbacks.splice(0)) cb(0);
+      expect(scrollTop).toBe(100);
+    } finally {
+      globalThis.requestAnimationFrame = originalRaf;
+      globalThis.cancelAnimationFrame = originalCancelRaf;
+    }
+  });
+
+  it("keeps true bottom follow smooth when progressive rows append", () => {
+    const callbacks: FrameRequestCallback[] = [];
+    const originalRaf = globalThis.requestAnimationFrame;
+    const originalCancelRaf = globalThis.cancelAnimationFrame;
+    globalThis.requestAnimationFrame = ((cb: FrameRequestCallback): number => {
+      callbacks.push(cb);
+      return callbacks.length;
+    }) as typeof requestAnimationFrame;
+    globalThis.cancelAnimationFrame = (() => {}) as typeof cancelAnimationFrame;
+    try {
+      const initialRows = fixture.slice(0, 20);
+      const rendered = render(
+        <div style={{ height: 400 }}>
+          <TimelineList
+            items={initialRows.map((row) => ({ kind: "row", rowIdx: row.idx }))}
+            rows={initialRows}
+            selectedIdx={null}
+            onSelect={() => {}}
+          />
+        </div>,
+      );
+      const grid = screen.getByTestId("timeline-list");
+      let scrollTop = 1_600;
+      let scrollHeight = 2_000;
+      Object.defineProperties(grid, {
+        scrollTop: { configurable: true, get: () => scrollTop, set: (value) => (scrollTop = Number(value)) },
+        scrollHeight: { configurable: true, get: () => scrollHeight },
+        clientHeight: { configurable: true, get: () => 400 },
+      });
+      for (const cb of callbacks.splice(0)) cb(0);
+      scrollTop = 1_600;
+      fireEvent.scroll(grid);
+      scrollHeight = 2_100;
+
+      const grownRows = fixture.slice(0, 21);
+      rendered.rerender(
+        <div style={{ height: 400 }}>
+          <TimelineList
+            items={grownRows.map((row) => ({ kind: "row", rowIdx: row.idx }))}
+            rows={grownRows}
+            selectedIdx={null}
+            onSelect={() => {}}
+          />
+        </div>,
+      );
+      for (const cb of callbacks.splice(0)) cb(0);
+      expect(scrollTop).toBe(2_100);
+    } finally {
+      globalThis.requestAnimationFrame = originalRaf;
+      globalThis.cancelAnimationFrame = originalCancelRaf;
+    }
   });
 });

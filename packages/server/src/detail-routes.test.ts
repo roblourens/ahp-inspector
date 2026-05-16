@@ -80,7 +80,11 @@ function makeDetailAppState(
   return {
     meta,
     searchIndex: si,
-    snapshot: () => ({ meta, rows: [] }),
+    snapshot: () => ({
+      meta,
+      rows: [],
+      loadProgress: { kind: "load-progress", phase: "idle", loadedRows: 0, loadedBytes: 0 },
+    }),
     subscribe: () => () => {},
     runFlush: () => {},
     eventAt: (idx: number) => entries[idx]?.event ?? null,
@@ -225,7 +229,11 @@ describe("GET /api/log/search (via detail test file)", () => {
     const appState: AppState = {
       meta,
       searchIndex: si,
-      snapshot: () => ({ meta, rows: [] }),
+      snapshot: () => ({
+        meta,
+        rows: [],
+        loadProgress: { kind: "load-progress", phase: "idle", loadedRows: 0, loadedBytes: 0 },
+      }),
       subscribe: () => () => {},
       runFlush: () => {},
       eventAt: (i) => (i === 0 ? ev : null),

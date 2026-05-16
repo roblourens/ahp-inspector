@@ -11,6 +11,20 @@ const CHUNK_BYTES = 256 * 1024;
 
 export type ChunkSink = (bytes: Uint8Array) => void;
 
+export interface InitialReadProgress {
+  readonly loadedBytes: number;
+  readonly totalBytes: number;
+}
+
+export interface InitialReadStart {
+  readonly totalBytes: number;
+}
+
+interface ReadRangeResult {
+  readonly completed: boolean;
+  readonly nextOffset: number;
+}
+
 /**
  * Rich watch sink (Phase 4 INGEST-04). TailReader pushes growth via
  * `onChunk(bytes, byteOffset)`, signals shrink/rename via `onReset`, and
@@ -19,6 +33,9 @@ export type ChunkSink = (bytes: Uint8Array) => void;
  */
 export interface WatchSink {
   onChunk(bytes: Uint8Array, byteOffset: number): void;
+  onInitialReadStart?(info: InitialReadStart): void;
+  onInitialReadProgress?(info: InitialReadProgress): void;
+  onInitialReadComplete?(info: InitialReadProgress): void;
   onReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
   onError(err: Error, fatal: boolean): void;
 }
@@ -59,12 +76,19 @@ export class TailReader {
       this.#lastOffset = 0;
       return;
     }
+    sink.onInitialReadStart?.({ totalBytes: sizeAtStart });
     if (sizeAtStart === 0) {
       this.#lastOffset = 0;
+      sink.onInitialReadComplete?.({ loadedBytes: 0, totalBytes: 0 });
       return;
     }
-    await this.#readRange(0, sizeAtStart, sink);
-    this.#lastOffset = sizeAtStart;
+    const result = await this.#readRange(0, sizeAtStart, sink, (loadedBytes) => {
+      sink.onInitialReadProgress?.({ loadedBytes, totalBytes: sizeAtStart });
+    });
+    this.#lastOffset = result.nextOffset;
+    if (result.completed && result.nextOffset >= sizeAtStart) {
+      sink.onInitialReadComplete?.({ loadedBytes: sizeAtStart, totalBytes: sizeAtStart });
+    }
   }
 
   /**
@@ -122,8 +146,8 @@ export class TailReader {
       }
       if (nextSize === this.#lastOffset) return;
       const start = this.#lastOffset;
-      await this.#readRange(start, nextSize, sink);
-      this.#lastOffset = nextSize;
+      const result = await this.#readRange(start, nextSize, sink);
+      this.#lastOffset = result.nextOffset;
     } finally {
       this.#readInFlight = false;
       if (this.#readAgainAfterCurrent && !this.#disposed) {
@@ -150,13 +174,18 @@ export class TailReader {
     this.#lastOffset = 0;
     sink.onReset({ newSize, reason });
     if (newSize > 0) {
-      await this.#readRange(0, newSize, sink);
-      this.#lastOffset = newSize;
+      const result = await this.#readRange(0, newSize, sink);
+      this.#lastOffset = result.nextOffset;
     }
   }
 
-  #readRange(start: number, end: number, sink: WatchSink): Promise<void> {
-    return new Promise<void>((resolve) => {
+  #readRange(
+    start: number,
+    end: number,
+    sink: WatchSink,
+    onProgress?: (loadedBytes: number) => void,
+  ): Promise<ReadRangeResult> {
+    return new Promise<ReadRangeResult>((resolve) => {
       const stream = createReadStream(this.#path, {
         start,
         end: end - 1,
@@ -175,11 +204,12 @@ export class TailReader {
               })();
         sink.onChunk(bytes, cursor);
         cursor += bytes.byteLength;
+        onProgress?.(cursor);
       });
-      stream.on("end", () => resolve());
+      stream.on("end", () => resolve({ completed: true, nextOffset: cursor }));
       stream.on("error", (err) => {
         sink.onError(err as Error, false);
-        resolve(); // keep the watcher alive
+        resolve({ completed: false, nextOffset: cursor }); // keep the watcher alive
       });
     });
   }

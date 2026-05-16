@@ -37,6 +37,15 @@ export interface LogHandle {
   readonly id: string;
 }
 
+export interface InitialReadProgress {
+  readonly loadedBytes: number;
+  readonly totalBytes: number;
+}
+
+export interface InitialReadStart {
+  readonly totalBytes: number;
+}
+
 /**
  * HostAdapter — the host-side surface the renderer drives.
  *
@@ -53,6 +62,9 @@ export interface HostAdapter {
       | ((bytes: Uint8Array) => void)
       | {
           onChunk(bytes: Uint8Array, byteOffset: number): void;
+          onInitialReadStart?(info: InitialReadStart): void;
+          onInitialReadProgress?(info: InitialReadProgress): void;
+          onInitialReadComplete?(info: InitialReadProgress): void;
           onReset(info: { newSize: number; reason: "shrink" | "rename" }): void;
           onError(err: Error, fatal: boolean): void;
         },
