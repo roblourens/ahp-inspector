@@ -1,7 +1,7 @@
 # Roadmap: AHP Inspector
 
 **Created:** 2026-05-06
-**Current milestone:** v1.2 (in progress)
+**Current milestone:** v1.2 (completed 2026-05-16; ready for archival when desired)
 **Archives:** `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.1-ROADMAP.md`
 
 ## Vision
@@ -12,7 +12,7 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 
 - ✅ **v1.0 Initial MVP** — shipped 2026-05-08. Standalone local viewer, JSONL ingestion, virtualized timeline, detail/search/filtering, live discovery/tail/persistence, three themes, full verification.
 - ✅ **v1.1 Reducer-backed State Snapshots** — shipped 2026-05-10. Protocol sync, deterministic replay engine, lazy state-at-index API, state inspector UI, pinned comparison, VS Code extension webview, search-rather-than-filter UX, `npx ahp-inspector` publishing, and hardening pass.
-- 🚧 **v1.2 (in progress)** — opened 2026-05-10, last updated 2026-05-13. Phases 15–17 landed (extension stabilization, wire-time timestamps, drag-and-drop). Phases 18–21 queued for small UX polish and discovery fixes.
+- ✅ **v1.2** — completed 2026-05-16. Extension stabilization, wire-time timestamps, drag-and-drop, UX/discovery polish, stacked response detail, and Phase 22 large-log/live-tail performance work are landed. Phase 15's old manual UAT checkpoint was explicitly dispositioned during closeout without retroactively claiming new evidence.
 
 ## Phases
 
@@ -47,9 +47,9 @@ Full phase details: `.planning/milestones/v1.1-ROADMAP.md`.
 
 </details>
 
-### 🚧 v1.2 (in progress)
+### ✅ v1.2 (completed 2026-05-16)
 
-- [ ] Phase 15: VS Code extension stabilization — 4/5 plans (UAT pending)
+- [x] Phase 15: VS Code extension stabilization — implementation landed; stale manual UAT checkpoint explicitly dispositioned during v1.2 closeout
   **Goal:** Pivot the webview from a postMessage bridge to a singleton in-extension `LogServer` (Hono on 127.0.0.1) reached via `WebviewOptions.portMapping`. Reverses Phase 11's EXT-03 / postMessage decisions. The webview now uses the same HTTP+SSE transport as the standalone CLI build, fixing the bug class where UI components that bypass the bridge silently fail in the webview. Replaces the original "thread `AhpViewerClient`" plan set (archived under `_superseded/`).
   **Requirements:** STAB-15-A, STAB-15-CSP, STAB-15-CORS, STAB-15-B, STAB-15-API-BASE, STAB-15-EXT, STAB-15-LIFECYCLE, STAB-15-CLEANUP, STAB-15-UAT
   **Plans:**
@@ -57,7 +57,7 @@ Full phase details: `.planning/milestones/v1.1-ROADMAP.md`.
     - [x] 15-02-PLAN.md — UI `apiUrl(path)` helper + route all transport callsites through it
     - [x] 15-03-PLAN.md — Singleton `extensionServer.ts` lifecycle + rewrite `extension.ts` to use `portMapping`, drop bridge wiring, seed initial log via `sessions.open`
     - [x] 15-04-PLAN.md — Delete dead bridge code (`viewerSession.ts`, `messageProtocol.ts`, `webview-client.ts`) and simplify `main.tsx`
-    - [ ] 15-05-PLAN.md — Manual UAT (checkpoint): local + remote-dev panel, row click, search, state, log switch, reconnect, no orphan processes
+    - [x] 15-05-PLAN.md — Manual UAT checkpoint closed without retroactive execution on 2026-05-16; no new UAT evidence is claimed
 
 Further v1.2 phases will be added as scope emerges. Lean milestone open — defer broader scoping until needed.
 
@@ -67,11 +67,11 @@ Further v1.2 phases will be added as scope emerges. Lean milestone open — defe
 |-----------|--------|-------|--------|-----------|
 | v1.0 Initial MVP | 6/6 | 37/37 | Shipped | 2026-05-08 |
 | v1.1 Reducer-backed State Snapshots | 9/9 | 29/29 | Shipped | 2026-05-10 |
-| v1.2 (in progress) | 6/7 | 10/10 | Phases 16–21 landed; Phase 15 manual UAT pending | — |
+| v1.2 | 7/7 | 10/10 + explicit Phase 15 checkpoint disposition | Completed; Phase 22 closed and stale Phase 15 UAT bookkeeping reconciled | 2026-05-16 |
 
 ## Next
 
-Phase 15 plans 01–04 are landed and committed (1104 tests pass; both bundles build). Plan 15-05 is a manual UAT in real VS Code (local + remote-dev) — run those scenarios, capture screenshots under `screenshots/phase15/`, and write `.planning/phases/15-vs-code-extension-stabilization/15-05-UAT.md`.
+v1.2 is closed for bookkeeping purposes. Phase 15 plans 01–04 remain the implementation record; the old 15-05 manual UAT checkpoint was explicitly dispositioned on 2026-05-16 without inventing retroactive screenshots or a UAT pass report.
 
 ### Phase 16: Fix timestamp column to show real event time from JSONL, not render time
 

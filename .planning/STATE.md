@@ -8,10 +8,10 @@ last_updated: "2026-05-16T18:43:22.385Z"
 last_activity: 2026-05-16
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 7
   total_plans: 10
   completed_plans: 10
-  percent: 57
+  percent: 100
 ---
 
 # State: AHP Inspector
@@ -19,15 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 22 — Improve large-log loading and high-throughput live tail performance
+**Current Focus:** v1.2 milestone closeout is reconciled; next milestone scope is TBD.
 
 ## Current Position
 
-Phase: 22
-Plan: Not started
+Phase: v1.2 closeout
+Plan: Complete
 Status: Milestone complete
 Last activity: 2026-05-16
-Last activity: 2026-05-10 — Executed plans 15-01 → 15-04: server CORS middleware + webviewHtml options, UI apiUrl helper routed through all 6 transport callsites, extensionServer singleton + extension.ts rewrite using WebviewOptions.portMapping, deleted postMessage bridge (5 files). Workspace test suite: 1104 tests pass; typechecks clean; UI + extension bundles build.
 
 ## Performance Metrics
 
@@ -157,11 +156,13 @@ Last activity: 2026-05-10 — Executed plans 15-01 → 15-04: server CORS middle
 - Phase 20 added: Discover logs in both .vscode-oss-dev and .vscode-oss-agents-dev roots
 - Phase 21 added: Show response below request in detail side pane
 - Phase 22 added: Improve large-log loading and high-throughput live tail performance
+- 2026-05-16: Phase 15's stale manual UAT checkpoint was explicitly dispositioned during v1.2 closeout without claiming a retroactive UAT run.
+- 2026-05-16: v1.2 bookkeeping reconciled after Phase 22 completion; milestone state is complete and ready for archival when desired.
 
 ## Session Continuity
 
 **Last session:** 2026-05-16T18:43:22.374Z
-**Next action:** `/gsd-complete-milestone` when ready to archive v1.1
+**Next action:** `/gsd-complete-milestone` when ready to archive v1.2
 **Stopped at:** Completed 22-06-PLAN.md
 
 ## Quick Tasks Completed
