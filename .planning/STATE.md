@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
-status: milestone_complete
-stopped_at: Completed 22-06-PLAN.md
-last_updated: "2026-05-16T18:43:22.385Z"
-last_activity: 2026-05-16
+status: executing
+stopped_at: Completed 23-02-PLAN.md
+last_updated: "2026-05-17T18:18:47.490Z"
+last_activity: 2026-05-17
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_phases: 8
+  completed_phases: 3
+  total_plans: 13
+  completed_plans: 12
+  percent: 92
 ---
 
 # State: AHP Inspector
@@ -19,14 +19,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** v1.2 milestone closeout is reconciled; next milestone scope is TBD.
+**Current Focus:** Phase 23 — i-want-to-improve-the-so-called-hacker-theme-can-we-do-somet
 
 ## Current Position
 
-Phase: v1.2 closeout
-Plan: Complete
-Status: Milestone complete
-Last activity: 2026-05-16
+Phase: 23 (i-want-to-improve-the-so-called-hacker-theme-can-we-do-somet) — EXECUTING
+Plan: 3 of 3
+Status: Ready to execute
+Last activity: 2026-05-17
 
 ## Performance Metrics
 
@@ -67,6 +67,8 @@ Last activity: 2026-05-16
 | Phase 22 P04 | 3min | 2 tasks | 4 files |
 | Phase 22 P05 | 4min | 3 tasks | 6 files |
 | Phase 22 P06 | 4min | 2 tasks | 3 files |
+| Phase 23 P01 | 3min | 2 tasks | 4 files |
+| Phase 23 P02 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -123,6 +125,10 @@ Last activity: 2026-05-16
 - Phase 09 verified PASS: STATE-01 through STATE-05 are satisfied with no blocking gaps.
 - Phase 10 plan-checker verified pinned comparison approach: memory-only two-pin state points, top-level-only comparison, no persistence/network/export, and large-log `/api/state-at` responsiveness plus SSE non-inflation verification.
 - Phase 10 verified PASS: pinned state points and top-level comparison are covered by synthetic Playwright E2E, `/api/state-at` remains responsive on 1,000+ event logs, and SSE rows remain free of replay state payloads.
+- Phase 23 Plan 01: Hacker CRT warp mounts as same-document SVG defs plus a full shared AppShell display surface so the effect stays local and common to runtimes.
+- Phase 23 Plan 01: Ordinary-click Playwright smoke and responsive drawer viewport geometry are required placement proof before intensifying CRT styling.
+- Phase 23 Plan 02: Hacker CRT intensity is encoded as exact theme tokens, with Dark and Light carrying explicit neutral values to prevent effect leakage.
+- Phase 23 Plan 02: Whole-surface CRT ambience may animate opacity and overlays, but not continuous geometric transforms that make ordinary controls fail click-stability checks.
 - Phase 05: Responsive details use a desktop side rail at >=1400px and an overlay drawer below 1400px; theme choice remains global under `ahp-theme` while per-log preferences remain keyed by opaque logKey.
 - Phase 06: `@ahp-inspector/protocol` is a generated workspace package synced from sibling `../agent-host-protocol/types` via `pnpm sync:ahp`; generated files carry a DO NOT EDIT banner and source commit metadata.
 - Phase 06: Parser code imports canonical `ActionEnvelope` / `ProtocolNotification` directly from `@ahp-inspector/protocol`; `@ahp-inspector/shared/ahp` remains only as compatibility aliases for old I-prefixed names.
@@ -156,14 +162,15 @@ Last activity: 2026-05-16
 - Phase 20 added: Discover logs in both .vscode-oss-dev and .vscode-oss-agents-dev roots
 - Phase 21 added: Show response below request in detail side pane
 - Phase 22 added: Improve large-log loading and high-throughput live tail performance
+- Phase 23 added: I want to improve the so-called hacker theme. Can we do something really crazy? Can we apply a CRT effect to the whole screen, kind of warp it?
 - 2026-05-16: Phase 15's stale manual UAT checkpoint was explicitly dispositioned during v1.2 closeout without claiming a retroactive UAT run.
 - 2026-05-16: v1.2 bookkeeping reconciled after Phase 22 completion; milestone state is complete and ready for archival when desired.
 
 ## Session Continuity
 
-**Last session:** 2026-05-16T18:43:22.374Z
+**Last session:** 2026-05-17T18:18:47.481Z
 **Next action:** `/gsd-complete-milestone` when ready to archive v1.2
-**Stopped at:** Completed 22-06-PLAN.md
+**Stopped at:** Completed 23-02-PLAN.md
 
 ## Quick Tasks Completed
 

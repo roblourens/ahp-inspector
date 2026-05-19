@@ -204,96 +204,106 @@ export function AppShell(): JSX.Element {
   }, [closeDetailDrawer, isDetailDesktop, selectedIdx]);
 
   return (
-    <div
-      data-testid="app-shell"
-      className="app-shell"
-      style={{ display: "flex", flexDirection: "column", height: "100%" }}
-    >
-      <HeaderBar version={__APP_VERSION__} />
-      {lastWatchError && (
-        <WatchErrorBanner
-          code={lastWatchError.code}
-          onRetry={onWatchErrorRetry}
-          onReopen={onWatchErrorReopen}
-        />
-      )}
-      <SourceStrip
-        filename={meta?.filename ?? null}
-        eventCount={meta?.eventCount ?? 0}
-        sessionCount={meta?.sessionCount ?? 0}
-        onSwitchLog={onToggleSwitchLog}
-      />
-      <FilterBar searchInputRef={searchInputRef} />
-      {hasActiveFilters && <ActiveFilterChips />}
-      <div className="app-main" style={{ display: "flex", flex: 1, minHeight: 0 }}>
+    <>
+      <div data-testid="crt-display-surface" className="crt-display-surface">
         <div
-          className="timeline-pane"
-          style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0 }}
+          data-testid="app-shell"
+          className="app-shell"
+          style={{ display: "flex", flexDirection: "column", height: "100%" }}
         >
-          {grouping !== "none" && stickyGroup && <StickyGroupBar topGroup={stickyGroup} />}
-          <TimelineRegion searchInputRef={searchInputRef} onTopGroupChange={setStickyGroup} />
-        </div>
-        {isDetailDesktop && (
-          <div
-            data-testid="detail-panel-wrapper"
-            className="detail-rail"
-            style={{
-              display: "flex",
-              flex: `0 0 ${detailWidth}px`,
-              minHeight: 0,
-              minWidth: 0,
-              overflow: "hidden",
-            }}
-          >
-            <DetailPanel />
-          </div>
-        )}
-      </div>
-      {!isDetailDesktop && selectedIdx !== null && (
-        <div className="detail-drawer-backdrop" data-testid="detail-drawer-backdrop">
-          <div
-            className="detail-drawer"
-            role="dialog"
-            aria-label="Event detail"
-            data-testid="detail-drawer"
-          >
-            <button
-              type="button"
-              className="detail-drawer-close"
-              ref={drawerCloseRef}
-              onClick={closeDetailDrawer}
+          <HeaderBar version={__APP_VERSION__} />
+          {lastWatchError && (
+            <WatchErrorBanner
+              code={lastWatchError.code}
+              onRetry={onWatchErrorRetry}
+              onReopen={onWatchErrorReopen}
+            />
+          )}
+          <SourceStrip
+            filename={meta?.filename ?? null}
+            eventCount={meta?.eventCount ?? 0}
+            sessionCount={meta?.sessionCount ?? 0}
+            onSwitchLog={onToggleSwitchLog}
+          />
+          <FilterBar searchInputRef={searchInputRef} />
+          {hasActiveFilters && <ActiveFilterChips />}
+          <div className="app-main" style={{ display: "flex", flex: 1, minHeight: 0 }}>
+            <div
+              className="timeline-pane"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                minHeight: 0,
+                minWidth: 0,
+              }}
             >
-              Close details
-            </button>
-            <DetailPanel showResizeHandle={false} />
+              {grouping !== "none" && stickyGroup && <StickyGroupBar topGroup={stickyGroup} />}
+              <TimelineRegion searchInputRef={searchInputRef} onTopGroupChange={setStickyGroup} />
+            </div>
+            {isDetailDesktop && (
+              <div
+                data-testid="detail-panel-wrapper"
+                className="detail-rail"
+                style={{
+                  display: "flex",
+                  flex: `0 0 ${detailWidth}px`,
+                  minHeight: 0,
+                  minWidth: 0,
+                  overflow: "hidden",
+                }}
+              >
+                <DetailPanel />
+              </div>
+            )}
           </div>
+          {!isDetailDesktop && selectedIdx !== null && (
+            <div className="detail-drawer-backdrop" data-testid="detail-drawer-backdrop">
+              <div
+                className="detail-drawer"
+                role="dialog"
+                aria-label="Event detail"
+                data-testid="detail-drawer"
+              >
+                <button
+                  type="button"
+                  className="detail-drawer-close"
+                  ref={drawerCloseRef}
+                  onClick={closeDetailDrawer}
+                >
+                  Close details
+                </button>
+                <DetailPanel showResizeHandle={false} />
+              </div>
+            </div>
+          )}
+          <StatusBar
+            connection={connection}
+            eventCount={meta?.eventCount ?? 0}
+            selectedRowIndex={selectedIdx}
+            visibleCount={filteredRowIdxs.length}
+            totalCount={rows.length}
+            groupCount={grouping !== "none" ? groupCount : 0}
+          />
+          <LogPickerPanel
+            open={pickerOpen}
+            candidates={pickerCandidates}
+            isLoading={pickerLoading}
+            onSelect={onPickerSelect}
+            onOpenPath={onPickerOpenPath}
+            onRefresh={() => void refreshPickerCandidates()}
+            onClose={() => setPickerOpen(false)}
+          />
+          <DropOverlay state={overlayState} onDismiss={dismissError} />
+          {toast !== null && (
+            <MultiFileToast
+              basename={toast.basename}
+              ignoredCount={toast.ignoredCount}
+              onDismiss={dismissToast}
+            />
+          )}
         </div>
-      )}
-      <StatusBar
-        connection={connection}
-        eventCount={meta?.eventCount ?? 0}
-        selectedRowIndex={selectedIdx}
-        visibleCount={filteredRowIdxs.length}
-        totalCount={rows.length}
-        groupCount={grouping !== "none" ? groupCount : 0}
-      />
-      <LogPickerPanel
-        open={pickerOpen}
-        candidates={pickerCandidates}
-        isLoading={pickerLoading}
-        onSelect={onPickerSelect}
-        onOpenPath={onPickerOpenPath}
-        onRefresh={() => void refreshPickerCandidates()}
-        onClose={() => setPickerOpen(false)}
-      />
-      <DropOverlay state={overlayState} onDismiss={dismissError} />
-      {toast !== null && (
-        <MultiFileToast
-          basename={toast.basename}
-          ignoredCount={toast.ignoredCount}
-          onDismiss={dismissToast}
-        />
-      )}
-    </div>
+      </div>
+    </>
   );
 }

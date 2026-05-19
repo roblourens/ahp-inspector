@@ -162,6 +162,23 @@ Plans:
 - [x] 22-05-PLAN.md — Render trustworthy loading status and compact transport backlog cues
 - [x] 22-06-PLAN.md — Preserve persistence hydration timing and stable viewport/tail-follow behavior
 
+### Phase 23: I want to improve the so-called hacker theme. Can we do something really crazy? Can we apply a CRT effect to the whole screen, kind of warp it?
+
+**Goal:** Turn Hacker into a bold whole-screen curved-glass CRT identity across the shared standalone/webview app surface, with tube framing, layered analog artifacts, ambient-but-comfortable motion, static reduced-motion fallback, and fixture-backed interaction/parity evidence that preserves Phase 22 responsiveness posture.
+**Requirements**: TBD
+**Depends on:** Phase 22
+**Plans:** 2/3 plans executed
+
+Plans:
+**Wave 1**
+- [x] 23-01-PLAN.md — Prove the shared Hacker displacement filter surface and pointer/layout-safe placement.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 23-02-PLAN.md — Overhaul Hacker CRT tokens, tube/glass/fringe overlays, ambient jolts, and static reduced-motion fallback.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 23-03-PLAN.md — Capture fixture screenshots, interaction/responsiveness smoke, extension webview parity, and final visual review checkpoint.
+
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
 *v1.2 opened 2026-05-10; last updated 2026-05-13 (phases 18–21 added; 18–21 completed inline)*

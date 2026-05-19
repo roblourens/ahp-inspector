@@ -67,6 +67,13 @@ export const REQUIRED_THEME_TOKENS = [
   "--effect-noise-opacity",
   "--effect-glow",
   "--effect-glow-strong",
+  "--effect-crt-glass-opacity",
+  "--effect-crt-frame-opacity",
+  "--effect-crt-fringe-opacity",
+  "--effect-crt-fringe-spread",
+  "--effect-crt-vignette-stop",
+  "--effect-crt-signal-jitter",
+  "--effect-crt-glitch-boost",
   "--selection-bg",
   "--selection-fg",
 ] as const;
@@ -94,15 +101,31 @@ describe("theme token blocks", () => {
   });
 });
 
-describe("hacker effect token bounds", () => {
-  it("keeps CRT effect opacity within UI-SPEC limits", () => {
+describe("hacker CRT effect tokens", () => {
+  it("pins the Phase 23 aggressive Hacker CRT tuning values", () => {
     const block = blockFor('[data-theme="hacker"]');
     const valueFor = (token: string): number => {
       const match = block.match(new RegExp(`${token}:\\s*([0-9.]+)`));
       return Number(match?.[1] ?? Number.NaN);
     };
-    expect(valueFor("--effect-scanline-opacity")).toBeLessThanOrEqual(0.14);
-    expect(valueFor("--effect-grid-opacity")).toBeLessThanOrEqual(0.1);
-    expect(valueFor("--effect-noise-opacity")).toBeLessThanOrEqual(0.06);
+    expect(valueFor("--effect-scanline-opacity")).toBe(0.22);
+    expect(valueFor("--effect-grid-opacity")).toBe(0.12);
+    expect(valueFor("--effect-noise-opacity")).toBe(0.085);
+    expect(valueFor("--effect-crt-glass-opacity")).toBe(0.72);
+    expect(valueFor("--effect-crt-frame-opacity")).toBe(0.94);
+    expect(valueFor("--effect-crt-fringe-opacity")).toBe(0.34);
+    expect(valueFor("--effect-crt-fringe-spread")).toBe(18);
+    expect(valueFor("--effect-crt-vignette-stop")).toBe(64);
+    expect(valueFor("--effect-crt-signal-jitter")).toBe(1.5);
+    expect(valueFor("--effect-crt-glitch-boost")).toBe(1.08);
+  });
+
+  it.each([
+    ':root,\n[data-theme="dark"]',
+    '[data-theme="light"]',
+  ])("%s keeps CRT frame and glitch tokens neutral", (selector) => {
+    const block = blockFor(selector);
+    expect(block).toContain("--effect-crt-frame-opacity: 0;");
+    expect(block).toContain("--effect-crt-glitch-boost: 1;");
   });
 });

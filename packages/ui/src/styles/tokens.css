@@ -145,6 +145,13 @@
   --effect-noise-opacity: 0;
   --effect-glow: none;
   --effect-glow-strong: none;
+  --effect-crt-glass-opacity: 0;
+  --effect-crt-frame-opacity: 0;
+  --effect-crt-fringe-opacity: 0;
+  --effect-crt-fringe-spread: 0;
+  --effect-crt-vignette-stop: 100%;
+  --effect-crt-signal-jitter: 0;
+  --effect-crt-glitch-boost: 1;
   --selection-bg: color-mix(in srgb, var(--color-accent) 34%, var(--color-bg));
   --selection-fg: var(--color-text);
 }
@@ -270,6 +277,13 @@
   --effect-noise-opacity: 0;
   --effect-glow: none;
   --effect-glow-strong: none;
+  --effect-crt-glass-opacity: 0;
+  --effect-crt-frame-opacity: 0;
+  --effect-crt-fringe-opacity: 0;
+  --effect-crt-fringe-spread: 0;
+  --effect-crt-vignette-stop: 100%;
+  --effect-crt-signal-jitter: 0;
+  --effect-crt-glitch-boost: 1;
   --selection-bg: color-mix(in srgb, var(--color-accent) 26%, var(--color-bg));
   --selection-fg: var(--color-text);
 }
@@ -390,11 +404,18 @@
   --row-hover-bg: color-mix(in srgb, var(--color-accent) 9%, var(--color-bg));
   --overlay-backdrop: color-mix(in srgb, var(--color-bg) 76%, transparent);
   --drawer-border: 1px solid var(--color-border-strong);
-  --effect-scanline-opacity: 0.12;
-  --effect-grid-opacity: 0.08;
-  --effect-noise-opacity: 0.04;
+  --effect-scanline-opacity: 0.22;
+  --effect-grid-opacity: 0.12;
+  --effect-noise-opacity: 0.085;
   --effect-glow: 0 0 10px color-mix(in srgb, var(--color-accent) 34%, transparent);
   --effect-glow-strong: 0 0 18px color-mix(in srgb, var(--color-accent) 48%, transparent);
+  --effect-crt-glass-opacity: 0.72;
+  --effect-crt-frame-opacity: 0.94;
+  --effect-crt-fringe-opacity: 0.34;
+  --effect-crt-fringe-spread: 18px;
+  --effect-crt-vignette-stop: 64%;
+  --effect-crt-signal-jitter: 1.5px;
+  --effect-crt-glitch-boost: 1.08;
   --selection-bg: color-mix(in srgb, var(--color-accent) 38%, var(--color-bg));
   --selection-fg: var(--color-text);
 }

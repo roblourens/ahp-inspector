@@ -719,6 +719,24 @@ body {
   overflow: hidden;
 }
 
+[data-theme="hacker"] .crt-display-surface {
+  height: 100%;
+  position: relative;
+  overflow: clip;
+  border-radius: 72px;
+  filter: saturate(1.08) contrast(1.06);
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--color-accent) 26%, transparent),
+    inset 0 18px 36px color-mix(in srgb, var(--color-accent) 16%, transparent),
+    inset 0 -24px 44px color-mix(in srgb, var(--color-bg) 98%, transparent),
+    inset 22px 0 46px color-mix(in srgb, var(--color-bg) 92%, transparent),
+    inset -22px 0 46px color-mix(in srgb, var(--color-bg) 92%, transparent),
+    inset 0 0 140px color-mix(in srgb, var(--color-bg) 96%, transparent),
+    0 0 0 18px color-mix(in srgb, var(--color-bg) 92%, transparent),
+    0 0 60px color-mix(in srgb, var(--color-accent) 12%, transparent);
+  animation: ahp-crt-surface-drift 11s ease-in-out infinite;
+}
+
 .app-main,
 .timeline-pane,
 .timeline-list-shell {
@@ -837,7 +855,7 @@ body {
     color-mix(in srgb, var(--color-accent) 100%, transparent) 0,
     color-mix(in srgb, var(--color-accent) 100%, transparent) 1px,
     transparent 1px,
-    transparent 4px
+    transparent 3px
   );
   opacity: var(--effect-scanline-opacity);
   animation: ahp-scanline-drift 12s linear infinite;
@@ -851,13 +869,95 @@ body {
       color-mix(in srgb, var(--color-accent) 100%, transparent) 1px,
       transparent 1px
     ),
-    radial-gradient(circle at 50% 50%, transparent 58%, var(--color-bg) 100%);
+    radial-gradient(
+      circle at 50% 50%,
+      transparent var(--effect-crt-vignette-stop),
+      color-mix(in srgb, var(--color-bg) 96%, transparent) 100%
+    ),
+    repeating-radial-gradient(
+      circle at 18% 28%,
+      color-mix(in srgb, var(--color-accent) 18%, transparent) 0 1px,
+      transparent 1px 4px
+    );
   background-size:
     32px 32px,
     32px 32px,
-    100% 100%;
+    100% 100%,
+    6px 6px;
   opacity: var(--effect-grid-opacity);
-  animation: ahp-crt-pulse 6s ease-in-out infinite;
+  animation: ahp-crt-signal-beat 7.2s steps(1, end) infinite;
+}
+
+[data-theme="hacker"] .crt-display-surface::before,
+[data-theme="hacker"] .crt-display-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+[data-theme="hacker"] .crt-display-surface::before {
+  background:
+    radial-gradient(
+      ellipse at 50% -16%,
+      color-mix(in srgb, var(--color-accent) 30%, transparent) 0,
+      color-mix(in srgb, var(--color-accent) 10%, transparent) 18%,
+      transparent 46%
+    ),
+    radial-gradient(
+      ellipse at 50% 116%,
+      color-mix(in srgb, var(--color-bg) 96%, transparent) 0,
+      transparent 44%
+    ),
+    radial-gradient(
+      circle at 50% 45%,
+      color-mix(in srgb, var(--color-accent) 8%, transparent) 0,
+      transparent var(--effect-crt-vignette-stop),
+      color-mix(in srgb, var(--color-bg) 98%, transparent) 100%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-accent) 10%, transparent),
+      transparent 24%,
+      transparent 76%,
+      color-mix(in srgb, var(--color-bg) 92%, transparent)
+    );
+  opacity: calc(var(--effect-crt-frame-opacity) * var(--effect-crt-glass-opacity));
+}
+
+[data-theme="hacker"] .crt-display-surface::after {
+  background:
+    radial-gradient(
+      ellipse at -8% 50%,
+      color-mix(in srgb, var(--color-info) 52%, transparent) 0,
+      transparent 32%
+    ),
+    radial-gradient(
+      ellipse at 108% 50%,
+      color-mix(in srgb, var(--kind-action) 48%, transparent) 0,
+      transparent 32%
+    ),
+    radial-gradient(
+      ellipse at left center,
+      color-mix(in srgb, var(--color-info) 78%, transparent) 0,
+      transparent var(--effect-crt-fringe-spread)
+    ),
+    radial-gradient(
+      ellipse at right center,
+      color-mix(in srgb, var(--kind-action) 68%, transparent) 0,
+      transparent var(--effect-crt-fringe-spread)
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-info) 38%, transparent),
+      transparent 18%,
+      transparent 82%,
+      color-mix(in srgb, var(--kind-action) 38%, transparent)
+    );
+  mix-blend-mode: screen;
+  opacity: var(--effect-crt-fringe-opacity);
+  animation: ahp-crt-fringe-jitter 9s steps(2, end) infinite;
 }
 
 [data-theme="hacker"] #root {
@@ -888,19 +988,46 @@ body {
   }
 }
 
-@keyframes ahp-crt-pulse {
+@keyframes ahp-crt-surface-drift {
   0%,
   100% {
-    filter: brightness(1);
+    opacity: 1;
   }
   50% {
-    filter: brightness(1.04);
+    opacity: 0.985;
+  }
+}
+
+@keyframes ahp-crt-signal-beat {
+  0%,
+  42%,
+  44%,
+  100% {
+    transform: translateX(0) scaleY(1);
+    filter: brightness(1);
+  }
+  43% {
+    transform: translateX(var(--effect-crt-signal-jitter)) scaleY(var(--effect-crt-glitch-boost));
+    filter: brightness(var(--effect-crt-glitch-boost));
+  }
+}
+
+@keyframes ahp-crt-fringe-jitter {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  52% {
+    transform: translateX(calc(var(--effect-crt-signal-jitter) * -1));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   [data-theme="hacker"] body::before,
   [data-theme="hacker"] body::after,
+  [data-theme="hacker"] .crt-display-surface,
+  [data-theme="hacker"] .crt-display-surface::before,
+  [data-theme="hacker"] .crt-display-surface::after,
   [data-theme="hacker"] #root,
   [data-theme="hacker"] [data-selected="true"] {
     animation: none;

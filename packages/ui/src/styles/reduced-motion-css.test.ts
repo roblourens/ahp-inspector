@@ -13,7 +13,13 @@ describe("reduced motion CSS", () => {
     const reducedBlock = css.slice(reducedBlockStart);
     expect(reducedBlock).toContain('[data-theme="hacker"]');
     expect(reducedBlock).toContain("animation: none");
+    expect(reducedBlock).toContain("transition: none");
+    expect(reducedBlock).toContain('[data-theme="hacker"] .crt-display-surface');
+    expect(reducedBlock).toContain('[data-theme="hacker"] .crt-display-surface::before');
+    expect(reducedBlock).toContain('[data-theme="hacker"] .crt-display-surface::after');
     expect(css).toContain("ahp-scanline-drift");
-    expect(css).toContain("ahp-crt-pulse");
+    expect(css).toContain("ahp-crt-surface-drift");
+    expect(css).toContain("ahp-crt-signal-beat");
+    expect(css).toContain("ahp-crt-fringe-jitter");
   });
 });

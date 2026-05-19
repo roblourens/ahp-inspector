@@ -1,3 +1,5 @@
+import { readdir, readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { renderWebviewHtml } from "../webviewHtml.js";
 
@@ -18,6 +20,42 @@ describe("renderWebviewHtml", () => {
 		expect(html).not.toContain("__AHP_API_BASE__");
 		// Single script tag (the bundle), nothing extra in <head>
 		expect(html.match(/<script/g)?.length).toBe(1);
+	});
+
+	it("keeps default CRT stylesheet delivery local to the supplied webview URI", () => {
+		const html = renderWebviewHtml(baseOpts);
+		expect(html).toContain('<link rel="stylesheet" href="vscode-webview://abc/main.css" />');
+		expect(html).not.toContain("https://");
+		expect(html).not.toContain("http://");
+		expect(html).not.toContain("url(https://");
+		expect(html).not.toContain("url(http://");
+	});
+
+	it("copies the curved CRT glass surface into webview assets", async () => {
+		const assetsDir = resolve("packages/extension/ui-dist/assets");
+		const assetNames = await readdir(assetsDir);
+		const css = (
+			await Promise.all(
+				assetNames
+					.filter((assetName) => assetName.endsWith(".css"))
+					.map((assetName) => readFile(resolve(assetsDir, assetName), "utf8")),
+			)
+		).join("\n");
+		const js = (
+			await Promise.all(
+				assetNames
+					.filter((assetName) => assetName.endsWith(".js"))
+					.map((assetName) => readFile(resolve(assetsDir, assetName), "utf8")),
+			)
+		).join("\n");
+
+		expect(css).toContain(".crt-display-surface");
+		expect(css).toContain("border-radius:72px");
+		expect(css).toContain("ellipse at 50% -16%");
+		expect(css).not.toContain("ahp-crt-warp");
+		expect(js).toContain("crt-display-surface");
+		expect(js).not.toContain("crt-filter-defs");
+		expect(js).not.toContain("feDisplacementMap");
 	});
 
 	it("loopbackOrigin widens connect-src CSP", () => {
