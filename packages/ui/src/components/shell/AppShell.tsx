@@ -23,6 +23,8 @@ import { useSearch } from "../filters/useSearch.js";
 import { LogPickerPanel } from "../picker/LogPickerPanel.js";
 import { StickyGroupBar } from "../timeline/StickyGroupBar.js";
 import { TimelineRegion } from "../timeline/TimelineRegion.js";
+import { CrtCurvatureCanvas } from "./CrtCurvatureCanvas.js";
+import { CrtFilterDefs } from "./CrtFilterDefs.js";
 import { HeaderBar } from "./HeaderBar.js";
 import { SourceStrip } from "./SourceStrip.js";
 import { StatusBar } from "./StatusBar.js";
@@ -205,6 +207,7 @@ export function AppShell(): JSX.Element {
 
   return (
     <>
+      <CrtFilterDefs />
       <div data-testid="crt-display-surface" className="crt-display-surface">
         <div
           data-testid="app-shell"
@@ -303,6 +306,7 @@ export function AppShell(): JSX.Element {
             />
           )}
         </div>
+        <CrtCurvatureCanvas />
       </div>
     </>
   );

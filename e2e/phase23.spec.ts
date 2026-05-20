@@ -105,8 +105,16 @@ test.describe("Phase 23 Hacker CRT placement", () => {
 
     const crtSurface = page.getByTestId("crt-display-surface");
     const hackerFilter = await crtSurface.evaluate((surface) => getComputedStyle(surface).filter);
-    expect(hackerFilter).toContain("saturate");
     expect(hackerFilter).not.toContain("ahp-crt-warp");
+    expect(hackerFilter).toContain("saturate");
+    await expect(page.locator(".crt-curvature-canvas")).toBeVisible();
+    const appShell = page.getByTestId("app-shell");
+    const textGlow = await appShell.evaluate((shell) => getComputedStyle(shell).textShadow);
+    expect(textGlow).not.toBe("none");
+    const foregroundSweep = await appShell.evaluate(
+      (shell) => getComputedStyle(shell, "::after").animationName,
+    );
+    expect(foregroundSweep).toContain("ahp-crt-foreground-sweep");
 
     await page.getByTestId("row-0").click();
     await page.keyboard.press("/");
@@ -136,6 +144,7 @@ test.describe("Phase 23 Hacker CRT placement", () => {
     await expect
       .poll(() => crtSurface.evaluate((surface) => getComputedStyle(surface).filter))
       .toBe("none");
+    await expect(page.locator(".crt-curvature-canvas")).toBeHidden();
   });
 
   test("captures fixture-only CRT screenshots and reduced-motion evidence", async ({ page }) => {
@@ -175,6 +184,10 @@ test.describe("Phase 23 Hacker CRT placement", () => {
       .getByTestId("crt-display-surface")
       .evaluate((surface) => getComputedStyle(surface).animationName);
     expect(reducedMotionAnimation).toBe("none");
+    const reducedMotionForegroundAnimation = await page
+      .getByTestId("app-shell")
+      .evaluate((shell) => getComputedStyle(shell, "::after").animationName);
+    expect(reducedMotionForegroundAnimation).toBe("none");
     await page.screenshot({
       path: join(SCREENSHOT_DIR, "05-hacker-reduced-motion-static.png"),
       fullPage: true,

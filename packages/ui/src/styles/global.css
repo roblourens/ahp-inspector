@@ -719,11 +719,20 @@ body {
   overflow: hidden;
 }
 
+[data-theme="hacker"] .crt-filter-defs,
+.crt-filter-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 [data-theme="hacker"] .crt-display-surface {
   height: 100%;
   position: relative;
-  overflow: clip;
-  border-radius: 72px;
+  overflow: visible;
+  border-radius: 36px;
   filter: saturate(1.08) contrast(1.06);
   box-shadow:
     inset 0 0 0 2px color-mix(in srgb, var(--color-accent) 26%, transparent),
@@ -741,6 +750,108 @@ body {
 .timeline-pane,
 .timeline-list-shell {
   min-width: 0;
+}
+
+.crt-display-surface > .app-shell {
+  position: relative;
+  z-index: 1;
+}
+
+[data-theme="hacker"] .crt-display-surface > .app-shell {
+  isolation: isolate;
+  text-shadow:
+    0 0 1px color-mix(in srgb, var(--color-text) 64%, transparent),
+    0 0 7px color-mix(in srgb, var(--color-accent) 30%, transparent),
+    0.6px 0 0 color-mix(in srgb, var(--color-info) 28%, transparent),
+    -0.6px 0 0 color-mix(in srgb, var(--color-destructive) 20%, transparent);
+  animation: ahp-crt-phosphor-shift 4.8s steps(1, end) infinite;
+}
+
+[data-theme="hacker"] .crt-display-surface > .app-shell::before,
+[data-theme="hacker"] .crt-display-surface > .app-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+[data-theme="hacker"] .crt-display-surface > .app-shell::before {
+  z-index: 1300;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      color-mix(in srgb, var(--color-bg) 34%, transparent) 52%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0 21%,
+      color-mix(in srgb, var(--color-bg) 32%, transparent) 24%,
+      transparent 31% 68%,
+      color-mix(in srgb, var(--color-bg) 26%, transparent) 72%,
+      transparent 78% 100%
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-info) 22%, transparent),
+      color-mix(in srgb, var(--color-accent) 8%, transparent),
+      color-mix(in srgb, var(--kind-action) 18%, transparent)
+    );
+  background-size:
+    100% 3px,
+    100% 29px,
+    4px 100%;
+  mix-blend-mode: normal;
+  opacity: 0.27;
+  animation: ahp-crt-foreground-grid 8s linear infinite;
+}
+
+[data-theme="hacker"] .crt-display-surface > .app-shell::after {
+  z-index: 1301;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 0 36%,
+      color-mix(in srgb, var(--color-info) 7%, transparent) 43%,
+      color-mix(in srgb, var(--color-accent) 18%, transparent) 49%,
+      color-mix(in srgb, var(--color-bg) 28%, transparent) 52%,
+      transparent 61% 100%
+    ),
+    repeating-linear-gradient(
+      118deg,
+      transparent 0 13px,
+      color-mix(in srgb, var(--color-accent) 10%, transparent) 13px 14px,
+      transparent 14px 31px
+    );
+  background-size:
+    100% 220px,
+    180px 180px;
+  background-position:
+    0 -260px,
+    0 0;
+  mix-blend-mode: screen;
+  opacity: var(--effect-noise-opacity);
+  animation:
+    ahp-crt-foreground-sweep 5.6s linear infinite,
+    ahp-crt-flicker 0.19s steps(1, end) infinite;
+}
+
+.crt-curvature-canvas {
+  display: none;
+}
+
+[data-theme="hacker"] .crt-curvature-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  mix-blend-mode: screen;
+  opacity: 0.92;
+  pointer-events: none;
 }
 
 .detail-rail {
@@ -1022,15 +1133,92 @@ body {
   }
 }
 
+@keyframes ahp-crt-phosphor-shift {
+  0%,
+  76%,
+  100% {
+    text-shadow:
+      0 0 1px color-mix(in srgb, var(--color-text) 64%, transparent),
+      0 0 7px color-mix(in srgb, var(--color-accent) 30%, transparent),
+      0.6px 0 0 color-mix(in srgb, var(--color-info) 28%, transparent),
+      -0.6px 0 0 color-mix(in srgb, var(--color-destructive) 20%, transparent);
+  }
+  77% {
+    text-shadow:
+      0 0 2px color-mix(in srgb, var(--color-text) 72%, transparent),
+      0 0 11px color-mix(in srgb, var(--color-accent) 40%, transparent),
+      1.25px 0 0 color-mix(in srgb, var(--color-info) 34%, transparent),
+      -1px 0 0 color-mix(in srgb, var(--color-destructive) 28%, transparent);
+  }
+  78% {
+    text-shadow:
+      0 0 1px color-mix(in srgb, var(--color-text) 58%, transparent),
+      0 0 5px color-mix(in srgb, var(--color-accent) 24%, transparent),
+      0.35px 0 0 color-mix(in srgb, var(--color-info) 24%, transparent),
+      -0.35px 0 0 color-mix(in srgb, var(--color-destructive) 16%, transparent);
+  }
+}
+
+@keyframes ahp-crt-foreground-grid {
+  from {
+    background-position:
+      0 0,
+      0 0,
+      0 0;
+  }
+  to {
+    background-position:
+      0 24px,
+      0 -37px,
+      4px 0;
+  }
+}
+
+@keyframes ahp-crt-foreground-sweep {
+  from {
+    background-position:
+      0 -260px,
+      0 0;
+  }
+  to {
+    background-position:
+      0 calc(100% + 260px),
+      180px 0;
+  }
+}
+
+@keyframes ahp-crt-flicker {
+  0%,
+  100% {
+    opacity: calc(var(--effect-noise-opacity) * 0.84);
+  }
+  22% {
+    opacity: calc(var(--effect-noise-opacity) * 1.12);
+  }
+  58% {
+    opacity: calc(var(--effect-noise-opacity) * 0.72);
+  }
+  79% {
+    opacity: calc(var(--effect-noise-opacity) * 1.26);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-theme="hacker"] body::before,
   [data-theme="hacker"] body::after,
   [data-theme="hacker"] .crt-display-surface,
   [data-theme="hacker"] .crt-display-surface::before,
   [data-theme="hacker"] .crt-display-surface::after,
+  [data-theme="hacker"] .crt-display-surface > .app-shell,
+  [data-theme="hacker"] .crt-display-surface > .app-shell::before,
+  [data-theme="hacker"] .crt-display-surface > .app-shell::after,
   [data-theme="hacker"] #root,
   [data-theme="hacker"] [data-selected="true"] {
     animation: none;
     transition: none;
+  }
+
+  [data-theme="hacker"] .crt-curvature-canvas {
+    opacity: 0.78;
   }
 }
