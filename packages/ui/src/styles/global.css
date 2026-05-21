@@ -719,6 +719,10 @@ body {
   overflow: hidden;
 }
 
+.crt-display-surface {
+  height: 100%;
+}
+
 [data-theme="hacker"] .crt-filter-defs,
 .crt-filter-defs {
   position: absolute;
@@ -729,7 +733,6 @@ body {
 }
 
 [data-theme="hacker"] .crt-display-surface {
-  height: 100%;
   position: relative;
   overflow: visible;
   border-radius: 36px;
