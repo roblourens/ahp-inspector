@@ -41,13 +41,19 @@ import type {
   SessionInputCompletedAction,
   SessionCustomizationsChangedAction,
   SessionCustomizationToggledAction,
+  SessionCustomizationUpdatedAction,
   SessionTruncatedAction,
   SessionIsReadChangedAction,
   SessionIsArchivedChangedAction,
   SessionActivityChangedAction,
-  SessionDiffsChangedAction,
+  SessionChangesetsChangedAction,
   SessionConfigChangedAction,
   SessionMetaChangedAction,
+  ChangesetStatusChangedAction,
+  ChangesetFileSetAction,
+  ChangesetFileRemovedAction,
+  ChangesetOperationsChangedAction,
+  ChangesetClearedAction,
   TerminalDataAction,
   TerminalInputAction,
   TerminalResizedAction,
@@ -63,7 +69,7 @@ import type {
 
 import { ActionType } from "./actions.js";
 
-// ─── Root vs Session vs Terminal Action Unions ───────────────────────────────
+// ─── Root vs Session vs Terminal vs Changeset Action Unions ─────────────────
 
 /** Union of all root-scoped actions. */
 export type RootAction =
@@ -113,17 +119,17 @@ export type SessionAction =
   | SessionInputCompletedAction
   | SessionCustomizationsChangedAction
   | SessionCustomizationToggledAction
+  | SessionCustomizationUpdatedAction
   | SessionTruncatedAction
   | SessionIsReadChangedAction
   | SessionIsArchivedChangedAction
   | SessionActivityChangedAction
-  | SessionDiffsChangedAction
+  | SessionChangesetsChangedAction
   | SessionConfigChangedAction
   | SessionMetaChangedAction;
 
 /** Union of session actions that clients may dispatch. */
 export type ClientSessionAction =
-  | SessionTurnStartedAction
   | SessionToolCallConfirmedAction
   | SessionToolCallCompleteAction
   | SessionToolCallResultConfirmedAction
@@ -148,6 +154,7 @@ export type ClientSessionAction =
 export type ServerSessionAction =
   | SessionReadyAction
   | SessionCreationFailedAction
+  | SessionTurnStartedAction
   | SessionDeltaAction
   | SessionResponsePartAction
   | SessionToolCallStartAction
@@ -160,8 +167,9 @@ export type ServerSessionAction =
   | SessionServerToolsChangedAction
   | SessionInputRequestedAction
   | SessionCustomizationsChangedAction
+  | SessionCustomizationUpdatedAction
   | SessionActivityChangedAction
-  | SessionDiffsChangedAction
+  | SessionChangesetsChangedAction
   | SessionMetaChangedAction;
 
 /** Union of all terminal-scoped actions. */
@@ -195,6 +203,25 @@ export type ServerTerminalAction =
   | TerminalCommandExecutedAction
   | TerminalCommandFinishedAction;
 
+/** Union of all changeset-scoped actions. */
+export type ChangesetAction =
+  | ChangesetStatusChangedAction
+  | ChangesetFileSetAction
+  | ChangesetFileRemovedAction
+  | ChangesetOperationsChangedAction
+  | ChangesetClearedAction;
+
+/** Union of changeset actions that clients may dispatch. */
+export type ClientChangesetAction = never;
+
+/** Union of changeset actions that only the server may produce. */
+export type ServerChangesetAction =
+  | ChangesetStatusChangedAction
+  | ChangesetFileSetAction
+  | ChangesetFileRemovedAction
+  | ChangesetOperationsChangedAction
+  | ChangesetClearedAction;
+
 // ─── Client-Dispatchable Map ─────────────────────────────────────────────────
 
 /**
@@ -208,7 +235,7 @@ export const IS_CLIENT_DISPATCHABLE: { readonly [K in StateAction["type"]]: bool
   [ActionType.RootConfigChanged]: true,
   [ActionType.SessionReady]: false,
   [ActionType.SessionCreationFailed]: false,
-  [ActionType.SessionTurnStarted]: true,
+  [ActionType.SessionTurnStarted]: false,
   [ActionType.SessionDelta]: false,
   [ActionType.SessionResponsePart]: false,
   [ActionType.SessionToolCallStart]: false,
@@ -236,13 +263,19 @@ export const IS_CLIENT_DISPATCHABLE: { readonly [K in StateAction["type"]]: bool
   [ActionType.SessionInputCompleted]: true,
   [ActionType.SessionCustomizationsChanged]: false,
   [ActionType.SessionCustomizationToggled]: true,
+  [ActionType.SessionCustomizationUpdated]: false,
   [ActionType.SessionTruncated]: true,
   [ActionType.SessionIsReadChanged]: true,
   [ActionType.SessionIsArchivedChanged]: true,
   [ActionType.SessionActivityChanged]: false,
-  [ActionType.SessionDiffsChanged]: false,
+  [ActionType.SessionChangesetsChanged]: false,
   [ActionType.SessionConfigChanged]: true,
   [ActionType.SessionMetaChanged]: false,
+  [ActionType.ChangesetStatusChanged]: false,
+  [ActionType.ChangesetFileSet]: false,
+  [ActionType.ChangesetFileRemoved]: false,
+  [ActionType.ChangesetOperationsChanged]: false,
+  [ActionType.ChangesetCleared]: false,
   [ActionType.TerminalData]: false,
   [ActionType.TerminalInput]: true,
   [ActionType.TerminalResized]: true,

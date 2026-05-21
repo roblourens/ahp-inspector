@@ -25,6 +25,14 @@ const PROTOCOL_FILES = [
   "version/registry.ts",
 ] as const;
 
+const PROTOCOL_DIRECTORIES = [
+  "common",
+  "channels-root",
+  "channels-session",
+  "channels-terminal",
+  "channels-changeset",
+] as const;
+
 function ensureInside(baseDir: string, candidate: string): void {
   const base = path.resolve(baseDir);
   const resolved = path.resolve(candidate);
@@ -57,6 +65,30 @@ function copyProtocolFile(relPath: string): void {
   mkdirSync(path.dirname(destination), { recursive: true });
   const content = readFileSync(source, "utf8");
   writeFileSync(destination, `${BANNER}${content}`, "utf8");
+}
+
+function copyProtocolDirectory(relDir: string): void {
+  const sourceDir = path.resolve(TYPES_DIR, relDir);
+  const destinationDir = path.resolve(DEST_SRC, relDir);
+
+  ensureInside(TYPES_DIR, sourceDir);
+  ensureInside(DEST_SRC, destinationDir);
+
+  if (!existsSync(sourceDir)) {
+    throw new Error(`Required AHP source directory is missing: ${sourceDir}`);
+  }
+
+  rmSync(destinationDir, { recursive: true, force: true });
+  mkdirSync(destinationDir, { recursive: true });
+
+  for (const entry of readdirSync(sourceDir, { withFileTypes: true })) {
+    const relPath = path.join(relDir, entry.name);
+    if (entry.isDirectory()) {
+      copyProtocolDirectory(relPath);
+    } else if (entry.isFile() && entry.name.endsWith(".ts")) {
+      copyProtocolFile(relPath);
+    }
+  }
 }
 
 function copyReducerFixtures(): void {
@@ -114,6 +146,10 @@ function main(): void {
 
   for (const relPath of PROTOCOL_FILES) {
     copyProtocolFile(relPath);
+  }
+
+  for (const relDir of PROTOCOL_DIRECTORIES) {
+    copyProtocolDirectory(relDir);
   }
 
   copyReducerFixtures();

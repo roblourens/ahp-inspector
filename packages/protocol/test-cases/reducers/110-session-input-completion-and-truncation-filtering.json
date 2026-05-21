@@ -14,14 +14,18 @@
     "turns": [
       {
         "id": "kept",
-        "userMessage": { "text": "Kept" },
+        "userMessage": {
+          "text": "Kept"
+        },
         "responseParts": [],
         "usage": null,
         "state": "complete"
       },
       {
         "id": "dropped",
-        "userMessage": { "text": "Dropped" },
+        "userMessage": {
+          "text": "Dropped"
+        },
         "responseParts": [],
         "usage": null,
         "state": "complete"
@@ -29,25 +33,32 @@
     ],
     "activeTurn": {
       "id": "active",
-      "userMessage": { "text": "Active" },
+      "userMessage": {
+        "text": "Active"
+      },
       "responseParts": [],
       "usage": null
     },
     "inputRequests": [
-      { "id": "complete-me", "message": "Complete me" },
-      { "id": "remaining-input", "message": "Remaining request", "url": "https://example.com/form" }
+      {
+        "id": "complete-me",
+        "message": "Complete me"
+      },
+      {
+        "id": "remaining-input",
+        "message": "Remaining request",
+        "url": "https://example.com/form"
+      }
     ]
   },
   "actions": [
     {
       "type": "session/inputCompleted",
-      "session": "copilot:/test-session",
       "requestId": "complete-me",
       "response": "decline"
     },
     {
       "type": "session/truncated",
-      "session": "copilot:/test-session",
       "turnId": "kept"
     }
   ],
@@ -64,7 +75,9 @@
     "turns": [
       {
         "id": "kept",
-        "userMessage": { "text": "Kept" },
+        "userMessage": {
+          "text": "Kept"
+        },
         "responseParts": [],
         "usage": null,
         "state": "complete"

@@ -118,7 +118,7 @@ function summarizeResponse(view: NarrowedResponse): string {
 
 function summarizeAction(view: NarrowedAction): string {
   if (isKnownAction(view.action as StateAction)) {
-    return summarizeKnownAction(view.action as StateAction);
+    return summarizeKnownAction(view.action as StateAction, view.envelope?.channel ?? null);
   }
   return summarizeUnknownAction(view.action as UnknownTypedPayload);
 }
@@ -139,7 +139,7 @@ function summarizeLog(view: NarrowedLog): string {
 // Edit a `case` to change wording for that exact action. Add a new `case` to
 // surface a richer summary for an action that currently falls through.
 
-function summarizeKnownAction(action: StateAction): string {
+function summarizeKnownAction(action: StateAction, channel: string | null): string {
   switch (action.type) {
     case ActionType.SessionDelta:
       return `delta "${clip(action.content)}"`;
@@ -148,13 +148,13 @@ function summarizeKnownAction(action: StateAction): string {
     case ActionType.SessionToolCallStart:
       return `tool start ${action.toolName}${action.displayName ? ` (${clip(action.displayName, 32)})` : ""}`;
     case ActionType.SessionToolCallDelta:
-      return `tool delta ${action.toolCallId} +${action.content.length}b`;
+      return summarizeToolCallDelta(action);
     case ActionType.SessionToolCallReady:
       return `tool ready ${action.toolCallId} ${stringOrMd(action.invocationMessage, 48)}`;
     case ActionType.SessionToolCallComplete:
       return `tool result ${action.toolCallId} success=${action.result.success}`;
     case ActionType.SessionToolCallContentChanged:
-      return `tool content ${action.toolCallId} (${action.content.length} parts)`;
+      return summarizeToolCallContentChanged(action);
     case ActionType.SessionTurnStarted:
       return `turn start ${shortId(action.turnId)}`;
     case ActionType.SessionTurnComplete:
@@ -172,9 +172,11 @@ function summarizeKnownAction(action: StateAction): string {
     case ActionType.SessionReasoning:
       return `reasoning "${clip(action.content, 60)}"`;
     case ActionType.SessionReady:
-      return `session ready ${shortId(action.session)}`;
+      return channel ? `session ready ${shortId(channel)}` : "session ready";
     case ActionType.TerminalData:
-      return `terminal data ${shortId(action.terminal)} +${action.data.length}b`;
+      return channel
+        ? `terminal data ${shortId(channel)} +${action.data.length}b`
+        : `terminal data +${action.data.length}b`;
     case ActionType.TerminalCommandFinished:
       return `terminal cmd done exit=${action.exitCode ?? "?"}`;
     default:
@@ -182,6 +184,22 @@ function summarizeKnownAction(action: StateAction): string {
       // dump of its non-discriminant fields. Add a `case` above to improve.
       return innerActionTypeAndDetail(toUnknownPayload(action));
   }
+}
+
+function summarizeToolCallDelta(action: StateAction & { type: ActionType.SessionToolCallDelta }): string {
+  const content = typeof action.content === "string" ? action.content : null;
+  return content === null
+    ? `tool delta ${action.toolCallId}`
+    : `tool delta ${action.toolCallId} +${content.length}b`;
+}
+
+function summarizeToolCallContentChanged(
+  action: StateAction & { type: ActionType.SessionToolCallContentChanged },
+): string {
+  const content = Array.isArray(action.content) ? action.content : null;
+  return content === null
+    ? `tool content ${action.toolCallId}`
+    : `tool content ${action.toolCallId} (${content.length} parts)`;
 }
 
 function summarizeUnknownAction(action: UnknownTypedPayload): string {

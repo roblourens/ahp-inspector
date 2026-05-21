@@ -110,13 +110,18 @@ function actionEvent(seq: number, envelope: ActionEnvelope, ts = seq * 1000): Ah
 }
 
 function dispatchIntent(seq: number, clientSeq: number, action: StateAction): AhpEvent {
+  const channel = action.type.startsWith("root/")
+    ? ROOT
+    : action.type.startsWith("terminal/")
+      ? TERMINAL
+      : SESSION;
   return ev({
     seq,
     dir: "c2s",
     kind: "client-notification",
     method: "dispatchAction",
     actionType: action.type,
-    raw: { jsonrpc: "2.0", method: "dispatchAction", params: { clientSeq, action } },
+    raw: { jsonrpc: "2.0", method: "dispatchAction", params: { channel, clientSeq, action } },
   });
 }
 
@@ -129,7 +134,12 @@ function envelope(
   serverSeq: number,
   origin?: ActionEnvelope["origin"],
 ): ActionEnvelope {
-  return { action, serverSeq, origin };
+  const channel = action.type.startsWith("root/")
+    ? ROOT
+    : action.type.startsWith("terminal/")
+      ? TERMINAL
+      : SESSION;
+  return { channel, action, serverSeq, origin };
 }
 
 describe("replayToIndex", () => {
@@ -215,10 +225,10 @@ describe("replayToIndex", () => {
           1,
         ),
       ),
-      actionEvent(3, envelope({ type: ActionType.SessionReady, session: SESSION }, 1)),
+      actionEvent(3, envelope({ type: ActionType.SessionReady }, 1)),
       actionEvent(
         4,
-        envelope({ type: ActionType.TerminalData, terminal: TERMINAL, data: "hello" }, 1),
+        envelope({ type: ActionType.TerminalData, data: "hello" }, 1),
       ),
     ];
 
@@ -233,7 +243,7 @@ describe("replayToIndex", () => {
 
   it("diagnoses missing baselines and malformed action envelopes", () => {
     const missing = replayToIndex(
-      [actionEvent(0, envelope({ type: ActionType.SessionReady, session: SESSION }, 1))],
+      [actionEvent(0, envelope({ type: ActionType.SessionReady }, 1))],
       0,
     );
     expect(missing.diagnostics[0]?.code).toBe("missing-baseline");
@@ -265,7 +275,7 @@ describe("replayToIndex", () => {
           actionEvent(
             2,
             envelope(
-              { type: ActionType.SessionTitleChanged, session: SESSION, title: "Renamed" },
+              { type: ActionType.SessionTitleChanged, title: "Renamed" },
               1,
             ),
             12_345,
@@ -332,11 +342,11 @@ describe("replayToIndex", () => {
         response(1, { snapshot: snapshot(TERMINAL, terminalState(), 0) }, 1),
         actionEvent(
           2,
-          envelope({ type: ActionType.TerminalData, terminal: TERMINAL, data: "a" }, 1),
+          envelope({ type: ActionType.TerminalData, data: "a" }, 1),
         ),
         actionEvent(
           3,
-          envelope({ type: ActionType.TerminalData, terminal: TERMINAL, data: "b" }, 1),
+          envelope({ type: ActionType.TerminalData, data: "b" }, 1),
         ),
       ],
       3,
@@ -354,11 +364,11 @@ describe("replayToIndex", () => {
         response(1, { snapshot: snapshot(TERMINAL, terminalState(), 0) }, 1),
         actionEvent(
           2,
-          envelope({ type: ActionType.TerminalData, terminal: TERMINAL, data: "a" }, 2),
+          envelope({ type: ActionType.TerminalData, data: "a" }, 2),
         ),
         actionEvent(
           3,
-          envelope({ type: ActionType.TerminalData, terminal: TERMINAL, data: "b" }, 1),
+          envelope({ type: ActionType.TerminalData, data: "b" }, 1),
         ),
       ],
       3,
@@ -381,9 +391,9 @@ describe("replayToIndex", () => {
         {
           type: ReconnectResultType.Replay,
           actions: [
-            envelope({ type: ActionType.SessionTitleChanged, session: SESSION, title: "First" }, 1),
+            envelope({ type: ActionType.SessionTitleChanged, title: "First" }, 1),
             envelope(
-              { type: ActionType.SessionTitleChanged, session: SESSION, title: "Second" },
+              { type: ActionType.SessionTitleChanged, title: "Second" },
               2,
             ),
           ],
@@ -469,7 +479,6 @@ describe("replayToIndex", () => {
   it("captures client dispatchAction intent without mutating until a server envelope accepts it", () => {
     const clientAction: StateAction = {
       type: ActionType.SessionTitleChanged,
-      session: SESSION,
       title: "Client title",
     };
     const baseline = [
@@ -506,10 +515,9 @@ describe("replayToIndex", () => {
   it("records malformed dispatchAction params and infers root/session/terminal intent resources", () => {
     const events = [
       dispatchIntent(0, 1, { type: ActionType.RootActiveSessionsChanged, activeSessions: 1 }),
-      dispatchIntent(1, 2, { type: ActionType.SessionTitleChanged, session: SESSION, title: "s" }),
+      dispatchIntent(1, 2, { type: ActionType.SessionTitleChanged, title: "s" }),
       dispatchIntent(2, 3, {
         type: ActionType.TerminalResized,
-        terminal: TERMINAL,
         cols: 80,
         rows: 24,
       }),

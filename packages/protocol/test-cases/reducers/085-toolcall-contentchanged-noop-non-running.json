@@ -14,7 +14,9 @@
     "turns": [],
     "activeTurn": {
       "id": "turn-1",
-      "userMessage": { "text": "Hello" },
+      "userMessage": {
+        "text": "Hello"
+      },
       "responseParts": [
         {
           "kind": "toolCall",
@@ -37,10 +39,15 @@
   "actions": [
     {
       "type": "session/toolCallContentChanged",
-      "session": "copilot:/test-session",
       "turnId": "turn-1",
       "toolCallId": "tc-1",
-      "content": [{ "type": "terminal", "resource": "agenthost:/terminal/1", "title": "bash" }]
+      "content": [
+        {
+          "type": "terminal",
+          "resource": "agenthost:/terminal/1",
+          "title": "bash"
+        }
+      ]
     }
   ],
   "expected": {
@@ -56,7 +63,9 @@
     "turns": [],
     "activeTurn": {
       "id": "turn-1",
-      "userMessage": { "text": "Hello" },
+      "userMessage": {
+        "text": "Hello"
+      },
       "responseParts": [
         {
           "kind": "toolCall",

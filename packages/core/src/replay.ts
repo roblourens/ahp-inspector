@@ -311,7 +311,7 @@ function applyEnvelope(
   eventIdx: number,
   eventTs: number,
 ): void {
-  const target = inferActionTarget(envelope.action);
+  const target = inferActionTarget(envelope.action, envelope.channel);
   if (!target) {
     addDiagnostic(ctx, {
       code: "unknown-action",
@@ -423,7 +423,8 @@ function recordClientIntent(ctx: ReplayContext, event: AhpEvent, eventIdx: numbe
   const clientSeq =
     isRecord(params) && typeof params.clientSeq === "number" ? params.clientSeq : null;
   const actionType = actionTypeOf(action);
-  const resource = action ? inferActionTarget(action) : null;
+  const channel = isRecord(params) && typeof params.channel === "string" ? params.channel : undefined;
+  const resource = action ? inferActionTarget(action, channel) : null;
 
   const intent: ReplayClientIntent = {
     eventIdx,
@@ -486,7 +487,12 @@ function readSnapshot(value: unknown): Snapshot | null {
 }
 
 function readActionEnvelope(value: unknown): ActionEnvelope | null {
-  if (!isRecord(value) || typeof value.serverSeq !== "number" || !isRecord(value.action)) {
+  if (
+    !isRecord(value) ||
+    typeof value.channel !== "string" ||
+    typeof value.serverSeq !== "number" ||
+    !isRecord(value.action)
+  ) {
     return null;
   }
   if (typeof value.action.type !== "string") {
@@ -499,6 +505,7 @@ function readActionEnvelope(value: unknown): ActionEnvelope | null {
       ? { clientId: value.origin.clientId, clientSeq: value.origin.clientSeq }
       : undefined;
   return {
+    channel: value.channel,
     action: value.action as unknown as StateAction,
     serverSeq: value.serverSeq,
     origin,
@@ -524,21 +531,21 @@ function inferSnapshotKind(snapshot: Snapshot): KnownReplayResourceKind | "unkno
   return "unknown";
 }
 
-function inferActionTarget(action: StateAction): ReplayResourceKey | null {
+function inferActionTarget(action: StateAction, channel?: string): ReplayResourceKey | null {
   const type = actionTypeOf(action);
   if (!type) {
     return null;
   }
   if (type.startsWith("root/")) {
-    return { kind: "root", uri: ROOT_RESOURCE };
+    return { kind: "root", uri: channel ?? ROOT_RESOURCE };
   }
   if (type.startsWith("session/")) {
-    const session = isRecord(action) && typeof action.session === "string" ? action.session : null;
+    const session = channel ?? (isRecord(action) && typeof action.session === "string" ? action.session : null);
     return session ? { kind: "session", uri: session } : null;
   }
   if (type.startsWith("terminal/")) {
     const terminal =
-      isRecord(action) && typeof action.terminal === "string" ? action.terminal : null;
+      channel ?? (isRecord(action) && typeof action.terminal === "string" ? action.terminal : null);
     return terminal ? { kind: "terminal", uri: terminal } : null;
   }
   return null;

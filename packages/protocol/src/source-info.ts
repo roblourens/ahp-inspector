@@ -3,7 +3,7 @@
 // biome-ignore-all lint: generated upstream protocol source
 // biome-ignore-all assist/source/organizeImports: generated upstream protocol source
 
-export const AHP_SOURCE_COMMIT = "5f79fe4" as const;
+export const AHP_SOURCE_COMMIT = "7ed423d" as const;
 export const AHP_SOURCE_REPOSITORY = "agent-host-protocol" as const;
 const AHP_SOURCE_TYPES_ROOT = "../agent-host-protocol" as const;
 const AHP_SOURCE_TYPES_SUFFIX = "types" as const;

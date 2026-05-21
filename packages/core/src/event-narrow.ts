@@ -252,6 +252,7 @@ function readKnownAction(value: Record<string, unknown>): StateAction | null {
 
 function readActionEnvelope(value: unknown): ActionEnvelope | null {
   if (!isRecord(value)) return null;
+  if (typeof value.channel !== "string") return null;
   if (typeof value.serverSeq !== "number") return null;
   const action = asRecord(value.action);
   if (!action || typeof action.type !== "string") return null;
@@ -263,6 +264,7 @@ function readActionEnvelope(value: unknown): ActionEnvelope | null {
       : undefined;
   const known = readKnownAction(action);
   return {
+    channel: value.channel,
     action: known ?? (action as unknown as StateAction),
     serverSeq: value.serverSeq,
     origin,

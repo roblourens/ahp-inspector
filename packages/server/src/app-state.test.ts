@@ -180,9 +180,10 @@ function serverSessionTitleAction(serverSeq: number, title: string): string {
     jsonrpc: "2.0",
     method: "action",
     params: {
+      channel: SESSION,
       serverSeq,
       origin: { clientId: "client-1", clientSeq: 99 },
-      action: { type: ActionType.SessionTitleChanged, session: SESSION, title },
+      action: { type: ActionType.SessionTitleChanged, title },
     },
   });
 }
@@ -192,6 +193,7 @@ function rootActiveSessionsAction(serverSeq: number, activeSessions: number): st
     jsonrpc: "2.0",
     method: "action",
     params: {
+      channel: ROOT,
       serverSeq,
       action: { type: ActionType.RootActiveSessionsChanged, activeSessions },
     },
@@ -239,6 +241,55 @@ describe("createAppState", () => {
     if (!firstRow) throw new Error("expected first row");
     expect(firstRow.kind).toBe("request");
     expect(firstRow.status).toBe("pending");
+  });
+
+  it("appends reshaped tool actions without EventStore subscriber warnings", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const host = makeFakeHost("/tmp/channel-actions.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/channel-actions.log",
+      flushIntervalMs: 0,
+      directionInference: ahpDirection,
+    });
+
+    host.push(
+      jsonl({
+        jsonrpc: "2.0",
+        method: "action",
+        params: {
+          channel: SESSION,
+          serverSeq: 17,
+          action: {
+            type: ActionType.SessionToolCallDelta,
+            turnId: "turn-current",
+            toolCallId: "tool-delta",
+          },
+        },
+      }),
+    );
+    host.push(
+      jsonl({
+        jsonrpc: "2.0",
+        method: "action",
+        params: {
+          channel: SESSION,
+          serverSeq: 18,
+          action: {
+            type: ActionType.SessionToolCallContentChanged,
+            turnId: "turn-current",
+            toolCallId: "tool-content",
+          },
+        },
+      }),
+    );
+
+    expect(state.snapshot().rows.map((row) => row.summary)).toEqual([
+      "tool delta tool-delta",
+      "tool content tool-content",
+    ]);
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("emits trustworthy optional load-progress percentages from initial-read bytes", async () => {
@@ -510,8 +561,9 @@ describe("createAppState", () => {
         jsonrpc: "2.0",
         method: "dispatchAction",
         params: {
+          channel: SESSION,
           clientSeq: 99,
-          action: { type: ActionType.SessionTitleChanged, session: SESSION, title: "Client title" },
+          action: { type: ActionType.SessionTitleChanged, title: "Client title" },
         },
       }),
     );
@@ -525,10 +577,10 @@ describe("createAppState", () => {
           type: ReconnectResultType.Replay,
           actions: [
             {
+              channel: SESSION,
               serverSeq: 2,
               action: {
                 type: ActionType.SessionTitleChanged,
-                session: SESSION,
                 title: "Replay title",
               },
             },

@@ -1,3 +1,4 @@
+import { ActionType } from "@ahp-inspector/protocol";
 import type { AhpEvent, Direction, EventKind } from "@ahp-inspector/shared";
 import { describe, expect, it } from "vitest";
 import {
@@ -272,6 +273,60 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
       null,
     );
     expect(tool.summary).toBe("tool call readFile path=safe.md limit=5");
+  });
+
+  it("keeps channel-scoped tool summaries readable when reshaped content is absent", () => {
+    const delta = projectRow(
+      mkEvent({
+        kind: "action",
+        dir: "s2c",
+        method: "action",
+        actionType: ActionType.SessionToolCallDelta,
+        raw: {
+          jsonrpc: "2.0",
+          method: "action",
+          params: {
+            channel: "copilot:/session/current-shape",
+            serverSeq: 17,
+            action: {
+              type: ActionType.SessionToolCallDelta,
+              turnId: "turn-current",
+              toolCallId: "tool-delta",
+            },
+          },
+        },
+      }),
+      0,
+      "n/a",
+      null,
+    );
+    expect(delta.summary).toBe("tool delta tool-delta");
+
+    const contentChanged = projectRow(
+      mkEvent({
+        kind: "action",
+        dir: "s2c",
+        method: "action",
+        actionType: ActionType.SessionToolCallContentChanged,
+        raw: {
+          jsonrpc: "2.0",
+          method: "action",
+          params: {
+            channel: "copilot:/session/current-shape",
+            serverSeq: 18,
+            action: {
+              type: ActionType.SessionToolCallContentChanged,
+              turnId: "turn-current",
+              toolCallId: "tool-content",
+            },
+          },
+        },
+      }),
+      1,
+      "n/a",
+      null,
+    );
+    expect(contentChanged.summary).toBe("tool content tool-content");
   });
 
   it("caps summary text at 160 chars", () => {
