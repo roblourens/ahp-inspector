@@ -1,4 +1,4 @@
-import { readdir, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { renderWebviewHtml } from "../webviewHtml.js";
@@ -31,41 +31,36 @@ describe("renderWebviewHtml", () => {
     expect(html).not.toContain("url(http://");
   });
 
-  it("copies the bowing CRT displacement surface into webview assets", async () => {
-    const assetsDir = resolve("packages/extension/ui-dist/assets");
-    const assetNames = await readdir(assetsDir);
-    const css = (
-      await Promise.all(
-        assetNames
-          .filter((assetName) => assetName.endsWith(".css"))
-          .map((assetName) => readFile(resolve(assetsDir, assetName), "utf8")),
-      )
-    ).join("\n");
-    const js = (
-      await Promise.all(
-        assetNames
-          .filter((assetName) => assetName.endsWith(".js"))
-          .map((assetName) => readFile(resolve(assetsDir, assetName), "utf8")),
-      )
-    ).join("\n");
+  it("keeps the bowing CRT surface wired into the extension webview build", async () => {
+    const [css, appShell, curvatureCanvas, filterDefs, copyScript] = await Promise.all([
+      readFile(resolve("packages/ui/src/styles/global.css"), "utf8"),
+      readFile(resolve("packages/ui/src/components/shell/AppShell.tsx"), "utf8"),
+      readFile(resolve("packages/ui/src/components/shell/CrtCurvatureCanvas.tsx"), "utf8"),
+      readFile(resolve("packages/ui/src/components/shell/CrtFilterDefs.tsx"), "utf8"),
+      readFile(resolve("packages/extension/scripts/copy-ui-dist.cjs"), "utf8"),
+    ]);
 
     expect(css).toContain(".crt-display-surface");
-    expect(css).toContain("border-radius:36px");
+    expect(css).toContain("border-radius: 36px");
     expect(css).toContain("ellipse at 50% -16%");
     expect(css).toContain("ahp-crt-phosphor-shift");
     expect(css).toContain("ahp-crt-foreground-sweep");
     expect(css).toContain(".crt-curvature-canvas");
     expect(css).not.toContain('url("#ahp-crt-warp")');
-    expect(js).toContain("crt-display-surface");
-    expect(js).toContain("crt-curvature-canvas");
-    expect(js).toContain("webgl");
-    expect(js).toContain("crt-filter-defs");
-    expect(js).toContain("feDisplacementMap");
-    expect(js).toContain("feBlend");
-    expect(js).toContain("scale:`0`");
-    expect(js).toContain("data:image/svg+xml");
-    expect(js).not.toContain("x:`0%`,y:`0%`,width:`100%`,height:`100%`");
-    expect(js).not.toContain("feTurbulence");
+    expect(appShell).toContain('className="crt-display-surface"');
+    expect(appShell).toContain("<CrtFilterDefs />");
+    expect(appShell).toContain("<CrtCurvatureCanvas />");
+    expect(curvatureCanvas).toContain('getContext("webgl"');
+    expect(curvatureCanvas).toContain('className="crt-curvature-canvas"');
+    expect(filterDefs).toContain('className="crt-filter-defs"');
+    expect(filterDefs).toContain("feDisplacementMap");
+    expect(filterDefs).toContain("feBlend");
+    expect(filterDefs).toContain('scale="0"');
+    expect(filterDefs).toContain("data:image/svg+xml");
+    expect(filterDefs).not.toContain("feTurbulence");
+    expect(copyScript).toContain('"../../ui/dist"');
+    expect(copyScript).toContain('"../ui-dist"');
+    expect(copyScript).toContain("fs.cpSync(srcDir, dstDir, { recursive: true })");
   });
 
   it("loopbackOrigin widens connect-src CSP", () => {
