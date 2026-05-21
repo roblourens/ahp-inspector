@@ -172,6 +172,7 @@ function dispatchTitleIntent(): string {
     method: "dispatchAction",
     params: {
       clientSeq: 99,
+      channel: SESSION,
       action: { type: ActionType.SessionTitleChanged, session: SESSION, title: "Client title" },
     },
   });
@@ -182,6 +183,7 @@ function serverTitleAction(serverSeq: number, title: string): string {
     jsonrpc: "2.0",
     method: "action",
     params: {
+      channel: SESSION,
       serverSeq,
       origin: { clientId: "client-1", clientSeq: 99 },
       action: { type: ActionType.SessionTitleChanged, session: SESSION, title },
@@ -507,6 +509,7 @@ describe("GET /api/state-at", () => {
             type: ReconnectResultType.Replay,
             actions: [
               {
+                channel: SESSION,
                 serverSeq: 1,
                 action: {
                   type: ActionType.SessionTitleChanged,
@@ -515,6 +518,7 @@ describe("GET /api/state-at", () => {
                 },
               },
               {
+                channel: SESSION,
                 serverSeq: 2,
                 action: {
                   type: ActionType.SessionTitleChanged,

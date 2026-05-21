@@ -2,9 +2,14 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { RootAction, SessionAction, TerminalAction } from "./action-origin.generated.js";
-import { rootReducer, sessionReducer, terminalReducer } from "./reducers.js";
-import type { RootState, SessionState, TerminalState } from "./state.js";
+import type {
+  ChangesetAction,
+  RootAction,
+  SessionAction,
+  TerminalAction,
+} from "./action-origin.generated.js";
+import { changesetReducer, rootReducer, sessionReducer, terminalReducer } from "./reducers.js";
+import type { ChangesetState, RootState, SessionState, TerminalState } from "./state.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)));
 const fixtureDir = resolve(root, "../test-cases/reducers");
@@ -12,10 +17,10 @@ const MOCK_NOW = 9999;
 
 interface Fixture {
   description: string;
-  reducer: "root" | "session" | "terminal";
-  initial: RootState | SessionState | TerminalState;
+  reducer: "changeset" | "root" | "session" | "terminal";
+  initial: ChangesetState | RootState | SessionState | TerminalState;
   actions: unknown[];
-  expected: RootState | SessionState | TerminalState;
+  expected: ChangesetState | RootState | SessionState | TerminalState;
 }
 
 function nullToUndefined<T>(value: T): T {
@@ -59,8 +64,9 @@ describe("reducer fixtures", () => {
     Date.now = originalDateNow;
   });
 
-  it("loads non-empty root, session, and terminal fixture coverage", () => {
+  it("loads non-empty channel fixture coverage", () => {
     expect(fixtures.length).toBeGreaterThan(0);
+    expect(fixtures.some((fixture) => fixture.reducer === "changeset")).toBe(true);
     expect(fixtures.some((fixture) => fixture.reducer === "root")).toBe(true);
     expect(fixtures.some((fixture) => fixture.reducer === "session")).toBe(true);
     expect(fixtures.some((fixture) => fixture.reducer === "terminal")).toBe(true);
@@ -74,6 +80,8 @@ describe("reducer fixtures", () => {
           state = rootReducer(state as RootState, action as RootAction);
         } else if (fixture.reducer === "terminal") {
           state = terminalReducer(state as TerminalState, action as TerminalAction);
+        } else if (fixture.reducer === "changeset") {
+          state = changesetReducer(state as ChangesetState, action as ChangesetAction);
         } else {
           state = sessionReducer(state as SessionState, action as SessionAction);
         }

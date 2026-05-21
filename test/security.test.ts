@@ -133,6 +133,7 @@ const URL_RE = /https?:\/\/[^\s"'<>`)]+/g;
 // Loopback URLs (localhost / 127.0.0.1 / ::1) are allowed everywhere — they
 // are the Phase-15 server-in-extension transport, not external CDNs.
 const LOOPBACK_RE = /^https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:\/|$)/;
+const SVG_SCHEMA_RE = /^http:\/\/www\.w3\.org\/2000\/svg$/;
 
 function stripComments(source: string, file: string): string {
   // Strip line comments (// ...) and block comments (/* ... */).
@@ -174,9 +175,9 @@ describe("no CDN URLs in UI source", () => {
     it(`${file.replace(`${process.cwd()}/`, "")} contains no CDN URLs`, () => {
       const body = readFileSync(file, "utf8");
       const stripped = stripComments(body, file);
-      const matches = (stripped.match(URL_RE) ?? []).filter((u) => !LOOPBACK_RE.test(u));
-      // Allow well-known schemas in source (e.g. xmlns) — none expected, but
-      // narrow the match to non-loopback http(s) URLs only.
+      const matches = (stripped.match(URL_RE) ?? []).filter(
+        (u) => !LOOPBACK_RE.test(u) && !SVG_SCHEMA_RE.test(u),
+      );
       expect(matches, `${file}: external URL(s) found: ${matches.join(", ")}`).toEqual([]);
     });
   }
