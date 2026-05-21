@@ -26,7 +26,7 @@ progress:
 Phase: 23 (i-want-to-improve-the-so-called-hacker-theme-can-we-do-somet) — EXECUTING
 Plan: 3 of 3
 Status: Ready to execute
-Last activity: 2026-05-17
+Last activity: 2026-05-21 - Completed quick task 260521-k2o: We changed the shape of ahp events recently and now they can't load; EventStore subscribers throw Cannot read properties of undefined reading length
 
 ## Performance Metrics
 
@@ -176,6 +176,7 @@ Last activity: 2026-05-17
 
 | Date | Slug | Summary |
 |------|------|---------|
+| 2026-05-21 | we-changed-the-shape-of-ahp-events-recen | Restored channel-shaped AHP action loading and kept reshaped tool-call summary projection from throwing through EventStore subscribers. |
 | 2026-05-10 | remember-filters-per-jsonl-file-when-swi | Reset filters/search/grouping when switching to a JSONL log with no stored prefs (stored prefs still hydrate for files that have them). |
 | 2026-05-09 | scrolling-the-response-is-not-working-co | Fixed response detail scrolling and corrected serverSeq gap banners to use real global sequence gaps instead of fabricating missing-0 rows. |
 | 2026-05-09 | in-the-response-viewer-on-the-right-side | Restored vertical scrolling in the response viewer Pretty/Raw tabs by allowing the shared JSON tabpanel flex child to shrink. |
