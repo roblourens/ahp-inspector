@@ -5,6 +5,7 @@
 import type { EventRow } from "@ahp-inspector/core";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { EMPTY_FILTERS } from "../../state/filters.js";
 import { useAppStore } from "../../state/store.js";
 import { TimelineRegion } from "./TimelineRegion.js";
 
@@ -60,6 +61,7 @@ beforeEach(() => {
     searchTruncated: false,
     searchStatus: "idle",
     searchError: null,
+    filters: EMPTY_FILTERS,
     grouping: "none",
   });
 });
