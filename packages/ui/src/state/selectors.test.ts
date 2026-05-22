@@ -142,11 +142,12 @@ describe("useFilteredRows", () => {
     expect(result.current).toEqual([0, 2]);
   });
 
-  it("with app default filters hides ping and keeps non-ping plus null-method rows visible", () => {
+  it("with app default filters hides ping requests and paired responses", () => {
     const rows = [
-      makeRow({ idx: 0, method: "initialize" }),
-      makeRow({ idx: 1, method: "ping" }),
+      makeRow({ idx: 0, method: "initialize", pairIdx: null }),
+      makeRow({ idx: 1, method: "ping", pairIdx: 2 }),
       makeRow({ idx: 2, method: null }),
+      makeRow({ idx: 3, method: null, pairIdx: 1 }),
     ];
     resetStore(rows);
     useAppStore.setState({ filters: APP_DEFAULT_FILTERS });
@@ -154,16 +155,19 @@ describe("useFilteredRows", () => {
     expect(result.current).toEqual([0, 2]);
   });
 
-  it("with method exclusions hides additional unchecked methods", () => {
+  it("with method exclusions hides additional unchecked methods and paired responses", () => {
     const rows = [
-      makeRow({ idx: 0, method: "initialize" }),
-      makeRow({ idx: 1, method: "tools/call" }),
-      makeRow({ idx: 2, method: "ping" }),
+      makeRow({ idx: 0, method: "initialize", pairIdx: null }),
+      makeRow({ idx: 1, method: "tools/call", pairIdx: 2 }),
+      makeRow({ idx: 2, method: null, pairIdx: 1 }),
+      makeRow({ idx: 3, method: "ping", pairIdx: 4 }),
+      makeRow({ idx: 4, method: null, pairIdx: 3 }),
+      makeRow({ idx: 5, method: null, pairIdx: null }),
     ];
     resetStore(rows);
     useAppStore.setState({ filters: { ...APP_DEFAULT_FILTERS, method: ["ping", "tools/call"] } });
     const { result } = renderHook(() => useFilteredRows());
-    expect(result.current).toEqual([0]);
+    expect(result.current).toEqual([0, 5]);
   });
 });
 
@@ -185,6 +189,22 @@ describe("useVisibleSearchMatches", () => {
     });
     const { result } = renderHook(() => useVisibleSearchMatches());
     expect(result.current).toEqual([0]);
+  });
+
+  it("excludes search matches for responses paired with hidden methods", () => {
+    const rows = [
+      makeRow({ idx: 0, method: "initialize", pairIdx: null }),
+      makeRow({ idx: 1, method: "ping", pairIdx: 2 }),
+      makeRow({ idx: 2, method: null, pairIdx: 1 }),
+      makeRow({ idx: 3, method: null, pairIdx: null }),
+    ];
+    resetStore(rows);
+    useAppStore.setState({
+      filters: APP_DEFAULT_FILTERS,
+      searchMatches: new Set([0, 1, 2, 3]),
+    });
+    const { result } = renderHook(() => useVisibleSearchMatches());
+    expect(result.current).toEqual([0, 3]);
   });
 });
 

@@ -1,6 +1,6 @@
 import type { EventRow } from "@ahp-inspector/core";
 import { useDeferredValue, useMemo } from "react";
-import { applyFacets, isFiltersEmpty } from "./filters.js";
+import { applyFacets, type FilterState, isFiltersEmpty } from "./filters.js";
 import { type GroupingMode, useAppStore } from "./store.js";
 
 export type VirtualItem =
@@ -27,7 +27,7 @@ export function useFilteredRows(): number[] {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       if (!row) continue;
-      if (!noFacets && !applyFacets(row, deferredFilters)) continue;
+      if (!noFacets && !applyFacetsForRows(rows, row, deferredFilters)) continue;
       result.push(i);
     }
     return result;
@@ -47,11 +47,18 @@ export function useVisibleSearchMatches(): number[] {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       if (!row || !deferredMatches.has(i)) continue;
-      if (!noFacets && !applyFacets(row, deferredFilters)) continue;
+      if (!noFacets && !applyFacetsForRows(rows, row, deferredFilters)) continue;
       result.push(i);
     }
     return result;
   }, [rows, deferredFilters, deferredMatches]);
+}
+
+function applyFacetsForRows(rows: EventRow[], row: EventRow, filters: FilterState): boolean {
+  if (!applyFacets(row, filters)) return false;
+  if (row.method !== null || filters.method.length === 0) return true;
+  const pairedMethod = typeof row.pairIdx === "number" ? (rows[row.pairIdx]?.method ?? null) : null;
+  return pairedMethod === null || !filters.method.includes(pairedMethod);
 }
 
 // ── facetCounts ───────────────────────────────────────────────────────────────
