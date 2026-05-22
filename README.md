@@ -82,11 +82,19 @@ pause/resume, and per-log persistence.
 
 ```bash
 pnpm install
-pnpm start:long
+pnpm start
 ```
 
-The CLI starts a local server bound to `127.0.0.1`, opens the browser, and loads
-`test/fixtures/long-realistic-ahp.jsonl`.
+The dev script starts a local server bound to `127.0.0.1` on a random available
+port, opens the browser, and uses the normal no-argument launch path: it
+auto-discovers the latest real AHP log under the standard VS Code log roots, or
+opens the discovery picker if none is found.
+
+To smoke-test against checked-in sample data instead:
+
+```bash
+pnpm start:long
+```
 
 To open your own JSONL log:
 

@@ -27,6 +27,7 @@
     "format": "biome format --write .",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
+    "start": "pnpm -F @ahp-inspector/ui build && pnpm exec tsx packages/cli/src/index.ts --port 0",
     "start:fixture": "pnpm -F @ahp-inspector/ui build && pnpm exec tsx packages/cli/src/index.ts test/fixtures/phase3-mini.jsonl",
     "start:long": "pnpm -F @ahp-inspector/ui build && pnpm exec tsx packages/cli/src/index.ts test/fixtures/long-realistic-ahp.jsonl",
     "e2e": "playwright test",
