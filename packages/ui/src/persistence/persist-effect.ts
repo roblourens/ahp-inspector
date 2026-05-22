@@ -8,7 +8,7 @@
 // `loadForLogKey` / `saveForLogKey` so call sites match UI-SPEC vocabulary.
 
 import { useEffect, useRef } from "react";
-import { EMPTY_FILTERS } from "../state/filters.js";
+import { APP_DEFAULT_FILTERS } from "../state/filters.js";
 import {
   loadPerLogPrefs as loadForLogKey,
   type PerLogPrefs,
@@ -137,7 +137,7 @@ export function usePersistEffect(): void {
         // callbacks see prevKey === currKey and skip this branch.
         ref.lastLogKey = currKey;
         const s = useAppStore.getState();
-        s.setFilters(EMPTY_FILTERS);
+        s.setFilters(APP_DEFAULT_FILTERS);
         s.setSearchQuery("");
         s.clearSearchResults();
         s.setGrouping("none");

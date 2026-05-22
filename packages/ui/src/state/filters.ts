@@ -25,6 +25,11 @@ export const EMPTY_FILTERS: FilterState = {
   timeTo: null,
 };
 
+export const APP_DEFAULT_FILTERS: FilterState = {
+  ...EMPTY_FILTERS,
+  method: ["ping"],
+};
+
 export function isFiltersEmpty(f: FilterState): boolean {
   return (
     f.direction.length === 0 &&
@@ -41,12 +46,13 @@ export function isFiltersEmpty(f: FilterState): boolean {
 
 /**
  * Returns true when the row passes ALL active filter dimensions.
- * An empty array for a dimension means "no filter on this dimension" (match-all).
+ * An empty array for most dimensions means "no filter on this dimension" (match-all).
+ * `method` is an exclusion list: hidden methods fail, all other methods pass.
  */
 export function applyFacets(row: EventRow, f: FilterState): boolean {
   if (f.direction.length > 0 && !f.direction.includes(row.dir as "c2s" | "s2c")) return false;
   if (f.kind.length > 0 && !f.kind.includes(row.kind)) return false;
-  if (f.method.length > 0 && (row.method === null || !f.method.includes(row.method))) return false;
+  if (row.method !== null && f.method.includes(row.method)) return false;
   if (
     f.actionType.length > 0 &&
     (row.actionType === null || !f.actionType.includes(row.actionType))

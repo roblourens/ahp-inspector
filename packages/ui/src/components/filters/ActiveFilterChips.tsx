@@ -21,7 +21,6 @@ export function ActiveFilterChips(): JSX.Element | null {
   }> = [
     { key: "direction", prefix: "Dir" },
     { key: "kind", prefix: "Kind" },
-    { key: "method", prefix: "Method" },
     { key: "actionType", prefix: "Action" },
     { key: "session", prefix: "Session" },
     { key: "turn", prefix: "Turn" },
@@ -46,6 +45,22 @@ export function ActiveFilterChips(): JSX.Element | null {
         />,
       );
     }
+  }
+
+  for (const val of filters.method) {
+    chips.push(
+      <ActiveChip
+        key={`method-${val}`}
+        label={`Hidden method: ${val}`}
+        ariaLabel={`Show method: ${val}`}
+        onDismiss={() => {
+          patchFilter(
+            "method",
+            filters.method.filter((v) => v !== val),
+          );
+        }}
+      />,
+    );
   }
 
   // Time chips

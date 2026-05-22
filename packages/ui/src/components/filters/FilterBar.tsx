@@ -32,6 +32,32 @@ function mapToOptions(
   }));
 }
 
+function methodSelectionFromHidden(
+  options: { value: string; label: string; count: number }[],
+  hiddenMethods: string[],
+): string[] {
+  return options.map((option) => option.value).filter((value) => !hiddenMethods.includes(value));
+}
+
+function hiddenMethodsFromSelection(
+  options: { value: string; label: string; count: number }[],
+  selectedMethods: string[],
+  previousHiddenMethods: string[],
+): string[] {
+  const nextHiddenMethods = options
+    .map((option) => option.value)
+    .filter((value) => !selectedMethods.includes(value));
+  const availableValues = new Set(options.map((option) => option.value));
+  const nextHiddenSet = new Set(nextHiddenMethods);
+  const carriedHiddenMethods = previousHiddenMethods.filter(
+    (value) => !availableValues.has(value) || nextHiddenSet.has(value),
+  );
+  return [
+    ...carriedHiddenMethods,
+    ...nextHiddenMethods.filter((value) => !carriedHiddenMethods.includes(value)),
+  ];
+}
+
 export function FilterBar({
   searchInputRef,
 }: {
@@ -50,6 +76,9 @@ export function FilterBar({
   const facetCounts = useFacetCounts();
   const filteredRows = useFilteredRows();
   const totalRows = useAppStore((s) => s.rows.length);
+
+  const methodOptions = mapToOptions(facetCounts.method);
+  const visibleMethods = methodSelectionFromHidden(methodOptions, filters.method);
 
   const [openPopover, setOpenPopover] = useState<OpenPopover>(null);
 
@@ -184,9 +213,11 @@ export function FilterBar({
         />
         {openPopover === "method" && (
           <FacetPopover
-            options={mapToOptions(facetCounts.method)}
-            selected={filters.method}
-            onChange={(vals) => patchFilter("method", vals)}
+            options={methodOptions}
+            selected={visibleMethods}
+            onChange={(vals) =>
+              patchFilter("method", hiddenMethodsFromSelection(methodOptions, vals, filters.method))
+            }
             onClose={close}
             searchable
           />

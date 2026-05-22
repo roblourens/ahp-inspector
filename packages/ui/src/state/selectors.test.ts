@@ -6,7 +6,7 @@
 import type { EventRow } from "@ahp-inspector/core";
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { applyFacets, EMPTY_FILTERS } from "./filters.js";
+import { applyFacets, APP_DEFAULT_FILTERS, EMPTY_FILTERS } from "./filters.js";
 import {
   useFacetCounts,
   useFilteredRows,
@@ -89,9 +89,14 @@ describe("applyFacets", () => {
     expect(applyFacets(resp, f)).toBe(false);
   });
 
-  it("filters by method — null method row is excluded when method filter is active", () => {
+  it("filters by method exclusions while allowing null method rows", () => {
     const row = makeRow({ method: null });
-    expect(applyFacets(row, { ...EMPTY_FILTERS, method: ["tools/call"] })).toBe(false);
+    const hidden = makeRow({ method: "tools/call" });
+    const visible = makeRow({ method: "initialize" });
+    const filters = { ...EMPTY_FILTERS, method: ["tools/call"] };
+    expect(applyFacets(row, filters)).toBe(true);
+    expect(applyFacets(hidden, filters)).toBe(false);
+    expect(applyFacets(visible, filters)).toBe(true);
   });
 
   it("filters by timeFrom / timeTo", () => {
@@ -135,6 +140,30 @@ describe("useFilteredRows", () => {
     });
     const { result } = renderHook(() => useFilteredRows());
     expect(result.current).toEqual([0, 2]);
+  });
+
+  it("with app default filters hides ping and keeps non-ping plus null-method rows visible", () => {
+    const rows = [
+      makeRow({ idx: 0, method: "initialize" }),
+      makeRow({ idx: 1, method: "ping" }),
+      makeRow({ idx: 2, method: null }),
+    ];
+    resetStore(rows);
+    useAppStore.setState({ filters: APP_DEFAULT_FILTERS });
+    const { result } = renderHook(() => useFilteredRows());
+    expect(result.current).toEqual([0, 2]);
+  });
+
+  it("with method exclusions hides additional unchecked methods", () => {
+    const rows = [
+      makeRow({ idx: 0, method: "initialize" }),
+      makeRow({ idx: 1, method: "tools/call" }),
+      makeRow({ idx: 2, method: "ping" }),
+    ];
+    resetStore(rows);
+    useAppStore.setState({ filters: { ...APP_DEFAULT_FILTERS, method: ["ping", "tools/call"] } });
+    const { result } = renderHook(() => useFilteredRows());
+    expect(result.current).toEqual([0]);
   });
 });
 

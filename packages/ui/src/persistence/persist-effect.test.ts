@@ -5,7 +5,7 @@ import type { EventRow } from "@ahp-inspector/core";
 import { cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { EMPTY_FILTERS } from "../state/filters.js";
+import { APP_DEFAULT_FILTERS, EMPTY_FILTERS } from "../state/filters.js";
 import * as persistenceModule from "../state/persistence.js";
 import { useAppStore } from "../state/store.js";
 import { usePersistEffect } from "./persist-effect.js";
@@ -320,7 +320,7 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     });
 
     const s = useAppStore.getState();
-    expect(s.filters).toEqual(EMPTY_FILTERS);
+    expect(s.filters).toEqual(APP_DEFAULT_FILTERS);
     expect(s.searchQuery).toBe("");
     expect(s.searchMatches).toBeNull();
     expect(s.grouping).toBe("none");

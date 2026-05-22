@@ -6,7 +6,7 @@
 import type { EventRow } from "@ahp-inspector/core";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EMPTY_FILTERS } from "../../state/filters.js";
+import { APP_DEFAULT_FILTERS, EMPTY_FILTERS } from "../../state/filters.js";
 import { useAppStore } from "../../state/store.js";
 import { NoResultsState } from "../states/NoResultsState.js";
 import { SearchingIndicator } from "../states/SearchingIndicator.js";
@@ -157,6 +157,32 @@ describe("FilterBar", () => {
     expect(screen.getByText("frontend-polish")).toBeTruthy();
   });
 
+  it("opens Method with discovered methods checked except ping by default", () => {
+    useAppStore.setState({
+      rows: [makeRow({ idx: 0, method: "initialize" }), makeRow({ idx: 1, method: "ping" })],
+      filters: APP_DEFAULT_FILTERS,
+    });
+    render(<FilterBar />);
+    fireEvent.click(screen.getByRole("button", { name: /Method/i }));
+
+    const initialize = screen.getByRole("checkbox", { name: /initialize/i }) as HTMLInputElement;
+    const ping = screen.getByRole("checkbox", { name: /ping/i }) as HTMLInputElement;
+    expect(initialize.checked).toBe(true);
+    expect(ping.checked).toBe(false);
+  });
+
+  it("unchecking a Method option adds it to hidden methods", () => {
+    useAppStore.setState({
+      rows: [makeRow({ idx: 0, method: "initialize" }), makeRow({ idx: 1, method: "ping" })],
+      filters: APP_DEFAULT_FILTERS,
+    });
+    render(<FilterBar />);
+    fireEvent.click(screen.getByRole("button", { name: /Method/i }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /initialize/i }));
+
+    expect(useAppStore.getState().filters.method).toEqual(["ping", "initialize"]);
+  });
+
   it("clicking GroupToggleChip opens a popover with grouping options", () => {
     render(<FilterBar />);
     const groupBtn = screen.getByRole("button", { name: /Group:/i });
@@ -260,6 +286,15 @@ describe("ActiveFilterChips", () => {
     const dismissBtn = screen.getByRole("button", { name: /Remove filter Dir: c2s/i });
     fireEvent.click(dismissBtn);
     expect(useAppStore.getState().filters.direction).toEqual([]);
+  });
+
+  it("renders method exclusions as hidden method chips and dismissing them shows the method", () => {
+    useAppStore.setState({ filters: APP_DEFAULT_FILTERS });
+    render(<ActiveFilterChips />);
+    expect(screen.getByText("Hidden method: ping")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: /Show method: ping/i }));
+    expect(useAppStore.getState().filters.method).toEqual([]);
   });
 
   it("Clear all button calls clearFilters()", () => {

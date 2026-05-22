@@ -5,7 +5,7 @@ import {
   DETAIL_MAX_WIDTH,
   DETAIL_MIN_WIDTH,
 } from "../components/detail/detail-layout.js";
-import { EMPTY_FILTERS, type FilterState } from "./filters.js";
+import { APP_DEFAULT_FILTERS, type FilterState } from "./filters.js";
 
 export type { FilterState } from "./filters.js";
 
@@ -229,7 +229,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
   searchTruncated: false,
   searchStatus: "idle",
   searchError: null,
-  filters: EMPTY_FILTERS,
+  filters: APP_DEFAULT_FILTERS,
   grouping: "none",
   groupCollapsed: new Set<string>(),
   selectedDetail: null,
@@ -264,7 +264,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
     }),
   setFilters: (f) => set({ filters: f }),
   patchFilter: (key, value) => set((s) => ({ filters: { ...s.filters, [key]: value } })),
-  clearFilters: () => set({ filters: EMPTY_FILTERS }),
+  clearFilters: () => set({ filters: APP_DEFAULT_FILTERS }),
   setGrouping: (mode) => set({ grouping: mode }),
   toggleGroupCollapsed: (key) =>
     set((s) => {
