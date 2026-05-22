@@ -26,7 +26,7 @@ progress:
 Phase: 23 (i-want-to-improve-the-so-called-hacker-theme-can-we-do-somet) — EXECUTING
 Plan: 3 of 3
 Status: Ready to execute
-Last activity: 2026-05-22 - Completed quick task 260521-p53: the "method" dropdown should have all the methods checked by default, so if I uncheck one, it is filtered out. And "ping" should be unchecked by default
+Last activity: 2026-05-22 - Completed quick task 260522-ez9: When a method is disabled in the Method facet, hide both requests for that method and their matching responses; ping is hidden by default so ping responses should also be hidden.
 
 ## Performance Metrics
 
@@ -176,6 +176,7 @@ Last activity: 2026-05-22 - Completed quick task 260521-p53: the "method" dropdo
 
 | Date | Slug | Summary |
 |------|------|---------|
+| 2026-05-22 | when-a-method-is-disabled-in-the-method- | Hid responses paired with Method facet-excluded requests, including default-hidden `ping` responses. |
 | 2026-05-22 | the-method-dropdown-should-have-all-the- | Made the Method facet a checked visibility list, with `ping` hidden by default and other unchecked methods filtered out. |
 | 2026-05-21 | we-changed-the-shape-of-ahp-events-recen | Restored channel-shaped AHP action loading and kept reshaped tool-call summary projection from throwing through EventStore subscribers. |
 | 2026-05-10 | remember-filters-per-jsonl-file-when-swi | Reset filters/search/grouping when switching to a JSONL log with no stored prefs (stored prefs still hydrate for files that have them). |
