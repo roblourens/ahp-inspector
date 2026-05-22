@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
-status: executing
+status: released
 stopped_at: Completed 23-02-PLAN.md
-last_updated: "2026-05-17T18:18:47.490Z"
-last_activity: 2026-05-17
+last_updated: "2026-05-22T18:05:00.000Z"
+last_activity: 2026-05-22
 progress:
   total_phases: 8
   completed_phases: 3
@@ -25,8 +25,8 @@ progress:
 
 Phase: 23 (i-want-to-improve-the-so-called-hacker-theme-can-we-do-somet) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-05-22 - Completed quick task 260522-f69: Fix sticky auto-scrolling regression so appending rows while tail-following does not jump back to an older selected row.
+Status: Released 1.3.2 — May 22 quick fixes published via publish.yml
+Last activity: 2026-05-22 - Released ahp-inspector 1.3.2 with the May 22 quick fixes.
 
 ## Performance Metrics
 
