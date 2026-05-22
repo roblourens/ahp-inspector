@@ -26,7 +26,7 @@ progress:
 Phase: 23 (i-want-to-improve-the-so-called-hacker-theme-can-we-do-somet) — EXECUTING
 Plan: 3 of 3
 Status: Ready to execute
-Last activity: 2026-05-22 - Completed quick task 260522-ez9: When a method is disabled in the Method facet, hide both requests for that method and their matching responses; ping is hidden by default so ping responses should also be hidden.
+Last activity: 2026-05-22 - Completed quick task 260522-f69: Fix sticky auto-scrolling regression so appending rows while tail-following does not jump back to an older selected row.
 
 ## Performance Metrics
 
@@ -176,6 +176,7 @@ Last activity: 2026-05-22 - Completed quick task 260522-ez9: When a method is di
 
 | Date | Slug | Summary |
 |------|------|---------|
+| 2026-05-22 | fix-sticky-auto-scrolling-regression-if- | Kept tail-follow active across row appends even when an older selected row is above the viewport. |
 | 2026-05-22 | when-a-method-is-disabled-in-the-method- | Hid responses paired with Method facet-excluded requests, including default-hidden `ping` responses. |
 | 2026-05-22 | the-method-dropdown-should-have-all-the- | Made the Method facet a checked visibility list, with `ping` hidden by default and other unchecked methods filtered out. |
 | 2026-05-21 | we-changed-the-shape-of-ahp-events-recen | Restored channel-shaped AHP action loading and kept reshaped tool-call summary projection from throwing through EventStore subscribers. |
