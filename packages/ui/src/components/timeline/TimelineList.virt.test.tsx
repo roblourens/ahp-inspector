@@ -213,7 +213,11 @@ describe("TimelineList — virtualization", () => {
       const grid = screen.getByTestId("timeline-list");
       let scrollTop = 0;
       Object.defineProperties(grid, {
-        scrollTop: { configurable: true, get: () => scrollTop, set: (value) => (scrollTop = Number(value)) },
+        scrollTop: {
+          configurable: true,
+          get: () => scrollTop,
+          set: (value) => (scrollTop = Number(value)),
+        },
         scrollHeight: { configurable: true, get: () => 2_000 },
         clientHeight: { configurable: true, get: () => 400 },
       });
@@ -265,7 +269,11 @@ describe("TimelineList — virtualization", () => {
       let scrollTop = 1_600;
       let scrollHeight = 2_000;
       Object.defineProperties(grid, {
-        scrollTop: { configurable: true, get: () => scrollTop, set: (value) => (scrollTop = Number(value)) },
+        scrollTop: {
+          configurable: true,
+          get: () => scrollTop,
+          set: (value) => (scrollTop = Number(value)),
+        },
         scrollHeight: { configurable: true, get: () => scrollHeight },
         clientHeight: { configurable: true, get: () => 400 },
       });
@@ -287,6 +295,78 @@ describe("TimelineList — virtualization", () => {
       );
       for (const cb of callbacks.splice(0)) cb(0);
       expect(scrollTop).toBe(2_100);
+    } finally {
+      globalThis.requestAnimationFrame = originalRaf;
+      globalThis.cancelAnimationFrame = originalCancelRaf;
+    }
+  });
+
+  it("keeps tail-follow active across appends when a stale selection is above the viewport", () => {
+    const callbacks: FrameRequestCallback[] = [];
+    const originalRaf = globalThis.requestAnimationFrame;
+    const originalCancelRaf = globalThis.cancelAnimationFrame;
+    globalThis.requestAnimationFrame = ((cb: FrameRequestCallback): number => {
+      callbacks.push(cb);
+      return callbacks.length;
+    }) as typeof requestAnimationFrame;
+    globalThis.cancelAnimationFrame = (() => {}) as typeof cancelAnimationFrame;
+    try {
+      const initialRows = fixture.slice(0, 20);
+      const rendered = render(
+        <div style={{ height: 400 }}>
+          <TimelineList
+            items={initialRows.map((row) => ({ kind: "row", rowIdx: row.idx }))}
+            rows={initialRows}
+            selectedIdx={0}
+            onSelect={() => {}}
+          />
+        </div>,
+      );
+      const grid = screen.getByTestId("timeline-list");
+      let scrollTop = 1_600;
+      let scrollHeight = 2_000;
+      Object.defineProperties(grid, {
+        scrollTop: {
+          configurable: true,
+          get: () => scrollTop,
+          set: (value) => (scrollTop = Number(value)),
+        },
+        scrollHeight: { configurable: true, get: () => scrollHeight },
+        clientHeight: { configurable: true, get: () => 400 },
+      });
+      for (const cb of callbacks.splice(0)) cb(0);
+      scrollTop = 1_600;
+      fireEvent.scroll(grid);
+
+      scrollHeight = 2_100;
+      const firstGrownRows = fixture.slice(0, 21);
+      rendered.rerender(
+        <div style={{ height: 400 }}>
+          <TimelineList
+            items={firstGrownRows.map((row) => ({ kind: "row", rowIdx: row.idx }))}
+            rows={firstGrownRows}
+            selectedIdx={0}
+            onSelect={() => {}}
+          />
+        </div>,
+      );
+      for (const cb of callbacks.splice(0)) cb(0);
+      expect(scrollTop).toBe(2_100);
+
+      scrollHeight = 2_200;
+      const secondGrownRows = fixture.slice(0, 22);
+      rendered.rerender(
+        <div style={{ height: 400 }}>
+          <TimelineList
+            items={secondGrownRows.map((row) => ({ kind: "row", rowIdx: row.idx }))}
+            rows={secondGrownRows}
+            selectedIdx={0}
+            onSelect={() => {}}
+          />
+        </div>,
+      );
+      for (const cb of callbacks.splice(0)) cb(0);
+      expect(scrollTop).toBe(2_200);
     } finally {
       globalThis.requestAnimationFrame = originalRaf;
       globalThis.cancelAnimationFrame = originalCancelRaf;

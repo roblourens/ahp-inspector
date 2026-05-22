@@ -113,7 +113,10 @@ export function TimelineList({
   // Scroll the selected row into view only when it's currently off-screen
   // (e.g., keyboard navigation or search-match jump). Clicking a visible row
   // must not scroll the timeline.
+  const lastSelectionScrollIdxRef = useRef<number | null>(null);
   useEffect(() => {
+    if (selectedIdx === lastSelectionScrollIdxRef.current) return;
+    lastSelectionScrollIdxRef.current = selectedIdx;
     if (selectedIdx === null) return;
     const targetVi = items.findIndex(
       (it) => it.kind === "row" && rows[it.rowIdx]?.idx === selectedIdx,
