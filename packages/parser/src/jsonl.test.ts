@@ -45,6 +45,153 @@ describe("LineSplitter", () => {
     // Internal state reset after overflow so subsequent pushes work.
     expect(s.push("ok\n")).toEqual(["ok"]);
   });
+
+  describe("tolerant mode (onOversizedLineSkipped)", () => {
+    it("does NOT throw on overflow, drops the oversized line, and resumes after the next newline", () => {
+      const skips: number[] = [];
+      const s = new LineSplitter({
+        onOversizedLineSkipped: (n) => skips.push(n),
+      });
+      // Push the oversized portion across multiple chunks (simulates how
+      // TailReader feeds 256KB chunks to the splitter).
+      const chunkSize = 1 * 1024 * 1024;
+      const totalBytes = MAX_BUF_BYTES + 5 * chunkSize; // ~21MB
+      const chunk = "x".repeat(chunkSize);
+      const chunks = Math.ceil(totalBytes / chunkSize);
+      for (let i = 0; i < chunks; i++) {
+        expect(() => s.push(chunk)).not.toThrow();
+      }
+      // Skip callback hasn't fired yet — no terminator seen.
+      expect(skips).toEqual([]);
+      // Newline + a good line — splitter should fire skip callback and emit the next line.
+      expect(s.push("\nafter\n")).toEqual(["after"]);
+      expect(skips).toHaveLength(1);
+      const skipped = skips[0];
+      if (skipped === undefined) throw new Error("expected one skip report");
+      expect(skipped).toBeGreaterThanOrEqual(MAX_BUF_BYTES);
+    });
+
+    it("returns pre-overflow lines from the same push that triggers overflow", () => {
+      const skips: number[] = [];
+      const s = new LineSplitter({
+        onOversizedLineSkipped: (n) => skips.push(n),
+      });
+      const huge = "x".repeat(MAX_BUF_BYTES + 1);
+      // good\n + 16MB+ tail in one chunk — `good` must still come out.
+      expect(s.push(`good\n${huge}`)).toEqual(["good"]);
+      expect(skips).toEqual([]); // no terminator yet
+      expect(s.push("\nrecovered\n")).toEqual(["recovered"]);
+      expect(skips).toHaveLength(1);
+    });
+
+    it("counts UTF-8 byte length correctly for non-ASCII oversized content", () => {
+      const skips: number[] = [];
+      const s = new LineSplitter({
+        onOversizedLineSkipped: (n) => skips.push(n),
+      });
+      // The overflow trigger is JS string length (UTF-16 code units), so we
+      // need > MAX_BUF_BYTES code units to overflow. Each "ä" contributes
+      // 1 code unit but 2 UTF-8 bytes.
+      const charCount = MAX_BUF_BYTES + 1;
+      const huge = "ä".repeat(charCount);
+      s.push(huge);
+      s.push("\n");
+      expect(skips).toHaveLength(1);
+      const skipped = skips[0];
+      if (skipped === undefined) throw new Error("expected one skip report");
+      // Each "ä" contributes 2 UTF-8 bytes.
+      expect(skipped).toBe(charCount * 2);
+    });
+
+    it("handles CRLF terminator on the skipped line", () => {
+      const skips: Array<{ bytes: number; term: number }> = [];
+      const s = new LineSplitter({
+        onOversizedLineSkipped: (bytes, term) => skips.push({ bytes, term }),
+      });
+      s.push("x".repeat(MAX_BUF_BYTES + 1));
+      // CRLF: the \r is one byte BEFORE the \n; splitter must NOT count it
+      // as part of the oversized payload, and must report terminator = 2.
+      expect(s.push("\r\nnext\n")).toEqual(["next"]);
+      expect(skips).toHaveLength(1);
+      expect(skips[0]?.term).toBe(2);
+    });
+
+    it("reports terminator = 1 for LF terminator", () => {
+      const skips: Array<{ bytes: number; term: number }> = [];
+      const s = new LineSplitter({
+        onOversizedLineSkipped: (bytes, term) => skips.push({ bytes, term }),
+      });
+      s.push("x".repeat(MAX_BUF_BYTES + 1));
+      s.push("\n");
+      expect(skips).toHaveLength(1);
+      expect(skips[0]?.term).toBe(1);
+    });
+
+    it("endOfInput() flushes an oversized unterminated line with terminator = 0", () => {
+      const skips: Array<{ bytes: number; term: number }> = [];
+      const s = new LineSplitter({
+        onOversizedLineSkipped: (bytes, term) => skips.push({ bytes, term }),
+      });
+      // Many chunks, no newline at all — simulates an 80MB single-line file.
+      const chunk = "x".repeat(1024 * 1024);
+      for (let i = 0; i < 20; i++) s.push(chunk);
+      expect(skips).toEqual([]); // no terminator yet
+      s.endOfInput();
+      expect(skips).toHaveLength(1);
+      expect(skips[0]?.term).toBe(0);
+      expect(skips[0]?.bytes).toBeGreaterThanOrEqual(MAX_BUF_BYTES);
+    });
+
+    it("endOfInput() is a no-op when not skipping", () => {
+      const skips: number[] = [];
+      const s = new LineSplitter({
+        onOversizedLineSkipped: (n) => skips.push(n),
+      });
+      s.push("normal\n");
+      s.endOfInput();
+      expect(skips).toEqual([]);
+    });
+
+    it("endOfInput() clears skip state so subsequent pushes start fresh", () => {
+      const skips: number[] = [];
+      const s = new LineSplitter({
+        onOversizedLineSkipped: (n) => skips.push(n),
+      });
+      s.push("x".repeat(MAX_BUF_BYTES + 1));
+      s.endOfInput();
+      expect(skips).toHaveLength(1);
+      // After endOfInput, the next push should behave as a fresh splitter.
+      expect(s.push("hello\nworld\n")).toEqual(["hello", "world"]);
+      expect(skips).toHaveLength(1); // no second skip fired
+    });
+
+    it("reset() clears tolerant-mode skip state", () => {
+      const skips: number[] = [];
+      const s = new LineSplitter({
+        onOversizedLineSkipped: (n) => skips.push(n),
+      });
+      s.push("x".repeat(MAX_BUF_BYTES + 1));
+      // skipping = true here; no terminator yet.
+      s.reset();
+      // After reset, the next push must behave as a fresh splitter — it
+      // should NOT keep discarding bytes looking for a newline.
+      expect(s.push("hello\nworld\n")).toEqual(["hello", "world"]);
+      expect(skips).toEqual([]);
+    });
+
+    it("skip-then-skip: two oversized lines in a row fire the callback twice", () => {
+      const skips: number[] = [];
+      const s = new LineSplitter({
+        onOversizedLineSkipped: (n) => skips.push(n),
+      });
+      const huge = "x".repeat(MAX_BUF_BYTES + 1);
+      s.push(huge);
+      s.push("\n");
+      s.push(huge);
+      s.push("\n");
+      expect(skips).toHaveLength(2);
+    });
+  });
 });
 
 // ─── parseLine ───────────────────────────────────────────────────────────────

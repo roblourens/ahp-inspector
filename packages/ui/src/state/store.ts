@@ -114,14 +114,22 @@ export interface AppStoreState {
   pendingBuffer: EventRow[];
   pendingNewCount: number;
   followLatest: boolean;
-  lastWatchError: { code: "read-error" | "watch-fatal"; message: string } | null;
+  lastWatchError: {
+    code: "read-error" | "watch-fatal" | "oversized-line";
+    message: string;
+  } | null;
   logKey: string | null;
   rotationNotice: boolean;
   lastOpenRef: { kind: "candidate"; id: string } | { kind: "path"; path: string } | null;
   setLivePaused(p: boolean): void;
   clearPendingNewCount(): void;
   flushPendingBuffer(): void;
-  setLastWatchError(e: { code: "read-error" | "watch-fatal"; message: string } | null): void;
+  setLastWatchError(
+    e: {
+      code: "read-error" | "watch-fatal" | "oversized-line";
+      message: string;
+    } | null,
+  ): void;
   setLogKey(k: string | null): void;
   setRotationNotice(v: boolean): void;
   setLastOpenRef(

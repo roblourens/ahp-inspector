@@ -213,10 +213,15 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
   const onWatchError = (ev: Event): void => {
     try {
       const data = JSON.parse((ev as MessageEvent).data) as {
-        code?: "read-error" | "watch-fatal";
+        code?: "read-error" | "watch-fatal" | "oversized-line";
         message?: string;
       };
-      const code = data.code === "watch-fatal" ? "watch-fatal" : "read-error";
+      const code =
+        data.code === "watch-fatal"
+          ? "watch-fatal"
+          : data.code === "oversized-line"
+            ? "oversized-line"
+            : "read-error";
       useAppStore.getState().setLastWatchError({
         code,
         message: typeof data.message === "string" ? data.message : "",

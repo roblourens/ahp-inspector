@@ -827,6 +827,43 @@ describe("AppState rotation/watch-error propagation (Phase 4 INGEST-04)", () => 
     expect(errors.find((p) => p.kind === "watch-error" && p.code === "read-error")).toBeTruthy();
   });
 
+  it("skips an oversized JSONL line, emits a watch-error, and continues ingesting subsequent events", async () => {
+    const host = makeFakeHost("/tmp/big.log");
+    state = await createAppState({ host, file: "/tmp/big.log", flushIntervalMs: 0 });
+    const captured: SsePayload[] = [];
+    state.subscribe((p) => captured.push(p));
+
+    // First, a normal request so we have a baseline ingested row.
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "before", params: {} })}\n`);
+
+    // Now feed an oversized line in chunks (simulates TailReader behavior on
+    // a 80MB single-line JSONL — the splitter's 16MB tail buffer would
+    // throw without tolerant mode).
+    const MB = 1024 * 1024;
+    const chunk = "x".repeat(MB);
+    // 20 chunks * 1MB = 20MB > MAX_BUF_BYTES (16MB).
+    for (let i = 0; i < 20; i++) host.push(chunk);
+    // Terminate the oversized line.
+    host.push("\n");
+
+    // Follow with a normal event that MUST still be ingested.
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "after", params: {} })}\n`);
+
+    // Rows: only the two normal events should be stored — oversized line dropped.
+    const rows = state.snapshot().rows;
+    expect(rows).toHaveLength(2);
+    expect(rows[0]?.method).toBe("before");
+    expect(rows[1]?.method).toBe("after");
+
+    // Exactly one watch-error reporting the skip.
+    const errors = captured.filter((p) => p.kind === "watch-error");
+    expect(errors).toHaveLength(1);
+    const err = errors[0];
+    if (!err || err.kind !== "watch-error") throw new Error("expected watch-error");
+    expect(err.code).toBe("oversized-line");
+    expect(err.message).toContain("oversized JSONL line");
+  });
+
   it("rotation resets parser-side byteOffset and partial-line buffer", async () => {
     const host = makeFakeHost("/tmp/x.log");
     state = await createAppState({ host, file: "/tmp/x.log", flushIntervalMs: 0 });

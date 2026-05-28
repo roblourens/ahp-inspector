@@ -21,6 +21,41 @@ export class ParseOverflowError extends Error {
   }
 }
 
+export interface LineSplitterOptions {
+  /**
+   * Opt-in tolerant mode. When set, the splitter does not throw on
+   * overflow. Instead, the oversized line is silently discarded and
+   * parsing resumes at the next newline (or at end-of-input, see
+   * {@link LineSplitter.endOfInput}). The callback fires exactly once
+   * per skipped line. `bytesDropped` is the UTF-8 byte count of the
+   * dropped line content (excluding the terminator). `terminatorBytes`
+   * is the number of terminator bytes consumed: `1` for `\n`, `2` for
+   * `\r\n`, or `0` if `endOfInput()` flushed an unterminated tail.
+   * Caller should advance any byte-offset cursor by
+   * `bytesDropped + terminatorBytes`.
+   */
+  onOversizedLineSkipped?: (bytesDropped: number, terminatorBytes: number) => void;
+}
+
+/**
+ * Count UTF-8 bytes in a JS (UTF-16) string without allocating an
+ * intermediate buffer. Matches `Buffer.byteLength(s, "utf8")` exactly.
+ */
+function utf8ByteLength(s: string): number {
+  let bytes = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c < 0x80) bytes += 1;
+    else if (c < 0x800) bytes += 2;
+    else if (c >= 0xd800 && c <= 0xdbff) {
+      // High surrogate — consume the low surrogate too (4 UTF-8 bytes total).
+      bytes += 4;
+      i++;
+    } else bytes += 3;
+  }
+  return bytes;
+}
+
 /**
  * Streaming line splitter. Holds a partial trailing line until the next
  * chunk arrives. Strips a leading BOM exactly once per stream (Pitfall 4)
@@ -29,13 +64,25 @@ export class ParseOverflowError extends Error {
 export class LineSplitter {
   private buf = "";
   private bomConsumed = false;
+  private readonly onOversized:
+    | ((bytesDropped: number, terminatorBytes: number) => void)
+    | undefined;
+  // Tolerant-mode state: true while discarding bytes of an oversized line
+  // until we find its terminating newline.
+  private skipping = false;
+  private skipBytesAccumulated = 0;
+
+  constructor(options?: LineSplitterOptions) {
+    this.onOversized = options?.onOversizedLineSkipped;
+  }
 
   /**
    * Push a chunk; returns zero or more complete lines (without trailing
    * `\n` or `\r`). Holds any partial trailing line for the next call.
    *
    * @throws {ParseOverflowError} when the internal buffer would exceed
-   *   {@link MAX_BUF_BYTES} before a newline is seen.
+   *   {@link MAX_BUF_BYTES} before a newline is seen AND tolerant mode
+   *   (`onOversizedLineSkipped`) is not configured.
    */
   push(chunk: string): string[] {
     let s = chunk;
@@ -43,6 +90,28 @@ export class LineSplitter {
       if (s.charCodeAt(0) === 0xfeff) s = s.slice(1);
       this.bomConsumed = true;
     }
+
+    if (this.skipping) {
+      const nlIdx = s.indexOf("\n");
+      if (nlIdx === -1) {
+        // Whole chunk is part of the oversized line — drop it.
+        this.skipBytesAccumulated += utf8ByteLength(s);
+        return [];
+      }
+      // Found the terminating newline. Account for bytes up to (but not
+      // including) any CRLF or LF, then resume normal splitting on the
+      // remainder.
+      let end = nlIdx;
+      const terminatorBytes = end > 0 && s.charCodeAt(end - 1) === 0x0d ? 2 : 1;
+      if (terminatorBytes === 2) end--;
+      this.skipBytesAccumulated += utf8ByteLength(s.slice(0, end));
+      this.onOversized?.(this.skipBytesAccumulated, terminatorBytes);
+      this.skipBytesAccumulated = 0;
+      this.skipping = false;
+      s = s.slice(nlIdx + 1);
+      if (s.length === 0) return [];
+    }
+
     s = this.buf + s;
     const out: string[] = [];
     let start = 0;
@@ -59,8 +128,16 @@ export class LineSplitter {
     }
     const tail = s.slice(start);
     if (tail.length > MAX_BUF_BYTES) {
-      // Reset state so subsequent pushes do not keep amplifying the failure.
+      // Reset buffered state regardless so subsequent pushes do not keep
+      // amplifying the failure (16 MB string + N MB chunk concatenations).
       this.buf = "";
+      if (this.onOversized) {
+        // Tolerant mode: enter skip-until-newline state, count the
+        // already-buffered bytes, and return any pre-overflow lines.
+        this.skipping = true;
+        this.skipBytesAccumulated = utf8ByteLength(tail);
+        return out;
+      }
       throw new ParseOverflowError(
         `LineSplitter tail buffer exceeded ${MAX_BUF_BYTES} bytes without a newline`,
       );
@@ -78,6 +155,23 @@ export class LineSplitter {
   reset(): void {
     this.buf = "";
     this.bomConsumed = false;
+    this.skipping = false;
+    this.skipBytesAccumulated = 0;
+  }
+
+  /**
+   * Signal that the caller has reached end-of-input (e.g. initial bulk read
+   * complete, file truncated to current size). In tolerant mode, if we are
+   * still discarding an oversized line that never received a terminating
+   * newline, fire the callback now with the accumulated byte count and
+   * clear skip state. No-op when not skipping.
+   */
+  endOfInput(): void {
+    if (!this.skipping) return;
+    const dropped = this.skipBytesAccumulated;
+    this.skipping = false;
+    this.skipBytesAccumulated = 0;
+    if (dropped > 0) this.onOversized?.(dropped, 0);
   }
 
   /** Flush any remaining buffered bytes as a final line. Idempotent. */

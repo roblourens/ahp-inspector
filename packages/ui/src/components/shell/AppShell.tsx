@@ -218,8 +218,10 @@ export function AppShell(): JSX.Element {
           {lastWatchError && (
             <WatchErrorBanner
               code={lastWatchError.code}
+              message={lastWatchError.message}
               onRetry={onWatchErrorRetry}
               onReopen={onWatchErrorReopen}
+              onDismiss={() => useAppStore.getState().setLastWatchError(null)}
             />
           )}
           <SourceStrip

@@ -95,7 +95,7 @@ export type WebviewSsePayload =
   | { readonly kind: "rotation"; readonly newSize: number; readonly reason: "shrink" | "rename" }
   | {
       readonly kind: "watch-error";
-      readonly code: "read-error" | "watch-fatal";
+      readonly code: "read-error" | "watch-fatal" | "oversized-line";
       readonly message: string;
     }
   | { readonly kind: "log-reset" };

@@ -17,7 +17,7 @@ import {
   projectRow,
   type Status,
 } from "@ahp-inspector/core";
-import { extractWireMeta, LineSplitter, normalize, parseLine } from "@ahp-inspector/parser";
+import { extractWireMeta, LineSplitter, MAX_BUF_BYTES, normalize, parseLine } from "@ahp-inspector/parser";
 import {
   type Direction,
   type HostAdapter,
@@ -72,11 +72,16 @@ export type SsePayload =
   | { kind: "bye" }
   | { kind: "error"; code: string; message: string }
   | { kind: "rotation"; newSize: number; reason: "shrink" | "rename" }
-  | { kind: "watch-error"; code: "read-error" | "watch-fatal"; message: string }
+  | {
+      kind: "watch-error";
+      code: "read-error" | "watch-fatal" | "oversized-line";
+      message: string;
+    }
   | { kind: "log-reset" };
 
 type PatchUpdate = Extract<SsePayload, { kind: "patch" }>["updates"][number];
 type LoadProgressPayload = Extract<SsePayload, { kind: "load-progress" }>;
+type WatchErrorPayload = Extract<SsePayload, { kind: "watch-error" }>;
 
 export type Listener = (payload: SsePayload) => void;
 
@@ -138,12 +143,18 @@ export interface AppStateStateAtResult extends StateReplayIndexResult {
   readonly totalEvents: number;
 }
 
+function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KiB`;
+  if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MiB`;
+  return `${(n / (1024 * 1024 * 1024)).toFixed(2)} GiB`;
+}
+
 export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   const handle = (await opts.host.openLog(opts.file)) as MaybeNodeLogHandle;
   const store = new EventStore();
   const stateReplay = new StateReplayIndex(store, 25);
   const correlator = new Correlator(store);
-  const splitter = new LineSplitter();
   const decoder = new TextDecoder("utf-8");
   const inferDir: (raw: unknown) => Direction = opts.directionInference ?? (() => "c2s");
 
@@ -166,8 +177,18 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   let initialReadLoadedBytes = 0;
   let initialReadTotalBytes: number | undefined;
   let initialReadPhase: LoadProgressPayload["phase"] = "idle";
+  // Sticky buffer so SSE clients that connect AFTER an oversized-line skip
+  // (typical: a static 80MB single-line file finishes initial read in <1s,
+  // before the browser's EventSource opens) still see the warning banner.
+  // Capped to avoid unbounded growth on a pathologically broken file.
+  const watchErrors: WatchErrorPayload[] = [];
+  const MAX_STICKY_WATCH_ERRORS = 50;
 
   function emit(payload: SsePayload): void {
+    if (payload.kind === "watch-error") {
+      watchErrors.push(payload);
+      if (watchErrors.length > MAX_STICKY_WATCH_ERRORS) watchErrors.shift();
+    }
     for (const l of listeners) {
       try {
         l(payload);
@@ -176,6 +197,29 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       }
     }
   }
+
+  // Tolerant splitter: when a single JSONL line exceeds MAX_BUF_BYTES the
+  // splitter silently drops it and resumes at the next newline. Without this,
+  // a single oversized line (e.g. a multi-megabyte base64 tool result)
+  // bricks ingest for the rest of the file. Surface the skip as a
+  // watch-error so the existing UI banner explains what happened.
+  const splitter = new LineSplitter({
+    onOversizedLineSkipped: (bytesDropped, terminatorBytes) => {
+      // Advance the file byteOffset past the dropped line + its terminator
+      // (0/1/2 bytes; 0 means EOF flush) so subsequent events' byteOffset
+      // metadata stays roughly file-relative.
+      byteOffset += bytesDropped + terminatorBytes;
+      emit({
+        kind: "watch-error",
+        code: "oversized-line",
+        message:
+          `Skipped an oversized JSONL line (${formatBytes(bytesDropped)}). ` +
+          `The viewer cannot parse lines larger than ${formatBytes(MAX_BUF_BYTES)} ` +
+          `(typically a tool result with embedded base64 payload). ` +
+          `Subsequent events in this log will still load.`,
+      });
+    },
+  });
 
   function currentLoadProgress(phase = initialReadPhase): LoadProgressPayload {
     const totalBytes = initialReadTotalBytes;
@@ -305,6 +349,10 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     onInitialReadComplete(info) {
       initialReadLoadedBytes = info.loadedBytes;
       initialReadTotalBytes = info.totalBytes;
+      // If the file ended mid-skip (oversized line that never had a
+      // terminating newline — e.g. an 80MB single-line dump), flush so the
+      // onOversizedLineSkipped callback fires the read-error banner.
+      splitter.endOfInput();
       emitLoadProgress("complete");
     },
     onChunk(chunk: Uint8Array, _byteOffset: number) {
@@ -316,10 +364,14 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       try {
         lines = splitter.push(text);
       } catch (err) {
+        // Defense in depth: tolerant mode is enabled, so the splitter should
+        // not throw. If it ever does (e.g. unrelated bug), surface as a
+        // watch-error so the UI banner explains the problem rather than the
+        // SSE stream going silent.
         emit({
-          kind: "error",
-          code: "parse-overflow",
-          message: (err as Error).message,
+          kind: "watch-error",
+          code: "read-error",
+          message: `Failed to parse log chunk: ${(err as Error).message}`,
         });
         return;
       }
@@ -359,6 +411,8 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       lastSeenServerSeq = null;
       initialReadLoadedBytes = 0;
       initialReadTotalBytes = undefined;
+      // Discard sticky watch-errors from the previous file revision.
+      watchErrors.length = 0;
       emitLoadProgress("idle");
       emit({ kind: "rotation", newSize: info.newSize, reason: info.reason });
     },
@@ -391,6 +445,18 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     },
     subscribe(l) {
       listeners.add(l);
+      // Replay sticky watch-errors immediately so subscribers that connect
+      // after the warning was emitted (e.g. an SSE client opened after a
+      // fast initial read finished) still see the banner. Listener is
+      // already registered, so any error fired between this loop and the
+      // next event loop tick will still arrive — exactly once.
+      for (const w of watchErrors) {
+        try {
+          l(w);
+        } catch {
+          /* never let a bad listener block ingest */
+        }
+      }
       return () => {
         listeners.delete(l);
       };
