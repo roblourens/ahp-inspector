@@ -9,9 +9,9 @@ import {
 } from "./persistence.js";
 
 const sample: PerLogPrefs = {
-  v: 1,
+  v: 2,
   searchQuery: "foo",
-  filters: EMPTY_FILTERS,
+  filters: { ...EMPTY_FILTERS, rowText: "needle" },
   grouping: "session",
   groupCollapsed: ["a", "b"],
   selectedIdx: 12,
@@ -47,6 +47,94 @@ describe("persistPerLogPrefs / loadPerLogPrefs", () => {
       }),
     );
     expect(loadPerLogPrefs("k1")).toEqual(sample);
+  });
+  it("migrates schema-one inclusion filters without reversing their visible rows", () => {
+    localStorage.setItem(
+      "ahp-log-prefs-v1",
+      JSON.stringify({
+        legacy: {
+          v: 1,
+          searchQuery: "legacy",
+          filters: {
+            direction: ["c2s"],
+            kind: ["request"],
+            method: ["ping"],
+            actionType: ["tool/call"],
+            session: ["s1"],
+            turn: ["t1"],
+            status: ["ok"],
+            timeFrom: 10,
+            timeTo: 20,
+          },
+          grouping: "session",
+          groupCollapsed: ["group"],
+          selectedIdx: 2,
+          detailWidth: 480,
+          livePaused: false,
+          _writtenAt: 1,
+        },
+      }),
+    );
+    expect(loadPerLogPrefs("legacy")).toMatchObject({
+      v: 2,
+      searchQuery: "legacy",
+      filters: {
+        direction: ["c2s"],
+        kind: ["request"],
+        method: ["ping"],
+        actionType: ["tool/call"],
+        session: ["s1"],
+        turn: ["t1"],
+        status: ["ok"],
+        rowText: "",
+        timeFrom: 10,
+        timeTo: 20,
+      },
+    });
+  });
+  it("preserves custom hidden Method values during v1→v2 migration", () => {
+    localStorage.setItem(
+      "ahp-log-prefs-v1",
+      JSON.stringify({
+        "custom-methods": {
+          v: 1,
+          searchQuery: "",
+          filters: {
+            direction: ["sent", "received"],
+            kind: ["action", "notification"],
+            method: ["ping", "trace", "invoke"],
+            actionType: ["tool_call"],
+            session: [],
+            turn: [],
+            status: [],
+            timeFrom: null,
+            timeTo: null,
+          },
+          grouping: "session",
+          groupCollapsed: [],
+          selectedIdx: 0,
+          detailWidth: 480,
+          livePaused: false,
+          _writtenAt: 1,
+        },
+      }),
+    );
+    const result = loadPerLogPrefs("custom-methods");
+    expect(result).toMatchObject({
+      v: 2,
+      filters: {
+        direction: ["sent", "received"],
+        kind: ["action", "notification"],
+        method: ["ping", "trace", "invoke"],
+        actionType: ["tool_call"],
+        session: [],
+        turn: [],
+        status: [],
+        rowText: "",
+        timeFrom: null,
+        timeTo: null,
+      },
+    });
   });
   it("clearPerLogPrefs removes only the targeted key", () => {
     persistPerLogPrefs("k1", sample);

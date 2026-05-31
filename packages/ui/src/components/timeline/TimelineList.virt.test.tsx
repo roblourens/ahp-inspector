@@ -1,6 +1,6 @@
 import type { EventRow as EventRowData } from "@ahp-inspector/core";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { VirtualItem } from "../../state/selectors.js";
 import { TimelineList } from "./TimelineList.js";
 
@@ -61,6 +61,12 @@ describe("TimelineList — virtualization", () => {
   let originalOffsetWidth: PropertyDescriptor | undefined;
 
   beforeEach(() => {
+    Object.defineProperty(window, "scrollTo", {
+      configurable: true,
+      writable: true,
+      value: vi.fn(),
+    });
+
     // TanStack Virtual reads `offsetWidth` / `offsetHeight` from the scroll element
     // (see @tanstack/virtual-core getRect). jsdom defaults both to 0, which yields
     // zero virtual items. We mock the prototype getters to return a 800x400 viewport
@@ -113,12 +119,63 @@ describe("TimelineList — virtualization", () => {
     expect(screen.getByTestId("timeline-column-header")).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Request or event ID" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Time" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Channel" })).toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Status" })).toBeNull();
     expect(screen.getByRole("columnheader", { name: "Parsed event summary" })).toBeInTheDocument();
 
     const rendered = await screen.findAllByRole("row");
     expect(rendered.length).toBeGreaterThanOrEqual(1);
     expect(rendered.length).toBeLessThan(100);
+  });
+
+  it("renders a scroll-to-bottom control for the timeline", () => {
+    render(
+      <div style={{ height: 400 }}>
+        <TimelineList items={fixtureItems.slice(0, 5)} rows={fixture.slice(0, 5)} selectedIdx={null} onSelect={() => {}} />
+      </div>,
+    );
+
+    const grid = screen.getByTestId("timeline-list");
+    let scrollTop = 100;
+    Object.defineProperties(grid, {
+      scrollTop: {
+        configurable: true,
+        get: () => scrollTop,
+        set: (value) => (scrollTop = Number(value)),
+      },
+      scrollHeight: { configurable: true, get: () => 2_000 },
+      clientHeight: { configurable: true, get: () => 400 },
+    });
+    fireEvent.scroll(grid);
+
+    expect(screen.getByRole("button", { name: "Scroll to bottom" })).toBeInTheDocument();
+  });
+
+  it("scrolls to the bottom when the control is clicked", () => {
+    render(
+      <div style={{ height: 400 }}>
+        <TimelineList items={fixtureItems.slice(0, 5)} rows={fixture.slice(0, 5)} selectedIdx={null} onSelect={() => {}} />
+      </div>,
+    );
+
+    const grid = screen.getByTestId("timeline-list");
+    let scrollTop = 100;
+    const scrollHeight = 2_000;
+    const clientHeight = 400;
+    Object.defineProperties(grid, {
+      scrollTop: {
+        configurable: true,
+        get: () => scrollTop,
+        set: (value) => (scrollTop = Number(value)),
+      },
+      scrollHeight: { configurable: true, get: () => scrollHeight },
+      clientHeight: { configurable: true, get: () => clientHeight },
+    });
+    fireEvent.scroll(grid);
+
+    fireEvent.click(screen.getByRole("button", { name: "Scroll to bottom" }));
+
+    expect(scrollTop).toBe(scrollHeight);
   });
 
   it("highlights a visible correlated response for the selected request", async () => {

@@ -15,6 +15,7 @@ interface FacetPopoverProps {
   onChange(values: string[]): void;
   onClose(): void;
   searchable?: boolean;
+  align?: "start" | "end";
 }
 
 export function FacetPopover({
@@ -23,6 +24,7 @@ export function FacetPopover({
   onChange,
   onClose,
   searchable,
+  align = "start",
 }: FacetPopoverProps): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
@@ -63,7 +65,7 @@ export function FacetPopover({
       style={{
         position: "absolute",
         top: "calc(100% + 4px)",
-        left: 0,
+        ...(align === "start" ? { left: 0 } : { right: 0 }),
         zIndex: 1100,
         background: "var(--color-surface-raised)",
         border: "1px solid var(--color-border-strong)",
@@ -160,11 +162,34 @@ export function FacetPopover({
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
+          gap: "var(--space-2)",
           padding: "var(--space-1) var(--space-2)",
           borderTop: "1px solid var(--color-border)",
         }}
       >
+        <button
+          type="button"
+          onClick={() => onChange(options.map((option) => option.value))}
+          style={{
+            background: "none",
+            border: "none",
+            color: "var(--color-text-muted)",
+            cursor: "pointer",
+            fontFamily: "var(--font-sans)",
+            fontSize: "var(--text-ui-muted-size)",
+            padding: "var(--space-1)",
+            borderRadius: 3,
+            outline: "none",
+          }}
+          onFocus={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.outline = "2px solid var(--color-accent)";
+          }}
+          onBlur={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.outline = "none";
+          }}
+        >
+          Select all
+        </button>
         <button
           type="button"
           onClick={() => onChange([])}
@@ -186,12 +211,13 @@ export function FacetPopover({
             (e.currentTarget as HTMLButtonElement).style.outline = "none";
           }}
         >
-          Clear selection
+          Uncheck all
         </button>
         <button
           type="button"
           onClick={onClose}
           style={{
+            marginLeft: "auto",
             background: "none",
             border: "none",
             color: "var(--color-text-muted)",

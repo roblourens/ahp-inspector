@@ -2,8 +2,8 @@
 
 AHP Inspector is a local-first GUI for exploring JSONL logs of Agent Host
 Protocol traffic. It turns raw JSON-RPC messages between VS Code and agent
-hosts into a fast timeline where search highlights and navigates matching events,
-faceted filters narrow rows, and event details are expandable.
+hosts into a fast timeline where Search highlights and navigates matching events,
+Filter rows and visible-value facet controls narrow the timeline, and event details are expandable.
 
 ![AHP Inspector in hacker theme](screenshots/phase3-hacker-theme-columns.png)
 
@@ -13,7 +13,7 @@ faceted filters narrow rows, and event details are expandable.
   method/action type, session, turn, status, latency, IDs, and payload preview.
 - Full event detail panel with summary fields, Pretty/Raw JSON tabs, copy menu,
   truncation handling, auth-failure banners, and correlation metadata.
-- Payload search with match highlighting/navigation, faceted filtering,
+- Payload Search with match highlighting/navigation, independent projected-row filtering, visible-value facet controls,
   session/turn grouping, server sequence gap banners, keyboard navigation, and
   no-wrap columns.
 - Dark, light, and hacker themes through design tokens.

@@ -71,13 +71,48 @@ describe("FilterBar", () => {
     expect(screen.getByTestId("filter-bar")).toBeTruthy();
   });
 
-  it("renders a prominent SearchInput with placeholder and shortcut hint", () => {
+  it("renders a SearchTrigger button and SearchPopover on demand", () => {
     render(<FilterBar />);
-    expect(screen.getByText("Search")).toBeTruthy();
+    // SearchTrigger should be visible
+    const trigger = screen.getByRole("button", { name: "Open search" });
+    expect(trigger).toBeTruthy();
+    expect(trigger.getAttribute("title")).toBe("Press / to open search");
+    
+    // SearchPopover should not be visible initially
+    expect(screen.queryByTestId("search-popover")).toBeFalsy();
+    
+    // Click trigger to open popover
+    fireEvent.click(trigger);
+    
+    // SearchPopover and input should now be visible
+    expect(screen.getByTestId("search-popover")).toBeTruthy();
     const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
     expect(input).toBeTruthy();
     expect(input.getAttribute("aria-label")).toBe("Search all events");
-    expect(screen.getByTitle("Press / to focus search")).toBeTruthy();
+  });
+
+  it("renders Filter rows as a separate local timeline input", () => {
+    render(<FilterBar />);
+    const input = screen.getByLabelText("Filter rows") as HTMLInputElement;
+    expect(input.placeholder).toBe("Filter visible rows...");
+
+    fireEvent.change(input, { target: { value: "tool/call" } });
+
+    expect(useAppStore.getState().filters.rowText).toBe("tool/call");
+    expect(useAppStore.getState().searchQuery).toBe("");
+  });
+
+  it("clears Filter rows without clearing Search", () => {
+    useAppStore.setState({
+      filters: { ...EMPTY_FILTERS, rowText: "needle" },
+      searchQuery: "payload search",
+    });
+    render(<FilterBar />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear row filter" }));
+
+    expect(useAppStore.getState().filters.rowText).toBe("");
+    expect(useAppStore.getState().searchQuery).toBe("payload search");
   });
 
   it("renders all 8 facet chips", () => {
@@ -101,15 +136,20 @@ describe("FilterBar", () => {
     expect(screen.getByText("2 events")).toBeTruthy();
   });
 
-  it("renders search match count and navigation controls when query has results", () => {
+  it("shows the focused search result position and navigation controls when query has results", () => {
     useAppStore.setState({
       searchQuery: "initialize",
       searchMatches: new Set([0, 2]),
       searchTotal: 2,
       searchStatus: "ready",
+      selectedIdx: 2,
     });
     render(<FilterBar />);
-    expect(screen.getByTestId("search-status").textContent).toContain("2 matches");
+    // Open the SearchPopover to see search status and navigation controls
+    const trigger = screen.getByRole("button", { name: "Open search" });
+    fireEvent.click(trigger);
+    
+    expect(screen.getByTestId("search-status").textContent).toContain("2 of 2 matches");
     expect(screen.getByRole("button", { name: "Previous search match" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Next search match" })).toBeTruthy();
   });
@@ -142,7 +182,7 @@ describe("FilterBar", () => {
     expect(Number(bar.style.zIndex)).toBeGreaterThan(0);
   });
 
-  it("uses readable labels for long session facet values", () => {
+  it("uses readable labels for long channel facet values", () => {
     useAppStore.setState({
       rows: [
         makeRow({
@@ -152,7 +192,7 @@ describe("FilterBar", () => {
       ],
     });
     render(<FilterBar />);
-    fireEvent.click(screen.getByRole("button", { name: /Session/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Channel/i }));
 
     expect(screen.getByText("frontend-polish")).toBeTruthy();
   });
@@ -181,6 +221,51 @@ describe("FilterBar", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: /initialize/i }));
 
     expect(useAppStore.getState().filters.method).toEqual(["ping", "initialize"]);
+  });
+
+  it("uses checked-visible behavior for Direction and stores unchecked values as hidden", () => {
+    useAppStore.setState({
+      rows: [makeRow({ idx: 0, dir: "c2s" }), makeRow({ idx: 1, dir: "s2c" })],
+      filters: EMPTY_FILTERS,
+    });
+    render(<FilterBar />);
+    fireEvent.click(screen.getByRole("button", { name: /Dir/i }));
+
+    const clientToServer = screen.getByRole("checkbox", { name: /c2s/i }) as HTMLInputElement;
+    const serverToClient = screen.getByRole("checkbox", { name: /s2c/i }) as HTMLInputElement;
+    expect(clientToServer.checked).toBe(true);
+    expect(serverToClient.checked).toBe(true);
+
+    fireEvent.click(clientToServer);
+    expect(useAppStore.getState().filters.direction).toEqual(["c2s"]);
+  });
+
+  it("provides Select all and Uncheck all commands over complete facet options", () => {
+    useAppStore.setState({
+      rows: [makeRow({ idx: 0, method: "initialize" }), makeRow({ idx: 1, method: "ping" })],
+      filters: APP_DEFAULT_FILTERS,
+    });
+    render(<FilterBar />);
+    fireEvent.click(screen.getByRole("button", { name: /Method/i }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }));
+    expect(useAppStore.getState().filters.method).toEqual([]);
+
+    fireEvent.click(screen.getByRole("button", { name: "Uncheck all" }));
+    expect(useAppStore.getState().filters.method).toEqual(["initialize", "ping"]);
+  });
+
+  it("keeps Turn operable while every Channel is visible", () => {
+    useAppStore.setState({
+      rows: [makeRow({ turnId: "turn-a", turnShort: "turn-a" })],
+      filters: EMPTY_FILTERS,
+    });
+    render(<FilterBar />);
+
+    const turn = screen.getByRole("button", { name: /Turn/i }) as HTMLButtonElement;
+    expect(turn.disabled).toBe(false);
+    fireEvent.click(turn);
+    expect(screen.getByRole("checkbox", { name: /turn-a/i })).toBeTruthy();
   });
 
   it("clicking GroupToggleChip opens a popover with grouping options", () => {
@@ -215,6 +300,10 @@ describe("FilterBar", () => {
   it("Enter in the search input dispatches ahp-search-nav next", () => {
     useAppStore.setState({ searchQuery: "initialize" });
     render(<FilterBar />);
+    // Open the SearchPopover first
+    const trigger = screen.getByRole("button", { name: "Open search" });
+    fireEvent.click(trigger);
+    
     const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
     const events: ("previous" | "next")[] = [];
     const onNav = (e: Event): void => {
@@ -233,6 +322,10 @@ describe("FilterBar", () => {
   it("Enter with empty query does not dispatch ahp-search-nav", () => {
     useAppStore.setState({ searchQuery: "" });
     render(<FilterBar />);
+    // Open the SearchPopover first
+    const trigger = screen.getByRole("button", { name: "Open search" });
+    fireEvent.click(trigger);
+    
     const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
     const events: string[] = [];
     const onNav = (e: Event): void => {
@@ -262,7 +355,7 @@ describe("ActiveFilterChips", () => {
     });
     render(<ActiveFilterChips />);
     expect(screen.getByTestId("active-filter-chips")).toBeTruthy();
-    expect(screen.getByText("Dir: c2s")).toBeTruthy();
+    expect(screen.getByText("Hidden Dir: c2s")).toBeTruthy();
   });
 
   it("does not render a search chip when searchQuery is non-empty", () => {
@@ -278,23 +371,39 @@ describe("ActiveFilterChips", () => {
     expect(screen.queryByText(`${"a".repeat(40)}…`)).toBeNull();
   });
 
-  it("dismissing a direction chip calls patchFilter('direction', [])", () => {
+  it("dismissing a hidden direction chip makes it visible again", () => {
     useAppStore.setState({
       filters: { ...EMPTY_FILTERS, direction: ["c2s"] },
     });
     render(<ActiveFilterChips />);
-    const dismissBtn = screen.getByRole("button", { name: /Remove filter Dir: c2s/i });
+    const dismissBtn = screen.getByRole("button", { name: /Show Dir: c2s/i });
     fireEvent.click(dismissBtn);
     expect(useAppStore.getState().filters.direction).toEqual([]);
   });
 
-  it("renders method exclusions as hidden method chips and dismissing them shows the method", () => {
+  it("renders method exclusions as hidden Method chips and dismissing them shows the method", () => {
     useAppStore.setState({ filters: APP_DEFAULT_FILTERS });
     render(<ActiveFilterChips />);
-    expect(screen.getByText("Hidden method: ping")).toBeTruthy();
+    expect(screen.getByText("Hidden Method: ping")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: /Show method: ping/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Show Method: ping/i }));
     expect(useAppStore.getState().filters.method).toEqual([]);
+  });
+
+  it("renders row-text and hidden Channel constraints without exposing Search", () => {
+    useAppStore.setState({
+      filters: { ...EMPTY_FILTERS, session: ["channel-a"], rowText: "tool result" },
+      searchQuery: "raw payload query",
+    });
+    render(<ActiveFilterChips />);
+
+    expect(screen.getByText("Rows contain: tool result")).toBeTruthy();
+    expect(screen.getByText("Hidden Channel: channel-a")).toBeTruthy();
+    expect(screen.queryByText(/raw payload query/)).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear row filter" }));
+    expect(useAppStore.getState().filters.rowText).toBe("");
+    expect(useAppStore.getState().searchQuery).toBe("raw payload query");
   });
 
   it("Clear all button calls clearFilters()", () => {

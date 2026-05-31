@@ -132,6 +132,45 @@ describe("TimelineRegion — Plan 04-06 Task 2", () => {
     expect(useAppStore.getState().selectedIdx).toBe(0);
   });
 
+  it("renders only rows matching Filter rows while Search remains independently present", async () => {
+    const originalOffsetHeight = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      "offsetHeight",
+    );
+    const originalOffsetWidth = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      "offsetWidth",
+    );
+    Object.defineProperty(window.HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      get: () => 400,
+    });
+    Object.defineProperty(window.HTMLElement.prototype, "offsetWidth", {
+      configurable: true,
+      get: () => 800,
+    });
+    useAppStore.setState({
+      rows: [
+        { ...makeRow(0), method: "initialize", summary: "keep request" },
+        { ...makeRow(1), method: "initialize", summary: "discard request" },
+      ],
+      filters: { ...EMPTY_FILTERS, rowText: "keep" },
+      searchQuery: "discard",
+      searchMatches: new Set([1]),
+      searchTotal: 1,
+    });
+    render(<TimelineRegion />);
+    expect(await screen.findByTestId("row-0")).toBeInTheDocument();
+    expect(screen.queryByTestId("row-1")).toBeNull();
+    expect(useAppStore.getState().searchQuery).toBe("discard");
+    if (originalOffsetHeight) {
+      Object.defineProperty(window.HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
+    }
+    if (originalOffsetWidth) {
+      Object.defineProperty(window.HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    }
+  });
+
   it("renders NewEventsPill when livePaused && pendingNewCount > 0; click flushes buffer + resumes", () => {
     useAppStore.setState({
       livePaused: true,

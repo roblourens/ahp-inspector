@@ -5,7 +5,7 @@ import type { EventRow } from "@ahp-inspector/core";
 import { cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { APP_DEFAULT_FILTERS, EMPTY_FILTERS } from "../state/filters.js";
+import { APP_DEFAULT_FILTERS, EMPTY_FILTERS, type FilterState } from "../state/filters.js";
 import * as persistenceModule from "../state/persistence.js";
 import { useAppStore } from "../state/store.js";
 import { usePersistEffect } from "./persist-effect.js";
@@ -92,9 +92,9 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
 
   it("baseline complete with stored prefs applies filters/grouping/selectedIdx in range", () => {
     persistenceModule.persistPerLogPrefs("lk-A", {
-      v: 1,
+      v: 2,
       searchQuery: "hello",
-      filters: EMPTY_FILTERS,
+      filters: { ...APP_DEFAULT_FILTERS, direction: ["s2c"], rowText: "rendered row" },
       grouping: "session",
       groupCollapsed: ["g1", "g2"],
       selectedIdx: 5,
@@ -131,6 +131,11 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     expect(s.searchTruncated).toBe(false);
     expect(s.searchStatus).toBe("idle");
     expect(s.searchError).toBeNull();
+    expect(s.filters).toEqual({
+      ...APP_DEFAULT_FILTERS,
+      direction: ["s2c"],
+      rowText: "rendered row",
+    });
     expect(s.grouping).toBe("session");
     expect(s.detailWidth).toBe(500);
     expect(s.selectedIdx).toBe(5);
@@ -139,7 +144,7 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
 
   it("does not hydrate stored prefs for a partial progressive row before baseline completion", () => {
     persistenceModule.persistPerLogPrefs("lk-partial", {
-      v: 1,
+      v: 2,
       searchQuery: "wait-for-complete",
       filters: EMPTY_FILTERS,
       grouping: "session",
@@ -177,7 +182,7 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
 
   it("stored selectedIdx out of range is dropped", () => {
     persistenceModule.persistPerLogPrefs("lk-A", {
-      v: 1,
+      v: 2,
       searchQuery: "",
       filters: EMPTY_FILTERS,
       grouping: "none",
@@ -222,7 +227,13 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     });
     spy.mockClear();
 
-    // Mutate something persistable.
+    // Mutate the new visibility contract and the independent Search query.
+    const persistedFilters: FilterState = {
+      ...APP_DEFAULT_FILTERS,
+      status: ["ok"],
+      rowText: "needle",
+    };
+    useAppStore.getState().setFilters(persistedFilters);
     useAppStore.getState().setSearchQuery("query-1");
 
     // Within 250ms — no save yet.
@@ -233,6 +244,8 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     vi.advanceTimersByTime(60);
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls[0]?.[0]).toBe("lk-A");
+    expect(spy.mock.calls[0]?.[1].v).toBe(2);
+    expect(spy.mock.calls[0]?.[1].filters).toEqual(persistedFilters);
     expect(spy.mock.calls[0]?.[1].searchQuery).toBe("query-1");
   });
 
@@ -329,7 +342,7 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
 
   it("switching to a logKey with stored prefs restores them after reset", () => {
     persistenceModule.persistPerLogPrefs("lk-B", {
-      v: 1,
+      v: 2,
       searchQuery: "from-B",
       filters: { ...EMPTY_FILTERS, kind: ["request"] as never },
       grouping: "session+turn",

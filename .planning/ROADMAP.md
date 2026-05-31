@@ -179,6 +179,38 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 23-03-PLAN.md — Capture fixture screenshots, interaction/responsiveness smoke, extension webview parity, and final visual review checkpoint.
 
+### Phase 24: Improve search navigation and timeline scroll ergonomics
+
+**Goal:** Make timeline search cycling and bottom-of-list navigation obvious and discoverable, with visible x-of-y feedback while pressing Enter/Shift+Enter and a manual scroll-to-bottom control when the timeline is no longer parked at the tail.
+**Requirements**: TBD
+**Depends on:** Phase 23
+**Plans:** 0 plans (inline UI polish)
+
+- [ ] Update the filter bar search status to show the currently focused result as `x of y`.
+- [ ] Add a manual scroll-to-bottom control to the timeline shell.
+- [ ] Rename the visible timeline/filter label from Session to Channel for the current AHP terminology.
+
+### Phase 25: Row search filter, consistent dropdown defaults, and select/clear-all controls
+
+**Goal:** Let users narrow visible timeline rows with an explicit projected-row text filter while preserving Search as full-event highlight/navigation, and make categorical filter menus truthful visibility checklists with uniform all/none controls and the existing default-hidden `ping` behavior.
+**Requirements**: FILTER-25-01 (projected-row string filter independent of Search), FILTER-25-02 (checked-visible categorical defaults with `ping` hidden by default), FILTER-25-03 (Select all/Uncheck all menu actions), FILTER-25-04 (per-log durability, fixture-backed verification, and documented semantics)
+**Depends on:** Phase 24
+**Plans:** 5/5 plans complete
+
+Plans:
+**Wave 1**
+- [x] 25-01-PLAN.md — Define bounded row-text filtering and uniform hidden-value facet semantics with selector/timeline regressions.
+
+**Wave 2** *(blocked on Wave 1 completion; plans may execute in parallel)*
+- [x] 25-02-PLAN.md — Version and migrate per-log filter preferences without reversing old checkbox meaning.
+- [x] 25-03-PLAN.md — Add Filter rows, consistent checked-visible menus, Select all/Uncheck all, and accurate chips.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 25-04-PLAN.md — Prove the workflow with safe-fixture desktop/narrow browser evidence and documented semantics.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 25-05-PLAN.md — Review the fixture-only desktop/narrow compact filter surface evidence before completion.
+
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
-*v1.2 opened 2026-05-10; last updated 2026-05-13 (phases 18–21 added; 18–21 completed inline)*
+*v1.2 opened 2026-05-10; last updated 2026-05-29 (Phase 25 planned for row filtering and consistent facet visibility controls)*

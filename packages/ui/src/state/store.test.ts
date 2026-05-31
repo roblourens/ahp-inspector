@@ -1,5 +1,6 @@
 import type { EventRow } from "@ahp-inspector/core";
 import { beforeEach, describe, expect, it } from "vitest";
+import { APP_DEFAULT_FILTERS, EMPTY_FILTERS } from "./filters.js";
 import { useAppStore } from "./store.js";
 
 function row(
@@ -211,7 +212,9 @@ describe("useAppStore", () => {
     const s = useAppStore.getState();
     s.setSearchQuery("needle");
     s.setSearchResult([0], 1, false);
+    s.setFilters({ ...EMPTY_FILTERS, direction: ["c2s"], rowText: "visible value" });
     s.clearFilters();
+    expect(useAppStore.getState().filters).toEqual(APP_DEFAULT_FILTERS);
     expect(useAppStore.getState().searchQuery).toBe("needle");
     expect(useAppStore.getState().searchMatches).toEqual(new Set([0]));
   });

@@ -2,8 +2,9 @@
 
 import { type EventRow as EventRowData, formatSessionShort } from "@ahp-inspector/core";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { ArrowDown } from "lucide-react";
 import type { CSSProperties, JSX } from "react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { VirtualItem } from "../../state/selectors.js";
 import { EventRow, TIMELINE_GRID_COLUMNS } from "./EventRow.js";
 import { GroupHeaderRow } from "./GroupHeaderRow.js";
@@ -22,7 +23,7 @@ const COLUMN_LABELS = [
   { key: "direction", label: "Dir", ariaLabel: "Direction" },
   { key: "kind", label: "Kind", ariaLabel: "Kind" },
   { key: "event", label: "Event", ariaLabel: "Event" },
-  { key: "session", label: "Session", ariaLabel: "Session" },
+  { key: "session", label: "Channel", ariaLabel: "Channel" },
   { key: "turn", label: "Turn", ariaLabel: "Turn" },
   { key: "latency", label: "Latency", ariaLabel: "Latency" },
   { key: "summary", label: "Summary", ariaLabel: "Parsed event summary" },
@@ -57,6 +58,7 @@ export function TimelineList({
   onToggleGroup,
 }: TimelineListProps): JSX.Element {
   const parentRef = useRef<HTMLDivElement>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
   const visibleRowIdxs = useMemo(() => {
     const visible = new Set<number>();
     for (const item of items) {
@@ -98,6 +100,8 @@ export function TimelineList({
     const el = parentRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
+    followTailRef.current = true;
+    setIsAtBottom(true);
   }, []);
 
   // Scroll to end whenever item count changes while following. Runs once on
@@ -141,7 +145,9 @@ export function TimelineList({
     const el = parentRef.current;
     if (!el) return;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    followTailRef.current = distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD_PX;
+    const atBottom = distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD_PX;
+    followTailRef.current = atBottom;
+    setIsAtBottom(atBottom);
   }, []);
 
   // Compute topmost visible group for StickyGroupBar.
@@ -203,6 +209,7 @@ export function TimelineList({
         aria-rowcount={items.length}
         data-testid="timeline-list"
         style={{
+          position: "relative",
           flex: 1,
           minHeight: 0,
           overflow: "auto",
@@ -322,6 +329,34 @@ export function TimelineList({
           </div>
         </div>
       </div>
+      {items.length > 0 && !isAtBottom && (
+        <button
+          type="button"
+          aria-label="Scroll to bottom"
+          onClick={scrollToBottom}
+          style={{
+            position: "absolute",
+            right: "var(--space-3)",
+            bottom: "var(--space-3)",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "var(--space-1)",
+            border: "1px solid var(--color-border-strong)",
+            borderRadius: 999,
+            padding: "var(--space-1) var(--space-2)",
+            background: "var(--color-surface-raised)",
+            color: "var(--color-text)",
+            cursor: "pointer",
+            boxShadow: "0 6px 18px rgb(0 0 0 / 0.16)",
+            zIndex: 2,
+            fontFamily: "var(--font-sans)",
+            fontSize: "var(--text-ui-muted-size)",
+          }}
+        >
+          <ArrowDown size={14} />
+          <span>Bottom</span>
+        </button>
+      )}
     </div>
   );
 }

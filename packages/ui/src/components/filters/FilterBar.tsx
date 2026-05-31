@@ -1,13 +1,16 @@
-import { formatSessionShort } from "@ahp-inspector/core";
+import { formatSessionShort, type Status } from "@ahp-inspector/core";
+import type { EventKind } from "@ahp-inspector/shared";
 import type { JSX, RefObject } from "react";
-import { useState } from "react";
-import { useFacetCounts, useFilteredRows } from "../../state/selectors.js";
+import { useEffect, useRef, useState } from "react";
+import { useFacetCounts, useFilteredRows, useVisibleSearchMatches } from "../../state/selectors.js";
 import { useAppStore } from "../../state/store.js";
 import { FacetChip } from "./FacetChip.js";
 import { FacetPopover } from "./FacetPopover.js";
 import { GroupToggleChip } from "./GroupToggleChip.js";
 import { ResultCounter } from "./ResultCounter.js";
-import { SearchInput } from "./SearchInput.js";
+import { RowFilterInput } from "./RowFilterInput.js";
+import { SearchPopover } from "./SearchPopover.js";
+import { SearchTrigger } from "./SearchTrigger.js";
 import { TimeRangePopover } from "./TimeRangePopover.js";
 
 type OpenPopover =
@@ -32,29 +35,29 @@ function mapToOptions(
   }));
 }
 
-function methodSelectionFromHidden(
+function visibleSelectionFromHidden(
   options: { value: string; label: string; count: number }[],
-  hiddenMethods: string[],
+  hiddenValues: string[],
 ): string[] {
-  return options.map((option) => option.value).filter((value) => !hiddenMethods.includes(value));
+  return options.map((option) => option.value).filter((value) => !hiddenValues.includes(value));
 }
 
-function hiddenMethodsFromSelection(
+function hiddenValuesFromSelection(
   options: { value: string; label: string; count: number }[],
-  selectedMethods: string[],
-  previousHiddenMethods: string[],
+  selectedValues: string[],
+  previousHiddenValues: string[],
 ): string[] {
-  const nextHiddenMethods = options
+  const nextHiddenValues = options
     .map((option) => option.value)
-    .filter((value) => !selectedMethods.includes(value));
+    .filter((value) => !selectedValues.includes(value));
   const availableValues = new Set(options.map((option) => option.value));
-  const nextHiddenSet = new Set(nextHiddenMethods);
-  const carriedHiddenMethods = previousHiddenMethods.filter(
+  const nextHiddenSet = new Set(nextHiddenValues);
+  const carriedHiddenValues = previousHiddenValues.filter(
     (value) => !availableValues.has(value) || nextHiddenSet.has(value),
   );
   return [
-    ...carriedHiddenMethods,
-    ...nextHiddenMethods.filter((value) => !carriedHiddenMethods.includes(value)),
+    ...carriedHiddenValues,
+    ...nextHiddenValues.filter((value) => !carriedHiddenValues.includes(value)),
   ];
 }
 
@@ -69,18 +72,44 @@ export function FilterBar({
   const searchStatus = useAppStore((s) => s.searchStatus);
   const searchTruncated = useAppStore((s) => s.searchTruncated);
   const searchError = useAppStore((s) => s.searchError);
+  const searchMatches = useAppStore((s) => s.searchMatches);
+  const selectedIdx = useAppStore((s) => s.selectedIdx);
   const filters = useAppStore((s) => s.filters);
   const patchFilter = useAppStore((s) => s.patchFilter);
   const grouping = useAppStore((s) => s.grouping);
   const setGrouping = useAppStore((s) => s.setGrouping);
   const facetCounts = useFacetCounts();
   const filteredRows = useFilteredRows();
+  const visibleSearchMatches = useVisibleSearchMatches();
   const totalRows = useAppStore((s) => s.rows.length);
 
+  const directionOptions = mapToOptions(facetCounts.direction);
+  const kindOptions = mapToOptions(facetCounts.kind);
   const methodOptions = mapToOptions(facetCounts.method);
-  const visibleMethods = methodSelectionFromHidden(methodOptions, filters.method);
+  const actionOptions = mapToOptions(facetCounts.actionType);
+  const channelOptions = mapToOptions(facetCounts.session, formatSessionShort);
+  const turnOptions = mapToOptions(facetCounts.turn);
+  const statusOptions = mapToOptions(facetCounts.status);
 
   const [openPopover, setOpenPopover] = useState<OpenPopover>(null);
+  const [isSearchPopoverOpen, setIsSearchPopoverOpen] = useState(false);
+  const searchPopoverInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Handle "/" keyboard shortcut to open search popover
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "/" && !isSearchPopoverOpen) {
+        e.preventDefault();
+        setIsSearchPopoverOpen(true);
+        // Focus the search input after popover opens (next render)
+        setTimeout(() => {
+          searchPopoverInputRef.current?.focus();
+        }, 0);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isSearchPopoverOpen]);
 
   function togglePopover(name: OpenPopover) {
     setOpenPopover((prev) => (prev === name ? null : name));
@@ -96,13 +125,16 @@ export function FilterBar({
 
   const hasSearch = searchQuery.trim() !== "";
   const hasSearchMatches = hasSearch && searchTotal > 0;
-  const searchStatusText = !hasSearch
-    ? null
-    : searchStatus === "searching"
-      ? "Searching..."
-      : searchStatus === "error"
-        ? `Search failed${searchError ? `: ${searchError}` : ""}`
-        : `${searchTotal.toLocaleString()} ${searchTotal === 1 ? "match" : "matches"}${searchTruncated ? "+" : ""}`;
+  const searchMatchCount =
+    visibleSearchMatches.length > 0 ? visibleSearchMatches.length : searchMatches?.size ?? searchTotal;
+  const focusedSearchIndex =
+    selectedIdx === null
+      ? null
+      : visibleSearchMatches.indexOf(selectedIdx) >= 0
+        ? visibleSearchMatches.indexOf(selectedIdx)
+        : searchMatches?.has(selectedIdx)
+          ? Array.from(searchMatches).indexOf(selectedIdx)
+          : null;
 
   return (
     <div
@@ -121,46 +153,18 @@ export function FilterBar({
         zIndex: 1000,
       }}
     >
-      {/* Search input */}
-      <SearchInput
-        value={searchQuery}
-        onChange={setSearchQuery}
-        onClear={() => setSearchQuery("")}
-        {...(searchInputRef !== undefined ? { ref: searchInputRef } : {})}
+      {/* Row filter input — primary visible input */}
+      <RowFilterInput
+        value={filters.rowText}
+        onChange={(value) => patchFilter("rowText", value)}
+        onClear={() => patchFilter("rowText", "")}
       />
-      {searchStatusText !== null && (
-        <div
-          data-testid="search-status"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "var(--space-1)",
-            color: searchStatus === "error" ? "var(--color-danger)" : "var(--color-text-muted)",
-            fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-ui-muted-size)",
-            whiteSpace: "nowrap",
-            flexShrink: 0,
-          }}
-        >
-          <span>{searchStatusText}</span>
-          <button
-            type="button"
-            aria-label="Previous search match"
-            disabled={!hasSearchMatches}
-            onClick={() => navigateSearch("previous")}
-          >
-            Prev
-          </button>
-          <button
-            type="button"
-            aria-label="Next search match"
-            disabled={!hasSearchMatches}
-            onClick={() => navigateSearch("next")}
-          >
-            Next
-          </button>
-        </div>
-      )}
+
+      {/* Search trigger button */}
+      <SearchTrigger
+        isActive={hasSearch}
+        onClick={() => setIsSearchPopoverOpen(!isSearchPopoverOpen)}
+      />
 
       {/* Direction facet */}
       <div style={{ position: "relative", flexShrink: 0 }}>
@@ -173,9 +177,17 @@ export function FilterBar({
         />
         {openPopover === "direction" && (
           <FacetPopover
-            options={mapToOptions(facetCounts.direction)}
-            selected={filters.direction}
-            onChange={(vals) => patchFilter("direction", vals as ("c2s" | "s2c")[])}
+            options={directionOptions}
+            selected={visibleSelectionFromHidden(directionOptions, filters.direction)}
+            onChange={(values) =>
+              patchFilter(
+                "direction",
+                hiddenValuesFromSelection(directionOptions, values, filters.direction) as (
+                  | "c2s"
+                  | "s2c"
+                )[],
+              )
+            }
             onClose={close}
           />
         )}
@@ -192,10 +204,13 @@ export function FilterBar({
         />
         {openPopover === "kind" && (
           <FacetPopover
-            options={mapToOptions(facetCounts.kind)}
-            selected={filters.kind}
-            onChange={(vals) =>
-              patchFilter("kind", vals as import("@ahp-inspector/shared").EventKind[])
+            options={kindOptions}
+            selected={visibleSelectionFromHidden(kindOptions, filters.kind)}
+            onChange={(values) =>
+              patchFilter(
+                "kind",
+                hiddenValuesFromSelection(kindOptions, values, filters.kind) as EventKind[],
+              )
             }
             onClose={close}
           />
@@ -214,12 +229,13 @@ export function FilterBar({
         {openPopover === "method" && (
           <FacetPopover
             options={methodOptions}
-            selected={visibleMethods}
-            onChange={(vals) =>
-              patchFilter("method", hiddenMethodsFromSelection(methodOptions, vals, filters.method))
+            selected={visibleSelectionFromHidden(methodOptions, filters.method)}
+            onChange={(values) =>
+              patchFilter("method", hiddenValuesFromSelection(methodOptions, values, filters.method))
             }
             onClose={close}
             searchable
+            align="end"
           />
         )}
       </div>
@@ -235,18 +251,24 @@ export function FilterBar({
         />
         {openPopover === "action" && (
           <FacetPopover
-            options={mapToOptions(facetCounts.actionType)}
-            selected={filters.actionType}
-            onChange={(vals) => patchFilter("actionType", vals)}
+            options={actionOptions}
+            selected={visibleSelectionFromHidden(actionOptions, filters.actionType)}
+            onChange={(values) =>
+              patchFilter(
+                "actionType",
+                hiddenValuesFromSelection(actionOptions, values, filters.actionType),
+              )
+            }
             onClose={close}
+            align="end"
           />
         )}
       </div>
 
-      {/* Session facet */}
+      {/* Channel facet */}
       <div style={{ position: "relative", flexShrink: 0 }}>
         <FacetChip
-          label="Session"
+          label="Channel"
           activeCount={filters.session.length}
           isOpen={openPopover === "session"}
           isDisabled={false}
@@ -254,11 +276,14 @@ export function FilterBar({
         />
         {openPopover === "session" && (
           <FacetPopover
-            options={mapToOptions(facetCounts.session, formatSessionShort)}
-            selected={filters.session}
-            onChange={(vals) => patchFilter("session", vals)}
+            options={channelOptions}
+            selected={visibleSelectionFromHidden(channelOptions, filters.session)}
+            onChange={(values) =>
+              patchFilter("session", hiddenValuesFromSelection(channelOptions, values, filters.session))
+            }
             onClose={close}
             searchable
+            align="end"
           />
         )}
       </div>
@@ -269,16 +294,19 @@ export function FilterBar({
           label="Turn"
           activeCount={filters.turn.length}
           isOpen={openPopover === "turn"}
-          isDisabled={filters.session.length === 0}
-          onClick={() => filters.session.length > 0 && togglePopover("turn")}
+          isDisabled={false}
+          onClick={() => togglePopover("turn")}
         />
         {openPopover === "turn" && (
           <FacetPopover
-            options={mapToOptions(facetCounts.turn)}
-            selected={filters.turn}
-            onChange={(vals) => patchFilter("turn", vals)}
+            options={turnOptions}
+            selected={visibleSelectionFromHidden(turnOptions, filters.turn)}
+            onChange={(values) =>
+              patchFilter("turn", hiddenValuesFromSelection(turnOptions, values, filters.turn))
+            }
             onClose={close}
             searchable
+            align="end"
           />
         )}
       </div>
@@ -294,12 +322,16 @@ export function FilterBar({
         />
         {openPopover === "status" && (
           <FacetPopover
-            options={mapToOptions(facetCounts.status)}
-            selected={filters.status}
-            onChange={(vals) =>
-              patchFilter("status", vals as import("@ahp-inspector/core").Status[])
+            options={statusOptions}
+            selected={visibleSelectionFromHidden(statusOptions, filters.status)}
+            onChange={(values) =>
+              patchFilter(
+                "status",
+                hiddenValuesFromSelection(statusOptions, values, filters.status) as Status[],
+              )
             }
             onClose={close}
+            align="end"
           />
         )}
       </div>
@@ -333,6 +365,24 @@ export function FilterBar({
 
       {/* Result counter */}
       <ResultCounter visible={filteredRows.length} total={totalRows} />
+
+      {/* Search popover — positioned absolutely above toolbar when open */}
+      {isSearchPopoverOpen && (
+        <SearchPopover
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onClear={() => setSearchQuery("")}
+          onClose={() => setIsSearchPopoverOpen(false)}
+          searchTotal={searchTotal}
+          searchStatus={searchStatus}
+          searchError={searchError}
+          searchTruncated={searchTruncated}
+          searchMatchCount={searchMatchCount}
+          focusedSearchIndex={focusedSearchIndex}
+          onNavigate={navigateSearch}
+          inputRef={searchPopoverInputRef}
+        />
+      )}
     </div>
   );
 }

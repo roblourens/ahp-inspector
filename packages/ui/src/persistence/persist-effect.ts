@@ -28,7 +28,7 @@ function buildPrefs(): PerLogPrefs {
       ? groupArr.slice(groupArr.length - MAX_GROUP_COLLAPSED)
       : groupArr;
   return {
-    v: 1,
+    v: 2,
     searchQuery: s.searchQuery,
     filters: s.filters,
     grouping: s.grouping,

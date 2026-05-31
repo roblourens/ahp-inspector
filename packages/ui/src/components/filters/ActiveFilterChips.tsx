@@ -14,6 +14,18 @@ export function ActiveFilterChips(): JSX.Element | null {
 
   const chips: JSX.Element[] = [];
 
+  const rowText = filters.rowText.trim().slice(0, 256);
+  if (rowText !== "") {
+    chips.push(
+      <ActiveChip
+        key="rowText"
+        label={`Rows contain: ${rowText}`}
+        ariaLabel="Clear row filter"
+        onDismiss={() => patchFilter("rowText", "")}
+      />,
+    );
+  }
+
   // Facet chips
   const arrayFacets: Array<{
     key: keyof typeof filters;
@@ -21,8 +33,9 @@ export function ActiveFilterChips(): JSX.Element | null {
   }> = [
     { key: "direction", prefix: "Dir" },
     { key: "kind", prefix: "Kind" },
+    { key: "method", prefix: "Method" },
     { key: "actionType", prefix: "Action" },
-    { key: "session", prefix: "Session" },
+    { key: "session", prefix: "Channel" },
     { key: "turn", prefix: "Turn" },
     { key: "status", prefix: "Status" },
   ];
@@ -34,8 +47,8 @@ export function ActiveFilterChips(): JSX.Element | null {
       chips.push(
         <ActiveChip
           key={`${key}-${val}`}
-          label={`${prefix}: ${val}`}
-          ariaLabel={`Remove filter ${prefix}: ${val}`}
+          label={`Hidden ${prefix}: ${val}`}
+          ariaLabel={`Show ${prefix}: ${val}`}
           onDismiss={() => {
             patchFilter(
               key as Parameters<typeof patchFilter>[0],
@@ -45,22 +58,6 @@ export function ActiveFilterChips(): JSX.Element | null {
         />,
       );
     }
-  }
-
-  for (const val of filters.method) {
-    chips.push(
-      <ActiveChip
-        key={`method-${val}`}
-        label={`Hidden method: ${val}`}
-        ariaLabel={`Show method: ${val}`}
-        onDismiss={() => {
-          patchFilter(
-            "method",
-            filters.method.filter((v) => v !== val),
-          );
-        }}
-      />,
-    );
   }
 
   // Time chips

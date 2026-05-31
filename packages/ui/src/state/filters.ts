@@ -9,6 +9,7 @@ export interface FilterState {
   session: string[];
   turn: string[];
   status: Status[];
+  rowText: string;
   timeFrom: number | null;
   timeTo: number | null;
 }
@@ -21,6 +22,7 @@ export const EMPTY_FILTERS: FilterState = {
   session: [],
   turn: [],
   status: [],
+  rowText: "",
   timeFrom: null,
   timeTo: null,
 };
@@ -39,6 +41,7 @@ export function isFiltersEmpty(f: FilterState): boolean {
     f.session.length === 0 &&
     f.turn.length === 0 &&
     f.status.length === 0 &&
+    f.rowText.trim() === "" &&
     f.timeFrom === null &&
     f.timeTo === null
   );
@@ -46,22 +49,39 @@ export function isFiltersEmpty(f: FilterState): boolean {
 
 /**
  * Returns true when the row passes ALL active filter dimensions.
- * An empty array for most dimensions means "no filter on this dimension" (match-all).
- * `method` is an exclusion list: hidden methods fail, all other methods pass.
+ * Categorical arrays contain hidden values; an empty array leaves that dimension visible.
  */
 export function applyFacets(row: EventRow, f: FilterState): boolean {
-  if (f.direction.length > 0 && !f.direction.includes(row.dir as "c2s" | "s2c")) return false;
-  if (f.kind.length > 0 && !f.kind.includes(row.kind)) return false;
+  if (f.direction.includes(row.dir as "c2s" | "s2c")) return false;
+  if (f.kind.includes(row.kind)) return false;
   if (row.method !== null && f.method.includes(row.method)) return false;
-  if (
-    f.actionType.length > 0 &&
-    (row.actionType === null || !f.actionType.includes(row.actionType))
-  )
-    return false;
-  if (f.session.length > 0 && (row.sessionId === null || !f.session.includes(row.sessionId)))
-    return false;
-  if (f.turn.length > 0 && (row.turnId === null || !f.turn.includes(row.turnId))) return false;
-  if (f.status.length > 0 && !f.status.includes(row.status)) return false;
+  if (row.actionType !== null && f.actionType.includes(row.actionType)) return false;
+  if (row.sessionId !== null && f.session.includes(row.sessionId)) return false;
+  if (row.turnId !== null && f.turn.includes(row.turnId)) return false;
+  if (f.status.includes(row.status)) return false;
+  const rowText = f.rowText.trim().slice(0, 256).toLowerCase();
+  if (rowText !== "") {
+    const projectedText = [
+      row.keyId,
+      row.tsFmt,
+      row.dir,
+      row.kind,
+      row.method,
+      row.actionType,
+      row.sessionId,
+      row.sessionShort,
+      row.turnId,
+      row.turnShort,
+      row.status,
+      row.payloadPreview,
+      row.summary,
+      row.parseErrorReason,
+    ]
+      .filter((value): value is string => value !== null && value !== undefined)
+      .join(" ")
+      .toLowerCase();
+    if (!projectedText.includes(rowText)) return false;
+  }
   if (f.timeFrom !== null && row.ts < f.timeFrom) return false;
   if (f.timeTo !== null && row.ts > f.timeTo) return false;
   return true;

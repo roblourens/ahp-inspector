@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
-status: released
-stopped_at: Completed 23-02-PLAN.md
-last_updated: "2026-05-22T18:05:00.000Z"
-last_activity: 2026-05-22
+status: verifying
+last_updated: "2026-05-31T20:04:31.005Z"
+last_activity: 2026-05-29
 progress:
-  total_phases: 8
-  completed_phases: 3
-  total_plans: 13
-  completed_plans: 12
-  percent: 92
+  total_phases: 11
+  completed_phases: 6
+  total_plans: 23
+  completed_plans: 23
+  percent: 55
 ---
 
 # State: AHP Inspector
@@ -19,14 +18,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 23 — i-want-to-improve-the-so-called-hacker-theme-can-we-do-somet
+**Current Focus:** Phase 25 — Row search filter, consistent dropdown defaults, and select/clear-all controls
 
 ## Current Position
 
-Phase: 23 (i-want-to-improve-the-so-called-hacker-theme-can-we-do-somet) — EXECUTING
-Plan: 3 of 3
-Status: Released 1.3.2 — May 22 quick fixes published via publish.yml
-Last activity: 2026-05-22 - Released ahp-inspector 1.3.2 with the May 22 quick fixes.
+Phase: 25 (Row search filter, consistent dropdown defaults, and select/clear-all controls) — EXECUTING
+Plan: 5 of 5
+Status: Phase complete — ready for verification
+Last activity: 2026-05-29
 
 ## Performance Metrics
 
@@ -69,6 +68,11 @@ Last activity: 2026-05-22 - Released ahp-inspector 1.3.2 with the May 22 quick f
 | Phase 22 P06 | 4min | 2 tasks | 3 files |
 | Phase 23 P01 | 3min | 2 tasks | 4 files |
 | Phase 23 P02 | 4min | 2 tasks | 4 files |
+| Phase 25 P01 | 32 min | 2 tasks | 3 files |
+| Phase 25 P02 | 4 min | 2 tasks | 5 files |
+| Phase 25 P03 | 5 min | 3 tasks | 5 files |
+| Phase 25 P04 | 8 min | 2 tasks | 7 files |
+| Phase 25 P05 | 2 min | 1 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -163,14 +167,15 @@ Last activity: 2026-05-22 - Released ahp-inspector 1.3.2 with the May 22 quick f
 - Phase 21 added: Show response below request in detail side pane
 - Phase 22 added: Improve large-log loading and high-throughput live tail performance
 - Phase 23 added: I want to improve the so-called hacker theme. Can we do something really crazy? Can we apply a CRT effect to the whole screen, kind of warp it?
+- Phase 25 added: Row search filter, consistent dropdown defaults, and select/clear-all controls
 - 2026-05-16: Phase 15's stale manual UAT checkpoint was explicitly dispositioned during v1.2 closeout without claiming a retroactive UAT run.
 - 2026-05-16: v1.2 bookkeeping reconciled after Phase 22 completion; milestone state is complete and ready for archival when desired.
 
 ## Session Continuity
 
-**Last session:** 2026-05-17T18:18:47.481Z
+**Last session:** 2026-05-31T20:04:30.986Z
 **Next action:** `/gsd-complete-milestone` when ready to archive v1.2
-**Stopped at:** Completed 23-02-PLAN.md
+**Stopped at:** Phase 25 UI-SPEC revised for Search popup + Filter rows primary; ready for gap-closure planning
 
 ## Quick Tasks Completed
 

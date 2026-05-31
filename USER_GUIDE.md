@@ -90,7 +90,7 @@ Click **Switch log** at any time to open the same picker over the current view. 
 
 ## Persistence
 
-Filter selections, column visibility, expanded groups, and the currently-selected event are remembered per-log in your browser's localStorage. Reloading the page restores them. Up to 50 logs are remembered (least-recently-used logs are evicted).
+Row-filter text, hidden facet values, column visibility, expanded groups, and the currently-selected event are remembered per-log in your browser's localStorage. Reloading the page restores them. Up to 50 logs are remembered (least-recently-used logs are evicted).
 
 ## Banners
 
@@ -107,7 +107,7 @@ Use the compact theme picker in the header to switch between **Dark**, **Light**
 
 ## Read the timeline
 
-The main timeline is a dense, virtualized grid with fixed column labels. Rows now scan from left to right as **ID → Time → Dir → Kind → Event → Session → Turn → Latency → Summary**. The standalone Status column was removed; error and warning states remain visible through the row rail and inline badges such as `ERR`, `AUTH`, `TIMEOUT`, and `ORPHAN`.
+The main timeline is a dense, virtualized grid with fixed column labels. Rows now scan from left to right as **ID → Time → Dir → Kind → Event → Channel → Turn → Latency → Summary**. The standalone Status column was removed; error and warning states remain visible through the row rail and inline badges such as `ERR`, `AUTH`, `TIMEOUT`, and `ORPHAN`.
 
 The **Summary** column replaces the old generic payload preview. It shows event-specific parsed text such as `resourceList uri=safe-resource.md`, `delta "..."`, `tool call readFile ...`, `tool result ...`, or `error -32001: ...`. Session and Turn columns populate when those values are present in the JSONL, including nested action/notification shapes.
 
@@ -149,7 +149,7 @@ The current standalone app opens one log at a time. Multi-log comparison, export
 
 ## Searching events
 
-The search bar (top of the filter bar) performs a case-insensitive full-text substring search across event method names, action types, IDs, session IDs, turn IDs, error text, and payload text. Search finds, counts, highlights, and navigates matching events without hiding the surrounding timeline context.
+The **Search** field performs a case-insensitive full-text substring search across event method names, action types, IDs, channel/session IDs, turn IDs, error text, and payload text. Search finds, counts, highlights, and navigates matching events without hiding the surrounding timeline context.
 
 - Press **`/`** from anywhere to focus the search input.
 - Use the **Prev** and **Next** search buttons, or press **`F3`** / **`Shift+F3`**, to move between matching rows.
@@ -162,6 +162,8 @@ The search bar (top of the filter bar) performs a case-insensitive full-text sub
 
 ## Filtering events
 
+Use **Filter rows** to narrow visible rows by text already shown in the timeline, such as method names, channel IDs, status, or summary text. It is a local, case-insensitive substring filter and is deliberately separate from **Search**: reducing the timeline does not change the Search query or its navigation results. A **Rows contain:** chip shows the active row constraint.
+
 Click any of the **8 facet chips** in the filter bar to open a popover with the distinct values for that facet and their counts:
 
 | Chip | Filters by |
@@ -170,15 +172,17 @@ Click any of the **8 facet chips** in the filter bar to open a popover with the 
 | **Kind** | Event kind (`request` / `response` / `action` / `protocol-notification`) |
 | **Method** | RPC method name |
 | **Action** | Action type family |
-| **Session** | Session ID, shortened into a readable label when possible |
+| **Channel** | Channel/session ID, shortened into a readable label when possible |
 | **Turn** | Turn ID (last 6 chars shown) |
 | **Status** | Correlation status (`ok` / `error` / `timeout` / pending) |
 | **Time** | Time range (from / to) |
 
-Selecting a value within a popover adds an **active chip** below the filter bar. Multiple values within the same facet are OR-combined; values across different facets are AND-combined.
+Checkboxes state visibility literally: checked values are shown and unchecked values are hidden. For example, `ping` starts unchecked in **Method** to suppress routine traffic. Use **Select all** to show every value in one facet or **Uncheck all** to hide them; hidden choices appear below the toolbar as **Hidden {facet}: {value}** chips.
 
-- Click **✕** on an individual chip to remove that filter.
+- Click **X** on an individual chip to remove that row constraint or show that hidden value again.
 - Click **Clear all** to reset all active filter chips. The search query is cleared separately from the search input or with **`Esc`**.
+
+![Filter rows and checked-visible Method choices](screenshots/phase25/01-row-filter-and-facets.png)
 
 ![Filter bar with all facets](screenshots/phase3-filter-bar.png)
 

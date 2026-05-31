@@ -66,9 +66,9 @@ function resetStore(rows: EventRow[] = []) {
 }
 
 describe("applyFacets", () => {
-  it("returns false for a s2c row when direction filter is ['c2s']", () => {
+  it("returns true for a s2c row when hidden directions are ['c2s']", () => {
     const row = makeRow({ dir: "s2c", dirGlyph: "←" });
-    expect(applyFacets(row, { ...EMPTY_FILTERS, direction: ["c2s"] })).toBe(false);
+    expect(applyFacets(row, { ...EMPTY_FILTERS, direction: ["c2s"] })).toBe(true);
   });
 
   it("returns true for any row when EMPTY_FILTERS", () => {
@@ -76,17 +76,17 @@ describe("applyFacets", () => {
     expect(applyFacets(row, EMPTY_FILTERS)).toBe(true);
   });
 
-  it("returns true for c2s row when direction filter is ['c2s']", () => {
+  it("returns false for a c2s row when hidden directions are ['c2s']", () => {
     const row = makeRow({ dir: "c2s" });
-    expect(applyFacets(row, { ...EMPTY_FILTERS, direction: ["c2s"] })).toBe(true);
+    expect(applyFacets(row, { ...EMPTY_FILTERS, direction: ["c2s"] })).toBe(false);
   });
 
-  it("filters by kind", () => {
+  it("hides included kind values while leaving other kinds visible", () => {
     const req = makeRow({ kind: "request", kindTag: "REQ" });
     const resp = makeRow({ kind: "response", kindTag: "RES" });
     const f = { ...EMPTY_FILTERS, kind: ["request" as const] };
-    expect(applyFacets(req, f)).toBe(true);
-    expect(applyFacets(resp, f)).toBe(false);
+    expect(applyFacets(req, f)).toBe(false);
+    expect(applyFacets(resp, f)).toBe(true);
   });
 
   it("filters by method exclusions while allowing null method rows", () => {
@@ -104,6 +104,25 @@ describe("applyFacets", () => {
     expect(applyFacets(row, { ...EMPTY_FILTERS, timeFrom: 500, timeTo: null })).toBe(true);
     expect(applyFacets(row, { ...EMPTY_FILTERS, timeFrom: 1500, timeTo: null })).toBe(false);
     expect(applyFacets(row, { ...EMPTY_FILTERS, timeFrom: null, timeTo: 500 })).toBe(false);
+  });
+
+  it("matches row text case-insensitively against published projection fields", () => {
+    const row = makeRow({
+      method: "tools/call",
+      summary: "Opened ReadFile",
+      sessionShort: "agent-main",
+      payloadPreview: '{"path":"README.md"}',
+    });
+    expect(applyFacets(row, { ...EMPTY_FILTERS, rowText: "readfile" })).toBe(true);
+    expect(applyFacets(row, { ...EMPTY_FILTERS, rowText: "AGENT-MAIN" })).toBe(true);
+    expect(applyFacets(row, { ...EMPTY_FILTERS, rowText: "missing" })).toBe(false);
+  });
+
+  it("limits row text matching to the first 256 query characters", () => {
+    const prefix = "a".repeat(256);
+    const row = makeRow({ summary: prefix });
+    const query = `${prefix}not-present`;
+    expect(applyFacets(row, { ...EMPTY_FILTERS, rowText: query })).toBe(true);
   });
 });
 
@@ -127,7 +146,7 @@ describe("useFilteredRows", () => {
     expect(result.current).toEqual([0, 1, 2]);
   });
 
-  it("with direction filter ['c2s'] and searchMatches = Set([0,1]) returns all matching direction rows", () => {
+  it("with hidden direction ['s2c'] and searchMatches = Set([0,1]) returns visible direction rows", () => {
     const rows = [
       makeRow({ idx: 0, dir: "c2s" }),
       makeRow({ idx: 1, dir: "s2c", dirGlyph: "←" }),
@@ -135,7 +154,7 @@ describe("useFilteredRows", () => {
     ];
     resetStore(rows);
     useAppStore.setState({
-      filters: { ...EMPTY_FILTERS, direction: ["c2s"] },
+      filters: { ...EMPTY_FILTERS, direction: ["s2c"] },
       searchMatches: new Set([0, 1]),
     });
     const { result } = renderHook(() => useFilteredRows());
@@ -176,7 +195,7 @@ describe("useVisibleSearchMatches", () => {
 
   afterEach(() => resetStore());
 
-  it("returns visible search matches after applying facets", () => {
+  it("returns visible search matches after applying hidden facets", () => {
     const rows = [
       makeRow({ idx: 0, dir: "c2s" }),
       makeRow({ idx: 1, dir: "s2c", dirGlyph: "←" }),
@@ -184,7 +203,7 @@ describe("useVisibleSearchMatches", () => {
     ];
     resetStore(rows);
     useAppStore.setState({
-      filters: { ...EMPTY_FILTERS, direction: ["c2s"] },
+      filters: { ...EMPTY_FILTERS, direction: ["s2c"] },
       searchMatches: new Set([0, 1, 99]),
     });
     const { result } = renderHook(() => useVisibleSearchMatches());
@@ -205,6 +224,23 @@ describe("useVisibleSearchMatches", () => {
     });
     const { result } = renderHook(() => useVisibleSearchMatches());
     expect(result.current).toEqual([0, 3]);
+  });
+
+  it("uses row text for visibility while Search navigation returns only surviving matches", () => {
+    const rows = [
+      makeRow({ idx: 0, summary: "keep alpha" }),
+      makeRow({ idx: 1, summary: "drop beta" }),
+      makeRow({ idx: 2, summary: "keep gamma" }),
+    ];
+    resetStore(rows);
+    useAppStore.setState({
+      filters: { ...EMPTY_FILTERS, rowText: "keep" },
+      searchMatches: new Set([1, 2]),
+    });
+    const visibleRows = renderHook(() => useFilteredRows());
+    const visibleMatches = renderHook(() => useVisibleSearchMatches());
+    expect(visibleRows.result.current).toEqual([0, 2]);
+    expect(visibleMatches.result.current).toEqual([2]);
   });
 });
 
