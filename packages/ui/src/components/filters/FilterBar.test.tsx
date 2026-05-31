@@ -48,6 +48,7 @@ function makeRow(overrides: Partial<EventRow> = {}): EventRow {
 }
 
 beforeEach(() => {
+  vi.useFakeTimers();
   useAppStore.setState({
     rows: [],
     filters: EMPTY_FILTERS,
@@ -61,7 +62,10 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 // ── FilterBar ─────────────────────────────────────────────────────────────────
 
@@ -89,6 +93,56 @@ describe("FilterBar", () => {
     const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
     expect(input).toBeTruthy();
     expect(input.getAttribute("aria-label")).toBe("Search all events");
+  });
+
+  it("opens the search popover and focuses the input on cmd+f", () => {
+    render(<FilterBar />);
+    expect(screen.queryByTestId("search-popover")).toBeFalsy();
+
+    const result = fireEvent.keyDown(document, { key: "f", metaKey: true });
+
+    // fireEvent returns false when a handler called preventDefault.
+    expect(result).toBe(false);
+    expect(screen.getByTestId("search-popover")).toBeTruthy();
+    vi.advanceTimersByTime(0);
+    const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
+    expect(document.activeElement).toBe(input);
+  });
+
+  it("opens the search popover on ctrl+f", () => {
+    render(<FilterBar />);
+    expect(screen.queryByTestId("search-popover")).toBeFalsy();
+
+    fireEvent.keyDown(document, { key: "f", ctrlKey: true });
+
+    expect(screen.getByTestId("search-popover")).toBeTruthy();
+  });
+
+  it("does not open the search popover on a plain 'f' keypress", () => {
+    render(<FilterBar />);
+    fireEvent.keyDown(document, { key: "f" });
+    expect(screen.queryByTestId("search-popover")).toBeFalsy();
+  });
+
+  it("opens the popover and focuses the input when the trigger is clicked", () => {
+    render(<FilterBar />);
+    const trigger = screen.getByRole("button", { name: "Open search" });
+
+    fireEvent.click(trigger);
+
+    expect(screen.getByTestId("search-popover")).toBeTruthy();
+    vi.advanceTimersByTime(0);
+    const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
+    expect(document.activeElement).toBe(input);
+  });
+
+  it("still opens the search popover on the '/' shortcut", () => {
+    render(<FilterBar />);
+    expect(screen.queryByTestId("search-popover")).toBeFalsy();
+
+    fireEvent.keyDown(document, { key: "/" });
+
+    expect(screen.getByTestId("search-popover")).toBeTruthy();
   });
 
   it("renders Filter rows as a separate local timeline input", () => {

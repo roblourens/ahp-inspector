@@ -5,11 +5,14 @@ import { SearchTrigger } from "./SearchTrigger.js";
 afterEach(cleanup);
 
 describe("SearchTrigger", () => {
-  it("renders button with Search icon and label", () => {
+  it("renders an icon-only button with no visible text label", () => {
     render(<SearchTrigger isActive={false} onClick={() => {}} />);
     const button = screen.getByRole("button", { name: "Open search" });
     expect(button).toBeTruthy();
-    expect(button.textContent).toContain("Search");
+    // The redundant "Search" text label is removed; the icon is sufficient.
+    expect(button.textContent).not.toContain("Search");
+    // The Search icon (an svg) is still rendered.
+    expect(button.querySelector("svg")).toBeTruthy();
   });
 
   it("has correct aria-label for accessibility", () => {

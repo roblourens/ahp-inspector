@@ -17,10 +17,9 @@ export function SearchTrigger({ isActive, onClick }: SearchTriggerProps): JSX.El
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        gap: "var(--space-1)",
+        width: 28,
         height: 28,
-        paddingLeft: "var(--space-2)",
-        paddingRight: "var(--space-2)",
+        padding: "var(--space-1)",
         background: isActive ? "var(--color-chip-bg-active)" : "var(--color-chip-bg)",
         border: isActive
           ? "1px solid var(--color-accent)"
@@ -44,7 +43,6 @@ export function SearchTrigger({ isActive, onClick }: SearchTriggerProps): JSX.El
       }}
     >
       <Search size={16} />
-      <span>Search</span>
     </button>
   );
 }

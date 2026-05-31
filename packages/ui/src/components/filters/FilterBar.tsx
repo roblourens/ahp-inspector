@@ -95,16 +95,25 @@ export function FilterBar({
   const [isSearchPopoverOpen, setIsSearchPopoverOpen] = useState(false);
   const searchPopoverInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Handle "/" keyboard shortcut to open search popover
+  // Open the search popover and focus its input once it mounts (next render).
+  function openSearch() {
+    setIsSearchPopoverOpen(true);
+    setTimeout(() => {
+      searchPopoverInputRef.current?.focus();
+    }, 0);
+  }
+
+  // Handle "/" and cmd+f / ctrl+f keyboard shortcuts to open the search popover.
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "/" && !isSearchPopoverOpen) {
+      if (isSearchPopoverOpen) {
+        return;
+      }
+      const isFindShortcut = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "f";
+      if (e.key === "/" || isFindShortcut) {
+        // Suppress the browser's native find dialog and drive in-app search instead.
         e.preventDefault();
-        setIsSearchPopoverOpen(true);
-        // Focus the search input after popover opens (next render)
-        setTimeout(() => {
-          searchPopoverInputRef.current?.focus();
-        }, 0);
+        openSearch();
       }
     }
     document.addEventListener("keydown", handleKeyDown);
@@ -163,7 +172,13 @@ export function FilterBar({
       {/* Search trigger button */}
       <SearchTrigger
         isActive={hasSearch}
-        onClick={() => setIsSearchPopoverOpen(!isSearchPopoverOpen)}
+        onClick={() => {
+          if (isSearchPopoverOpen) {
+            setIsSearchPopoverOpen(false);
+          } else {
+            openSearch();
+          }
+        }}
       />
 
       {/* Direction facet */}
