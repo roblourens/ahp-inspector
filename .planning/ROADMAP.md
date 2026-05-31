@@ -217,13 +217,13 @@ Plans:
 
 ### Phase 26: Search keyboard shortcut (cmd+f), click-to-focus search box, and icon-only search trigger
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Search is keyboard-accessible via cmd+f / ctrl+f (suppressing native browser find), clicking the search trigger focuses the search box, and the trigger is icon-only with its accessible name preserved.
+**Requirements**: UX-SEARCH-SHORTCUT, UX-SEARCH-FOCUS, UX-SEARCH-ICON
 **Depends on:** Phase 25
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 26 to break down)
+- [ ] 26-01-PLAN.md — cmd+f/ctrl+f shortcut + click-to-focus in FilterBar, icon-only SearchTrigger, matching test updates.
 
 ### Phase 27: Fix broken details view layout regression
 
