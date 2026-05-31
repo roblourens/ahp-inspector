@@ -6,11 +6,11 @@ status: ready_for_next
 last_updated: "2026-05-31T20:17:00.000Z"
 last_activity: 2026-05-30
 progress:
-  total_phases: 11
+  total_phases: 14
   completed_phases: 7
   total_plans: 25
   completed_plans: 25
-  percent: 64
+  percent: 50
 ---
 
 # State: AHP Inspector
@@ -168,6 +168,9 @@ Last activity: 2026-05-30
 - Phase 22 added: Improve large-log loading and high-throughput live tail performance
 - Phase 23 added: I want to improve the so-called hacker theme. Can we do something really crazy? Can we apply a CRT effect to the whole screen, kind of warp it?
 - Phase 25 added: Row search filter, consistent dropdown defaults, and select/clear-all controls
+- Phase 26 added: Search keyboard shortcut (cmd+f), click-to-focus search box, and icon-only search trigger
+- Phase 27 added: Fix broken details view layout regression
+- Phase 28 added: Open raw response in a new browser tab as plain text or JSON
 - 2026-05-16: Phase 15's stale manual UAT checkpoint was explicitly dispositioned during v1.2 closeout without claiming a retroactive UAT run.
 - 2026-05-16: v1.2 bookkeeping reconciled after Phase 22 completion; milestone state is complete and ready for archival when desired.
 

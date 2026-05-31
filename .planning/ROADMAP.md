@@ -215,6 +215,36 @@ Plans:
 - [x] 25-06-PLAN.md — SearchPopover/SearchTrigger UI refactor: replace side-by-side Search/Filter with RowFilterInput (primary flex) + SearchTrigger button (compact 28px) + SearchPopover (raised popover). User rejection of visual density addressed with new layout.
 - [x] 25-07-PLAN.md — Preserve v1 legacy hidden Method values during schema migration: fix migrateV1Filters() to read and preserve all categorical arrays (not just reset to defaults). Add regression test for custom hidden Method preservation.
 
+### Phase 26: Search keyboard shortcut (cmd+f), click-to-focus search box, and icon-only search trigger
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 25
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 26 to break down)
+
+### Phase 27: Fix broken details view layout regression
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 26
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 27 to break down)
+
+### Phase 28: Open raw response in a new browser tab as plain text or JSON
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 27
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 28 to break down)
+
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
-*v1.2 opened 2026-05-10; last updated 2026-05-30 (Phase 25 complete with gap-closure on UI composition and legacy migration)*
+*v1.2 opened 2026-05-10; last updated 2026-05-31 (Phases 26–28 added: search UX shortcuts, details-view layout fix, open-raw-response-in-new-tab)*
