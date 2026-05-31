@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
-status: verifying
-last_updated: "2026-05-31T20:04:31.005Z"
-last_activity: 2026-05-29
+status: ready_for_next
+last_updated: "2026-05-31T20:17:00.000Z"
+last_activity: 2026-05-30
 progress:
   total_phases: 11
-  completed_phases: 6
-  total_plans: 23
-  completed_plans: 23
-  percent: 55
+  completed_phases: 7
+  total_plans: 25
+  completed_plans: 25
+  percent: 64
 ---
 
 # State: AHP Inspector
@@ -18,14 +18,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 25 — Row search filter, consistent dropdown defaults, and select/clear-all controls
+**Current Focus:** Phase 25 complete (shipped 2026-05-30); ready for Phase 26 or next iteration
 
 ## Current Position
 
-Phase: 25 (Row search filter, consistent dropdown defaults, and select/clear-all controls) — EXECUTING
-Plan: 5 of 5
-Status: Phase complete — ready for verification
-Last activity: 2026-05-29
+Phase: 25 (Row search filter, consistent dropdown defaults, and select/clear-all controls) — SHIPPED
+Plan: 5 of 5 + 2 gap-closure plans
+Status: Phase complete — squash-merged to main (commit 058f551)
+Last activity: 2026-05-30
 
 ## Performance Metrics
 

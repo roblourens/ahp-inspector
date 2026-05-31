@@ -190,12 +190,12 @@ Plans:
 - [ ] Add a manual scroll-to-bottom control to the timeline shell.
 - [ ] Rename the visible timeline/filter label from Session to Channel for the current AHP terminology.
 
-### Phase 25: Row search filter, consistent dropdown defaults, and select/clear-all controls
+### ✅ Phase 25: Row search filter, consistent dropdown defaults, and select/clear-all controls (shipped 2026-05-30)
 
 **Goal:** Let users narrow visible timeline rows with an explicit projected-row text filter while preserving Search as full-event highlight/navigation, and make categorical filter menus truthful visibility checklists with uniform all/none controls and the existing default-hidden `ping` behavior.
 **Requirements**: FILTER-25-01 (projected-row string filter independent of Search), FILTER-25-02 (checked-visible categorical defaults with `ping` hidden by default), FILTER-25-03 (Select all/Uncheck all menu actions), FILTER-25-04 (per-log durability, fixture-backed verification, and documented semantics)
 **Depends on:** Phase 24
-**Plans:** 5/5 plans complete
+**Plans:** 5/5 plans + 2/2 gap-closure plans complete
 
 Plans:
 **Wave 1**
@@ -211,6 +211,10 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 - [x] 25-05-PLAN.md — Review the fixture-only desktop/narrow compact filter surface evidence before completion.
 
+**Gap-closure plans** *(executed after 25-05 to resolve verification gaps)*
+- [x] 25-06-PLAN.md — SearchPopover/SearchTrigger UI refactor: replace side-by-side Search/Filter with RowFilterInput (primary flex) + SearchTrigger button (compact 28px) + SearchPopover (raised popover). User rejection of visual density addressed with new layout.
+- [x] 25-07-PLAN.md — Preserve v1 legacy hidden Method values during schema migration: fix migrateV1Filters() to read and preserve all categorical arrays (not just reset to defaults). Add regression test for custom hidden Method preservation.
+
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
-*v1.2 opened 2026-05-10; last updated 2026-05-29 (Phase 25 planned for row filtering and consistent facet visibility controls)*
+*v1.2 opened 2026-05-10; last updated 2026-05-30 (Phase 25 complete with gap-closure on UI composition and legacy migration)*
