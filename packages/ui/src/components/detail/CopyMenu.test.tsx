@@ -32,6 +32,7 @@ function makeEvent(raw: unknown = { a: 1 }): AhpEvent {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe("CopyMenu — copy raw JSON vs pretty JSON", () => {
@@ -246,5 +247,115 @@ describe("CopyMenu — correlation summary", () => {
     expect(written[0]).not.toContain("correlation=paired");
     expect(written[0]).not.toContain("pairIdx");
     expect(written[0]).not.toContain("pair=");
+  });
+});
+
+describe("CopyMenu — open raw payload in a new browser tab", () => {
+  function setupBlobStubs() {
+    const blobs: Blob[] = [];
+    const objectUrl = "blob:mock-url";
+    const createObjectURL = vi.fn((blob: Blob) => {
+      blobs.push(blob);
+      return objectUrl;
+    });
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL,
+      revokeObjectURL,
+    });
+    return { blobs, objectUrl, createObjectURL, revokeObjectURL };
+  }
+
+  it("Open in new tab (JSON) opens a Blob URL of type application/json with pretty payload", async () => {
+    vi.useFakeTimers();
+    const { blobs, objectUrl, revokeObjectURL } = setupBlobStubs();
+    const openSpy = vi.fn(() => ({}) as Window);
+    vi.stubGlobal("open", openSpy);
+    const onCopy = vi.fn();
+    const rawData = { jsonrpc: "2.0", method: "tools/list", params: { a: 1 } };
+
+    render(
+      <CopyMenu
+        event={makeEvent(rawData)}
+        pairEvent={null}
+        pairIdx={null}
+        latencyMs={null}
+        status="ok"
+        onCopy={onCopy}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /open in new tab \(json\)/i }));
+
+    expect(openSpy).toHaveBeenCalledWith(objectUrl, "_blank", "noopener,noreferrer");
+    expect(onCopy).toHaveBeenCalledWith("Opened in new tab", true);
+    expect(blobs).toHaveLength(1);
+    expect(blobs[0].type).toBe("application/json");
+    expect(await blobs[0].text()).toBe(JSON.stringify(rawData, null, 2));
+
+    // URL is revoked after a delay, not immediately, so the tab can load.
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(60_000);
+    expect(revokeObjectURL).toHaveBeenCalledWith(objectUrl);
+
+    vi.useRealTimers();
+  });
+
+  it("Open in new tab (text) opens a Blob URL of type text/plain with pretty payload", async () => {
+    const { blobs, objectUrl } = setupBlobStubs();
+    const openSpy = vi.fn(() => ({}) as Window);
+    vi.stubGlobal("open", openSpy);
+    const onCopy = vi.fn();
+    const rawData = { jsonrpc: "2.0", result: { ok: true } };
+
+    render(
+      <CopyMenu
+        event={makeEvent(rawData)}
+        pairEvent={null}
+        pairIdx={null}
+        latencyMs={null}
+        status="ok"
+        onCopy={onCopy}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /open in new tab \(text\)/i }));
+
+    expect(openSpy).toHaveBeenCalledWith(objectUrl, "_blank", "noopener,noreferrer");
+    expect(onCopy).toHaveBeenCalledWith("Opened in new tab", true);
+    expect(blobs[0].type).toBe("text/plain");
+    expect(await blobs[0].text()).toBe(JSON.stringify(rawData, null, 2));
+  });
+
+  it("reports a blocked popup via onCopy when window.open returns null", () => {
+    const { revokeObjectURL, objectUrl } = setupBlobStubs();
+    const openSpy = vi.fn(() => null);
+    vi.stubGlobal("open", openSpy);
+    const onCopy = vi.fn();
+
+    render(
+      <CopyMenu
+        event={makeEvent({ a: 1 })}
+        pairEvent={null}
+        pairIdx={null}
+        latencyMs={null}
+        status="ok"
+        onCopy={onCopy}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /open in new tab \(json\)/i }));
+
+    expect(openSpy).toHaveBeenCalled();
+    expect(onCopy).toHaveBeenCalledWith(
+      "Popup blocked — allow popups to open in a new tab",
+      false,
+    );
+    // Blocked popups revoke immediately to avoid leaking the URL.
+    expect(revokeObjectURL).toHaveBeenCalledWith(objectUrl);
   });
 });

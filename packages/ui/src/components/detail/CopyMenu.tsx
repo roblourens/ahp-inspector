@@ -13,6 +13,7 @@ import type { AhpEvent } from "@ahp-inspector/shared";
 import { ChevronDown } from "lucide-react";
 import { type JSX, useEffect, useRef, useState } from "react";
 import { copyText } from "./clipboard.js";
+import { openInNewTab } from "./openInNewTab.js";
 
 interface CopyMenuProps {
   event: AhpEvent;
@@ -122,6 +123,23 @@ export function CopyMenu({
     }
   }
 
+  function handleOpenInNewTab(mime: "application/json" | "text/plain") {
+    setOpen(false);
+    const text = (() => {
+      try {
+        return JSON.stringify(event.raw, null, 2);
+      } catch {
+        return "[Circular or non-serializable value]";
+      }
+    })();
+    const ok = openInNewTab(text, mime);
+    if (ok) {
+      onCopy("Opened in new tab", true);
+    } else {
+      onCopy("Popup blocked \u2014 allow popups to open in a new tab", false);
+    }
+  }
+
   const menuItems = [
     {
       label: "Copy raw JSON",
@@ -194,6 +212,33 @@ export function CopyMenu({
               role="menuitem"
               type="button"
               onClick={() => handleCopy(item.action)}
+              style={{
+                display: "block",
+                width: "100%",
+                textAlign: "left",
+                background: "none",
+                border: "none",
+                color: "var(--color-text)",
+                cursor: "pointer",
+                fontFamily: "var(--font-sans)",
+                fontSize: "var(--text-ui-muted-size)",
+                padding: "var(--space-2) var(--space-3)",
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+          {(
+            [
+              { label: "Open in new tab (JSON)", mime: "application/json" as const },
+              { label: "Open in new tab (text)", mime: "text/plain" as const },
+            ]
+          ).map((item) => (
+            <button
+              key={item.label}
+              role="menuitem"
+              type="button"
+              onClick={() => handleOpenInNewTab(item.mime)}
               style={{
                 display: "block",
                 width: "100%",
