@@ -227,13 +227,13 @@ Plans:
 
 ### Phase 27: Fix broken details view layout regression
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Restore correct indentation in the detail pane's pretty-JSON tree. react-json-view-lite renders each object/array's children inside a `<ul class="ahp-json-children">` that had no CSS rule, so it fell back to browser defaults (40px padding, 12px vertical margins, disc bullets) and stacked on top of the intended per-level `.ahp-json-child` margin — producing over-indented, gap-ridden JSON. Add a reset so indentation comes solely from `.ahp-json-child`.
+**Requirements**: UX-DETAIL-JSON-LAYOUT
 **Depends on:** Phase 26
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 27 to break down)
+- [ ] 27-01-PLAN.md — reset `.ahp-json-children` in global.css + regression guard test.
 
 ### Phase 28: Open raw response in a new browser tab as plain text or JSON
 
