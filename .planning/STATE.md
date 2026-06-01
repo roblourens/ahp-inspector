@@ -7,10 +7,10 @@ last_updated: "2026-05-31T20:17:00.000Z"
 last_activity: 2026-05-30
 progress:
   total_phases: 14
-  completed_phases: 7
-  total_plans: 25
-  completed_plans: 25
-  percent: 50
+  completed_phases: 8
+  total_plans: 26
+  completed_plans: 26
+  percent: 57
 ---
 
 # State: AHP Inspector
@@ -18,13 +18,13 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 26 complete (cmd+f search shortcut, click-to-focus, icon-only trigger); ready for verify/next iteration
+**Current Focus:** Phase 27 complete (detail-pane JSON layout regression fixed); ready for verify/next iteration
 
 ## Current Position
 
-Phase: 26 (Search keyboard shortcut (cmd+f), click-to-focus search box, and icon-only search trigger) — EXECUTED + VERIFIED
-Plan: 1 of 1 (26-01)
-Status: Phase executed and verified (5/5 must-haves); committed on main (7236e8e). Not yet squash-merged (single-plan work done directly on main).
+Phase: 27 (Fix broken details-view layout regression) — EXECUTED + VERIFIED
+Plan: 1 of 1 (27-01)
+Status: Phase executed and verified (4/4 must-haves); committed on main (fae15d1). Single-plan work done directly on main.
 Last activity: 2026-05-31
 
 ## Performance Metrics

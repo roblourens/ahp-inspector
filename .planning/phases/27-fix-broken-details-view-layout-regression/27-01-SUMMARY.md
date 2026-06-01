@@ -7,7 +7,7 @@ requirements: [UX-DETAIL-JSON-LAYOUT]
 files_modified:
   - packages/ui/src/styles/global.css
   - packages/ui/src/styles/json-tree-indent.test.ts
-commit: TBD
+commit: fae15d1
 ---
 
 # Phase 27 · Plan 01 — Summary
