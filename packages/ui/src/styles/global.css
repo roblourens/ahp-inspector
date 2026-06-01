@@ -75,6 +75,14 @@ body {
 .ahp-json-child {
   margin-left: var(--space-4);
 }
+.ahp-json-children {
+  /* react-json-view-lite wraps each object/array's child fields in a <ul>.
+     Reset the browser-default list padding/margins/bullets so indentation
+     comes solely from .ahp-json-child (one level per depth, no vertical gaps). */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 .ahp-json-label,
 .ahp-json-clickable-label {
   color: var(--color-json-key);
