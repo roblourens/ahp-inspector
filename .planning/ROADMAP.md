@@ -237,13 +237,13 @@ Plans:
 
 ### Phase 28: Open raw response in a new browser tab as plain text or JSON
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Let the user open the selected event's raw payload in a new browser tab — as pretty-printed JSON (`application/json`) or plain text (`text/plain`) — from the detail-pane actions menu, so large payloads can be inspected with the browser's own find/scroll/JSON rendering. Backed by a same-origin Blob URL only (no network, no CDN), preserving local-first privacy.
+**Requirements**: UX-DETAIL-OPEN-RAW-TAB
 **Depends on:** Phase 27
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 28 to break down)
+- [ ] 28-01-PLAN.md — `openInNewTab` Blob-URL helper + two "Open in new tab" menu items in CopyMenu (JSON / text), with unit tests.
 
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
