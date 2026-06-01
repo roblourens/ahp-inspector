@@ -8,7 +8,7 @@ files_modified:
   - packages/ui/src/components/detail/openInNewTab.ts
   - packages/ui/src/components/detail/CopyMenu.tsx
   - packages/ui/src/components/detail/CopyMenu.test.tsx
-commit: TBD
+commit: 44dc30e
 ---
 
 # Phase 28 · Plan 01 — Summary
