@@ -1,7 +1,7 @@
 /**
- * CopyMenu — dropdown button with three copy actions.
+ * CopyMenu — "Actions" dropdown button with copy and open-in-new-tab actions.
  *
- * T-03-04-03: Copy is explicit user action only.
+ * T-03-04-03: Copy/open are explicit user actions only.
  * Uses navigator.clipboard.writeText with textarea execCommand fallback.
  * PrivacyCaption discloses that raw payload may contain tokens/prompts/paths.
  *
@@ -188,7 +188,7 @@ export function CopyMenu({
           padding: "var(--space-1) var(--space-2)",
         }}
       >
-        Copy <ChevronDown size={12} />
+        Actions <ChevronDown size={12} />
       </button>
 
       {open && (

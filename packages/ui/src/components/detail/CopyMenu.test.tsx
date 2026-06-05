@@ -60,7 +60,7 @@ describe("CopyMenu — copy raw JSON vs pretty JSON", () => {
     );
 
     // Open menu
-    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }));
     // Click "Copy raw JSON"
     const rawBtn = screen.getByRole("menuitem", { name: /copy raw json/i });
     fireEvent.click(rawBtn);
@@ -95,7 +95,7 @@ describe("CopyMenu — copy raw JSON vs pretty JSON", () => {
     );
 
     // Open menu
-    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }));
     // Click "Copy pretty JSON"
     const prettyBtn = screen.getByRole("menuitem", { name: /copy pretty json/i });
     fireEvent.click(prettyBtn);
@@ -130,7 +130,7 @@ describe("CopyMenu — copy raw JSON vs pretty JSON", () => {
     );
 
     // Copy raw
-    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: /copy raw json/i }));
     await waitFor(() => expect(onCopy).toHaveBeenCalledTimes(1));
 
@@ -150,7 +150,7 @@ describe("CopyMenu — copy raw JSON vs pretty JSON", () => {
     );
 
     // Copy pretty
-    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: /copy pretty json/i }));
     await waitFor(() => expect(onCopy).toHaveBeenCalledTimes(1));
 
@@ -207,7 +207,7 @@ describe("CopyMenu — correlation summary", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: /copy summary/i }));
 
     await waitFor(() => expect(onCopy).toHaveBeenCalled());
@@ -240,7 +240,7 @@ describe("CopyMenu — correlation summary", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: /copy summary/i }));
 
     await waitFor(() => expect(onCopy).toHaveBeenCalled());
@@ -286,7 +286,7 @@ describe("CopyMenu — open raw payload in a new browser tab", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: /open in new tab \(json\)/i }));
 
     expect(openSpy).toHaveBeenCalledWith(objectUrl, "_blank", "noopener,noreferrer");
@@ -321,7 +321,7 @@ describe("CopyMenu — open raw payload in a new browser tab", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: /open in new tab \(text\)/i }));
 
     expect(openSpy).toHaveBeenCalledWith(objectUrl, "_blank", "noopener,noreferrer");
@@ -347,7 +347,7 @@ describe("CopyMenu — open raw payload in a new browser tab", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /copy/i }));
+    fireEvent.click(screen.getByRole("button", { name: /actions/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: /open in new tab \(json\)/i }));
 
     expect(openSpy).toHaveBeenCalled();
