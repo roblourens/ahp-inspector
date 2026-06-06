@@ -2,6 +2,8 @@
 
 Local-first viewer for VS Code Agent Host Protocol (AHP) JSONL logs.
 
+![AHP Inspector timeline in hacker theme](https://raw.githubusercontent.com/roblourens/ahp-inspector/main/screenshots/phase3-hacker-theme-columns.png)
+
 ```bash
 npx ahp-inspector            # auto-open the most recent AHP log
 npx ahp-inspector path.jsonl # open a specific file
