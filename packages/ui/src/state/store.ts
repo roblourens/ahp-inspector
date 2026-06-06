@@ -88,12 +88,14 @@ export interface AppStoreState {
   searchTruncated: boolean;
   searchStatus: SearchStatus;
   searchError: string | null;
+  searchPopoverOpen: boolean;
   setSearchQuery(q: string): void;
   setSearchMatches(matches: number[] | null): void;
   setSearchPending(): void;
   setSearchResult(matches: number[], total: number, truncated: boolean): void;
   setSearchError(message: string): void;
   clearSearchResults(): void;
+  setSearchPopoverOpen(open: boolean): void;
   // Phase 3: filters
   filters: FilterState;
   setFilters(f: FilterState): void;
@@ -237,6 +239,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
   searchTruncated: false,
   searchStatus: "idle",
   searchError: null,
+  searchPopoverOpen: false,
   filters: APP_DEFAULT_FILTERS,
   grouping: "none",
   groupCollapsed: new Set<string>(),
@@ -270,6 +273,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
       searchStatus: "idle",
       searchError: null,
     }),
+  setSearchPopoverOpen: (open) => set({ searchPopoverOpen: open }),
   setFilters: (f) => set({ filters: f }),
   patchFilter: (key, value) => set((s) => ({ filters: { ...s.filters, [key]: value } })),
   clearFilters: () => set({ filters: APP_DEFAULT_FILTERS }),

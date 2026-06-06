@@ -58,6 +58,7 @@ beforeEach(() => {
     searchTruncated: false,
     searchStatus: "idle",
     searchError: null,
+    searchPopoverOpen: false,
     grouping: "none",
   });
 });

@@ -92,12 +92,13 @@ export function FilterBar({
   const statusOptions = mapToOptions(facetCounts.status);
 
   const [openPopover, setOpenPopover] = useState<OpenPopover>(null);
-  const [isSearchPopoverOpen, setIsSearchPopoverOpen] = useState(false);
+  const isSearchPopoverOpen = useAppStore((s) => s.searchPopoverOpen);
+  const setSearchPopoverOpen = useAppStore((s) => s.setSearchPopoverOpen);
   const searchPopoverInputRef = useRef<HTMLInputElement | null>(null);
 
   // Open the search popover and focus its input once it mounts (next render).
   function openSearch() {
-    setIsSearchPopoverOpen(true);
+    setSearchPopoverOpen(true);
     setTimeout(() => {
       searchPopoverInputRef.current?.focus();
     }, 0);
@@ -174,7 +175,7 @@ export function FilterBar({
         isActive={hasSearch}
         onClick={() => {
           if (isSearchPopoverOpen) {
-            setIsSearchPopoverOpen(false);
+            setSearchPopoverOpen(false);
           } else {
             openSearch();
           }
@@ -387,7 +388,7 @@ export function FilterBar({
           value={searchQuery}
           onChange={setSearchQuery}
           onClear={() => setSearchQuery("")}
-          onClose={() => setIsSearchPopoverOpen(false)}
+          onClose={() => setSearchPopoverOpen(false)}
           searchTotal={searchTotal}
           searchStatus={searchStatus}
           searchError={searchError}

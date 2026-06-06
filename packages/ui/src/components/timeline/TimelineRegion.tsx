@@ -3,7 +3,6 @@
 
 import type { JSX, KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
 import { useCallback, useEffect, useRef } from "react";
-import { isFiltersEmpty } from "../../state/filters.js";
 import {
   useFilteredRows,
   useGroupedItems,
@@ -62,8 +61,6 @@ export function TimelineRegion({
   const searchMatches = useAppStore((s) => s.searchMatches);
   const setSearchQuery = useAppStore((s) => s.setSearchQuery);
   const clearSearchResults = useAppStore((s) => s.clearSearchResults);
-  const filters = useAppStore((s) => s.filters);
-  const clearFilters = useAppStore((s) => s.clearFilters);
   const grouping = useAppStore((s) => s.grouping);
   const setGrouping = useAppStore((s) => s.setGrouping);
   const groupCollapsed = useAppStore((s) => s.groupCollapsed);
@@ -157,13 +154,14 @@ export function TimelineRegion({
       }
       chordRef.current = null;
 
-      // Esc priority: search → (popovers handled in FilterBar) → filters → selection
+      // Esc priority: find widget (handled in SearchPopover) → search → selection.
+      // Escape never clears a filter — clearing a filter requires an explicit action.
       if (e.key === "Escape") {
+        // Find widget open → SearchPopover.onClose dismisses it; do nothing else.
+        if (useAppStore.getState().searchPopoverOpen) return;
         if (searchQuery) {
           setSearchQuery("");
           clearSearchResults();
-        } else if (!isFiltersEmpty(filters)) {
-          clearFilters();
         } else {
           clear();
         }
@@ -225,8 +223,6 @@ export function TimelineRegion({
     searchQuery,
     setSearchQuery,
     clearSearchResults,
-    filters,
-    clearFilters,
     grouping,
     setGrouping,
     searchInputRef,

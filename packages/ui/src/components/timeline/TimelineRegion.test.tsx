@@ -299,3 +299,59 @@ describe("TimelineRegion — Plan 04-06 Task 2", () => {
     }
   });
 });
+
+describe("TimelineRegion — Escape never clears a filter (Phase 29)", () => {
+  it("Escape does NOT clear the row filter box and clears the selection instead", () => {
+    useAppStore.setState({
+      filters: { ...EMPTY_FILTERS, rowText: "ping" },
+      searchQuery: "",
+      searchPopoverOpen: false,
+      selectedIdx: 1,
+    });
+    render(<TimelineRegion />);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(useAppStore.getState().filters.rowText).toBe("ping");
+    expect(useAppStore.getState().selectedIdx).toBeNull();
+  });
+
+  it("Escape does NOT clear a facet filter", () => {
+    useAppStore.setState({
+      filters: { ...EMPTY_FILTERS, method: ["ping"] },
+      searchQuery: "",
+      searchPopoverOpen: false,
+      selectedIdx: 1,
+    });
+    render(<TimelineRegion />);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(useAppStore.getState().filters.method).toEqual(["ping"]);
+  });
+
+  it("Escape with the find widget open leaves search and selection untouched", () => {
+    useAppStore.setState({
+      filters: { ...EMPTY_FILTERS, rowText: "ping" },
+      searchQuery: "foo",
+      searchPopoverOpen: true,
+      selectedIdx: 1,
+    });
+    render(<TimelineRegion />);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(useAppStore.getState().searchQuery).toBe("foo");
+    expect(useAppStore.getState().selectedIdx).toBe(1);
+    expect(useAppStore.getState().filters.rowText).toBe("ping");
+  });
+
+  it("Escape clears the search query when the find widget is closed", () => {
+    useAppStore.setState({
+      filters: EMPTY_FILTERS,
+      searchQuery: "foo",
+      searchStatus: "ready",
+      searchPopoverOpen: false,
+      selectedIdx: 1,
+    });
+    render(<TimelineRegion />);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(useAppStore.getState().searchQuery).toBe("");
+    expect(useAppStore.getState().searchStatus).toBe("idle");
+  });
+});
+

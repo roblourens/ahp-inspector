@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
 status: ready_for_next
-last_updated: "2026-05-31T20:17:00.000Z"
-last_activity: 2026-05-30
+last_updated: "2026-06-06T21:30:00.000Z"
+last_activity: 2026-06-06
 progress:
   total_phases: 14
   completed_phases: 9
@@ -18,14 +18,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 28 complete (open raw payload in a new browser tab as JSON or text); ready for verify/next iteration
+**Current Focus:** Phase 29 complete (Escape closes the find widget without clearing any filter); ready for verify/next iteration
 
 ## Current Position
 
-Phase: 28 (Open raw response in a new browser tab as plain text or JSON) — EXECUTED + VERIFIED
-Plan: 1 of 1 (28-01)
-Status: Phase executed and verified (6/6 must-haves); committed on main (44dc30e). Single-plan work done directly on main.
-Last activity: 2026-05-31
+Phase: 29 (Escape closes the find widget without clearing the filter box) — EXECUTED
+Plan: 1 of 1 (29-01)
+Status: Phase executed (5/5 must-haves); 448 UI tests + 2 e2e tests pass. Work on branch `phase-29`, pending squash-merge to main.
+Last activity: 2026-06-06
 
 ## Performance Metrics
 
@@ -171,6 +171,7 @@ Last activity: 2026-05-31
 - Phase 26 added: Search keyboard shortcut (cmd+f), click-to-focus search box, and icon-only search trigger
 - Phase 27 added: Fix broken details view layout regression
 - Phase 28 added: Open raw response in a new browser tab as plain text or JSON
+- Phase 29 added: Escape closes the find widget without clearing any filter (filter box or facets)
 - 2026-05-16: Phase 15's stale manual UAT checkpoint was explicitly dispositioned during v1.2 closeout without claiming a retroactive UAT run.
 - 2026-05-16: v1.2 bookkeeping reconciled after Phase 22 completion; milestone state is complete and ready for archival when desired.
 

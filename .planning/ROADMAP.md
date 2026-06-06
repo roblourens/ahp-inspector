@@ -245,6 +245,16 @@ Plans:
 Plans:
 - [ ] 28-01-PLAN.md — `openInNewTab` Blob-URL helper + two "Open in new tab" menu items in CopyMenu (JSON / text), with unit tests.
 
+### Phase 29: Escape closes the find widget without clearing the filter box
+
+**Goal:** When the row filter box (`RowFilterInput`) has text and the user opens the find widget (`SearchPopover`) with Cmd+F / Ctrl+F, pressing Escape closes (dismisses) the find widget only. Escape must never clear any filter — neither the row-text filter box nor the facet filters (Dir/Kind/Method/etc.). Clearing a filter should require an explicit action, so a returning user keeps their filter state intact after dismissing find.
+**Requirements**: UX-ESC-NO-CLEAR-FILTER, UX-ESC-CLOSE-FIND
+**Depends on:** Phase 28
+**Plans:** 1 plan
+
+Plans:
+- [x] 29-01-PLAN.md — Add shared `searchPopoverOpen` store flag; Escape bails when the find widget is open and never calls `clearFilters()`; unit + e2e coverage.
+
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
-*v1.2 opened 2026-05-10; last updated 2026-05-31 (Phases 26–28 added: search UX shortcuts, details-view layout fix, open-raw-response-in-new-tab)*
+*v1.2 opened 2026-05-10; last updated 2026-06-06 (Phase 29 added: Escape closes find widget without clearing any filter)*

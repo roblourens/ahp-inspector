@@ -53,6 +53,7 @@ describe("useAppStore", () => {
       searchTruncated: false,
       searchStatus: "idle",
       searchError: null,
+      searchPopoverOpen: false,
     });
   });
 
@@ -217,5 +218,13 @@ describe("useAppStore", () => {
     expect(useAppStore.getState().filters).toEqual(APP_DEFAULT_FILTERS);
     expect(useAppStore.getState().searchQuery).toBe("needle");
     expect(useAppStore.getState().searchMatches).toEqual(new Set([0]));
+  });
+
+  it("setSearchPopoverOpen toggles searchPopoverOpen from its false default", () => {
+    expect(useAppStore.getState().searchPopoverOpen).toBe(false);
+    useAppStore.getState().setSearchPopoverOpen(true);
+    expect(useAppStore.getState().searchPopoverOpen).toBe(true);
+    useAppStore.getState().setSearchPopoverOpen(false);
+    expect(useAppStore.getState().searchPopoverOpen).toBe(false);
   });
 });
