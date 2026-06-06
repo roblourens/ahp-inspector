@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { JSX, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
+import type { SearchStatus } from "../../state/store.js";
 import { SearchInputCore } from "./SearchInputCore.js";
 
 interface SearchPopoverProps {
@@ -9,13 +10,13 @@ interface SearchPopoverProps {
   onClear(): void;
   onClose(): void;
   searchTotal: number;
-  searchStatus: "idle" | "searching" | "error";
-  searchError?: string;
+  searchStatus: SearchStatus;
+  searchError?: string | null;
   searchTruncated: boolean;
   searchMatchCount: number;
   focusedSearchIndex: number | null;
   onNavigate(direction: "previous" | "next"): void;
-  inputRef?: RefObject<HTMLInputElement | null>;
+  inputRef?: RefObject<HTMLInputElement | null> | undefined;
 }
 
 export function SearchPopover({

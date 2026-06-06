@@ -85,11 +85,11 @@ function migrateV1Filters(value: unknown): FilterState {
   const filters = value as Record<string, unknown>;
 
   // Helper: extract and validate legacy array field, or return default
-  const extractFilterArray = (field: unknown, defaultValue: string[]): string[] => {
+  const extractFilterArray = <T extends string>(field: unknown, defaultValue: readonly T[]): T[] => {
     if (Array.isArray(field) && field.every((item) => typeof item === "string")) {
-      return field;
+      return field as T[];
     }
-    return defaultValue;
+    return [...defaultValue];
   };
 
   return {

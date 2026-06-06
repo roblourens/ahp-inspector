@@ -5,7 +5,7 @@ interface SearchInputCoreProps {
   value: string;
   onChange(q: string): void;
   onClear(): void;
-  ref?: RefObject<HTMLInputElement | null>;
+  ref?: RefObject<HTMLInputElement | null> | undefined;
 }
 
 /**

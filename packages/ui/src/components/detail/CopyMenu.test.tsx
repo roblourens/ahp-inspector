@@ -292,8 +292,10 @@ describe("CopyMenu — open raw payload in a new browser tab", () => {
     expect(openSpy).toHaveBeenCalledWith(objectUrl, "_blank", "noopener,noreferrer");
     expect(onCopy).toHaveBeenCalledWith("Opened in new tab", true);
     expect(blobs).toHaveLength(1);
-    expect(blobs[0].type).toBe("application/json");
-    expect(await blobs[0].text()).toBe(JSON.stringify(rawData, null, 2));
+    const [jsonBlob] = blobs;
+    if (!jsonBlob) throw new Error("expected a blob");
+    expect(jsonBlob.type).toBe("application/json");
+    expect(await jsonBlob.text()).toBe(JSON.stringify(rawData, null, 2));
 
     // URL is revoked after a delay, not immediately, so the tab can load.
     expect(revokeObjectURL).not.toHaveBeenCalled();
@@ -326,8 +328,10 @@ describe("CopyMenu — open raw payload in a new browser tab", () => {
 
     expect(openSpy).toHaveBeenCalledWith(objectUrl, "_blank", "noopener,noreferrer");
     expect(onCopy).toHaveBeenCalledWith("Opened in new tab", true);
-    expect(blobs[0].type).toBe("text/plain");
-    expect(await blobs[0].text()).toBe(JSON.stringify(rawData, null, 2));
+    const [textBlob] = blobs;
+    if (!textBlob) throw new Error("expected a blob");
+    expect(textBlob.type).toBe("text/plain");
+    expect(await textBlob.text()).toBe(JSON.stringify(rawData, null, 2));
   });
 
   it("reports a blocked popup via onCopy when window.open returns null", () => {
