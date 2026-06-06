@@ -247,13 +247,13 @@ Plans:
 
 ### Phase 29: Escape closes the find widget without clearing the filter box
 
-**Goal:** When the row filter box (`RowFilterInput`) has text and the user opens the find widget (`SearchPopover`) with Cmd+F / Ctrl+F, pressing Escape closes (dismisses) the find widget only. Escape must never clear any filter — neither the row-text filter box nor the facet filters (Dir/Kind/Method/etc.). Clearing a filter should require an explicit action, so a returning user keeps their filter state intact after dismissing find.
+**Goal:** When the row filter box (`RowFilterInput`) has text and the user opens the find widget (`SearchPopover`) with Cmd+F / Ctrl+F, pressing Escape closes (dismisses) the find widget only. Escape clears the row filter box only while focus is inside it; when focus is outside the box, Escape must never clear any filter — neither the row-text filter box nor the facet filters (Dir/Kind/Method/etc.). Clearing a filter from outside the box should require an explicit action, so a returning user keeps their filter state intact after dismissing find.
 **Requirements**: UX-ESC-NO-CLEAR-FILTER, UX-ESC-CLOSE-FIND
 **Depends on:** Phase 28
 **Plans:** 1 plan
 
 Plans:
-- [x] 29-01-PLAN.md — Add shared `searchPopoverOpen` store flag; Escape bails when the find widget is open and never calls `clearFilters()`; unit + e2e coverage.
+- [x] 29-01-PLAN.md — Add shared `searchPopoverOpen` store flag; Escape bails when the find widget is open and never calls `clearFilters()`; `RowFilterInput` clears the box on local Escape; unit + e2e coverage.
 
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*

@@ -9,6 +9,8 @@ files_modified:
   - packages/ui/src/state/store.test.ts
   - packages/ui/src/components/filters/FilterBar.tsx
   - packages/ui/src/components/filters/FilterBar.test.tsx
+  - packages/ui/src/components/filters/RowFilterInput.tsx
+  - packages/ui/src/components/filters/RowFilterInput.test.tsx
   - packages/ui/src/components/timeline/TimelineRegion.tsx
   - packages/ui/src/components/timeline/TimelineRegion.test.tsx
   - e2e/phase29.spec.ts
@@ -20,9 +22,10 @@ files_modified:
 
 When the row filter box (`RowFilterInput`) has text and the user opens the find
 widget (`SearchPopover`) with Cmd+F / Ctrl+F, pressing Escape must dismiss the
-find widget only. Escape must never clear any filter — neither the row-text
-filter box nor the facet filters — so a returning user keeps their filter state
-intact after dismissing find.
+find widget only. Escape clears the row filter box only while focus is inside it;
+when focus is outside the box, Escape must never clear any filter — neither the
+row-text filter box nor the facet filters — so a returning user keeps their
+filter state intact after dismissing find.
 
 ## Root Cause
 
@@ -57,8 +60,17 @@ popover closed.
   the widget is closed.
 - **e2e/phase29.spec.ts** (new) — Playwright coverage: typing into "Filter rows",
   opening find with Cmd+F, then Escape dismisses the popover while the filter text
-  survives (twice); plus a facet-filter case proving Escape never clears an active
-  Method facet.
+  survives; Escape with focus inside the box clears it; plus a facet-filter case
+  proving Escape never clears an active Method facet from outside the box.
+
+## Amendment — focus-aware Escape
+
+After the initial merge, the behavior was refined: Escape should clear the row
+filter box **only when focus is inside it**, and never when focus is outside.
+`RowFilterInput` now has a local `onKeyDown` that, on Escape, clears the box (when
+non-empty) and calls `stopPropagation()` so the global timeline Escape handler —
+which still never clears a filter — does not also act. Added `RowFilterInput.test.tsx`
+(3 tests) and an e2e case for the focus-inside path.
 
 ## Verification
 
@@ -72,7 +84,8 @@ popover closed.
 ## Must-Haves
 
 - ✅ Escape dismisses the find widget when it is open.
-- ✅ Escape never clears the row-text filter box.
+- ✅ Escape clears the row filter box when focus is inside it.
+- ✅ Escape never clears the row filter box when focus is outside it.
 - ✅ Escape never clears facet filters.
 - ✅ Escape still clears search query / selection when the find widget is closed.
-- ✅ Clearing a filter requires an explicit action (the "Clear all filters" button).
+- ✅ Clearing a filter from outside the box requires an explicit action (the "Clear all filters" button).

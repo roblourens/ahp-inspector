@@ -117,9 +117,27 @@ test.describe("Phase 29 Escape closes find widget without clearing the filter bo
       fullPage: true,
     });
 
-    // 4. Escape again (no find widget open) still never clears the filter box.
+    // 4. Escape while focus is OUTSIDE the filter box never clears it.
+    //    (After the popover closes, focus is on the page body, not the box.)
     await page.keyboard.press("Escape");
     await expect(filterRows).toHaveValue("workspace");
+
+    await assertNoPathLeak(page);
+  });
+
+  test("Escape clears the filter box only while focus is inside it", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url);
+    await expect(page.getByTestId("row-0")).toBeVisible();
+
+    const filterRows = page.getByLabel("Filter rows");
+    await filterRows.fill("workspace");
+    await expect(filterRows).toHaveValue("workspace");
+
+    // Focus is in the filter box → Escape clears it.
+    await filterRows.focus();
+    await page.keyboard.press("Escape");
+    await expect(filterRows).toHaveValue("");
 
     await assertNoPathLeak(page);
   });

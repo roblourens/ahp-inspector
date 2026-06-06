@@ -41,6 +41,15 @@ export function RowFilterInput({ value, onChange, onClear }: RowFilterInputProps
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          // Escape clears the filter box only while focus is inside it.
+          // Stop propagation so the global timeline Escape handler (which never
+          // clears a filter) does not also act on this keypress.
+          if (event.key === "Escape") {
+            event.stopPropagation();
+            if (value.length > 0) onClear();
+          }
+        }}
         placeholder="Filter visible rows..."
         aria-label="Filter rows"
         style={{
