@@ -53,6 +53,7 @@ Full phase details: `.planning/milestones/v1.1-ROADMAP.md`.
   **Goal:** Pivot the webview from a postMessage bridge to a singleton in-extension `LogServer` (Hono on 127.0.0.1) reached via `WebviewOptions.portMapping`. Reverses Phase 11's EXT-03 / postMessage decisions. The webview now uses the same HTTP+SSE transport as the standalone CLI build, fixing the bug class where UI components that bypass the bridge silently fail in the webview. Replaces the original "thread `AhpViewerClient`" plan set (archived under `_superseded/`).
   **Requirements:** STAB-15-A, STAB-15-CSP, STAB-15-CORS, STAB-15-B, STAB-15-API-BASE, STAB-15-EXT, STAB-15-LIFECYCLE, STAB-15-CLEANUP, STAB-15-UAT
   **Plans:**
+
     - [x] 15-01-PLAN.md — Server CORS middleware + extend `renderWebviewHtml` with `loopbackOrigin` + `apiBaseUrl` options
     - [x] 15-02-PLAN.md — UI `apiUrl(path)` helper + route all transport callsites through it
     - [x] 15-03-PLAN.md — Singleton `extensionServer.ts` lifecycle + rewrite `extension.ts` to use `portMapping`, drop bridge wiring, seed initial log via `sessions.open`
@@ -81,6 +82,7 @@ v1.2 is closed for bookkeeping purposes. Phase 15 plans 01–04 remain the imple
 **Plans:** 1 plan
 
 Plans:
+
 - [x] 16-01-PLAN.md — Add `extractWireMeta` parser helper and wire it into the server ingest loop (with tests)
 
 ### Phase 17: Add drag-and-drop support for opening JSONL files
@@ -91,6 +93,7 @@ Plans:
 **Plans:** 3/3 plans complete
 
 Plans:
+
 - **Wave 1**
 - [x] 17-01-PLAN.md — Pure `parseDroppedUri` helper (text/uri-list → path | typed error) with unit tests (D-02, D-04)
 - [x] 17-02-PLAN.md — Presentational `DropOverlay` + `MultiFileToast` components per UI-SPEC (locked copy, tokens only)
@@ -98,6 +101,7 @@ Plans:
 - [x] 17-03-PLAN.md — `useDropZone` hook, AppShell mount, shared ERROR_COPY extraction, Playwright E2E (D-01, D-03, D-05)
 
 Cross-cutting constraints:
+
 - All visible strings come from the locked UI-SPEC copy table — no ad-hoc copy in components or hook.
 - All visual values use existing `var(--*)` tokens; `no-hex-in-components.test.ts` must continue to pass.
 - Error responses never echo the dropped path or `file://` URI — only the basename appears in the toast (Phase 11 trust posture).
@@ -147,18 +151,23 @@ Done inline 2026-05-13: added `orderedPair()` helper and `DetailJsonSection` com
 
 Plans:
 **Wave 1**
+
 - [x] 22-01-PLAN.md — Expose correlator changed-index locality for targeted metadata patching
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 22-02-PLAN.md — Replace AppState historical patch rescans with changed-index projection
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 22-03-PLAN.md — Carry truthful baseline progress and SSE backlog frames end to end
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 22-04-PLAN.md — Publish progressive rows and batched live updates through the browser store/client
 
 **Wave 5** *(blocked on Wave 4 completion)*
+
 - [x] 22-05-PLAN.md — Render trustworthy loading status and compact transport backlog cues
 - [x] 22-06-PLAN.md — Preserve persistence hydration timing and stable viewport/tail-follow behavior
 
@@ -171,12 +180,15 @@ Plans:
 
 Plans:
 **Wave 1**
+
 - [x] 23-01-PLAN.md — Prove the shared Hacker displacement filter surface and pointer/layout-safe placement.
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 23-02-PLAN.md — Overhaul Hacker CRT tokens, tube/glass/fringe overlays, ambient jolts, and static reduced-motion fallback.
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 23-03-PLAN.md — Capture fixture screenshots, interaction/responsiveness smoke, extension webview parity, and final visual review checkpoint.
 
 ### Phase 24: Improve search navigation and timeline scroll ergonomics
@@ -199,19 +211,24 @@ Plans:
 
 Plans:
 **Wave 1**
+
 - [x] 25-01-PLAN.md — Define bounded row-text filtering and uniform hidden-value facet semantics with selector/timeline regressions.
 
 **Wave 2** *(blocked on Wave 1 completion; plans may execute in parallel)*
+
 - [x] 25-02-PLAN.md — Version and migrate per-log filter preferences without reversing old checkbox meaning.
 - [x] 25-03-PLAN.md — Add Filter rows, consistent checked-visible menus, Select all/Uncheck all, and accurate chips.
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 25-04-PLAN.md — Prove the workflow with safe-fixture desktop/narrow browser evidence and documented semantics.
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 25-05-PLAN.md — Review the fixture-only desktop/narrow compact filter surface evidence before completion.
 
 **Gap-closure plans** *(executed after 25-05 to resolve verification gaps)*
+
 - [x] 25-06-PLAN.md — SearchPopover/SearchTrigger UI refactor: replace side-by-side Search/Filter with RowFilterInput (primary flex) + SearchTrigger button (compact 28px) + SearchPopover (raised popover). User rejection of visual density addressed with new layout.
 - [x] 25-07-PLAN.md — Preserve v1 legacy hidden Method values during schema migration: fix migrateV1Filters() to read and preserve all categorical arrays (not just reset to defaults). Add regression test for custom hidden Method preservation.
 
@@ -223,6 +240,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
+
 - [ ] 26-01-PLAN.md — cmd+f/ctrl+f shortcut + click-to-focus in FilterBar, icon-only SearchTrigger, matching test updates.
 
 ### Phase 27: Fix broken details view layout regression
@@ -233,6 +251,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
+
 - [ ] 27-01-PLAN.md — reset `.ahp-json-children` in global.css + regression guard test.
 
 ### Phase 28: Open raw response in a new browser tab as plain text or JSON
@@ -243,6 +262,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
+
 - [ ] 28-01-PLAN.md — `openInNewTab` Blob-URL helper + two "Open in new tab" menu items in CopyMenu (JSON / text), with unit tests.
 
 ### Phase 29: Escape closes the find widget without clearing the filter box
@@ -253,6 +273,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
+
 - [x] 29-01-PLAN.md — Add shared `searchPopoverOpen` store flag; Escape bails when the find widget is open and never calls `clearFilters()`; `RowFilterInput` clears the box on local Escape; unit + e2e coverage.
 
 ### Phase 30: Please make sure that we will discover the latest logs. Maybe we have a per-root limit instead of a total limit or something like that
@@ -261,8 +282,8 @@ Plans:
 **Requirements**: DISC-30-01 (independent streaming per-root bounded scans and launch caps applied after recency is known for examined entries), DISC-30-02 (picker uses input-bounded `max(200, populatedRootCount)`, retaining one ranked candidate per populated root before quota/fill), DISC-30-03 (CLI fairly gathers every root, globally ranks the bounded non-empty set, and probes until the globally newest valid log is established), DISC-30-04 (preserve filename/shape checks, confidence ordering, opaque IDs, local-only privacy, and host-adapter boundaries)
 **Depends on:** Phase 29
 **Plans:** 1 plan
-
 Plans:
+
 - [ ] 30-01-PLAN.md — Add shared bounded per-root traversal, fair picker retention, fair CLI newest-valid selection, and hermetic starvation/recency regressions.
 
 ---

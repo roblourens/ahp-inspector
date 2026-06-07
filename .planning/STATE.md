@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
-status: ready_for_next
-last_updated: "2026-06-06T21:30:00.000Z"
-last_activity: 2026-06-06
+status: executing
+last_updated: "2026-06-07T18:55:23.932Z"
+last_activity: 2026-06-07 -- Phase 30 planning complete
 progress:
-  total_phases: 14
-  completed_phases: 9
-  total_plans: 27
-  completed_plans: 27
-  percent: 64
+  total_phases: 10
+  completed_phases: 5
+  total_plans: 18
+  completed_plans: 18
+  percent: 50
 ---
 
 # State: AHP Inspector
@@ -24,8 +24,8 @@ progress:
 
 Phase: 29 (Escape closes the find widget without clearing the filter box) — EXECUTED
 Plan: 1 of 1 (29-01)
-Status: Phase executed (5/5 must-haves); 448 UI tests + 2 e2e tests pass. Work on branch `phase-29`, pending squash-merge to main.
-Last activity: 2026-06-06
+Status: Ready to execute
+Last activity: 2026-06-07 -- Phase 30 planning complete
 
 ## Performance Metrics
 
@@ -172,6 +172,7 @@ Last activity: 2026-06-06
 - Phase 27 added: Fix broken details view layout regression
 - Phase 28 added: Open raw response in a new browser tab as plain text or JSON
 - Phase 29 added: Escape closes the find widget without clearing any filter (filter box or facets)
+- Phase 30 added: Please make sure that we will discover the latest logs. Maybe we have a per-root limit instead of a total limit or something like that
 - 2026-05-16: Phase 15's stale manual UAT checkpoint was explicitly dispositioned during v1.2 closeout without claiming a retroactive UAT run.
 - 2026-05-16: v1.2 bookkeeping reconciled after Phase 22 completion; milestone state is complete and ready for archival when desired.
 
