@@ -1,6 +1,6 @@
 {
   "name": "ahp-inspector",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "type": "module",
   "description": "Local-first viewer for VS Code Agent Host Protocol (AHP) JSONL logs.",
   "keywords": [
