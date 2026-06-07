@@ -2,14 +2,13 @@
 // standard VS Code log roots. Used by `npx ahp-inspector` (no path arg) per the
 // locked Phase 13 selection rule (CONTEXT D-3).
 //
-// The walker mirrors discoverVsCodeLogs's bounded depth/time/stat caps so the
-// CLI never stalls more than ~2s on a clean profile. Candidates are sorted
+// Candidates gathered within each root's independent scan bounds are sorted
 // newest-mtime-first, and the first one whose first non-empty line normalizes
 // to a non-parse-error AhpEvent wins.
 
-import { open as fsOpen, readdir, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { open as fsOpen } from "node:fs/promises";
 import { normalize, parseLine } from "@ahp-inspector/parser";
+import { scanConfiguredRoots } from "./bounded-log-discovery.js";
 import {
   defaultRoots,
   FILENAME_RE_AHP_JSONL,
@@ -21,8 +20,9 @@ export type { Root } from "./discovery.js";
 
 const DEFAULT_TIME_BUDGET_MS = 1500;
 const DEFAULT_MAX_STATS = 5000;
-const MAX_DEPTH_BELOW_ROOT = 5;
-const MAX_PROBE_CANDIDATES = 10;
+const DEFAULT_MAX_IMMEDIATE_ENTRIES = 5000;
+const DEFAULT_TOP_LAUNCH_DIRS = 10;
+const MAX_DEPTH_BELOW_LAUNCH = 4;
 const PROBE_READ_BYTES = 64 * 1024;
 
 export interface FindLatestAhpLogOptions {
@@ -30,78 +30,35 @@ export interface FindLatestAhpLogOptions {
   rootsOverride?: readonly Root[];
 }
 
-interface PathCandidate {
-  absPath: string;
-  mtimeMs: number;
-  sizeBytes: number;
-}
-
 /**
  * Returns the absolute path of the newest non-empty AHP-shape log, or null if
- * none qualify. Bounded by time, stat count, and a max-probe cap so it cannot
- * block CLI startup for more than ~2s on a populated profile.
+ * none qualify. Gathering is independently bounded per configured root; shape
+ * probing consumes that complete bounded set in global newest-first order.
  */
 export async function findLatestAhpLog(opts: FindLatestAhpLogOptions = {}): Promise<string | null> {
   const roots = opts.rootsOverride ?? defaultRoots();
-  const startedAt = Date.now();
-  let stats = 0;
+  const scan = await scanConfiguredRoots({
+    roots,
+    matchesFilename: matchesAhpFilename,
+    timeBudgetMs: DEFAULT_TIME_BUDGET_MS,
+    maxStats: DEFAULT_MAX_STATS,
+    maxImmediateEntries: DEFAULT_MAX_IMMEDIATE_ENTRIES,
+    topLaunchDirs: DEFAULT_TOP_LAUNCH_DIRS,
+    maxDepthBelowLaunch: MAX_DEPTH_BELOW_LAUNCH,
+  });
+  const ranked = scan.roots
+    .flatMap((root) => root.files)
+    .filter((candidate) => candidate.sizeBytes > 0)
+    .sort((left, right) => right.mtimeMs - left.mtimeMs);
 
-  const overBudget = (): boolean =>
-    stats >= DEFAULT_MAX_STATS || Date.now() - startedAt >= DEFAULT_TIME_BUDGET_MS;
-
-  const collected: PathCandidate[] = [];
-
-  for (const root of roots) {
-    if (overBudget()) break;
-    await walk(root.dir, MAX_DEPTH_BELOW_ROOT, collected, () => {
-      stats++;
-      return overBudget();
-    });
-  }
-
-  const ranked = collected
-    .filter((c) => c.sizeBytes > 0)
-    .sort((a, b) => b.mtimeMs - a.mtimeMs)
-    .slice(0, MAX_PROBE_CANDIDATES);
-
-  for (const c of ranked) {
-    if (await probeAhpShape(c.absPath)) return c.absPath;
+  for (const candidate of ranked) {
+    if (await probeAhpShape(candidate.absPath)) return candidate.absPath;
   }
   return null;
 }
 
-async function walk(
-  absDir: string,
-  depthLeft: number,
-  sink: PathCandidate[],
-  tickAndCheck: () => boolean,
-): Promise<void> {
-  if (depthLeft < 0) return;
-  let names: string[];
-  try {
-    names = await readdir(absDir);
-  } catch {
-    return;
-  }
-  for (const name of names) {
-    if (tickAndCheck()) return;
-    const abs = join(absDir, name);
-    let st: Awaited<ReturnType<typeof stat>>;
-    try {
-      st = await stat(abs);
-    } catch {
-      continue;
-    }
-    if (st.isDirectory()) {
-      await walk(abs, depthLeft - 1, sink, tickAndCheck);
-      continue;
-    }
-    if (!st.isFile()) continue;
-    if (!(FILENAME_RE_AHP_JSONL.test(name) || FILENAME_RE_AHP_NAMED_JSONL.test(name))) {
-      continue;
-    }
-    sink.push({ absPath: abs, mtimeMs: st.mtimeMs, sizeBytes: st.size });
-  }
+function matchesAhpFilename(name: string): boolean {
+  return FILENAME_RE_AHP_JSONL.test(name) || FILENAME_RE_AHP_NAMED_JSONL.test(name);
 }
 
 async function probeAhpShape(absPath: string): Promise<boolean> {

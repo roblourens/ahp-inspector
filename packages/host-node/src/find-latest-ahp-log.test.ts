@@ -29,6 +29,17 @@ async function writeWithMtime(absPath: string, content: string, mtimeSec: number
   await utimes(absPath, mtimeSec, mtimeSec);
 }
 
+async function writeNoiseFiles(root: string, count: number): Promise<void> {
+  for (let start = 0; start < count; start += 250) {
+    const end = Math.min(start + 250, count);
+    await Promise.all(
+      Array.from({ length: end - start }, (_, offset) =>
+        writeFile(join(root, `noise-${start + offset}.txt`), "noise"),
+      ),
+    );
+  }
+}
+
 describe("findLatestAhpLog", () => {
   it("returns the newest valid AHP-shape candidate (newest-mtime selection)", async () => {
     const oldest = join(logsRoot, "agenthost.old.jsonl");
@@ -66,6 +77,65 @@ describe("findLatestAhpLog", () => {
       rootsOverride: [{ origin: "vscode", dir: logsRoot }],
     });
     expect(result).toBe(valid);
+  });
+
+  it("probes past more than ten newer invalid matching files", async () => {
+    const valid = join(logsRoot, "agenthost.valid.jsonl");
+    await writeWithMtime(valid, VALID_AHP_LINE, 1_700_000_000);
+    for (let index = 0; index < 12; index++) {
+      await writeWithMtime(join(logsRoot, `agenthost.invalid-${index}.jsonl`), NON_AHP_LINE, 1_800_000_000 + index);
+    }
+
+    const result = await findLatestAhpLog({
+      rootsOverride: [{ origin: "vscode", dir: logsRoot }],
+    });
+
+    expect(result).toBe(valid);
+  });
+
+  it("returns the globally newest valid log across configured roots", async () => {
+    const firstRoot = join(tmpRoot, "first-root");
+    const secondRoot = join(tmpRoot, "second-root");
+    const older = join(firstRoot, "agenthost.older.jsonl");
+    const newer = join(secondRoot, "agenthost.newer.jsonl");
+    await writeWithMtime(older, VALID_AHP_LINE, 1_700_000_000);
+    await writeWithMtime(newer, VALID_AHP_LINE, 1_800_000_000);
+
+    const result = await findLatestAhpLog({
+      rootsOverride: [
+        { origin: "vscode", dir: firstRoot },
+        { origin: "vscode-oss-dev", dir: secondRoot },
+      ],
+    });
+
+    expect(result).toBe(newer);
+  });
+
+  it("preserves discovery of logs five directories below a configured root", async () => {
+    const nested = join(logsRoot, "a", "b", "c", "d", "e", "agenthost.nested.jsonl");
+    await writeWithMtime(nested, VALID_AHP_LINE, 1_800_000_000);
+
+    const result = await findLatestAhpLog({ rootsOverride: [{ origin: "vscode", dir: logsRoot }] });
+
+    expect(result).toBe(nested);
+  });
+
+  it("attempts a later root after a noisy first root exhausts its allowance", async () => {
+    const noisyRoot = join(tmpRoot, "noisy-root");
+    const laterRoot = join(tmpRoot, "later-root");
+    await mkdir(noisyRoot, { recursive: true });
+    const laterValid = join(laterRoot, "agenthost.latest.jsonl");
+    await writeNoiseFiles(noisyRoot, 5_001);
+    await writeWithMtime(laterValid, VALID_AHP_LINE, 1_900_000_000);
+
+    const result = await findLatestAhpLog({
+      rootsOverride: [
+        { origin: "vscode", dir: noisyRoot },
+        { origin: "vscode-oss-dev", dir: laterRoot },
+      ],
+    });
+
+    expect(result).toBe(laterValid);
   });
 
   it("returns null when no candidate matches", async () => {

@@ -281,10 +281,10 @@ Plans:
 **Goal:** Picker discovery and CLI auto-open find the freshest qualifying AHP logs fairly across every configured VS Code log root, with independent per-root bounds, launch recency established before capping, and existing privacy/shape/ranking contracts preserved.
 **Requirements**: DISC-30-01 (independent streaming per-root bounded scans and launch caps applied after recency is known for examined entries), DISC-30-02 (picker uses input-bounded `max(200, populatedRootCount)`, retaining one ranked candidate per populated root before quota/fill), DISC-30-03 (CLI fairly gathers every root, globally ranks the bounded non-empty set, and probes until the globally newest valid log is established), DISC-30-04 (preserve filename/shape checks, confidence ordering, opaque IDs, local-only privacy, and host-adapter boundaries)
 **Depends on:** Phase 29
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 
-- [ ] 30-01-PLAN.md — Add shared bounded per-root traversal, fair picker retention, fair CLI newest-valid selection, and hermetic starvation/recency regressions.
+- [x] 30-01-PLAN.md — Add shared bounded per-root traversal, fair picker retention, fair CLI newest-valid selection, and hermetic starvation/recency regressions.
 
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
