@@ -255,6 +255,16 @@ Plans:
 Plans:
 - [x] 29-01-PLAN.md — Add shared `searchPopoverOpen` store flag; Escape bails when the find widget is open and never calls `clearFilters()`; `RowFilterInput` clears the box on local Escape; unit + e2e coverage.
 
+### Phase 30: Please make sure that we will discover the latest logs. Maybe we have a per-root limit instead of a total limit or something like that
+
+**Goal:** Picker discovery and CLI auto-open find the freshest qualifying AHP logs fairly across every configured VS Code log root, with independent per-root bounds, launch recency established before capping, and existing privacy/shape/ranking contracts preserved.
+**Requirements**: DISC-30-01 (independent streaming per-root bounded scans and launch caps applied after recency is known for examined entries), DISC-30-02 (picker uses input-bounded `max(200, populatedRootCount)`, retaining one ranked candidate per populated root before quota/fill), DISC-30-03 (CLI fairly gathers every root, globally ranks the bounded non-empty set, and probes until the globally newest valid log is established), DISC-30-04 (preserve filename/shape checks, confidence ordering, opaque IDs, local-only privacy, and host-adapter boundaries)
+**Depends on:** Phase 29
+**Plans:** 1 plan
+
+Plans:
+- [ ] 30-01-PLAN.md — Add shared bounded per-root traversal, fair picker retention, fair CLI newest-valid selection, and hermetic starvation/recency regressions.
+
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
 *v1.2 opened 2026-05-10; last updated 2026-06-06 (Phase 29 added: Escape closes find widget without clearing any filter)*
