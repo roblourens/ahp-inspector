@@ -82,13 +82,13 @@ describe("FilterBar", () => {
     const trigger = screen.getByRole("button", { name: "Open search" });
     expect(trigger).toBeTruthy();
     expect(trigger.getAttribute("title")).toBe("Press / to open search");
-    
+
     // SearchPopover should not be visible initially
     expect(screen.queryByTestId("search-popover")).toBeFalsy();
-    
+
     // Click trigger to open popover
     fireEvent.click(trigger);
-    
+
     // SearchPopover and input should now be visible
     expect(screen.getByTestId("search-popover")).toBeTruthy();
     const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
@@ -203,7 +203,7 @@ describe("FilterBar", () => {
     // Open the SearchPopover to see search status and navigation controls
     const trigger = screen.getByRole("button", { name: "Open search" });
     fireEvent.click(trigger);
-    
+
     expect(screen.getByTestId("search-status").textContent).toContain("2 of 2 matches");
     expect(screen.getByRole("button", { name: "Previous search match" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Next search match" })).toBeTruthy();
@@ -358,7 +358,7 @@ describe("FilterBar", () => {
     // Open the SearchPopover first
     const trigger = screen.getByRole("button", { name: "Open search" });
     fireEvent.click(trigger);
-    
+
     const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
     const events: ("previous" | "next")[] = [];
     const onNav = (e: Event): void => {
@@ -380,7 +380,7 @@ describe("FilterBar", () => {
     // Open the SearchPopover first
     const trigger = screen.getByRole("button", { name: "Open search" });
     fireEvent.click(trigger);
-    
+
     const input = screen.getByPlaceholderText("all JSON payloads, methods, ids, sessions...");
     const events: string[] = [];
     const onNav = (e: Event): void => {

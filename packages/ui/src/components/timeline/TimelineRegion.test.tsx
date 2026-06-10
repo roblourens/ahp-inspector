@@ -354,4 +354,3 @@ describe("TimelineRegion — Escape never clears a filter (Phase 29)", () => {
     expect(useAppStore.getState().searchStatus).toBe("idle");
   });
 });
-
