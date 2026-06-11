@@ -114,6 +114,13 @@ describe("formatSessionShort()", () => {
     expect(formatSessionShort("aaaaaaaa-1111-2222-3333-444444444444")).toBe("aaaaaaaa");
     expect(formatSessionShort("ahp://session/0123456789abcdef")).toBe("89abcdef");
   });
+
+  it("decodes resource-watch channels to the watched file", () => {
+    const encoded = Buffer.from(
+      JSON.stringify({ root: "file:///Users/roblou/code/vscode/.vscode/settings.json" }),
+    ).toString("base64");
+    expect(formatSessionShort(`ahp-resource-watch://r/${encoded}`)).toBe("watch:settings.json");
+  });
 });
 
 describe("payloadPreviewOf()", () => {

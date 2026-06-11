@@ -111,6 +111,9 @@ export function formatTs(ms: number): string {
 }
 
 export function formatSessionShort(sessionId: string): string {
+  const watched = formatResourceWatchChannel(sessionId);
+  if (watched) return watched;
+
   const parts = sessionId.split(/[/:]+/).filter(Boolean);
   let label = parts.at(-1) ?? sessionId;
   label = label.replace(/^session[-_:]?/i, "");
@@ -121,6 +124,31 @@ export function formatSessionShort(sessionId: string): string {
   if (uuidFirstSegment) return uuidFirstSegment;
   if (label.length <= 18) return label;
   return `${label.slice(0, 17)}…`;
+}
+
+/**
+ * Resource-watch channels look like `ahp-resource-watch://r/<base64>` where the
+ * base64 payload is JSON such as `{"root":"file:///…/settings.json"}`. Decode
+ * it so the timeline shows the watched resource (e.g. `watch:settings.json`)
+ * instead of an opaque base64 blob.
+ */
+function formatResourceWatchChannel(sessionId: string): string | null {
+  const match = sessionId.match(/^ahp-resource-watch:\/\/[^/]*\/(.+)$/u);
+  if (!match) return null;
+  const encoded = match[1];
+  if (!encoded) return null;
+  try {
+    const normalized = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    const json = atob(normalized);
+    const parsed = JSON.parse(json) as Record<string, unknown>;
+    const root = parsed.root ?? parsed.uri ?? parsed.resource;
+    if (typeof root !== "string") return null;
+    const tail = root.split(/[/\\]/u).filter(Boolean).at(-1) ?? root;
+    const name = decodeURIComponent(tail);
+    return `watch:${name.length <= 24 ? name : `${name.slice(0, 23)}…`}`;
+  } catch {
+    return null;
+  }
 }
 
 export function payloadPreviewOf(raw: unknown): string {

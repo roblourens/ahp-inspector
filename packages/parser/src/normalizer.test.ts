@@ -229,6 +229,18 @@ describe("normalize (EVENT-02 classification)", () => {
     expect(ev.sessionId).toBe("agenthost:/root");
   });
 
+  it("extracts channel from params.channel (unsubscribe notification)", () => {
+    const ev = normalize(
+      {
+        jsonrpc: "2.0",
+        method: "unsubscribe",
+        params: { channel: "ahp-resource-watch://r/abc123" },
+      },
+      meta(0, "c2s"),
+    );
+    expect(ev.sessionId).toBe("ahp-resource-watch://r/abc123");
+  });
+
   it.each([
     ["params.action.turnId", { action: { turnId: "turn-action-1" } }, "turn-action-1"],
     ["params.action.turn.id", { action: { turn: { id: "turn-action-2" } } }, "turn-action-2"],

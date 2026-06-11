@@ -49,6 +49,9 @@ function sessionFromObject(p: Record<string, unknown>): string | null {
   }
   const sessionId = asString(p.sessionId);
   if (sessionId) return sessionId;
+  // Some notifications (e.g. `unsubscribe`) name the channel directly.
+  const channel = asString(p.channel);
+  if (channel) return channel;
   // Terminal actions (`terminal/*`) are scoped to a terminal resource rather
   // than a session; surface it as the channel.
   const terminal = asString(p.terminal);
