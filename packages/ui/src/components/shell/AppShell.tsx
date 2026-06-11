@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { usePersistEffect } from "../../persistence/persist-effect.js";
 import { isFiltersEmpty } from "../../state/filters.js";
@@ -282,8 +283,10 @@ export function AppShell(): JSX.Element {
                   className="detail-drawer-close"
                   ref={drawerCloseRef}
                   onClick={closeDetailDrawer}
+                  aria-label="Close details"
+                  title="Close details"
                 >
-                  Close details
+                  <X size={18} aria-hidden="true" />
                 </button>
                 <DetailPanel fill={true} />
               </div>
