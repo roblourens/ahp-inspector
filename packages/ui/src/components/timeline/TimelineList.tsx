@@ -6,7 +6,7 @@ import { ArrowDown } from "lucide-react";
 import type { CSSProperties, JSX } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { VirtualItem } from "../../state/selectors.js";
-import { EventRow, TIMELINE_GRID_COLUMNS } from "./EventRow.js";
+import { buildTimelineGridColumns, EventRow, ID_COLUMN_DEFAULT_WIDTH } from "./EventRow.js";
 import { GroupHeaderRow } from "./GroupHeaderRow.js";
 import { ParseErrorRow } from "./ParseErrorRow.js";
 
@@ -15,6 +15,24 @@ const ITEM_HEIGHT = {
   "parse-error": 28,
   header: 24,
 } as const;
+
+// ID cells render in the monospace font at the row text size (13px); JetBrains
+// Mono advances ~7.8px per glyph. Pad for the 8px cell gutters and clamp so the
+// column never collapses below the "ID" header or grows past the 12-char cap.
+const ID_CHAR_WIDTH_PX = 7.8;
+const ID_COLUMN_PADDING_PX = 14;
+const ID_COLUMN_MIN_WIDTH = 36;
+
+/** Width (px) needed to fit the widest ID present in the rows, header included. */
+function measureIdColumnWidth(rows: readonly EventRowData[]): number {
+  let maxChars = 2; // room for the "ID" header / "\u2014" placeholder
+  for (const row of rows) {
+    const len = row.keyId?.length ?? 0;
+    if (len > maxChars) maxChars = len;
+  }
+  const fitted = Math.ceil(maxChars * ID_CHAR_WIDTH_PX) + ID_COLUMN_PADDING_PX;
+  return Math.min(ID_COLUMN_DEFAULT_WIDTH, Math.max(ID_COLUMN_MIN_WIDTH, fitted));
+}
 
 const COLUMN_LABELS = [
   { key: "rail", label: "", ariaLabel: "row state" },
@@ -59,6 +77,7 @@ export function TimelineList({
 }: TimelineListProps): JSX.Element {
   const parentRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const gridColumns = useMemo(() => buildTimelineGridColumns(measureIdColumnWidth(rows)), [rows]);
   const visibleRowIdxs = useMemo(() => {
     const visible = new Set<number>();
     for (const item of items) {
@@ -224,7 +243,7 @@ export function TimelineList({
             data-testid="timeline-column-header"
             style={{
               display: "grid",
-              gridTemplateColumns: TIMELINE_GRID_COLUMNS,
+              gridTemplateColumns: gridColumns,
               minWidth: "max-content",
               alignItems: "center",
               height: 24,
@@ -322,6 +341,7 @@ export function TimelineList({
                   isSearchMatch={searchMatches?.has(row.idx) ?? false}
                   pairHighlight={pairHighlight}
                   pairHidden={pairHidden}
+                  gridColumns={gridColumns}
                   style={style}
                 />
               );

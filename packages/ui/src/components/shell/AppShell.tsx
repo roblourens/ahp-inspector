@@ -186,14 +186,20 @@ export function AppShell(): JSX.Element {
   // Ref to SearchInput's <input> element for "/" keyboard shortcut
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const drawerCloseRef = useRef<HTMLButtonElement | null>(null);
+  const drawerWasOpenRef = useRef(false);
 
   // Count group headers in groupedItems for StatusBar
   const groupCount = groupedItems.filter((i) => i.kind === "header").length;
 
   useEffect(() => {
-    if (!isDetailDesktop && selectedIdx !== null) {
+    const drawerOpen = !isDetailDesktop && selectedIdx !== null;
+    // Move focus to the close control only when the drawer first opens; the
+    // drawer is non-modal, so selecting other rows while it stays open must
+    // not keep stealing focus away from timeline navigation.
+    if (drawerOpen && !drawerWasOpenRef.current) {
       drawerCloseRef.current?.focus();
     }
+    drawerWasOpenRef.current = drawerOpen;
   }, [isDetailDesktop, selectedIdx]);
 
   useEffect(() => {
@@ -269,6 +275,7 @@ export function AppShell(): JSX.Element {
                 role="dialog"
                 aria-label="Event detail"
                 data-testid="detail-drawer"
+                style={{ width: `${detailWidth}px` }}
               >
                 <button
                   type="button"
@@ -278,7 +285,7 @@ export function AppShell(): JSX.Element {
                 >
                   Close details
                 </button>
-                <DetailPanel showResizeHandle={false} />
+                <DetailPanel fill={true} />
               </div>
             </div>
           )}

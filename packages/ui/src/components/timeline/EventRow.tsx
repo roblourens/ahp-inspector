@@ -19,10 +19,23 @@ export interface EventRowProps {
   isSearchMatch?: boolean;
   pairHighlight?: "request" | "response" | null;
   pairHidden?: "request" | "response" | null;
+  /** Grid template for this row; must match the header and all sibling rows. */
+  gridColumns?: string;
 }
 
-export const TIMELINE_GRID_COLUMNS =
-  "4px 96px 96px 16px 44px 220px 132px 72px 72px minmax(240px, 1fr)";
+/** Default ID column width (px) used before any data-driven sizing applies. */
+export const ID_COLUMN_DEFAULT_WIDTH = 96;
+
+/**
+ * Builds the timeline grid template. The ID column is sized to fit the widest
+ * ID present in the data (computed by the caller) so short or absent IDs don't
+ * leave a large gap before the Time column.
+ */
+export function buildTimelineGridColumns(idColumnWidth: number = ID_COLUMN_DEFAULT_WIDTH): string {
+  return `4px ${idColumnWidth}px 96px 16px 44px 220px 132px 72px 72px minmax(240px, 1fr)`;
+}
+
+export const TIMELINE_GRID_COLUMNS = buildTimelineGridColumns();
 
 const cellStyle: CSSProperties = {
   minWidth: 0,
@@ -128,6 +141,7 @@ export const EventRow = memo(function EventRow({
   isSearchMatch = false,
   pairHighlight = null,
   pairHidden = null,
+  gridColumns = TIMELINE_GRID_COLUMNS,
 }: EventRowProps): JSX.Element {
   const label = primaryLabel(row);
   const labelTitle = primaryLabelTitle(row);
@@ -163,7 +177,7 @@ export const EventRow = memo(function EventRow({
       data-pair-hidden={pairHidden ?? undefined}
       style={{
         display: "grid",
-        gridTemplateColumns: TIMELINE_GRID_COLUMNS,
+        gridTemplateColumns: gridColumns,
         alignItems: "center",
         height: "var(--row-height)",
         boxSizing: "border-box",

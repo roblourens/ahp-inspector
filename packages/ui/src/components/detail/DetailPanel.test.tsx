@@ -107,6 +107,15 @@ describe("DetailPanel — empty state", () => {
     render(<DetailPanel />);
     expect(screen.getByRole("heading", { name: /no event selected/i })).toBeInTheDocument();
   });
+
+  it("fills its container when rendered in the responsive drawer", () => {
+    useAppStore.setState({ selectedIdx: null });
+    render(<DetailPanel fill={true} />);
+
+    const panel = screen.getByTestId("detail-panel");
+    expect(panel.style.flex).toBe("1 1 auto");
+    expect(panel.style.width).toBe("100%");
+  });
 });
 
 describe("DetailPanel — loading state", () => {

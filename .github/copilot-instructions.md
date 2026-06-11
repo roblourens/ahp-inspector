@@ -45,12 +45,11 @@ Current focus: Phase 4 — Live Tail, Discovery, and Persistence. The next GSD s
 - `.planning/` bookkeeping that happens between phases (backlog grooming, STATE updates) is a quick fix and may go straight to `main`.
 - Do not force-push `main` without explicit per-operation approval from Rob.
 
-# Verification Screenshots
+# Verification & Real Data
 
-- Any screenshot captured for phase verification, smoke tests, UAT, or PR evidence MUST be taken against the repo's fixture JSONL files (e.g. `test/fixtures/*.jsonl`) — NEVER against a real `~/.vscode-oss-agents-dev/logs/**` capture or any other real-world session log.
-- Real session logs may contain prompts, file paths, tool calls, or other sensitive content. Fixtures are the only source allowed in committed/saved screenshots.
-- Save screenshots under `screenshots/<phase>/` so they can be reviewed and committed safely.
-- If a real-data screenshot is created by mistake, delete it before continuing and re-take using a fixture.
+- When verifying work or doing dev, you SHOULD view real AHP session logs (e.g. under `~/.vscode-oss-agents-dev/logs/**`). Exercising real captures is the best — and often only — way to confirm parsing, correlation, and rendering handle the latest real JSONL format and production traffic correctly. Fixtures can drift from the current on-disk format, so don't rely on them alone for verification.
+- Committed/saved artifacts are the one exception: any screenshot or sample that gets **committed into the repo** must come from fake fixtures (e.g. `test/fixtures/*.jsonl`), never from real session content, so sensitive prompts, paths, or tokens never land in version history. This restricts what gets committed, not what you may inspect locally.
+- Save committed screenshots under `screenshots/<phase>/`.
 
 # Engineering Constraints
 

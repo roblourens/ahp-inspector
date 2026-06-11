@@ -869,13 +869,18 @@ body {
   box-shadow: var(--shadow-panel);
 }
 
+/*
+ * Non-modal overlay: the backdrop layer never dims or intercepts pointer
+ * events, so timeline rows behind the drawer stay visible and clickable.
+ * Only the drawer itself is interactive.
+ */
 .detail-drawer-backdrop {
   position: fixed;
   inset: 0;
   z-index: 2000;
   display: flex;
   justify-content: flex-end;
-  background: var(--overlay-backdrop);
+  pointer-events: none;
 }
 
 .detail-drawer {
@@ -885,8 +890,8 @@ body {
   width: min(88vw, 720px);
   height: 100%;
   background: var(--color-surface);
-  border-left: var(--drawer-border);
   box-shadow: var(--shadow-drawer);
+  pointer-events: auto;
 }
 
 .detail-drawer > [data-testid="detail-panel"] {

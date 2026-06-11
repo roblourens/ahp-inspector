@@ -17,7 +17,7 @@
 import type { Status } from "@ahp-inspector/core";
 import type { AhpEvent, EventKind } from "@ahp-inspector/shared";
 import { Loader2 } from "lucide-react";
-import { type JSX, useCallback, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "../../state/store.js";
 import { type DetailResponse, fetchEvent } from "../../transport/http-client.js";
 import { AhpFieldStrip } from "./AhpFieldStrip.js";
@@ -75,16 +75,26 @@ function orderedPair(
 
 interface DetailPanelProps {
   showResizeHandle?: boolean;
+  /**
+   * When true, the panel fills its parent (used inside the responsive
+   * drawer, where the parent controls the width). When false, the panel
+   * sizes itself to `detailWidth` (used by the docked desktop rail).
+   */
+  fill?: boolean;
 }
 
 export function DetailPanel({
   showResizeHandle = true,
+  fill = false,
 }: DetailPanelProps = {}): JSX.Element | null {
   const selectedIdx = useAppStore((s) => s.selectedIdx);
   const logKey = useAppStore((s) => s.logKey);
   const rows = useAppStore((s) => s.rows);
   const detailWidth = useAppStore((s) => s.detailWidth);
   const setDetailWidth = useAppStore((s) => s.setDetailWidth);
+  const panelSizing: CSSProperties = fill
+    ? { flex: "1 1 auto", width: "100%" }
+    : { flex: `0 0 ${detailWidth}px`, width: `${detailWidth}px` };
 
   const [loadState, setLoadState] = useState<LoadState>({
     status: "idle",
@@ -156,8 +166,7 @@ export function DetailPanel({
         aria-label="Event detail"
         style={{
           position: "relative",
-          flex: `0 0 ${detailWidth}px`,
-          width: `${detailWidth}px`,
+          ...panelSizing,
           height: "100%",
           minHeight: 0,
           display: "flex",
@@ -221,8 +230,7 @@ export function DetailPanel({
         aria-label="Event detail"
         style={{
           position: "relative",
-          flex: `0 0 ${detailWidth}px`,
-          width: `${detailWidth}px`,
+          ...panelSizing,
           height: "100%",
           minHeight: 0,
           display: "flex",
@@ -268,8 +276,7 @@ export function DetailPanel({
         aria-label="Event detail"
         style={{
           position: "relative",
-          flex: `0 0 ${detailWidth}px`,
-          width: `${detailWidth}px`,
+          ...panelSizing,
           height: "100%",
           minHeight: 0,
           display: "flex",
@@ -352,8 +359,7 @@ export function DetailPanel({
       aria-label="Event detail"
       style={{
         position: "relative",
-        flex: `0 0 ${detailWidth}px`,
-        width: `${detailWidth}px`,
+        ...panelSizing,
         height: "100%",
         minHeight: 0,
         display: "flex",

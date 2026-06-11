@@ -1,1 +1,3 @@
-export const __APP_VERSION__ = "0.1.0";
+import { version } from "../../cli/package.json";
+
+export const __APP_VERSION__ = version;
