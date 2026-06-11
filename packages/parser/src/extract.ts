@@ -56,6 +56,14 @@ function sessionFromObject(p: Record<string, unknown>): string | null {
   // Some notifications carry the channel as a generic `resource`.
   const resource = asString(p.resource);
   if (resource) return resource;
+  // Resource descriptors (e.g. `subscribe`/`unsubscribe` targets) look like
+  // `{ $mid, scheme, path, external? }`. Prefer the fully-qualified `external`
+  // URI, falling back to `scheme:path`.
+  const external = asString(p.external);
+  if (external) return external;
+  const scheme = asString(p.scheme);
+  const path = asString(p.path);
+  if (scheme && path) return `${scheme}:${path}`;
   // `notify/sessionAdded` nests the session resource under `summary.resource`.
   const summary = p.summary;
   if (typeof summary === "object" && summary !== null) {

@@ -197,6 +197,38 @@ describe("normalize (EVENT-02 classification)", () => {
     expect(ev.sessionId).toBe("copilotcli:/dispatch");
   });
 
+  it("extracts channel from unsubscribe resource descriptor (external)", () => {
+    const ev = normalize(
+      {
+        jsonrpc: "2.0",
+        method: "unsubscribe",
+        params: [
+          {
+            $mid: 1,
+            scheme: "copilotcli",
+            path: "/untitled-abc",
+            external: "copilotcli:/untitled-abc",
+          },
+          "client-id",
+        ],
+      },
+      meta(0, "c2s"),
+    );
+    expect(ev.sessionId).toBe("copilotcli:/untitled-abc");
+  });
+
+  it("extracts channel from subscribe resource descriptor (scheme:path)", () => {
+    const ev = normalize(
+      {
+        jsonrpc: "2.0",
+        method: "subscribe",
+        params: [{ $mid: 1, scheme: "agenthost", path: "/root" }, "client-id"],
+      },
+      meta(0, "c2s"),
+    );
+    expect(ev.sessionId).toBe("agenthost:/root");
+  });
+
   it.each([
     ["params.action.turnId", { action: { turnId: "turn-action-1" } }, "turn-action-1"],
     ["params.action.turn.id", { action: { turn: { id: "turn-action-2" } } }, "turn-action-2"],
