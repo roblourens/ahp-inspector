@@ -23,6 +23,15 @@ function objectChild(
 }
 
 function candidateObjects(p: Record<string, unknown>): Record<string, unknown>[] {
+  // `dispatchAction` batches actions in an array payload; each element is an
+  // action object that carries its own channel (e.g. `{ session, type }`).
+  if (Array.isArray(p)) {
+    const items: Record<string, unknown>[] = [];
+    for (const item of p) {
+      if (typeof item === "object" && item !== null) items.push(item as Record<string, unknown>);
+    }
+    return items;
+  }
   const out = [p];
   const action = objectChild(p, "action");
   if (action) out.push(action);
@@ -38,7 +47,22 @@ function sessionFromObject(p: Record<string, unknown>): string | null {
     const uri = (session as Record<string, unknown>).uri;
     if (typeof uri === "string") return uri;
   }
-  return asString(p.sessionId);
+  const sessionId = asString(p.sessionId);
+  if (sessionId) return sessionId;
+  // Terminal actions (`terminal/*`) are scoped to a terminal resource rather
+  // than a session; surface it as the channel.
+  const terminal = asString(p.terminal);
+  if (terminal) return terminal;
+  // Some notifications carry the channel as a generic `resource`.
+  const resource = asString(p.resource);
+  if (resource) return resource;
+  // `notify/sessionAdded` nests the session resource under `summary.resource`.
+  const summary = p.summary;
+  if (typeof summary === "object" && summary !== null) {
+    const summaryResource = asString((summary as Record<string, unknown>).resource);
+    if (summaryResource) return summaryResource;
+  }
+  return null;
 }
 
 function turnFromObject(p: Record<string, unknown>): string | null {

@@ -170,9 +170,31 @@ describe("normalize (EVENT-02 classification)", () => {
       { notification: { sessionId: "safe-notification-session-id" } },
       "safe-notification-session-id",
     ],
+    [
+      "params.notification.summary.resource (notify/sessionAdded)",
+      { notification: { type: "notify/sessionAdded", summary: { resource: "copilotcli:/abc" } } },
+      "copilotcli:/abc",
+    ],
+    [
+      "params.action.terminal (terminal/data)",
+      { action: { type: "terminal/data", terminal: "agenthost-terminal://shell/xyz" } },
+      "agenthost-terminal://shell/xyz",
+    ],
   ])("extracts nested session from %s", (_name, params, expected) => {
     const ev = normalize({ jsonrpc: "2.0", method: "action", params }, meta(0, "s2c"));
     expect(ev.sessionId).toBe(expected);
+  });
+
+  it("extracts channel from dispatchAction array params", () => {
+    const ev = normalize(
+      {
+        jsonrpc: "2.0",
+        method: "dispatchAction",
+        params: [{ type: "session/activeClientChanged", session: "copilotcli:/dispatch" }],
+      },
+      meta(0, "c2s"),
+    );
+    expect(ev.sessionId).toBe("copilotcli:/dispatch");
   });
 
   it.each([
