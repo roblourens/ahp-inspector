@@ -31,6 +31,8 @@ created: 2026-06-11
 
 The facet menus are dense operational controls in a developer tool. They must feel predictable while a user scans and filters live traffic: option targets stay in stable alphabetical positions, the footer presents one truthful next action, and full-width controls remain visibly contained by their raised surfaces. This phase is polish over the existing visibility model, not a new filtering model or picker redesign.
 
+In an open picker, the checked option list is the primary visual anchor, the contextual footer command is the primary action, and counts plus overflow copy are secondary information.
+
 ### User-Visible Truths
 
 - Each categorical facet menu shows exactly one bulk command: `Uncheck all` only when every complete option is checked; otherwise `Select all`.
@@ -76,8 +78,7 @@ Use only the existing 4px-grid tokens; Phase 31 adds no spacing token.
 | Token | Value | Usage In Phase 31 |
 |-------|-------|-------------------|
 | `--space-1` | 4px | Option-row vertical padding, footer-command padding, popover offset |
-| `--space-2` | 8px | Checkbox/label gap, searchable header padding, footer gap and horizontal padding |
-| `--space-3` | 12px | Option-row horizontal inset and empty/overflow copy padding |
+| `--space-2` | 8px | Checkbox/label gap, searchable header padding, footer gap and horizontal padding, option-row horizontal inset, and empty/overflow copy padding |
 | `--space-4` | 16px | Reserved for surrounding layout; do not expand compact picker internals |
 | `--space-5` | 24px | Not used for new picker spacing |
 | `--space-6` | 32px | Not used for new picker spacing |
