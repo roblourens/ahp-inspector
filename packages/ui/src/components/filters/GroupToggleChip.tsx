@@ -1,11 +1,14 @@
 import { ChevronDown } from "lucide-react";
 import type { JSX } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { GroupingMode } from "../../state/store.js";
+import { popoverPosition } from "./popoverPosition.js";
 
 interface GroupToggleChipProps {
   value: GroupingMode;
+  isOpen: boolean;
   onChange(mode: GroupingMode): void;
+  onOpenChange(isOpen: boolean): void;
 }
 
 const MODES: { mode: GroupingMode; label: string }[] = [
@@ -48,9 +51,7 @@ function GroupTogglePopover({ value, onChange, onClose }: GroupTogglePopoverProp
     <div
       ref={ref}
       style={{
-        position: "absolute",
-        top: "calc(100% + 4px)",
-        right: 0,
+        ...popoverPosition("--group-popover-anchor", "end"),
         zIndex: 1100,
         background: "var(--color-surface-raised)",
         border: "1px solid var(--color-border-strong)",
@@ -76,6 +77,7 @@ function GroupTogglePopover({ value, onChange, onClose }: GroupTogglePopoverProp
             fontFamily: "var(--font-sans)",
             fontSize: "var(--text-ui-muted-size)",
             width: "100%",
+            boxSizing: "border-box",
           }}
         >
           <input
@@ -102,9 +104,12 @@ function GroupTogglePopover({ value, onChange, onClose }: GroupTogglePopoverProp
   );
 }
 
-export function GroupToggleChip({ value, onChange }: GroupToggleChipProps): JSX.Element {
-  const [isOpen, setIsOpen] = useState(false);
-
+export function GroupToggleChip({
+  value,
+  isOpen,
+  onChange,
+  onOpenChange,
+}: GroupToggleChipProps): JSX.Element {
   function handleChange(mode: GroupingMode) {
     onChange(mode);
     if (mode !== "none") {
@@ -113,12 +118,18 @@ export function GroupToggleChip({ value, onChange }: GroupToggleChipProps): JSX.
   }
 
   return (
-    <div style={{ position: "relative", flexShrink: 0 }}>
+    <div
+      style={{
+        position: "relative",
+        flexShrink: 0,
+        ...(isOpen ? { anchorName: "--group-popover-anchor" } : {}),
+      }}
+    >
       <button
         type="button"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        onClick={() => setIsOpen((o) => !o)}
+        onClick={() => onOpenChange(!isOpen)}
         onMouseDown={(event) => event.stopPropagation()}
         style={{
           display: "inline-flex",
@@ -152,7 +163,7 @@ export function GroupToggleChip({ value, onChange }: GroupToggleChipProps): JSX.
         <GroupTogglePopover
           value={value}
           onChange={handleChange}
-          onClose={() => setIsOpen(false)}
+          onClose={() => onOpenChange(false)}
         />
       )}
     </div>

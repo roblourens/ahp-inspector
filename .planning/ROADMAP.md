@@ -291,16 +291,16 @@ Plans:
 **Goal:** Make facet pickers feel like conventional, polished dropdowns by replacing separate Select all / Uncheck all actions with a contextual bulk toggle, removing the Close action, sorting option rows deterministically by label or count, fixing the filter input layout, and correcting the Group: Session picker background layout.
 **Requirements**: TBD
 **Depends on:** Phase 30
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 **Wave 1**
 
-- [ ] 31-01-PLAN.md — Add one complete-facet contextual command, deterministic visible-label ordering, local geometry fixes, and focused regressions.
+- [x] 31-01-PLAN.md — Add one complete-facet contextual command, deterministic visible-label ordering, local geometry fixes, and focused regressions.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 31-02-PLAN.md — Prove the contract with fixture-only desktop/narrow/all-theme browser evidence and revise stale Phase 25 E2E assertions.
+- [x] 31-02-PLAN.md — Prove the contract with fixture-only desktop/narrow/all-theme browser evidence and revise stale Phase 25 E2E assertions.
 
 Cross-cutting constraints:
 

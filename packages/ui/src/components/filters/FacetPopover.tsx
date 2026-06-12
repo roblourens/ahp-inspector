@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { useEffect, useRef, useState } from "react";
+import { popoverPosition } from "./popoverPosition.js";
 
 const MAX_VISIBLE = 100;
 
@@ -48,6 +49,9 @@ export function FacetPopover({
     : options;
   const visible = filtered.slice(0, MAX_VISIBLE);
   const overflow = filtered.length - visible.length;
+  const selectedSet = new Set(selected);
+  const allSelected =
+    options.length > 0 && options.every((option) => selectedSet.has(option.value));
 
   function toggle(value: string) {
     if (selected.includes(value)) {
@@ -63,9 +67,7 @@ export function FacetPopover({
       role="listbox"
       aria-multiselectable="true"
       style={{
-        position: "absolute",
-        top: "calc(100% + 4px)",
-        ...(align === "start" ? { left: 0 } : { right: 0 }),
+        ...popoverPosition("--filter-popover-anchor", align),
         zIndex: 1100,
         background: "var(--color-surface-raised)",
         border: "1px solid var(--color-border-strong)",
@@ -88,6 +90,7 @@ export function FacetPopover({
             placeholder="Filter…"
             style={{
               width: "100%",
+              boxSizing: "border-box",
               background: "var(--color-surface)",
               border: "1px solid var(--color-border)",
               borderRadius: 4,
@@ -169,12 +172,13 @@ export function FacetPopover({
       >
         <button
           type="button"
-          onClick={() => onChange(options.map((option) => option.value))}
+          disabled={options.length === 0}
+          onClick={() => onChange(allSelected ? [] : options.map((option) => option.value))}
           style={{
             background: "none",
             border: "none",
             color: "var(--color-text-muted)",
-            cursor: "pointer",
+            cursor: options.length === 0 ? "not-allowed" : "pointer",
             fontFamily: "var(--font-sans)",
             fontSize: "var(--text-ui-muted-size)",
             padding: "var(--space-1)",
@@ -188,54 +192,7 @@ export function FacetPopover({
             (e.currentTarget as HTMLButtonElement).style.outline = "none";
           }}
         >
-          Select all
-        </button>
-        <button
-          type="button"
-          onClick={() => onChange([])}
-          style={{
-            background: "none",
-            border: "none",
-            color: "var(--color-text-muted)",
-            cursor: "pointer",
-            fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-ui-muted-size)",
-            padding: "var(--space-1)",
-            borderRadius: 3,
-            outline: "none",
-          }}
-          onFocus={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.outline = "2px solid var(--color-accent)";
-          }}
-          onBlur={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.outline = "none";
-          }}
-        >
-          Uncheck all
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{
-            marginLeft: "auto",
-            background: "none",
-            border: "none",
-            color: "var(--color-text-muted)",
-            cursor: "pointer",
-            fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-ui-muted-size)",
-            padding: "var(--space-1)",
-            borderRadius: 3,
-            outline: "none",
-          }}
-          onFocus={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.outline = "2px solid var(--color-accent)";
-          }}
-          onBlur={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.outline = "none";
-          }}
-        >
-          Close
+          {allSelected ? "Uncheck all" : "Select all"}
         </button>
       </div>
     </div>

@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
-status: executing
-last_updated: "2026-06-12T00:22:39.118Z"
-last_activity: 2026-06-12 -- Phase 31 planning complete
+status: complete
+last_updated: "2026-06-12T01:22:42.779Z"
+last_activity: 2026-06-12
 progress:
   total_phases: 10
   completed_phases: 5
@@ -18,14 +18,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Milestone complete
+**Current Focus:** Phase 31 complete — Improvements to the filter pickers (dir, kind, method, action etc)
 
 ## Current Position
 
-Phase: 30
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-12 -- Phase 31 planning complete
+Phase: 31 (Improvements to the filter pickers (dir, kind, method, action etc)) — COMPLETE
+Plan: 2 of 2 complete
+Status: Verified complete
+Last activity: 2026-06-12
 
 ## Performance Metrics
 
@@ -74,6 +74,8 @@ Last activity: 2026-06-12 -- Phase 31 planning complete
 | Phase 25 P04 | 8 min | 2 tasks | 7 files |
 | Phase 25 P05 | 2 min | 1 tasks | 0 files |
 | Phase 30 P01 | 11min | 3 tasks | 6 files |
+| Phase 31 P01 | 8min | 2 tasks | 4 files |
+| Phase 31 P02 | 28min | 1 task | 16 files |
 
 ## Accumulated Context
 
@@ -175,14 +177,15 @@ Last activity: 2026-06-12 -- Phase 31 planning complete
 - Phase 29 added: Escape closes the find widget without clearing any filter (filter box or facets)
 - Phase 30 added: Please make sure that we will discover the latest logs. Maybe we have a per-root limit instead of a total limit or something like that
 - Phase 31 added: Improvements to the filter pickers (dir, kind, method, action etc)
+- Phase 31 completed: contextual complete-set facet actions, deterministic visible-label ordering, contained picker controls, unclipped narrow menus, all-theme fixture evidence, and Phase 25 compatibility are verified.
 - 2026-05-16: Phase 15's stale manual UAT checkpoint was explicitly dispositioned during v1.2 closeout without claiming a retroactive UAT run.
 - 2026-05-16: v1.2 bookkeeping reconciled after Phase 22 completion; milestone state is complete and ready for archival when desired.
 
 ## Session Continuity
 
-**Last session:** 2026-06-12T00:13:22.409Z
+**Last session:** 2026-06-12T01:22:42.772Z
 **Next action:** `/gsd-complete-milestone` when ready to archive v1.2
-**Stopped at:** Phase 31 UI-SPEC approved
+**Stopped at:** Completed and verified Phase 31
 
 ## Quick Tasks Completed
 

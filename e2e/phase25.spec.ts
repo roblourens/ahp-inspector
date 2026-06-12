@@ -8,7 +8,8 @@ import { PHASE5_BASE_JSONL } from "../packages/ui/src/test-fixtures/phase5-log";
 const CLI_ENTRY = resolve("packages/cli/src/index.ts");
 const TSX_BIN = resolve("node_modules/.bin/tsx");
 const SCREENSHOT_DIR = resolve("screenshots/phase25");
-const SYNTHETIC_PING = '{"jsonrpc":"2.0","id":null,"method":"ping","params":{"source":"phase25-fixture"}}';
+const SYNTHETIC_PING =
+  '{"jsonrpc":"2.0","id":null,"method":"ping","params":{"source":"phase25-fixture"}}';
 
 interface CliProc {
   child: ChildProcessWithoutNullStreams;
@@ -126,29 +127,40 @@ test.describe("Phase 25 row filtering and visibility menus", () => {
     const ping = page.getByRole("checkbox", { name: /ping/i });
     await expect(page.getByRole("checkbox", { name: /workspace\/executeCommand/i })).toBeChecked();
     await expect(ping).not.toBeChecked();
-    await expect(page.getByRole("button", { name: "Select all" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Uncheck all" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Select all" })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Uncheck all" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Close" })).toHaveCount(0);
     await page.screenshot({
       path: join(SCREENSHOT_DIR, "02-row-filter-and-facets-with-popover.png"),
       fullPage: true,
     });
 
+    await page.getByRole("button", { name: "Select all" }).click();
+    await expect(ping).toBeChecked();
+    await expect(page.getByTestId("row-4")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Uncheck all" })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Select all" })).toHaveCount(0);
     await page.getByRole("button", { name: "Uncheck all" }).click();
     await expect(ping).not.toBeChecked();
     await expect(page.getByTestId("row-4")).toBeHidden();
+    await expect(page.getByRole("button", { name: "Select all" })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Uncheck all" })).toHaveCount(0);
     await page.getByRole("button", { name: "Select all" }).click();
     await expect(ping).toBeChecked();
     await expect(page.getByTestId("row-4")).toBeVisible();
 
+    await searchTrigger.click();
+    await expect(page.getByTestId("search-popover")).toHaveCount(0);
     await page.getByRole("button", { name: "Clear all filters" }).click();
     await expect(filterRows).toHaveValue("");
+    await searchTrigger.click();
     await expect(search).toHaveValue("retrowave");
-    
+
     // Verify SearchTrigger shows active state when query is present
-    expect(await searchTrigger.evaluate((el) => (el as HTMLButtonElement).style.background)).toContain(
-      "var(--color-chip-bg-active)",
-    );
-    
+    expect(
+      await searchTrigger.evaluate((el) => (el as HTMLButtonElement).style.background),
+    ).toContain("var(--color-chip-bg-active)");
+
     await assertNoPathLeak(page);
   });
 
@@ -159,16 +171,16 @@ test.describe("Phase 25 row filtering and visibility menus", () => {
 
     const filterRows = page.getByLabel("Filter rows");
     const searchTrigger = page.getByRole("button", { name: "Open search" });
-    
+
     // Verify RowFilterInput and SearchTrigger are both visible
     await expect(filterRows).toBeVisible();
     await expect(searchTrigger).toBeVisible();
-    
+
     const filterBox = await filterRows.boundingBox();
     const triggerBox = await searchTrigger.boundingBox();
     expect(filterBox).not.toBeNull();
     expect(triggerBox).not.toBeNull();
-    
+
     // Filter input should be primary and take up flex space
     // SearchTrigger should be compact 28px button to the right
     if (filterBox && triggerBox) {
@@ -176,7 +188,7 @@ test.describe("Phase 25 row filtering and visibility menus", () => {
     }
 
     await filterRows.fill("workspace");
-    
+
     // Open SearchPopover — popover is visible and responds to input
     await searchTrigger.click();
     const popover = page.getByTestId("search-popover");
@@ -190,11 +202,11 @@ test.describe("Phase 25 row filtering and visibility menus", () => {
       // Popover should not exceed available space
       expect(popoverBox.width).toBeLessThanOrEqual(360);
     }
-    
+
     await page.getByRole("button", { name: /^Method/ }).click();
-    await expect(page.getByRole("button", { name: "Select all" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Uncheck all" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Close" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Select all" })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Uncheck all" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Close" })).toHaveCount(0);
     const menuBox = await page.getByRole("listbox").boundingBox();
     expect(menuBox).not.toBeNull();
     if (menuBox) {

@@ -1,7 +1,7 @@
 import { formatSessionShort, type Status } from "@ahp-inspector/core";
 import type { EventKind } from "@ahp-inspector/shared";
 import type { JSX, RefObject } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useFacetCounts, useFilteredRows, useVisibleSearchMatches } from "../../state/selectors.js";
 import { useAppStore } from "../../state/store.js";
 import { FacetChip } from "./FacetChip.js";
@@ -22,17 +22,23 @@ type OpenPopover =
   | "turn"
   | "status"
   | "time"
+  | "group"
   | null;
 
 function mapToOptions(
   m: Map<string, number>,
   labelFor: (value: string) => string = (value) => value,
 ): { value: string; label: string; count: number }[] {
-  return Array.from(m.entries()).map(([value, count]) => ({
-    value,
-    label: labelFor(value),
-    count,
-  }));
+  return Array.from(m.entries())
+    .map(([value, count]) => ({
+      value,
+      label: labelFor(value),
+      count,
+    }))
+    .sort((a, b) => {
+      const byLabel = a.label.toLocaleLowerCase().localeCompare(b.label.toLocaleLowerCase());
+      return byLabel || a.value.localeCompare(b.value);
+    });
 }
 
 function visibleSelectionFromHidden(
@@ -97,12 +103,12 @@ export function FilterBar({
   const searchPopoverInputRef = useRef<HTMLInputElement | null>(null);
 
   // Open the search popover and focus its input once it mounts (next render).
-  function openSearch() {
+  const openSearch = useCallback(() => {
     setSearchPopoverOpen(true);
     setTimeout(() => {
       searchPopoverInputRef.current?.focus();
     }, 0);
-  }
+  }, [setSearchPopoverOpen]);
 
   // Handle "/" and cmd+f / ctrl+f keyboard shortcuts to open the search popover.
   useEffect(() => {
@@ -119,7 +125,7 @@ export function FilterBar({
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isSearchPopoverOpen]);
+  }, [isSearchPopoverOpen, openSearch]);
 
   function togglePopover(name: OpenPopover) {
     setOpenPopover((prev) => (prev === name ? null : name));
@@ -129,6 +135,14 @@ export function FilterBar({
     setOpenPopover(null);
   }
 
+  function facetAnchorStyle(name: Exclude<OpenPopover, null>) {
+    return {
+      position: "relative" as const,
+      flexShrink: 0,
+      ...(openPopover === name ? { anchorName: "--filter-popover-anchor" } : {}),
+    };
+  }
+
   function navigateSearch(direction: "previous" | "next"): void {
     window.dispatchEvent(new CustomEvent("ahp-search-nav", { detail: direction }));
   }
@@ -136,7 +150,9 @@ export function FilterBar({
   const hasSearch = searchQuery.trim() !== "";
   const hasSearchMatches = hasSearch && searchTotal > 0;
   const searchMatchCount =
-    visibleSearchMatches.length > 0 ? visibleSearchMatches.length : searchMatches?.size ?? searchTotal;
+    visibleSearchMatches.length > 0
+      ? visibleSearchMatches.length
+      : (searchMatches?.size ?? searchTotal);
   const focusedSearchIndex =
     selectedIdx === null
       ? null
@@ -183,7 +199,7 @@ export function FilterBar({
       />
 
       {/* Direction facet */}
-      <div style={{ position: "relative", flexShrink: 0 }}>
+      <div style={facetAnchorStyle("direction")}>
         <FacetChip
           label="Dir"
           activeCount={filters.direction.length}
@@ -210,7 +226,7 @@ export function FilterBar({
       </div>
 
       {/* Kind facet */}
-      <div style={{ position: "relative", flexShrink: 0 }}>
+      <div style={facetAnchorStyle("kind")}>
         <FacetChip
           label="Kind"
           activeCount={filters.kind.length}
@@ -234,7 +250,7 @@ export function FilterBar({
       </div>
 
       {/* Method facet */}
-      <div style={{ position: "relative", flexShrink: 0 }}>
+      <div style={facetAnchorStyle("method")}>
         <FacetChip
           label="Method"
           activeCount={filters.method.length}
@@ -247,7 +263,10 @@ export function FilterBar({
             options={methodOptions}
             selected={visibleSelectionFromHidden(methodOptions, filters.method)}
             onChange={(values) =>
-              patchFilter("method", hiddenValuesFromSelection(methodOptions, values, filters.method))
+              patchFilter(
+                "method",
+                hiddenValuesFromSelection(methodOptions, values, filters.method),
+              )
             }
             onClose={close}
             searchable
@@ -257,7 +276,7 @@ export function FilterBar({
       </div>
 
       {/* Action facet */}
-      <div style={{ position: "relative", flexShrink: 0 }}>
+      <div style={facetAnchorStyle("action")}>
         <FacetChip
           label="Action"
           activeCount={filters.actionType.length}
@@ -282,7 +301,7 @@ export function FilterBar({
       </div>
 
       {/* Channel facet */}
-      <div style={{ position: "relative", flexShrink: 0 }}>
+      <div style={facetAnchorStyle("session")}>
         <FacetChip
           label="Channel"
           activeCount={filters.session.length}
@@ -295,7 +314,10 @@ export function FilterBar({
             options={channelOptions}
             selected={visibleSelectionFromHidden(channelOptions, filters.session)}
             onChange={(values) =>
-              patchFilter("session", hiddenValuesFromSelection(channelOptions, values, filters.session))
+              patchFilter(
+                "session",
+                hiddenValuesFromSelection(channelOptions, values, filters.session),
+              )
             }
             onClose={close}
             searchable
@@ -305,7 +327,7 @@ export function FilterBar({
       </div>
 
       {/* Turn facet */}
-      <div style={{ position: "relative", flexShrink: 0 }}>
+      <div style={facetAnchorStyle("turn")}>
         <FacetChip
           label="Turn"
           activeCount={filters.turn.length}
@@ -328,7 +350,7 @@ export function FilterBar({
       </div>
 
       {/* Status facet */}
-      <div style={{ position: "relative", flexShrink: 0 }}>
+      <div style={facetAnchorStyle("status")}>
         <FacetChip
           label="Status"
           activeCount={filters.status.length}
@@ -353,7 +375,7 @@ export function FilterBar({
       </div>
 
       {/* Time facet */}
-      <div style={{ position: "relative", flexShrink: 0 }}>
+      <div style={facetAnchorStyle("time")}>
         <FacetChip
           label="Time"
           activeCount={(filters.timeFrom !== null ? 1 : 0) + (filters.timeTo !== null ? 1 : 0)}
@@ -376,7 +398,12 @@ export function FilterBar({
 
       {/* Group toggle — right-aligned */}
       <div style={{ marginLeft: "auto", flexShrink: 0 }}>
-        <GroupToggleChip value={grouping} onChange={setGrouping} />
+        <GroupToggleChip
+          value={grouping}
+          isOpen={openPopover === "group"}
+          onChange={setGrouping}
+          onOpenChange={(isOpen) => setOpenPopover(isOpen ? "group" : null)}
+        />
       </div>
 
       {/* Result counter */}

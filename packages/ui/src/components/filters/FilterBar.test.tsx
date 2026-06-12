@@ -47,6 +47,17 @@ function makeRow(overrides: Partial<EventRow> = {}): EventRow {
   };
 }
 
+function openFacet(name: RegExp): void {
+  fireEvent.click(screen.getByRole("button", { name }));
+}
+
+function checkboxValues(): string[] {
+  return screen
+    .getAllByRole("checkbox")
+    .map((checkbox) => checkbox.closest("label")?.getAttribute("title"))
+    .filter((value): value is string => value !== null);
+}
+
 beforeEach(() => {
   vi.useFakeTimers();
   useAppStore.setState({
@@ -295,19 +306,134 @@ describe("FilterBar", () => {
     expect(useAppStore.getState().filters.direction).toEqual(["c2s"]);
   });
 
-  it("provides Select all and Uncheck all commands over complete facet options", () => {
+  it("shows one contextual complete-facet command and no visible Close action", () => {
     useAppStore.setState({
       rows: [makeRow({ idx: 0, method: "initialize" }), makeRow({ idx: 1, method: "ping" })],
       filters: APP_DEFAULT_FILTERS,
     });
     render(<FilterBar />);
-    fireEvent.click(screen.getByRole("button", { name: /Method/i }));
+    openFacet(/Method/i);
 
+    expect(screen.getByRole("button", { name: "Select all" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Uncheck all" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Select all" }));
     expect(useAppStore.getState().filters.method).toEqual([]);
+    expect(screen.getByRole("listbox")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Uncheck all" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Select all" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Uncheck all" }));
     expect(useAppStore.getState().filters.method).toEqual(["initialize", "ping"]);
+    expect(screen.getByRole("button", { name: "Select all" })).toBeTruthy();
+  });
+
+  it("keeps the complete-set action independent of local query and the 100-row cap", () => {
+    const rows = Array.from({ length: 101 }, (_, idx) =>
+      makeRow({ idx, method: `method-${String(idx).padStart(3, "0")}` }),
+    );
+    useAppStore.setState({
+      rows,
+      filters: { ...EMPTY_FILTERS, method: ["method-100"] },
+    });
+    render(<FilterBar />);
+    openFacet(/Method/i);
+
+    expect(screen.getByText("…and 1 more")).toBeTruthy();
+    fireEvent.change(screen.getByPlaceholderText("Filter…"), { target: { value: "method-000" } });
+    expect(screen.getAllByRole("checkbox")).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }));
+
+    expect(useAppStore.getState().filters.method).toEqual([]);
+    expect(screen.getByRole("button", { name: "Uncheck all" })).toBeTruthy();
+  });
+
+  it("disables Select all when a facet has no complete options", () => {
+    render(<FilterBar />);
+    openFacet(/Dir/i);
+
+    expect(screen.getByText("No options")).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Select all" }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+  });
+
+  it("closes a facet popover on outside mousedown without a Close command", () => {
+    useAppStore.setState({ rows: [makeRow()] });
+    render(<FilterBar />);
+    openFacet(/Method/i);
+    expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
+
+    fireEvent.mouseDown(document.body);
+
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it.each([
+    { chip: /Dir/i, expected: ["c2s", "s2c"] },
+    { chip: /Kind/i, expected: ["action", "response"] },
+    { chip: /Method/i, expected: ["Alpha", "zeta"] },
+    { chip: /Action/i, expected: ["alpha-action", "zeta-action"] },
+    { chip: /Channel/i, expected: ["copilot:/session/alpha", "copilot:/session/zulu"] },
+    { chip: /Turn/i, expected: ["turn-alpha", "turn-zulu"] },
+    { chip: /Status/i, expected: ["error", "pending"] },
+  ])("sorts $chip categorical options by visible label rather than arrival order", ({
+    chip,
+    expected,
+  }) => {
+    useAppStore.setState({
+      rows: [
+        makeRow({
+          idx: 0,
+          dir: "s2c",
+          kind: "response",
+          method: "zeta",
+          actionType: "zeta-action",
+          sessionId: "copilot:/session/zulu",
+          turnId: "turn-zulu",
+          status: "pending",
+        }),
+        makeRow({
+          idx: 1,
+          dir: "c2s",
+          kind: "action",
+          method: "Alpha",
+          actionType: "alpha-action",
+          sessionId: "copilot:/session/alpha",
+          turnId: "turn-alpha",
+          status: "error",
+        }),
+      ],
+    });
+    render(<FilterBar />);
+    openFacet(chip);
+
+    expect(checkboxValues()).toEqual(expected);
+  });
+
+  it("uses raw values only to break equal formatted Channel label ties", () => {
+    useAppStore.setState({
+      rows: [
+        makeRow({ idx: 0, sessionId: "session-alpha" }),
+        makeRow({ idx: 1, sessionId: "alpha" }),
+      ],
+    });
+    render(<FilterBar />);
+    openFacet(/Channel/i);
+
+    expect(checkboxValues()).toEqual(["alpha", "session-alpha"]);
+  });
+
+  it("keeps Method order stable when counts change", () => {
+    const rows = [makeRow({ idx: 0, method: "zeta" }), makeRow({ idx: 1, method: "alpha" })];
+    useAppStore.setState({ rows });
+    render(<FilterBar />);
+    openFacet(/Method/i);
+    expect(checkboxValues()).toEqual(["alpha", "zeta"]);
+
+    useAppStore.setState({ rows: [...rows, makeRow({ idx: 2, method: "zeta" })] });
+
+    expect(checkboxValues()).toEqual(["alpha", "zeta"]);
   });
 
   it("keeps Turn operable while every Channel is visible", () => {
@@ -343,6 +469,22 @@ describe("FilterBar", () => {
     expect(screen.queryByRole("radio", { name: "Session" })).toBeNull();
   });
 
+  it("keeps only one facet or Group popover open", () => {
+    useAppStore.setState({ rows: [makeRow()] });
+    render(<FilterBar />);
+
+    openFacet(/Method/i);
+    expect(screen.getByRole("listbox")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: /Group:/i }));
+    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(screen.getByRole("radio", { name: "Session" })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: /Method/i }));
+    expect(screen.queryByRole("radio", { name: "Session" })).toBeNull();
+    expect(screen.getByRole("listbox")).toBeTruthy();
+  });
+
   it("selecting a grouping mode dispatches setGrouping", () => {
     render(<FilterBar />);
     const groupBtn = screen.getByRole("button", { name: /Group:/i });
@@ -350,6 +492,27 @@ describe("FilterBar", () => {
     const sessionOption = screen.getByRole("radio", { name: "Session" });
     fireEvent.click(sessionOption);
     expect(useAppStore.getState().grouping).toBe("session");
+  });
+
+  it("uses local border-box sizing for searchable facets and selected Group rows", () => {
+    useAppStore.setState({ rows: [makeRow()], grouping: "session" });
+    render(<FilterBar />);
+    openFacet(/Method/i);
+    const filterInput = screen.getByPlaceholderText("Filter…") as HTMLInputElement;
+    expect(filterInput.style.width).toBe("100%");
+    expect(filterInput.style.boxSizing).toBe("border-box");
+
+    fireEvent.mouseDown(document.body);
+    openFacet(/Group:/i);
+    const session = screen.getByRole("radio", { name: "Session" });
+    const sessionLabel = session.closest("label") as HTMLLabelElement;
+    expect(sessionLabel.style.width).toBe("100%");
+    expect(sessionLabel.style.boxSizing).toBe("border-box");
+    expect(sessionLabel.style.background).toBe("var(--color-chip-bg-active)");
+
+    fireEvent.click(screen.getByRole("radio", { name: "Session + Turn" }));
+    expect(useAppStore.getState().grouping).toBe("session+turn");
+    expect(screen.queryByRole("radio", { name: "Session" })).toBeNull();
   });
 
   it("Enter in the search input dispatches ahp-search-nav next", () => {
