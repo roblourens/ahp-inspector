@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
-status: milestone_complete
-last_updated: 2026-06-07T20:25:35.883Z
-last_activity: 2026-06-07
+status: executing
+last_updated: "2026-06-12T00:19:15.866Z"
+last_activity: 2026-06-12 -- Phase 31 planning complete
 progress:
   total_phases: 10
   completed_phases: 5
-  total_plans: 66
-  completed_plans: 57
+  total_plans: 18
+  completed_plans: 18
   percent: 50
-stopped_at: Milestone complete (Phase 30 was final phase)
 ---
 
 # State: AHP Inspector
@@ -25,8 +24,8 @@ stopped_at: Milestone complete (Phase 30 was final phase)
 
 Phase: 30
 Plan: Not started
-Status: Milestone complete
-Last activity: 2026-06-07
+Status: Ready to execute
+Last activity: 2026-06-12 -- Phase 31 planning complete
 
 ## Performance Metrics
 
@@ -175,14 +174,15 @@ Last activity: 2026-06-07
 - Phase 28 added: Open raw response in a new browser tab as plain text or JSON
 - Phase 29 added: Escape closes the find widget without clearing any filter (filter box or facets)
 - Phase 30 added: Please make sure that we will discover the latest logs. Maybe we have a per-root limit instead of a total limit or something like that
+- Phase 31 added: Improvements to the filter pickers (dir, kind, method, action etc)
 - 2026-05-16: Phase 15's stale manual UAT checkpoint was explicitly dispositioned during v1.2 closeout without claiming a retroactive UAT run.
 - 2026-05-16: v1.2 bookkeeping reconciled after Phase 22 completion; milestone state is complete and ready for archival when desired.
 
 ## Session Continuity
 
-**Last session:** 2026-06-07T20:16:05.114Z
+**Last session:** 2026-06-12T00:13:22.409Z
 **Next action:** `/gsd-complete-milestone` when ready to archive v1.2
-**Stopped at:** Completed 30-01-PLAN.md
+**Stopped at:** Phase 31 UI-SPEC approved
 
 ## Quick Tasks Completed
 

@@ -286,6 +286,28 @@ Plans:
 
 - [x] 30-01-PLAN.md — Add shared bounded per-root traversal, fair picker retention, fair CLI newest-valid selection, and hermetic starvation/recency regressions.
 
+### Phase 31: Improvements to the filter pickers (dir, kind, method, action etc)
+
+**Goal:** Make facet pickers feel like conventional, polished dropdowns by replacing separate Select all / Uncheck all actions with a contextual bulk toggle, removing the Close action, sorting option rows deterministically by label or count, fixing the filter input layout, and correcting the Group: Session picker background layout.
+**Requirements**: TBD
+**Depends on:** Phase 30
+**Plans:** 2 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 31-01-PLAN.md — Add one complete-facet contextual command, deterministic visible-label ordering, local geometry fixes, and focused regressions.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 31-02-PLAN.md — Prove the contract with fixture-only desktop/narrow/all-theme browser evidence and revise stale Phase 25 E2E assertions.
+
+Cross-cutting constraints:
+
+- Preserve checked-visible semantics, default-hidden `ping`, filter persistence, the 100-row cap, semantic tokens, all themes, and existing UI/host/state boundaries.
+- Keep Phase 31 client-local: no new network, dependency, server, host-adapter, persistence, protocol, Escape, or ARIA/keyboard behavior.
+- Generate and inspect saved screenshots only from repository fixtures or synthetic rows, with no absolute path leakage.
+
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
-*v1.2 opened 2026-05-10; last updated 2026-06-06 (Phase 29 added: Escape closes find widget without clearing any filter)*
+*v1.2 opened 2026-05-10; last updated 2026-06-11 (Phase 31 added: Improvements to the filter pickers)*
