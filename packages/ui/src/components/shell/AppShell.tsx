@@ -276,7 +276,6 @@ export function AppShell(): JSX.Element {
                 role="dialog"
                 aria-label="Event detail"
                 data-testid="detail-drawer"
-                style={{ width: `${detailWidth}px` }}
               >
                 <button
                   type="button"
