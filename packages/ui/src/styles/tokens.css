@@ -2,6 +2,27 @@
 [data-theme="dark"] {
   --color-scheme: dark;
 
+  /*
+   * Z-index layer scale (low → high). Defined once on :root (which always
+   * matches the html element) so every theme shares the same stacking order.
+   * The decorative CRT overlay sits BELOW all interactive chrome so it can
+   * never occlude controls, dialogs, or the drawer.
+   * Mirrored by packages/ui/src/styles/zLayers.ts for inline styles — keep
+   * the two in sync (guarded by zLayers.test.ts).
+   */
+  --z-base: 0; /* default content layer */
+  --z-app: 1; /* #root / app-shell local stacking context above the body backdrop */
+  --z-crt-overlay: 5; /* decorative CRT scanlines/grid/curvature: above content, below chrome */
+  --z-sticky: 100; /* sticky group headers/bars, in-list float buttons, drawer-local chrome */
+  --z-controls: 1000; /* filter bar, drop overlay */
+  --z-popover: 1100; /* facet/search/time/group popovers, copy menus */
+  --z-header: 1200; /* app header bar */
+  --z-picker: 1250; /* log picker dropdown — above the header */
+  --z-toast: 1400; /* transient toasts (copy, multi-file) */
+  --z-drawer-backdrop: 2000;
+  --z-drawer: 2010;
+  --z-dialog: 2100; /* modal dialogs above the drawer */
+
   /* Spacing */
   --space-0: 0;
   --space-1: 4px;

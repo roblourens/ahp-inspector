@@ -429,7 +429,7 @@ body {
   position: absolute;
   top: calc(100% + var(--space-1));
   right: 0;
-  z-index: 70;
+  z-index: var(--z-popover);
   min-width: 210px;
   overflow: hidden;
   border: 1px solid var(--color-border-strong);
@@ -765,7 +765,7 @@ body {
 
 .crt-display-surface > .app-shell {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-app);
 }
 
 [data-theme="hacker"] .crt-display-surface > .app-shell {
@@ -787,7 +787,7 @@ body {
 }
 
 [data-theme="hacker"] .crt-display-surface > .app-shell::before {
-  z-index: 1300;
+  z-index: var(--z-crt-overlay);
   background:
     linear-gradient(
       to bottom,
@@ -819,7 +819,7 @@ body {
 }
 
 [data-theme="hacker"] .crt-display-surface > .app-shell::after {
-  z-index: 1301;
+  z-index: var(--z-crt-overlay);
   background:
     linear-gradient(
       180deg,
@@ -855,7 +855,7 @@ body {
 [data-theme="hacker"] .crt-curvature-canvas {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: var(--z-crt-overlay);
   display: block;
   width: 100%;
   height: 100%;
@@ -877,7 +877,7 @@ body {
 .detail-drawer-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: var(--z-drawer-backdrop);
   display: flex;
   justify-content: flex-end;
   pointer-events: none;
@@ -902,7 +902,7 @@ body {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
-  z-index: 2;
+  z-index: var(--z-sticky);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -975,7 +975,7 @@ body {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: var(--z-base);
   pointer-events: none;
 }
 
@@ -1092,7 +1092,7 @@ body {
 
 [data-theme="hacker"] #root {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-app);
   box-shadow: inset 0 0 120px color-mix(in srgb, var(--color-accent) 10%, transparent);
 }
 

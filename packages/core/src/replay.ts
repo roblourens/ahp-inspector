@@ -359,15 +359,22 @@ function applyEnvelope(
     });
   };
 
-  resource.state = withEventTime(eventTs, () => {
+  resource.state = (() => {
     if (target.kind === "root") {
       return rootReducer(resource.state as RootState, envelope.action as RootAction, log);
     }
     if (target.kind === "session") {
-      return sessionReducer(resource.state as SessionState, envelope.action as SessionAction, log);
+      // Inject the event timestamp as the clock so replayed `modifiedAt`
+      // values are deterministic (event-time, not wall-clock).
+      return sessionReducer(
+        resource.state as SessionState,
+        envelope.action as SessionAction,
+        log,
+        () => eventTs,
+      );
     }
     return terminalReducer(resource.state as TerminalState, envelope.action as TerminalAction, log);
-  });
+  })();
   resource.lastAppliedEventIdx = eventIdx;
   resource.lastServerSeq = envelope.serverSeq;
 
@@ -460,16 +467,6 @@ function linkAcceptedIntent(ctx: ReplayContext, envelope: ActionEnvelope): void 
     return;
   }
   ctx.intents[idx] = { ...intent, acceptedByServerSeq: envelope.serverSeq };
-}
-
-function withEventTime<T>(eventTs: number, fn: () => T): T {
-  const original = Date.now;
-  Date.now = () => eventTs;
-  try {
-    return fn();
-  } finally {
-    Date.now = original;
-  }
 }
 
 function readSnapshot(value: unknown): Snapshot | null {

@@ -275,7 +275,7 @@ export function TimelineRegion({
         items={groupedItems}
         rows={rows}
         selectedIdx={selectedIdx}
-        onSelect={(idx) => select(idx)}
+        onSelect={select}
         searchQuery={searchQuery}
         searchMatches={searchMatches}
         groupCollapsed={groupCollapsed}

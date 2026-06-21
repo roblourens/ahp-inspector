@@ -1,6 +1,7 @@
 // MultiFileToast — locked copy and tokens per 17-UI-SPEC.md.
 
 import { type JSX, useEffect } from "react";
+import { Z } from "../../styles/zLayers.js";
 
 export function MultiFileToast(props: {
   basename: string;
@@ -27,7 +28,7 @@ export function MultiFileToast(props: {
     fontFamily: "var(--font-sans)",
     fontSize: "var(--text-ui-size)",
     lineHeight: 1.4,
-    zIndex: 1001,
+    zIndex: Z.toast,
     display: "flex",
     alignItems: "center",
     gap: "var(--space-3)",

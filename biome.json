@@ -1,5 +1,10 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.14/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -25,9 +30,14 @@
       "!**/ui-dist",
       "!**/node_modules",
       "!**/coverage",
+      "!**/playwright-report",
+      "!**/test-results",
+      "!**/screenshots",
+      "!**/.playwright-cli",
       "!test/fixtures",
       "!.github",
       "!.planning",
+      "!.claude",
       "!pnpm-lock.yaml"
     ]
   },

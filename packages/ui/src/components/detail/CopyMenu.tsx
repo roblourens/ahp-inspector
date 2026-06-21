@@ -12,6 +12,7 @@ import type { Status } from "@ahp-inspector/core";
 import type { AhpEvent } from "@ahp-inspector/shared";
 import { ChevronDown } from "lucide-react";
 import { type JSX, useEffect, useRef, useState } from "react";
+import { Z } from "../../styles/zLayers.js";
 import { copyText } from "./clipboard.js";
 import { openInNewTab } from "./openInNewTab.js";
 
@@ -202,7 +203,7 @@ export function CopyMenu({
             border: "1px solid var(--color-border-strong)",
             borderRadius: "4px",
             minWidth: "180px",
-            zIndex: 50,
+            zIndex: Z.popover,
             overflow: "hidden",
           }}
         >

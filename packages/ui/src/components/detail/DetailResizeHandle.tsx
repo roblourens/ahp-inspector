@@ -9,6 +9,7 @@
  */
 import type { JSX, KeyboardEvent, MouseEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
+import { Z } from "../../styles/zLayers.js";
 import { DETAIL_KEYBOARD_STEP } from "./detail-layout.js";
 
 interface DetailResizeHandleProps {
@@ -98,7 +99,7 @@ export function DetailResizeHandle({
         background: "transparent",
         border: "none",
         padding: 0,
-        zIndex: 10,
+        zIndex: Z.sticky,
         transition: "background 0.1s",
       }}
       onMouseEnter={(e) => {

@@ -2,6 +2,7 @@ import { ChevronDown } from "lucide-react";
 import type { JSX } from "react";
 import { useEffect, useRef } from "react";
 import type { GroupingMode } from "../../state/store.js";
+import { Z } from "../../styles/zLayers.js";
 import { popoverPosition } from "./popoverPosition.js";
 
 interface GroupToggleChipProps {
@@ -52,7 +53,7 @@ function GroupTogglePopover({ value, onChange, onClose }: GroupTogglePopoverProp
       ref={ref}
       style={{
         ...popoverPosition("--group-popover-anchor", "end"),
-        zIndex: 1100,
+        zIndex: Z.popover,
         background: "var(--color-surface-raised)",
         border: "1px solid var(--color-border-strong)",
         borderRadius: 6,

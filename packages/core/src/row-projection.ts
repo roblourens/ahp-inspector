@@ -113,10 +113,28 @@ export function formatTs(ms: number): string {
 export function formatSessionShort(sessionId: string): string {
   const watched = formatResourceWatchChannel(sessionId);
   if (watched) return watched;
+  return shortenIdLabel(sessionId, /^session[-_:]?/i);
+}
 
-  const parts = sessionId.split(/[/:]+/).filter(Boolean);
-  let label = parts.at(-1) ?? sessionId;
-  label = label.replace(/^session[-_:]?/i, "");
+/**
+ * Shorten a turn id for the narrow TURN column / group headers. Mirrors
+ * {@link formatSessionShort} so prefixed (`turn-…`) or date-suffixed turn ids
+ * render a clean short form instead of a naive trailing slice.
+ */
+export function formatTurnShort(turnId: string): string {
+  return shortenIdLabel(turnId, /^turn[-_:]?/i);
+}
+
+/**
+ * Shared id-shortening used by {@link formatSessionShort} and
+ * {@link formatTurnShort}: take the last path/colon segment, strip a known
+ * prefix and a trailing ISO date, then collapse long hex / UUIDs to a stable
+ * short form.
+ */
+function shortenIdLabel(id: string, stripPrefix: RegExp): string {
+  const parts = id.split(/[/:]+/).filter(Boolean);
+  let label = parts.at(-1) ?? id;
+  label = label.replace(stripPrefix, "");
   label = label.replace(/[-_]\d{4}[-_]\d{2}[-_]\d{2}$/u, "");
 
   if (/^[0-9a-f]{16,}$/iu.test(label)) return label.slice(-8);
@@ -252,7 +270,7 @@ export function projectRow(
     sessionId: session,
     sessionShort: session ? formatSessionShort(session) : null,
     turnId: turn,
-    turnShort: turn ? turn.slice(-6) : null,
+    turnShort: turn ? formatTurnShort(turn) : null,
     keyId: idStr ? (idStr.length > 12 ? idStr.slice(0, 12) : idStr) : null,
     status,
     latencyMs,

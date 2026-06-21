@@ -9,6 +9,7 @@
  * No raw #hex literals.
  */
 import { type JSX, useEffect, useState } from "react";
+import { Z } from "../../styles/zLayers.js";
 
 interface CopyToastProps {
   message: string;
@@ -48,7 +49,7 @@ export function CopyToast({ message, kind }: CopyToastProps): JSX.Element | null
         fontSize: "var(--text-ui-muted-size)",
         fontFamily: "var(--font-sans)",
         color: "var(--color-text)",
-        zIndex: 100,
+        zIndex: Z.toast,
         animation: "ahp-fade-in 0.15s ease",
         pointerEvents: "none",
       }}

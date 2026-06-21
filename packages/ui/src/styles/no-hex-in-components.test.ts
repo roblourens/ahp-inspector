@@ -2,8 +2,17 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const SRC_DIR = new URL("../", import.meta.url).pathname;
+// Resolve relative to this file (packages/ui/src/styles) so the walk works
+// regardless of cwd. `import.meta.dirname` is provided by Vitest/Node; the
+// previous `new URL("../", import.meta.url).pathname` produced a non-file path
+// under Vitest, so readdirSync threw and the guard passed vacuously.
+const SRC_DIR = join(import.meta.dirname, "..");
 const ALLOWED_DIR_PARTS = ["/styles/"];
+
+// Files that legitimately contain hex/rgb literals that are NOT theme colors.
+// CrtFilterDefs encodes an SVG feDisplacementMap where pixel values are vector
+// math (#808080 = zero displacement), so they must not be tokenized.
+const ALLOWED_FILE_PARTS = ["/components/shell/CrtFilterDefs.tsx"];
 
 function walk(dir: string): string[] {
   const out: string[] = [];
@@ -39,10 +48,20 @@ const PATTERNS: Array<{ name: string; re: RegExp }> = [
 
 function isAllowed(file: string): boolean {
   const normalized = file.replaceAll("\\", "/");
-  return ALLOWED_DIR_PARTS.some((part) => normalized.includes(part));
+  return (
+    ALLOWED_DIR_PARTS.some((part) => normalized.includes(part)) ||
+    ALLOWED_FILE_PARTS.some((part) => normalized.includes(part))
+  );
 }
 
 describe("component and UI source color guard", () => {
+  it("scans a non-trivial number of source files", () => {
+    // Guard against a vacuous pass: if path resolution breaks and walk() returns
+    // nothing, the color check below would silently pass. Assert we actually
+    // crawled the source tree.
+    expect(walk(SRC_DIR).length).toBeGreaterThan(20);
+  });
+
   it("rejects raw hex/rgb/hsl color literals outside tokenized styles", () => {
     const violations: { file: string; line: number; pattern: string; text: string }[] = [];
     for (const file of walk(SRC_DIR)) {

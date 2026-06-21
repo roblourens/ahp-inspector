@@ -15,24 +15,89 @@ export type VirtualItem =
       durationMs: number;
     };
 
+/**
+ * Single-entry referential memo (reselect-style). Returns the previous result
+ * when every dependency is identical (===) to the previous call. Sharing one
+ * instance across components dedupes derivation: the timeline, status bar and
+ * filter bar all read the same rows/filters in one render pass, so the heavy
+ * loop runs once and the rest hit the cache — and every caller receives the
+ * same array reference, which keeps downstream memos stable.
+ */
+function singleEntryMemo<R>(): (deps: readonly unknown[], compute: () => R) => R {
+  let prevDeps: readonly unknown[] | null = null;
+  let prevResult: R;
+  return (deps, compute) => {
+    if (
+      prevDeps !== null &&
+      prevDeps.length === deps.length &&
+      prevDeps.every((d, i) => d === deps[i])
+    ) {
+      return prevResult;
+    }
+    prevResult = compute();
+    prevDeps = deps;
+    return prevResult;
+  };
+}
+
+/**
+ * True when `filters` is exactly the app default (only `ping` hidden). This is
+ * the state the app starts in and stays in until the user filters something,
+ * so it gets a dedicated cheap predicate instead of the full facet machinery.
+ */
+function isDefaultPingFilter(f: FilterState): boolean {
+  return (
+    f.method.length === 1 &&
+    f.method[0] === "ping" &&
+    f.direction.length === 0 &&
+    f.kind.length === 0 &&
+    f.actionType.length === 0 &&
+    f.session.length === 0 &&
+    f.turn.length === 0 &&
+    f.status.length === 0 &&
+    f.rowText.trim() === "" &&
+    f.timeFrom === null &&
+    f.timeTo === null
+  );
+}
+
+/** Cheap default-state predicate: hide `ping` requests and their responses. */
+function passesDefaultPing(rows: EventRow[], row: EventRow): boolean {
+  if (row.method === "ping") return false;
+  if (row.method === null && typeof row.pairIdx === "number") {
+    return rows[row.pairIdx]?.method !== "ping";
+  }
+  return true;
+}
+
+function computeFilteredRows(rows: EventRow[], filters: FilterState): number[] {
+  if (isFiltersEmpty(filters)) return rows.map((_, i) => i);
+  const defaultPing = isDefaultPingFilter(filters);
+  const result: number[] = [];
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row) continue;
+    const visible = defaultPing
+      ? passesDefaultPing(rows, row)
+      : applyFacetsForRows(rows, row, filters);
+    if (visible) result.push(i);
+  }
+  return result;
+}
+
 // ── filteredRows ──────────────────────────────────────────────────────────────
+const filteredRowsMemo = singleEntryMemo<number[]>();
+
 export function useFilteredRows(): number[] {
   const rows = useAppStore((s) => s.rows);
   const filters = useAppStore((s) => s.filters);
   const deferredFilters = useDeferredValue(filters);
-  return useMemo(() => {
-    const noFacets = isFiltersEmpty(deferredFilters);
-    if (noFacets) return rows.map((_, i) => i);
-    const result: number[] = [];
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      if (!row) continue;
-      if (!noFacets && !applyFacetsForRows(rows, row, deferredFilters)) continue;
-      result.push(i);
-    }
-    return result;
-  }, [rows, deferredFilters]);
+  return filteredRowsMemo([rows, deferredFilters], () =>
+    computeFilteredRows(rows, deferredFilters),
+  );
 }
+
+const visibleSearchMatchesMemo = singleEntryMemo<number[]>();
 
 export function useVisibleSearchMatches(): number[] {
   const rows = useAppStore((s) => s.rows);
@@ -40,18 +105,23 @@ export function useVisibleSearchMatches(): number[] {
   const searchMatches = useAppStore((s) => s.searchMatches);
   const deferredFilters = useDeferredValue(filters);
   const deferredMatches = useDeferredValue(searchMatches);
-  return useMemo(() => {
+  return visibleSearchMatchesMemo([rows, deferredFilters, deferredMatches], () => {
     if (deferredMatches === null) return [];
     const noFacets = isFiltersEmpty(deferredFilters);
+    const defaultPing = !noFacets && isDefaultPingFilter(deferredFilters);
     const result: number[] = [];
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       if (!row || !deferredMatches.has(i)) continue;
-      if (!noFacets && !applyFacetsForRows(rows, row, deferredFilters)) continue;
-      result.push(i);
+      const visible = noFacets
+        ? true
+        : defaultPing
+          ? passesDefaultPing(rows, row)
+          : applyFacetsForRows(rows, row, deferredFilters);
+      if (visible) result.push(i);
     }
     return result;
-  }, [rows, deferredFilters, deferredMatches]);
+  });
 }
 
 function applyFacetsForRows(rows: EventRow[], row: EventRow, filters: FilterState): boolean {
@@ -103,12 +173,13 @@ function inc(m: Map<string, number>, k: string): void {
 }
 
 // ── groupedItems ──────────────────────────────────────────────────────────────
+const groupedItemsMemo = singleEntryMemo<VirtualItem[]>();
+
 export function useGroupedItems(filteredRowIdxs: number[]): VirtualItem[] {
   const rows = useAppStore((s) => s.rows);
   const grouping = useAppStore((s) => s.grouping);
-  return useMemo(
-    () => buildGroupedItems(rows, filteredRowIdxs, grouping),
-    [rows, filteredRowIdxs, grouping],
+  return groupedItemsMemo([rows, filteredRowIdxs, grouping], () =>
+    buildGroupedItems(rows, filteredRowIdxs, grouping),
   );
 }
 

@@ -4,6 +4,7 @@ import type { JSX, RefObject } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFacetCounts, useFilteredRows, useVisibleSearchMatches } from "../../state/selectors.js";
 import { useAppStore } from "../../state/store.js";
+import { Z } from "../../styles/zLayers.js";
 import { FacetChip } from "./FacetChip.js";
 import { FacetPopover } from "./FacetPopover.js";
 import { GroupToggleChip } from "./GroupToggleChip.js";
@@ -176,7 +177,7 @@ export function FilterBar({
         background: "var(--color-surface)",
         borderBottom: "1px solid var(--color-border)",
         position: "relative",
-        zIndex: 1000,
+        zIndex: Z.controls,
       }}
     >
       {/* Row filter input — primary visible input */}

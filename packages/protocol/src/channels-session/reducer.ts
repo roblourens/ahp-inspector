@@ -121,6 +121,7 @@ function endTurn(
   turnState: TurnState,
   terminalStatus?: SessionStatus.Error,
   error?: { errorType: string; message: string; stack?: string },
+  now: () => number = Date.now,
 ): SessionState {
   if (!state.activeTurn || state.activeTurn.id !== turnId) {
     return state;
@@ -164,7 +165,7 @@ function endTurn(
     ...state,
     turns: [...state.turns, turn],
     activeTurn: undefined,
-    summary: { ...state.summary, modifiedAt: Date.now() },
+    summary: { ...state.summary, modifiedAt: now() },
   };
   delete next.inputRequests;
   return {
@@ -173,7 +174,11 @@ function endTurn(
   };
 }
 
-function upsertInputRequest(state: SessionState, request: SessionInputRequest): SessionState {
+function upsertInputRequest(
+  state: SessionState,
+  request: SessionInputRequest,
+  now: () => number = Date.now,
+): SessionState {
   const existing = state.inputRequests ?? [];
   const idx = existing.findIndex((r) => r.id === request.id);
   const inputRequests = [...existing];
@@ -189,7 +194,7 @@ function upsertInputRequest(state: SessionState, request: SessionInputRequest): 
     summary: {
       ...next.summary,
       status: withStatusFlag(summaryStatus(next), SessionStatus.IsRead, false),
-      modifiedAt: Date.now(),
+      modifiedAt: now(),
     },
   };
 }
@@ -285,6 +290,7 @@ export function sessionReducer(
   state: SessionState,
   action: SessionAction,
   log?: (msg: string) => void,
+  now: () => number = Date.now,
 ): SessionState {
   switch (action.type) {
     // ── Lifecycle ──────────────────────────────────────────────────────────
@@ -320,7 +326,7 @@ export function sessionReducer(
         summary: {
           ...next.summary,
           status: withStatusFlag(summaryStatus(next), SessionStatus.IsRead, false),
-          modifiedAt: Date.now(),
+          modifiedAt: now(),
         },
       };
 
@@ -359,13 +365,13 @@ export function sessionReducer(
       };
 
     case ActionType.SessionTurnComplete:
-      return endTurn(state, action.turnId, TurnState.Complete);
+      return endTurn(state, action.turnId, TurnState.Complete, undefined, undefined, now);
 
     case ActionType.SessionTurnCancelled:
-      return endTurn(state, action.turnId, TurnState.Cancelled);
+      return endTurn(state, action.turnId, TurnState.Cancelled, undefined, undefined, now);
 
     case ActionType.SessionError:
-      return endTurn(state, action.turnId, TurnState.Error, SessionStatus.Error, action.error);
+      return endTurn(state, action.turnId, TurnState.Error, SessionStatus.Error, action.error, now);
 
     // ── Tool Call State Machine ───────────────────────────────────────────
 
@@ -554,7 +560,7 @@ export function sessionReducer(
     case ActionType.SessionTitleChanged:
       return {
         ...state,
-        summary: { ...state.summary, title: action.title, modifiedAt: Date.now() },
+        summary: { ...state.summary, title: action.title, modifiedAt: now() },
       };
 
     case ActionType.SessionUsage:
@@ -577,7 +583,7 @@ export function sessionReducer(
     case ActionType.SessionModelChanged:
       return {
         ...state,
-        summary: { ...state.summary, model: action.model, modifiedAt: Date.now() },
+        summary: { ...state.summary, model: action.model, modifiedAt: now() },
       };
 
     case ActionType.SessionIsReadChanged:
@@ -625,7 +631,7 @@ export function sessionReducer(
           },
           summary: {
             ...state.summary,
-            modifiedAt: Date.now(),
+            modifiedAt: now(),
           },
         };
       }
@@ -648,7 +654,7 @@ export function sessionReducer(
         },
         summary: {
           ...state.summary,
-          modifiedAt: Date.now(),
+          modifiedAt: now(),
         },
       };
     }
@@ -741,7 +747,7 @@ export function sessionReducer(
         ...state,
         turns,
         activeTurn: undefined,
-        summary: { ...state.summary, modifiedAt: Date.now() },
+        summary: { ...state.summary, modifiedAt: now() },
       };
       delete next.inputRequests;
       return {
@@ -753,7 +759,7 @@ export function sessionReducer(
     // ── Session Input Requests ─────────────────────────────────────────────
 
     case ActionType.SessionInputRequested:
-      return upsertInputRequest(state, action.request);
+      return upsertInputRequest(state, action.request, now);
 
     case ActionType.SessionInputAnswerChanged: {
       const existing = state.inputRequests;
@@ -776,7 +782,7 @@ export function sessionReducer(
       return {
         ...state,
         inputRequests: updated,
-        summary: { ...state.summary, modifiedAt: Date.now() },
+        summary: { ...state.summary, modifiedAt: now() },
       };
     }
 
@@ -796,7 +802,7 @@ export function sessionReducer(
       }
       return {
         ...next,
-        summary: { ...next.summary, status: summaryStatus(next), modifiedAt: Date.now() },
+        summary: { ...next.summary, status: summaryStatus(next), modifiedAt: now() },
       };
     }
 

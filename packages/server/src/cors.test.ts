@@ -66,4 +66,68 @@ describe("corsMiddleware", () => {
 		expect(res.status).toBe(204);
 		expect(res.headers.get("access-control-allow-origin")).toBe("*");
 	});
+
+	it("allows a loopback Origin (standalone web app)", async () => {
+		const app = makeApp();
+		const res = await app.fetch(
+			new Request("http://localhost/x", {
+				method: "GET",
+				headers: { origin: "http://127.0.0.1:5199" },
+			}),
+		);
+		expect(res.status).toBe(200);
+		expect(res.headers.get("access-control-allow-origin")).toBe("http://127.0.0.1:5199");
+	});
+
+	it("does NOT echo a disallowed Origin on GET (browser blocks the read)", async () => {
+		const app = makeApp();
+		const res = await app.fetch(
+			new Request("http://localhost/x", {
+				method: "GET",
+				headers: { origin: "https://evil.example" },
+			}),
+		);
+		expect(res.status).toBe(200);
+		expect(res.headers.get("access-control-allow-origin")).toBeNull();
+	});
+
+	it("does NOT echo a disallowed Origin on OPTIONS preflight", async () => {
+		const app = makeApp();
+		const res = await app.fetch(
+			new Request("http://localhost/x", {
+				method: "OPTIONS",
+				headers: {
+					origin: "https://evil.example",
+					"access-control-request-method": "POST",
+				},
+			}),
+		);
+		expect(res.status).toBe(204);
+		expect(res.headers.get("access-control-allow-origin")).toBeNull();
+	});
+
+	it("rejects a state-changing POST from a disallowed Origin with 403", async () => {
+		const app = makeApp();
+		const res = await app.fetch(
+			new Request("http://localhost/x", {
+				method: "POST",
+				headers: { origin: "https://evil.example" },
+			}),
+		);
+		expect(res.status).toBe(403);
+		expect(await res.text()).not.toBe("posted");
+	});
+
+	it("allows a state-changing POST from a loopback Origin", async () => {
+		const app = makeApp();
+		const res = await app.fetch(
+			new Request("http://localhost/x", {
+				method: "POST",
+				headers: { origin: "http://localhost:5199" },
+			}),
+		);
+		expect(res.status).toBe(200);
+		expect(await res.text()).toBe("posted");
+		expect(res.headers.get("access-control-allow-origin")).toBe("http://localhost:5199");
+	});
 });

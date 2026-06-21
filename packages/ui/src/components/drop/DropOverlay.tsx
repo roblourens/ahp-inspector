@@ -1,6 +1,7 @@
 // DropOverlay — visual contract per 17-UI-SPEC.md (CONTEXT D-03).
 
 import { type JSX, useEffect } from "react";
+import { Z } from "../../styles/zLayers.js";
 
 export type DropOverlayState =
   | { kind: "idle" }
@@ -43,7 +44,7 @@ export function DropOverlay(props: {
     right: 0,
     bottom: 0,
     left: 0,
-    zIndex: 1000,
+    zIndex: Z.controls,
     background: "color-mix(in srgb, var(--color-bg) 80%, transparent)",
     backdropFilter: "blur(2px)",
     WebkitBackdropFilter: "blur(2px)",

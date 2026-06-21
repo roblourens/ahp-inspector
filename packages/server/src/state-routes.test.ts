@@ -23,6 +23,7 @@ function fakeSessions(appState: AppState | null, logKey = LOG_KEY): LogSessionMa
   const active: ActiveSession | null = appState ? { logKey, appState } : null;
   return {
     current: () => active,
+    discover: async () => ({ candidates: [], truncated: false }),
     open: async () => {
       if (!active) throw new Error("no active log");
       return active;
@@ -37,6 +38,7 @@ function mutableSessions(initial: AppState): LogSessionManager & { set(appState:
   let active: ActiveSession = { logKey: initial.meta.logKey, appState: initial };
   return {
     current: () => active,
+    discover: async () => ({ candidates: [], truncated: false }),
     open: async () => active,
     close: async () => {},
     onChange: () => () => {},

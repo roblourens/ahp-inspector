@@ -4,7 +4,7 @@
 import type { EventRow as EventRowData } from "@ahp-inspector/core";
 import { ShieldAlert } from "lucide-react";
 import type { CSSProperties, JSX } from "react";
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { DirectionGlyph } from "./cells/DirectionGlyph.js";
 import { KindTag } from "./cells/KindTag.js";
 import { LatencyCell } from "./cells/LatencyCell.js";
@@ -13,8 +13,15 @@ import { SummaryCell } from "./cells/SummaryCell.js";
 export interface EventRowProps {
   row: EventRowData;
   isSelected: boolean;
-  onClick: () => void;
-  style?: CSSProperties;
+  /** Stable selection callback; receives this row's index. Kept stable so the
+   * surrounding `memo` short-circuits on unrelated re-renders. */
+  onSelect: (idx: number) => void;
+  /**
+   * Absolute vertical offset (px) within the virtualized list. Passed as a
+   * primitive (rather than a fresh `style` object) so `memo` can compare it.
+   * When omitted the row renders in normal flow (e.g. in unit tests).
+   */
+  top?: number;
   searchQuery?: string;
   isSearchMatch?: boolean;
   pairHighlight?: "request" | "response" | null;
@@ -135,8 +142,8 @@ function highlightMatches(text: string, query: string): JSX.Element {
 export const EventRow = memo(function EventRow({
   row,
   isSelected,
-  onClick,
-  style,
+  onSelect,
+  top,
   searchQuery = "",
   isSearchMatch = false,
   pairHighlight = null,
@@ -146,6 +153,7 @@ export const EventRow = memo(function EventRow({
   const label = primaryLabel(row);
   const labelTitle = primaryLabelTitle(row);
   const badge = statusBadge(row);
+  const handleClick = useCallback(() => onSelect(row.idx), [onSelect, row.idx]);
   const hiddenPairCopy =
     pairHidden === "response"
       ? "Correlated response is hidden by current filters"
@@ -162,11 +170,11 @@ export const EventRow = memo(function EventRow({
         badge ? ` ${badge.text}` : ""
       }${hiddenPairCopy ? ` ${hiddenPairCopy}` : ""}`}
       title={hiddenPairCopy ?? undefined}
-      onClick={onClick}
+      onClick={handleClick}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onClick();
+          handleClick();
         }
       }}
       tabIndex={isSelected ? 0 : -1}
@@ -191,7 +199,15 @@ export const EventRow = memo(function EventRow({
             : isSearchMatch
               ? "color-mix(in srgb, var(--color-search-match-bg) 28%, transparent)"
               : "transparent",
-        ...style,
+        ...(top !== undefined
+          ? {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              transform: `translateY(${top}px)`,
+            }
+          : {}),
       }}
     >
       <div

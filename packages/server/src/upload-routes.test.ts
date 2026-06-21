@@ -105,4 +105,44 @@ describe("upload routes", () => {
     await handle.dispose();
     await sessions.dispose();
   });
+
+  it("rejects an oversize chunked body (no Content-Length) with 413 and cancels the stream", async () => {
+    const sessions = createLogSessionManager({
+      host: new NodeHostAdapter(),
+      resolveCandidateId: () => null,
+    });
+    const app = new Hono();
+    // Tiny limit so we don't have to stream 100 MB to exercise the cap.
+    const handle = registerUploadRoutes(app, sessions, { maxUploadBytes: 8 });
+
+    let cancelled = false;
+    let pushedChunks = 0;
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        // 4 bytes per chunk; the cap (8) is exceeded on the third chunk.
+        pushedChunks++;
+        controller.enqueue(new Uint8Array(4));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+
+    const res = await app.request("/api/sessions/upload", {
+      method: "POST",
+      headers: { "x-filename": "log.jsonl" },
+      body,
+      // Node requires duplex for a streaming request body.
+      duplex: "half",
+    } as RequestInit & { duplex: "half" });
+
+    expect(res.status).toBe(413);
+    expect(((await res.json()) as { code: string }).code).toBe("too-large");
+    // The reader cancelled the source before draining every chunk.
+    expect(cancelled).toBe(true);
+    expect(pushedChunks).toBeLessThanOrEqual(3);
+    expect(sessions.current()).toBeNull();
+    await handle.dispose();
+    await sessions.dispose();
+  });
 });

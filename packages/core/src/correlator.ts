@@ -17,6 +17,15 @@ import { correlationKeyForRequest, correlationKeyForResponse } from "@ahp-inspec
 import type { AppendRange, EventStore } from "./event-store.js";
 import type { Status } from "./types.js";
 
+/**
+ * Upper bound on each pending map. Without this, a long live-tail session where
+ * requests never get a matching response (or responses never get a matching
+ * request) would grow the pending maps without limit. Maps preserve insertion
+ * order, so the oldest unmatched entry is evicted first when the cap is hit. The
+ * bound is generous enough that healthy traffic never reaches it.
+ */
+export const MAX_PENDING = 10_000;
+
 export class Correlator {
   readonly #store: EventStore;
   readonly #pendingRequests = new Map<CorrelationKey, number>();
@@ -31,6 +40,16 @@ export class Correlator {
   constructor(store: EventStore) {
     this.#store = store;
     this.#unsubscribe = store.subscribe((range) => this.#onAppend(range));
+  }
+
+  /** Outstanding requests awaiting a response (bounded by {@link MAX_PENDING}). */
+  get pendingRequestCount(): number {
+    return this.#pendingRequests.size;
+  }
+
+  /** Out-of-order responses awaiting a request (bounded by {@link MAX_PENDING}). */
+  get pendingResponseCount(): number {
+    return this.#pendingResponses.size;
   }
 
   pairOf(idx: number): number | null {
@@ -119,6 +138,17 @@ export class Correlator {
     if (displaced !== undefined) {
       this.status[displaced] = "orphan";
       this.#changedIndexes.add(displaced);
+    } else if (this.#pendingRequests.size >= MAX_PENDING) {
+      // Bound the map: evict the oldest unmatched request and mark it unmatched.
+      const oldestKey = this.#pendingRequests.keys().next().value;
+      if (oldestKey !== undefined) {
+        const oldIdx = this.#pendingRequests.get(oldestKey);
+        this.#pendingRequests.delete(oldestKey);
+        if (oldIdx !== undefined) {
+          this.status[oldIdx] = "unmatched";
+          this.#changedIndexes.add(oldIdx);
+        }
+      }
     }
     this.#pendingRequests.set(key, idx);
     this.status[idx] = "pending";
@@ -139,6 +169,11 @@ export class Correlator {
     if (displaced !== undefined) {
       this.status[displaced] = "orphan";
       this.#changedIndexes.add(displaced);
+    } else if (this.#pendingResponses.size >= MAX_PENDING) {
+      // Bound the map: drop the oldest parked response. A response that never
+      // finds its request stays 'n/a', so eviction needs no status change.
+      const oldestKey = this.#pendingResponses.keys().next().value;
+      if (oldestKey !== undefined) this.#pendingResponses.delete(oldestKey);
     }
     this.#pendingResponses.set(key, idx);
   }

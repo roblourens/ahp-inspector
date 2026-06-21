@@ -263,10 +263,11 @@ describe("replayToIndex", () => {
     expect(malformed.diagnostics[0]?.code).toBe("malformed-envelope");
   });
 
-  it("uses event timestamps for reducer Date.now branches and restores Date.now", () => {
+  it("uses event timestamps for reducer modifiedAt instead of wall-clock", () => {
+    // Set a sentinel global clock that replay must NOT pick up: the reducer
+    // receives an injected () => eventTs, so modifiedAt should be the event ts.
     const original = Date.now;
-    const fakeNow = () => 42;
-    Date.now = fakeNow;
+    Date.now = () => 999_999;
     try {
       const result = replayToIndex(
         [
@@ -288,7 +289,6 @@ describe("replayToIndex", () => {
         title: "Renamed",
         modifiedAt: 12_345,
       });
-      expect(Date.now).toBe(fakeNow);
     } finally {
       Date.now = original;
     }

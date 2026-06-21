@@ -19,6 +19,7 @@ import type { AhpEvent, EventKind } from "@ahp-inspector/shared";
 import { Loader2 } from "lucide-react";
 import { type CSSProperties, type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "../../state/store.js";
+import { Z } from "../../styles/zLayers.js";
 import { type DetailResponse, fetchEvent } from "../../transport/http-client.js";
 import { AhpFieldStrip } from "./AhpFieldStrip.js";
 import { AuthFailureBanner } from "./AuthFailureBanner.js";
@@ -434,7 +435,7 @@ export function DetailPanel({
             position: "sticky",
             top: 0,
             background: "var(--color-surface)",
-            zIndex: 1,
+            zIndex: Z.sticky,
           }}
         >
           <DetailTabs active={activeTab} onChange={setActiveTab} />

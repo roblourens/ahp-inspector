@@ -39,7 +39,7 @@ const baseRow: EventRowData = {
 
 describe("EventRow — UI-SPEC §04.1 columns", () => {
   it("renders ID-first columns with summary and no standalone status cell", () => {
-    render(<EventRow row={baseRow} isSelected={false} onClick={() => {}} />);
+    render(<EventRow row={baseRow} isSelected={false} onSelect={() => {}} />);
     const cells = screen.getAllByRole("gridcell");
     expect(cells.length).toBe(10);
 
@@ -64,7 +64,7 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
           actionType: "session/delta",
         }}
         isSelected={false}
-        onClick={() => {}}
+        onSelect={() => {}}
       />,
     );
 
@@ -82,7 +82,7 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
           actionType: "session/toolCallContentChanged",
         }}
         isSelected={false}
-        onClick={() => {}}
+        onSelect={() => {}}
       />,
     );
 
@@ -93,7 +93,7 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
   });
 
   it("prevents every timeline column from wrapping", () => {
-    render(<EventRow row={baseRow} isSelected={false} onClick={() => {}} />);
+    render(<EventRow row={baseRow} isSelected={false} onSelect={() => {}} />);
     for (const cell of screen.getAllByRole("gridcell")) {
       expect(cell.style.whiteSpace).toBe("nowrap");
       expect(cell.style.overflow).toBe("hidden");
@@ -102,7 +102,7 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
   });
 
   it("sets role=row + aria-rowindex + aria-selected", () => {
-    render(<EventRow row={{ ...baseRow, idx: 4 }} isSelected onClick={() => {}} />);
+    render(<EventRow row={{ ...baseRow, idx: 4 }} isSelected onSelect={() => {}} />);
     const row = screen.getByRole("row");
     expect(row.getAttribute("aria-rowindex")).toBe("5");
     expect(row.getAttribute("aria-selected")).toBe("true");
@@ -110,7 +110,7 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
   });
 
   it("marks a row as a search match", () => {
-    render(<EventRow row={baseRow} isSelected={false} isSearchMatch onClick={() => {}} />);
+    render(<EventRow row={baseRow} isSelected={false} isSearchMatch onSelect={() => {}} />);
     expect(screen.getByRole("row")).toHaveAttribute("data-search-match", "true");
   });
 
@@ -121,7 +121,7 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
         isSelected
         isSearchMatch
         pairHighlight="request"
-        onClick={() => {}}
+        onSelect={() => {}}
       />,
     );
     const row = screen.getByRole("row");
@@ -147,7 +147,7 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
           summary: "action mysterySafeAction",
         }}
         isSelected={false}
-        onClick={() => {}}
+        onSelect={() => {}}
       />,
     );
     expect(screen.queryByTestId("action-dot")).toBeNull();

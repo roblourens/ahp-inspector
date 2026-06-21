@@ -1,6 +1,6 @@
 import type { AhpEvent } from "@ahp-inspector/shared";
 import { describe, expect, it } from "vitest";
-import { Correlator } from "./correlator.js";
+import { Correlator, MAX_PENDING } from "./correlator.js";
 import { EventStore } from "./event-store.js";
 
 function ev(partial: Partial<AhpEvent> & Pick<AhpEvent, "kind" | "dir" | "seq">): AhpEvent {
@@ -192,5 +192,29 @@ describe("Correlator", () => {
     s.append(res(1, 110));
     // Pair should NOT have been recorded (correlator stopped listening before response).
     expect(c.pairOf(r)).toBeNull();
+  });
+
+  it("bounds the pending-request map under a flood of unmatched requests", () => {
+    const s = new EventStore();
+    const c = new Correlator(s);
+    const flood = MAX_PENDING + 50;
+    for (let i = 0; i < flood; i++) {
+      // Unique id ⇒ unique correlation key, and no response ever arrives.
+      s.append(req(i, i, { id: i }));
+    }
+    expect(c.pendingRequestCount).toBeLessThanOrEqual(MAX_PENDING);
+    // The earliest unmatched request was evicted and marked unmatched.
+    expect(c.statusOf(0)).toBe("unmatched");
+  });
+
+  it("bounds the pending-response map under a flood of orphan responses", () => {
+    const s = new EventStore();
+    const c = new Correlator(s);
+    const flood = MAX_PENDING + 50;
+    for (let i = 0; i < flood; i++) {
+      // Out-of-order responses whose requests never arrive.
+      s.append(res(i, i, { id: i, raw: { jsonrpc: "2.0", id: i, result: {} } }));
+    }
+    expect(c.pendingResponseCount).toBeLessThanOrEqual(MAX_PENDING);
   });
 });

@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { useEffect, useRef, useState } from "react";
+import { Z } from "../../styles/zLayers.js";
 import { popoverPosition } from "./popoverPosition.js";
 
 const MAX_VISIBLE = 100;
@@ -68,7 +69,7 @@ export function FacetPopover({
       aria-multiselectable="true"
       style={{
         ...popoverPosition("--filter-popover-anchor", align),
-        zIndex: 1100,
+        zIndex: Z.popover,
         background: "var(--color-surface-raised)",
         border: "1px solid var(--color-border-strong)",
         borderRadius: 6,

@@ -1,4 +1,5 @@
 import { type JSX, useEffect, useRef } from "react";
+import { Z } from "../../styles/zLayers.js";
 import type { SafeCandidate } from "../../types/safe-candidate.js";
 import { CandidateList } from "./CandidateList.js";
 import { ManualOpenInput } from "./ManualOpenInput.js";
@@ -47,16 +48,16 @@ export function LogPickerPanel({
       aria-label="Switch log"
       style={{
         position: "fixed",
-        // Drop below the 40px HeaderBar; FilterBar (z-index 1000) sits below it
-        // in the document, so the picker must use a higher z-index than the
-        // FilterBar to fully cover the search row underneath. Otherwise the
-        // FilterBar's search input paints on top of this header.
+        // Drop below the 40px HeaderBar; the FilterBar (Z.controls) sits below
+        // it in the document, so the picker must outrank both the FilterBar and
+        // the HeaderBar (Z.picker > Z.header) to fully cover the search row
+        // underneath. Otherwise the FilterBar's search input paints on top.
         top: 40,
         left: 0,
         right: 0,
         maxHeight: "calc(100vh - 40px)",
         overflowY: "auto",
-        zIndex: 1200,
+        zIndex: Z.picker,
         background: "var(--color-surface)",
         borderBottom: "1px solid var(--color-border-strong)",
         boxShadow: "var(--shadow-menu)",

@@ -1,4 +1,5 @@
 import type { CSSProperties, JSX } from "react";
+import { Z } from "../../styles/zLayers.js";
 
 export interface StickyGroupBarProps {
   topGroup: { level: "session" | "turn"; label: string } | null;
@@ -28,7 +29,7 @@ export function StickyGroupBar({ topGroup }: StickyGroupBarProps): JSX.Element |
         fontWeight: "var(--weight-semibold)" as CSSProperties["fontWeight"],
         borderBottom: "1px solid var(--color-border)",
         flexShrink: 0,
-        zIndex: 1,
+        zIndex: Z.sticky,
       }}
     >
       {topGroup.label}

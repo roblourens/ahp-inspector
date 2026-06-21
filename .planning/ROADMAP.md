@@ -308,6 +308,33 @@ Cross-cutting constraints:
 - Keep Phase 31 client-local: no new network, dependency, server, host-adapter, persistence, protocol, Escape, or ARIA/keyboard behavior.
 - Generate and inspect saved screenshots only from repository fixtures or synthetic rows, with no absolute path leakage.
 
+### Phase 32: Code review remediation: security, test integrity, performance, architecture, and robustness fixes
+
+**Goal:** Resolve the legitimate findings from the in-depth code review without changing product behavior the user relies on. Close the cross-site/local-file-read exposure, restore real coverage to the vacuous style guard, re-establish the host-adapter boundary in the server, remove avoidable UI recomputation, give CRT/overlay/control stacking a real z-index scale, bound unbounded live-tail growth, make `turnShort` as smart as `sessionShort`, and stop stray worktrees from breaking local lint. Verified against the existing 1368-test suite plus build and lint.
+**Requirements**: CR-SEC (no arbitrary Origin reflection + origin gate on mutating `/api/*` + upload size check before buffering + SSE connection cap), CR-TEST (style guards fail loudly and catch the real `TimelineList` rgb literal), CR-ARCH (server routes go through `HostAdapter`, not `host-node`), CR-PERF (filtered/grouped rows computed once; `EventRow` memo holds), CR-CSS (single z-index token scale resolves control/overlay collisions), CR-ROBUST (bounded `pendingResponses`; injectable clock in replay; smart `turnShort`), CR-DEVX (`.claude/` worktrees ignored; nested `biome.json` cannot break `pnpm lint`)
+**Depends on:** Phase 31
+**Plans:** 7 plans
+
+Plans:
+**Wave 1** *(independent — security, test integrity, architecture, devx)*
+
+- [ ] 32-01-PLAN.md — Security hardening: replace Origin reflection with a loopback allow-list, add an Origin gate on state-changing `/api/*` routes, enforce the upload size limit before buffering the full body, and cap concurrent SSE connections.
+- [ ] 32-02-PLAN.md — Test integrity: fix the `no-hex-in-components` guard so it resolves the real source dir (no silently-empty walk), then fix the offending `rgb()` literal it should have caught in `TimelineList.tsx`.
+- [ ] 32-03-PLAN.md — Architecture boundary: remove the direct `host-node` import from server session routes and route discovery/open through the injected `HostAdapter`.
+- [ ] 32-07-PLAN.md — DevX hygiene: gitignore `.claude/` worktrees and ensure a nested `biome.json` cannot break `pnpm lint`.
+
+**Wave 2** *(UI/state — sequence after Wave 1 to keep commits clean)*
+
+- [ ] 32-04-PLAN.md — UI performance: compute filtered/grouped rows once per render, stabilize `EventRow` props so its `memo` holds, and remove the default-filter slow path.
+- [ ] 32-05-PLAN.md — CSS z-index scale: introduce a single z-index token scale and re-layer controls, drawer, dialogs, and CRT overlays to remove collisions.
+- [ ] 32-06-PLAN.md — Robustness & correctness: bound `pendingResponses` growth in the correlator/event-store, replace the `Date.now` monkeypatch in `replay.ts` with an injectable clock, and make `turnShort` mirror the smart `sessionShort` formatting.
+
+Cross-cutting constraints:
+
+- Preserve all existing user-visible behavior: default-hidden `ping`, filter persistence, the 100-row cap, search/grouping, every theme, local-only privacy (loopback only, no telemetry/CDN/outbound), and the core/parser/protocol/shared portability boundary (no Node/DOM).
+- Each plan lands as its own atomic commit with the full suite green; no plan may regress the 1368-test baseline.
+- Security fixes must not break the documented same-origin CLI/extension flows; verify the loopback UI still loads and uploads work.
+
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
 *v1.2 opened 2026-05-10; last updated 2026-06-11 (Phase 31 added: Improvements to the filter pickers)*

@@ -114,7 +114,8 @@ describe("Phase 04.1 vertical slice — safe real-shaped row polish fixture", ()
 
     const sessionRow = rows.find((row) => row.sessionId === "safe-session-gamma");
     expect(sessionRow?.sessionShort).toBe("safe-session-gamma");
-    expect(sessionRow?.turnShort).toBe("000003");
+    // turnShort now preserves the clean turn id (no naive trailing slice).
+    expect(sessionRow?.turnShort).toBe("gamma-000003");
 
     expect(rows.some((row) => row.summary === "error -32001: safe synthetic failure")).toBe(true);
     expect(rows.some((row) => row.summary.startsWith('"Synthetic assistant delta'))).toBe(true);

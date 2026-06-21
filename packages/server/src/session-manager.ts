@@ -5,7 +5,7 @@
 
 import { stat as fsStat } from "node:fs/promises";
 import { resolve as pathResolve } from "node:path";
-import type { Direction, HostAdapter } from "@ahp-inspector/shared";
+import type { Direction, DiscoveryResult, HostAdapter } from "@ahp-inspector/shared";
 import { type AppState, type AppStateOptions, createAppState } from "./app-state.js";
 import { computeLogKey } from "./log-key.js";
 
@@ -16,6 +16,8 @@ export interface ActiveSession {
 
 export interface LogSessionManager {
   current(): ActiveSession | null;
+  /** Discover candidate logs via the injected host adapter (no host-node dep). */
+  discover(): Promise<DiscoveryResult>;
   open(input: { path: string } | { id: string }): Promise<ActiveSession>;
   close(): Promise<void>;
   /** Subscribe; emits null on close, ActiveSession on open/switch. */
@@ -114,6 +116,7 @@ export function createLogSessionManager(opts: CreateLogSessionManagerOpts): LogS
 
   return {
     current: () => active,
+    discover: () => opts.host.discoverLogs(),
     async open(input) {
       const next = chain.then(async () => {
         if ("path" in input) return doOpen(input.path);

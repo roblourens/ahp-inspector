@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import type { JSX, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { SearchStatus } from "../../state/store.js";
+import { Z } from "../../styles/zLayers.js";
 import { SearchInputCore } from "./SearchInputCore.js";
 
 interface SearchPopoverProps {
@@ -70,7 +71,7 @@ export function SearchPopover({
         marginTop: "4px",
         width: 344,
         maxWidth: "calc(100% - 24px)",
-        zIndex: 1100,
+        zIndex: Z.popover,
         background: "var(--color-surface-raised)",
         border: "1px solid var(--color-border-strong)",
         borderRadius: 6,

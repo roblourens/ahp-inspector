@@ -6,6 +6,7 @@ import { ArrowDown } from "lucide-react";
 import type { CSSProperties, JSX } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { VirtualItem } from "../../state/selectors.js";
+import { Z } from "../../styles/zLayers.js";
 import { buildTimelineGridColumns, EventRow, ID_COLUMN_DEFAULT_WIDTH } from "./EventRow.js";
 import { GroupHeaderRow } from "./GroupHeaderRow.js";
 import { ParseErrorRow } from "./ParseErrorRow.js";
@@ -251,7 +252,7 @@ export function TimelineList({
               padding: "3px 8px",
               position: "sticky",
               top: 0,
-              zIndex: 1,
+              zIndex: Z.sticky,
               background: "var(--color-surface)",
               borderBottom: "1px solid var(--color-border)",
               color: "var(--color-text-muted)",
@@ -336,13 +337,13 @@ export function TimelineList({
                   key={row.idx}
                   row={row}
                   isSelected={isSelected}
-                  onClick={() => onSelect(row.idx)}
+                  onSelect={onSelect}
                   searchQuery={searchQuery}
                   isSearchMatch={searchMatches?.has(row.idx) ?? false}
                   pairHighlight={pairHighlight}
                   pairHidden={pairHidden}
                   gridColumns={gridColumns}
-                  style={style}
+                  top={vi.start}
                 />
               );
             })}
@@ -367,8 +368,8 @@ export function TimelineList({
             background: "var(--color-surface-raised)",
             color: "var(--color-text)",
             cursor: "pointer",
-            boxShadow: "0 6px 18px rgb(0 0 0 / 0.16)",
-            zIndex: 2,
+            boxShadow: "var(--shadow-menu)",
+            zIndex: Z.sticky,
             fontFamily: "var(--font-sans)",
             fontSize: "var(--text-ui-muted-size)",
           }}

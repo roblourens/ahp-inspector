@@ -415,9 +415,23 @@ describe("projectRow() — tabular field formatting", () => {
     });
     const row = projectRow(e, 0, "ok", 0);
     expect(row.sessionShort).toBe("89abcdef");
-    expect(row.turnShort).toBe("bbcccc");
+    // turnShort now mirrors sessionShort: the "turn-" prefix is stripped and the
+    // remaining short hex passes through (no naive trailing slice).
+    expect(row.turnShort).toBe("aaaabbbbcccc");
     expect(row.keyId?.length).toBe(12);
     expect(row.keyId).toBe("very-long-id");
+  });
+
+  it("turnShort formatting has parity with sessionShort", () => {
+    // Long hex turn id collapses to the last 8 chars, like a session id.
+    const hex = mkEvent({ turnId: "turn-0123456789abcdef0123" });
+    expect(projectRow(hex, 0, "ok", 0).turnShort).toBe("cdef0123");
+    // A short numeric turn id passes through unchanged.
+    const numeric = mkEvent({ turnId: "000003" });
+    expect(projectRow(numeric, 0, "ok", 0).turnShort).toBe("000003");
+    // A date-suffixed turn id is no longer truncated to an ugly fragment.
+    const dated = mkEvent({ turnId: "turn-build-2024-07-12" });
+    expect(projectRow(dated, 0, "ok", 0).turnShort).toBe("build");
   });
   it("nulls when ids missing", () => {
     const row = projectRow(mkEvent({ id: null, idType: "null" }), 0, "ok", 0);

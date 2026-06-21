@@ -20,8 +20,13 @@ import type { ActiveSession, LogSessionManager } from "./session-manager.js";
 
 const SNAPSHOT_CHUNK = 2000;
 const PING_INTERVAL_MS = 20_000;
+// Cap concurrent live-tail streams so a buggy or hostile client can't exhaust
+// server resources by opening unbounded SSE connections.
+export const MAX_SSE_CONNECTIONS = 8;
 
 export function registerLogRoutes(app: Hono, sessions: LogSessionManager): void {
+  let activeStreams = 0;
+
   app.get("/api/log/meta", (c) => {
     const a = sessions.current();
     if (!a) return c.body(null, 204);
@@ -33,8 +38,13 @@ export function registerLogRoutes(app: Hono, sessions: LogSessionManager): void 
     if (!initial) {
       return c.json({ code: "no-active-log" }, 409);
     }
+    if (activeStreams >= MAX_SSE_CONNECTIONS) {
+      return c.json({ code: "too-many-streams" }, 503);
+    }
+    activeStreams++;
     return streamSSE(c, async (stream) => {
-      const a: ActiveSession = initial;
+      try {
+        const a: ActiveSession = initial;
 
       const queue: SsePayload[] = [];
       let queueStart = 0;
@@ -175,6 +185,9 @@ export function registerLogRoutes(app: Hono, sessions: LogSessionManager): void 
         await stream.writeSSE({ event: "bye", data: "{}" });
       } catch {
         /* ignore */
+      }
+      } finally {
+        activeStreams--;
       }
     });
   });

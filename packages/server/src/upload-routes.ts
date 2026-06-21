@@ -17,6 +17,49 @@ import type { LogSessionManager } from "./session-manager.js";
 const MAX_UPLOAD_BYTES = 100 * 1024 * 1024; // 100 MB
 const UPLOAD_DIR_PREFIX = "ahp-inspector-upload-";
 
+class BodyTooLargeError extends Error {}
+
+/**
+ * Read a request body incrementally, aborting as soon as it exceeds `maxBytes`
+ * so an oversized (or chunked, no-Content-Length) upload cannot buffer fully in
+ * memory before the size check runs.
+ */
+async function readBodyCapped(
+  body: ReadableStream<Uint8Array> | null,
+  maxBytes: number,
+): Promise<Uint8Array> {
+  if (!body) return new Uint8Array(0);
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    let result: Awaited<ReturnType<typeof reader.read>>;
+    try {
+      result = await reader.read();
+    } catch {
+      reader.releaseLock();
+      throw new Error("read-failed");
+    }
+    if (result.done) break;
+    const value = result.value;
+    if (!value) continue;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => {});
+      throw new BodyTooLargeError();
+    }
+    chunks.push(value);
+  }
+  reader.releaseLock();
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return out;
+}
+
 function sanitizeFilename(raw: string): string | null {
   // Strip any path separators and decode. Reject anything not ending .jsonl.
   let decoded: string;
@@ -86,8 +129,18 @@ export interface UploadRoutesHandle {
   dispose(): Promise<void>;
 }
 
-export function registerUploadRoutes(app: Hono, sessions: LogSessionManager): UploadRoutesHandle {
+export interface UploadRoutesOptions {
+  /** Override the max upload size (bytes). Defaults to {@link MAX_UPLOAD_BYTES}. */
+  readonly maxUploadBytes?: number;
+}
+
+export function registerUploadRoutes(
+  app: Hono,
+  sessions: LogSessionManager,
+  opts?: UploadRoutesOptions,
+): UploadRoutesHandle {
   const store = createUploadStore();
+  const maxBytes = opts?.maxUploadBytes ?? MAX_UPLOAD_BYTES;
 
   // When the active session changes, drop any temp uploads that aren't the
   // current source. We don't know which path the manager opened from inside
@@ -116,26 +169,26 @@ export function registerUploadRoutes(app: Hono, sessions: LogSessionManager): Up
 
     const lengthHeader = c.req.header("content-length");
     const declaredLength = lengthHeader ? Number.parseInt(lengthHeader, 10) : Number.NaN;
-    if (Number.isFinite(declaredLength) && declaredLength > MAX_UPLOAD_BYTES) {
+    if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
       return c.json({ code: "too-large", message: "too-large" }, 413);
     }
 
-    let buf: ArrayBuffer;
+    let bytes: Uint8Array;
     try {
-      buf = await c.req.arrayBuffer();
-    } catch {
+      bytes = await readBodyCapped(c.req.raw.body, maxBytes);
+    } catch (err) {
+      if (err instanceof BodyTooLargeError) {
+        return c.json({ code: "too-large", message: "too-large" }, 413);
+      }
       return c.json({ code: "bad-request", message: "could not read body" }, 400);
     }
-    if (buf.byteLength === 0) {
+    if (bytes.byteLength === 0) {
       return c.json({ code: "bad-request", message: "empty body" }, 400);
-    }
-    if (buf.byteLength > MAX_UPLOAD_BYTES) {
-      return c.json({ code: "too-large", message: "too-large" }, 413);
     }
 
     let tempPath: string;
     try {
-      tempPath = await store.write(safeName, new Uint8Array(buf));
+      tempPath = await store.write(safeName, bytes);
     } catch {
       return c.json({ code: "io-error", message: "io-error" }, 500);
     }

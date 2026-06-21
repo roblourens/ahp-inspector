@@ -9,6 +9,7 @@ import {
   type ThemeId,
 } from "../../theme/theme.js";
 import { __APP_VERSION__ } from "../../version.js";
+import { Z } from "../../styles/zLayers.js";
 import { LivePauseButton } from "./LivePauseButton.js";
 
 interface HeaderBarProps {
@@ -130,7 +131,7 @@ export function HeaderBar({ version }: HeaderBarProps): JSX.Element {
                 position: "absolute",
                 top: "calc(100% + 4px)",
                 right: 0,
-                zIndex: 1200,
+                zIndex: Z.popover,
                 minWidth: 148,
                 padding: "var(--space-1) 0",
                 background: "var(--color-surface-raised)",

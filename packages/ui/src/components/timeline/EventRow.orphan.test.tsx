@@ -43,32 +43,32 @@ function railBg(): string {
 
 describe("EventRow — rail color logic", () => {
   it("orphan status → warning rail", () => {
-    render(<EventRow row={{ ...base, status: "orphan" }} isSelected={false} onClick={() => {}} />);
+    render(<EventRow row={{ ...base, status: "orphan" }} isSelected={false} onSelect={() => {}} />);
     expect(railBg()).toContain("var(--color-warning)");
     expect(screen.getByText("ORPHAN")).toBeTruthy();
   });
 
   it("unmatched status → warning rail", () => {
     render(
-      <EventRow row={{ ...base, status: "unmatched" }} isSelected={false} onClick={() => {}} />,
+      <EventRow row={{ ...base, status: "unmatched" }} isSelected={false} onSelect={() => {}} />,
     );
     expect(railBg()).toContain("var(--color-warning)");
     expect(screen.getByText("TIMEOUT")).toBeTruthy();
   });
 
   it("error status → destructive rail", () => {
-    render(<EventRow row={{ ...base, status: "error" }} isSelected={false} onClick={() => {}} />);
+    render(<EventRow row={{ ...base, status: "error" }} isSelected={false} onSelect={() => {}} />);
     expect(railBg()).toContain("var(--color-destructive)");
     expect(screen.getByText("ERR")).toBeTruthy();
   });
 
   it("selected → accent rail (overrides status)", () => {
-    render(<EventRow row={{ ...base, status: "error" }} isSelected onClick={() => {}} />);
+    render(<EventRow row={{ ...base, status: "error" }} isSelected onSelect={() => {}} />);
     expect(railBg()).toContain("var(--color-accent)");
   });
 
   it("ok + not-selected → transparent rail", () => {
-    render(<EventRow row={base} isSelected={false} onClick={() => {}} />);
+    render(<EventRow row={base} isSelected={false} onSelect={() => {}} />);
     expect(railBg()).toContain("transparent");
   });
 });

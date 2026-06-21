@@ -18,6 +18,7 @@ function fakeSessions(appState: AppState): LogSessionManager {
   const active: ActiveSession = { logKey: appState.meta.logKey, appState };
   return {
     current: () => active,
+    discover: async () => ({ candidates: [], truncated: false }),
     open: async () => active,
     close: async () => {},
     onChange: () => () => {},
