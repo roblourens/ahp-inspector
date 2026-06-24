@@ -225,6 +225,7 @@ export const EventRow = memo(function EventRow({
           display: "flex",
           alignItems: "center",
           gap: "var(--space-1)",
+          paddingLeft: 1,
         }}
       >
         {badge ? (

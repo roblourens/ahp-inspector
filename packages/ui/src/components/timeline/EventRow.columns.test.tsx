@@ -155,6 +155,7 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
     const methodCell = screen.getByTitle("session/toolCallContentChanged (action)");
     expect(methodCell.style.whiteSpace).toBe("nowrap");
     expect(methodCell.style.overflow).toBe("hidden");
+    expect(methodCell.style.paddingLeft).toBe("1px");
     expect(screen.getByTestId("event-name-label").textContent).toBe(
       "session/toolCallContentChanged",
     );
