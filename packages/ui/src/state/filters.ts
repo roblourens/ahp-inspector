@@ -52,35 +52,45 @@ export function isFiltersEmpty(f: FilterState): boolean {
  * Categorical arrays contain hidden values; an empty array leaves that dimension visible.
  */
 export function applyFacets(row: EventRow, f: FilterState): boolean {
-  if (f.direction.includes(row.dir as "c2s" | "s2c")) return false;
-  if (f.kind.includes(row.kind)) return false;
-  if (row.method !== null && f.method.includes(row.method)) return false;
-  if (row.actionType !== null && f.actionType.includes(row.actionType)) return false;
-  if (row.sessionId !== null && f.session.includes(row.sessionId)) return false;
-  if (row.turnId !== null && f.turn.includes(row.turnId)) return false;
-  if (f.status.includes(row.status)) return false;
-  const rowText = f.rowText.trim().slice(0, 256).toLowerCase();
-  if (rowText !== "") {
-    const projectedText = [
-      row.keyId,
-      row.tsFmt,
-      row.dir,
-      row.kind,
-      row.method,
-      row.actionType,
-      row.sessionId,
-      row.sessionShort,
-      row.turnId,
-      row.turnShort,
-      row.status,
-      row.payloadPreview,
-      row.summary,
-      row.parseErrorReason,
-    ]
-      .filter((value): value is string => value !== null && value !== undefined)
-      .join(" ")
-      .toLowerCase();
-    if (!projectedText.includes(rowText)) return false;
+  if (f.direction.length !== 0 && f.direction.includes(row.dir as "c2s" | "s2c")) return false;
+  if (f.kind.length !== 0 && f.kind.includes(row.kind)) return false;
+  if (row.method !== null && f.method.length !== 0 && f.method.includes(row.method)) return false;
+  if (
+    row.actionType !== null &&
+    f.actionType.length !== 0 &&
+    f.actionType.includes(row.actionType)
+  ) {
+    return false;
+  }
+  if (row.sessionId !== null && f.session.length !== 0 && f.session.includes(row.sessionId)) {
+    return false;
+  }
+  if (row.turnId !== null && f.turn.length !== 0 && f.turn.includes(row.turnId)) return false;
+  if (f.status.length !== 0 && f.status.includes(row.status)) return false;
+  if (f.rowText !== "") {
+    const rowText = f.rowText.trim().slice(0, 256).toLowerCase();
+    if (rowText !== "") {
+      const projectedText = [
+        row.keyId,
+        row.tsFmt,
+        row.dir,
+        row.kind,
+        row.method,
+        row.actionType,
+        row.sessionId,
+        row.sessionShort,
+        row.turnId,
+        row.turnShort,
+        row.status,
+        row.payloadPreview,
+        row.summary,
+        row.parseErrorReason,
+      ]
+        .filter((value): value is string => value !== null && value !== undefined)
+        .join(" ")
+        .toLowerCase();
+      if (!projectedText.includes(rowText)) return false;
+    }
   }
   if (f.timeFrom !== null && row.ts < f.timeFrom) return false;
   if (f.timeTo !== null && row.ts > f.timeTo) return false;
