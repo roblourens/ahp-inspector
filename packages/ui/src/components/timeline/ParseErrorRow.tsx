@@ -42,8 +42,10 @@ export function ParseErrorRow({
         alignItems: "center",
         height: "var(--row-height)",
         boxSizing: "border-box",
-        padding: "4px 8px",
+        padding: "2px 8px",
         cursor: "pointer",
+        fontSize: "var(--text-ui-muted-size)",
+        lineHeight: "16px",
         background: isSelected ? "var(--color-surface-raised)" : "transparent",
         ...style,
       }}

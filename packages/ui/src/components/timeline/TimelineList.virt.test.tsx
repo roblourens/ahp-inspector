@@ -42,6 +42,14 @@ function makeRow(i: number): EventRowData {
 
 const fixture = Array.from({ length: ROWS }, (_, i) => makeRow(i));
 const fixtureItems: VirtualItem[] = fixture.map((r) => ({ kind: "row", rowIdx: r.idx }));
+const parseErrorRow: EventRowData = {
+  ...makeRow(1),
+  kind: "parse-error",
+  kindTag: "BAD",
+  method: null,
+  status: "error",
+  parseErrorReason: "bad json",
+};
 
 const FAKE_RECT: DOMRect = {
   height: 400,
@@ -126,12 +134,40 @@ describe("TimelineList — virtualization", () => {
     const rendered = await screen.findAllByRole("row");
     expect(rendered.length).toBeGreaterThanOrEqual(1);
     expect(rendered.length).toBeLessThan(100);
+    expect(grid.querySelector('div[style*="height: 1200000px"]')).toBeTruthy();
+  });
+
+  it("renders compact 24px timeline row, parse-error row, and column header heights", async () => {
+    const rows = [makeRow(0), parseErrorRow];
+    render(
+      <div style={{ height: 400 }}>
+        <TimelineList
+          items={rows.map((row) => ({ kind: "row", rowIdx: row.idx }))}
+          rows={rows}
+          selectedIdx={null}
+          onSelect={() => {}}
+        />
+      </div>,
+    );
+
+    expect(screen.getByTestId("timeline-column-header")).toHaveStyle({
+      height: "24px",
+      fontSize: "var(--text-ui-muted-size)",
+      lineHeight: "16px",
+    });
+    expect(await screen.findByTestId("row-0")).toHaveStyle({ height: "var(--row-height)" });
+    expect(await screen.findByTestId("parse-error-1")).toHaveStyle({ height: "24px" });
   });
 
   it("renders a scroll-to-bottom control for the timeline", () => {
     render(
       <div style={{ height: 400 }}>
-        <TimelineList items={fixtureItems.slice(0, 5)} rows={fixture.slice(0, 5)} selectedIdx={null} onSelect={() => {}} />
+        <TimelineList
+          items={fixtureItems.slice(0, 5)}
+          rows={fixture.slice(0, 5)}
+          selectedIdx={null}
+          onSelect={() => {}}
+        />
       </div>,
     );
 
@@ -154,7 +190,12 @@ describe("TimelineList — virtualization", () => {
   it("scrolls to the bottom when the control is clicked", () => {
     render(
       <div style={{ height: 400 }}>
-        <TimelineList items={fixtureItems.slice(0, 5)} rows={fixture.slice(0, 5)} selectedIdx={null} onSelect={() => {}} />
+        <TimelineList
+          items={fixtureItems.slice(0, 5)}
+          rows={fixture.slice(0, 5)}
+          selectedIdx={null}
+          onSelect={() => {}}
+        />
       </div>,
     );
 

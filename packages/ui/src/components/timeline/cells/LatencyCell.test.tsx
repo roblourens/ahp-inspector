@@ -25,4 +25,9 @@ describe("LatencyCell — UI-SPEC §5.6", () => {
     expect(cell.textContent).toBe("—");
     expect(screen.queryByTestId("latency-bar")).toBeNull();
   });
+
+  it("stays aligned to the shared row-height token", () => {
+    render(<LatencyCell ms={12} band="fast" />);
+    expect(screen.getByTestId("latency-cell")).toHaveStyle({ height: "var(--row-height)" });
+  });
 });

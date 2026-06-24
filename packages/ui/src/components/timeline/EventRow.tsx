@@ -6,6 +6,7 @@ import { ShieldAlert } from "lucide-react";
 import type { CSSProperties, JSX } from "react";
 import { memo, useCallback } from "react";
 import { DirectionGlyph } from "./cells/DirectionGlyph.js";
+import { EventNameLabel } from "./cells/EventNameLabel.js";
 import { KindTag } from "./cells/KindTag.js";
 import { LatencyCell } from "./cells/LatencyCell.js";
 import { SummaryCell } from "./cells/SummaryCell.js";
@@ -103,42 +104,6 @@ function statusBadge(
   return null;
 }
 
-/**
- * Highlight occurrences of `query` (case-insensitive) within `text`.
- * Returns a JSX element with <mark> wrapping each match.
- * Only applies when query is ≥ 2 characters (T-03-05-03: uses React elements — auto-escaped, no XSS).
- */
-function highlightMatches(text: string, query: string): JSX.Element {
-  if (query.length < 2) return <>{text}</>;
-  const lower = text.toLowerCase();
-  const lowerQ = query.toLowerCase();
-  const parts: JSX.Element[] = [];
-  let last = 0;
-  let idx = lower.indexOf(lowerQ, last);
-  while (idx !== -1) {
-    if (idx > last) {
-      parts.push(<span key={`t-${last}`}>{text.slice(last, idx)}</span>);
-    }
-    parts.push(
-      <mark
-        key={`m-${idx}`}
-        style={{
-          background: "var(--color-search-match-bg)",
-          color: "var(--color-search-match-fg)",
-        }}
-      >
-        {text.slice(idx, idx + query.length)}
-      </mark>,
-    );
-    last = idx + query.length;
-    idx = lower.indexOf(lowerQ, last);
-  }
-  if (last < text.length) {
-    parts.push(<span key={`t-${last}`}>{text.slice(last)}</span>);
-  }
-  return <>{parts}</>;
-}
-
 export const EventRow = memo(function EventRow({
   row,
   isSelected,
@@ -189,9 +154,11 @@ export const EventRow = memo(function EventRow({
         alignItems: "center",
         height: "var(--row-height)",
         boxSizing: "border-box",
-        padding: "4px 8px",
+        padding: "2px 8px",
         cursor: "pointer",
         minWidth: "max-content",
+        fontSize: "var(--text-ui-muted-size)",
+        lineHeight: "16px",
         background: isSelected
           ? "var(--row-selected-bg)"
           : pairHighlight
@@ -279,7 +246,7 @@ export const EventRow = memo(function EventRow({
             display: "block",
           }}
         >
-          {label ? highlightMatches(label, searchQuery) : "—"}
+          {label ? <EventNameLabel label={label} searchQuery={searchQuery} /> : "—"}
         </span>
       </div>
       <div role="gridcell" className="id" title={row.sessionId ?? ""} style={cellStyle}>

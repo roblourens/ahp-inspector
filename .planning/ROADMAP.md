@@ -340,24 +340,24 @@ Cross-cutting constraints:
 **Goal:** Make the timeline feel a bit tighter and more data-dense, closer to the attached Chrome DevTools Network table reference, while preserving polish/readability. Reduce timeline row density in a virtualizer-safe way, keep typography changes timeline-local, and render hierarchical event names so prefixes such as `foo/` are subtly muted but still readable.
 **Requirements**: DENSITY-33-01 (24px timeline rows, timeline-local 12px/16px typography, and virtualizer alignment), EVENTNAME-33-02 (safe last-slash prefix/leaf event-name styling with preserved search/a11y), THEME-33-03 (`--color-event-name-prefix` token across dark/light/hacker with no raw component colors), PRIVACY-33-04 (fixture-only all-theme screenshots with path-leak guards)
 **Depends on:** Phase 32
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
 
-- [ ] 33-01-PLAN.md — Add Phase 33 theme/density tokens and token coverage guards.
+- [x] 33-01-PLAN.md — Add Phase 33 theme/density tokens and token coverage guards.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 33-02-PLAN.md — Tighten timeline row density to 24px with timeline-local 12px/16px typography while keeping virtualizer alignment.
+- [x] 33-02-PLAN.md — Tighten timeline row density to 24px with timeline-local 12px/16px typography while keeping virtualizer alignment.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 33-03-PLAN.md — Add safe hierarchical event-name rendering with prefix/leaf styling.
+- [x] 33-03-PLAN.md — Add safe hierarchical event-name rendering with prefix/leaf styling.
 
 **Wave 4** *(blocked on Waves 2 and 3 completion)*
 
-- [ ] 33-04-PLAN.md — Add synthetic-fixture Playwright screenshots and privacy guard.
+- [x] 33-04-PLAN.md — Add synthetic-fixture Playwright screenshots and privacy guard.
 
 Cross-cutting constraints:
 

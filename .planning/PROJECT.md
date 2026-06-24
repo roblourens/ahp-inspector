@@ -10,6 +10,10 @@ Make AHP traffic understandable at a glance while preserving fast access to exac
 
 ## Current State
 
+**v1.2 lean-open work complete through Phase 33:** 2026-06-24
+
+The active v1.2 follow-up work now includes a denser timeline presentation: 24px timeline rows, timeline-local 12px/16px row/header typography, safe hierarchical event-name prefix styling, and fixture-only dark/light/hacker visual evidence for the Phase 33 density pass.
+
 **v1.1 Reducer-backed State Snapshots shipped:** 2026-05-10
 
 The v1.1 milestone delivered:
@@ -27,7 +31,7 @@ Final gates: 91 vitest files / 1095 tests, `pnpm -r typecheck`, biome lint, E2E 
 
 ## Next Milestone
 
-v1.2 is undefined. Run `/gsd-new-milestone` to scope and plan. Open candidates (from v1.1 deferred and `Future Candidates`): continuous scrub-through state, deep semantic diff for nested paths, multi-log state comparison, snapshot/diff export, saved searches and bookmarks, advanced filter DSL.
+v1.2 is ready for milestone archival. Run `/gsd-complete-milestone` when ready, then `/gsd-new-milestone` to scope and plan the next cycle. Open candidates (from v1.1 deferred and `Future Candidates`): continuous scrub-through state, deep semantic diff for nested paths, multi-log state comparison, snapshot/diff export, saved searches and bookmarks, advanced filter DSL.
 
 ## Requirements
 
@@ -113,4 +117,4 @@ VS Code can emit AHP traffic as JSONL logs. AHP Inspector treats the real JSONL 
 - milestone index: `.planning/MILESTONES.md`
 
 ---
-*Last updated: 2026-05-10 after v1.1 milestone close*
+*Last updated: 2026-06-24 after Phase 33 completion*

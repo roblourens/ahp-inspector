@@ -12,8 +12,8 @@ import { GroupHeaderRow } from "./GroupHeaderRow.js";
 import { ParseErrorRow } from "./ParseErrorRow.js";
 
 const ITEM_HEIGHT = {
-  row: 28,
-  "parse-error": 28,
+  row: 24,
+  "parse-error": 24,
   header: 24,
 } as const;
 
@@ -48,8 +48,12 @@ const COLUMN_LABELS = [
   { key: "summary", label: "Summary", ariaLabel: "Parsed event summary" },
 ] as const;
 
-function getItemKindKey(item: VirtualItem): keyof typeof ITEM_HEIGHT {
+function getItemKindKey(
+  item: VirtualItem,
+  rows: readonly EventRowData[],
+): keyof typeof ITEM_HEIGHT {
   if (item.kind === "header") return "header";
+  if (rows[item.rowIdx]?.kind === "parse-error") return "parse-error";
   return "row";
 }
 
@@ -103,8 +107,8 @@ export function TimelineList({
     getScrollElement: () => parentRef.current,
     estimateSize: (i) => {
       const item = items[i];
-      if (!item) return 28;
-      return ITEM_HEIGHT[getItemKindKey(item)] ?? 28;
+      if (!item) return 24;
+      return ITEM_HEIGHT[getItemKindKey(item, rows)] ?? 24;
     },
     overscan: 12,
   });
@@ -258,6 +262,7 @@ export function TimelineList({
               color: "var(--color-text-muted)",
               fontFamily: "var(--font-sans)",
               fontSize: "var(--text-ui-muted-size)",
+              lineHeight: "16px",
               fontWeight: "var(--weight-semibold)",
               textTransform: "uppercase",
               letterSpacing: "0.04em",
@@ -307,6 +312,7 @@ export function TimelineList({
               // kind === "row"
               const row = rows[item.rowIdx];
               if (!row) return null;
+              const itemHeight = ITEM_HEIGHT[getItemKindKey(item, rows)] ?? 24;
               const isSelected = row.idx === selectedIdx;
               const pairHighlight =
                 selectedPairIdx !== null && row.idx === selectedPairIdx && selectedPairVisible
@@ -320,7 +326,7 @@ export function TimelineList({
                 top: 0,
                 left: 0,
                 right: 0,
-                height: 28,
+                height: itemHeight,
                 transform: `translateY(${vi.start}px)`,
               };
 

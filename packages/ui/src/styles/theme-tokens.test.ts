@@ -17,6 +17,7 @@ export const REQUIRED_THEME_TOKENS = [
   "--color-text-muted",
   "--color-text-subtle",
   "--color-text-disabled",
+  "--color-event-name-prefix",
   "--color-success",
   "--color-warning",
   "--color-destructive",

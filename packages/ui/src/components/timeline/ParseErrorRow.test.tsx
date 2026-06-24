@@ -48,6 +48,16 @@ describe("ParseErrorRow — UI-SPEC §7.3", () => {
     expect(style).toContain("var(--color-destructive)");
   });
 
+  it("uses compact timeline-local row geometry and typography", () => {
+    render(<ParseErrorRow row={baseError} isSelected={false} onClick={() => {}} />);
+    expect(screen.getByRole("row")).toHaveStyle({
+      height: "var(--row-height)",
+      padding: "2px 8px",
+      fontSize: "var(--text-ui-muted-size)",
+      lineHeight: "16px",
+    });
+  });
+
   it("falls back to '?' / 'unknown' when fields are null", () => {
     render(
       <ParseErrorRow

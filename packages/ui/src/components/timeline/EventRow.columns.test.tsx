@@ -38,6 +38,23 @@ const baseRow: EventRowData = {
 };
 
 describe("EventRow — UI-SPEC §04.1 columns", () => {
+  function renderActionLabel(actionType: string, searchQuery = ""): void {
+    render(
+      <EventRow
+        row={{
+          ...baseRow,
+          kind: "action",
+          kindTag: "ACT",
+          method: "action",
+          actionType,
+        }}
+        isSelected={false}
+        onSelect={() => {}}
+        searchQuery={searchQuery}
+      />,
+    );
+  }
+
   it("renders ID-first columns with summary and no standalone status cell", () => {
     render(<EventRow row={baseRow} isSelected={false} onSelect={() => {}} />);
     const cells = screen.getAllByRole("gridcell");
@@ -68,7 +85,56 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
       />,
     );
 
-    expect(screen.getByText("session/delta")).toBeTruthy();
+    expect(screen.getByTestId("event-name-label").textContent).toBe("session/delta");
+  });
+
+  it("splits one-level hierarchical action labels into prefix and leaf spans", () => {
+    renderActionLabel("session/delta");
+
+    const prefix = screen.getByTestId("event-name-prefix");
+    expect(prefix.textContent).toBe("session/");
+    expect(prefix.getAttribute("style")).toContain("var(--color-event-name-prefix)");
+    expect(screen.getByTestId("event-name-leaf").textContent).toBe("delta");
+    expect(screen.getByTitle("session/delta (action)")).toBeTruthy();
+  });
+
+  it("splits deeper hierarchical action labels at the last slash", () => {
+    renderActionLabel("session/tool/call");
+
+    expect(screen.getByTestId("event-name-prefix").textContent).toBe("session/tool/");
+    expect(screen.getByTestId("event-name-leaf").textContent).toBe("call");
+    expect(screen.getByTitle("session/tool/call (action)")).toBeTruthy();
+  });
+
+  it("does not split plain, leading-slash, or trailing-slash labels", () => {
+    render(<EventRow row={baseRow} isSelected={false} onSelect={() => {}} />);
+    expect(screen.getByTestId("event-name-label").textContent).toBe("initialize");
+    expect(screen.queryByTestId("event-name-prefix")).toBeNull();
+    cleanup();
+
+    renderActionLabel("/leading");
+    expect(screen.getByTestId("event-name-label").textContent).toBe("/leading");
+    expect(screen.queryByTestId("event-name-prefix")).toBeNull();
+    cleanup();
+
+    renderActionLabel("trailing/");
+    expect(screen.getByTestId("event-name-label").textContent).toBe("trailing/");
+    expect(screen.queryByTestId("event-name-prefix")).toBeNull();
+  });
+
+  it("keeps search highlighting inside the event-name label", () => {
+    renderActionLabel("session/delta", "delta");
+
+    const label = screen.getByTestId("event-name-label");
+    const mark = label.querySelector("mark");
+    expect(mark?.textContent).toBe("delta");
+  });
+
+  it("keeps search highlighting when a match crosses the hierarchy slash", () => {
+    renderActionLabel("foo/bar", "o/b");
+
+    const marks = Array.from(screen.getByTestId("event-name-label").querySelectorAll("mark"));
+    expect(marks.map((mark) => mark.textContent)).toEqual(["o/", "b"]);
   });
 
   it("keeps long action labels on one truncated line", () => {
@@ -89,7 +155,9 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
     const methodCell = screen.getByTitle("session/toolCallContentChanged (action)");
     expect(methodCell.style.whiteSpace).toBe("nowrap");
     expect(methodCell.style.overflow).toBe("hidden");
-    expect(screen.getByText("session/toolCallContentChanged")).toBeTruthy();
+    expect(screen.getByTestId("event-name-label").textContent).toBe(
+      "session/toolCallContentChanged",
+    );
   });
 
   it("prevents every timeline column from wrapping", () => {
@@ -107,6 +175,16 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
     expect(row.getAttribute("aria-rowindex")).toBe("5");
     expect(row.getAttribute("aria-selected")).toBe("true");
     expect(row.getAttribute("data-selected")).toBe("true");
+  });
+
+  it("uses compact timeline-local row geometry and typography", () => {
+    render(<EventRow row={baseRow} isSelected={false} onSelect={() => {}} />);
+    expect(screen.getByRole("row")).toHaveStyle({
+      height: "var(--row-height)",
+      padding: "2px 8px",
+      fontSize: "var(--text-ui-muted-size)",
+      lineHeight: "16px",
+    });
   });
 
   it("marks a row as a search match", () => {
