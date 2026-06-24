@@ -64,7 +64,7 @@ describe("ParseErrorRow — UI-SPEC §7.3", () => {
     );
     expect(screen.getByRole("row")).toHaveAttribute("data-alternate", "true");
     expect(screen.getByRole("row").getAttribute("style")).toContain(
-      "color-mix(in srgb, var(--color-surface-raised) 18%, transparent)",
+      "color-mix(in srgb, var(--color-surface-raised) 30%, transparent)",
     );
 
     rerender(<ParseErrorRow row={baseError} isSelected isAlternate onClick={() => {}} />);

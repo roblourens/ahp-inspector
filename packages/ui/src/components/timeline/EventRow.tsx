@@ -169,7 +169,7 @@ export const EventRow = memo(function EventRow({
             : isSearchMatch
               ? "color-mix(in srgb, var(--color-search-match-bg) 28%, transparent)"
               : isAlternate
-                ? "color-mix(in srgb, var(--color-surface-raised) 18%, transparent)"
+                ? "color-mix(in srgb, var(--color-surface-raised) 30%, transparent)"
                 : "transparent",
         ...(top !== undefined
           ? {

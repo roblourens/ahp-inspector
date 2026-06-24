@@ -197,7 +197,7 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
     );
     expect(screen.getByRole("row")).toHaveAttribute("data-alternate", "true");
     expect(screen.getByRole("row").getAttribute("style")).toContain(
-      "color-mix(in srgb, var(--color-surface-raised) 18%, transparent)",
+      "color-mix(in srgb, var(--color-surface-raised) 30%, transparent)",
     );
 
     rerender(<EventRow row={baseRow} isSelected isAlternate onSelect={() => {}} />);

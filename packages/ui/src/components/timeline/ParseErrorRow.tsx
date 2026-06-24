@@ -52,7 +52,7 @@ export function ParseErrorRow({
         background: isSelected
           ? "var(--color-surface-raised)"
           : isAlternate
-            ? "color-mix(in srgb, var(--color-surface-raised) 18%, transparent)"
+            ? "color-mix(in srgb, var(--color-surface-raised) 30%, transparent)"
             : "transparent",
         ...style,
       }}
