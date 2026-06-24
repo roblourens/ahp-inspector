@@ -20,4 +20,17 @@ describe("KindTag — UI-SPEC §5.2", () => {
     expect(el.textContent).toBe(kind);
     expect(el.getAttribute("title")).toBe(title);
   });
+
+  it("uses compact centered badge metrics", () => {
+    render(<KindTag kind="ACT" />);
+    expect(screen.getByTestId("kind-tag")).toHaveStyle({
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "16px",
+      fontSize: "11px",
+      lineHeight: "16px",
+      verticalAlign: "middle",
+    });
+  });
 });

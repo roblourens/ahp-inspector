@@ -81,12 +81,13 @@ export function EventNameLabel({
     <span
       data-testid="event-name-label"
       style={{
-        display: "inline-block",
+        display: "block",
         maxWidth: "100%",
         minWidth: 0,
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
+        lineHeight: "16px",
       }}
     >
       {split ? (

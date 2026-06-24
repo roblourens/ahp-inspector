@@ -158,6 +158,10 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
     expect(screen.getByTestId("event-name-label").textContent).toBe(
       "session/toolCallContentChanged",
     );
+    expect(screen.getByTestId("event-name-label")).toHaveStyle({
+      display: "block",
+      lineHeight: "16px",
+    });
   });
 
   it("prevents every timeline column from wrapping", () => {

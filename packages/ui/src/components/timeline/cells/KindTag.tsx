@@ -27,12 +27,18 @@ export function KindTag({ kind }: { kind: KindTagValue }): JSX.Element {
       data-kind={kind}
       title={TITLE[kind]}
       style={{
-        display: "inline-block",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
         width: 44,
+        height: 16,
+        boxSizing: "border-box",
         textAlign: "center",
-        padding: "0 4px",
-        fontSize: "var(--text-ui-muted-size)",
+        padding: "0 3px",
+        fontSize: "11px",
+        lineHeight: "16px",
         textTransform: "uppercase",
+        verticalAlign: "middle",
         background: `color-mix(in srgb, var(${v}) 20%, transparent)`,
         color: `var(${v})`,
         borderRadius: 2,
