@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
-status: complete
-last_updated: "2026-06-12T01:22:42.779Z"
-last_activity: 2026-06-12
+status: executing
+last_updated: "2026-06-24T02:08:59.867Z"
+last_activity: 2026-06-24 -- Phase 33 planning complete
 progress:
   total_phases: 10
   completed_phases: 5
@@ -24,8 +24,8 @@ progress:
 
 Phase: 31 (Improvements to the filter pickers (dir, kind, method, action etc)) — COMPLETE
 Plan: 2 of 2 complete
-Status: Verified complete
-Last activity: 2026-06-12
+Status: Ready to execute
+Last activity: 2026-06-24 -- Phase 33 planning complete
 
 ## Performance Metrics
 
@@ -180,12 +180,13 @@ Last activity: 2026-06-12
 - Phase 31 completed: contextual complete-set facet actions, deterministic visible-label ordering, contained picker controls, unclipped narrow menus, all-theme fixture evidence, and Phase 25 compatibility are verified.
 - 2026-05-16: Phase 15's stale manual UAT checkpoint was explicitly dispositioned during v1.2 closeout without claiming a retroactive UAT run.
 - 2026-05-16: v1.2 bookkeeping reconciled after Phase 22 completion; milestone state is complete and ready for archival when desired.
+- Phase 33 added: Tighten timeline density and event-name hierarchy styling
 
 ## Session Continuity
 
-**Last session:** 2026-06-12T01:22:42.772Z
+**Last session:** 2026-06-24T01:08:49.511Z
 **Next action:** `/gsd-complete-milestone` when ready to archive v1.2
-**Stopped at:** Completed and verified Phase 31
+**Stopped at:** Phase 33 UI-SPEC approved
 
 ## Quick Tasks Completed
 

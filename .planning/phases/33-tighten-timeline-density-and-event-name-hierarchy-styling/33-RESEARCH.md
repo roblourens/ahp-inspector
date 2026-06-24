@@ -240,22 +240,22 @@ const ITEM_HEIGHT = {
 | A2 | Event labels should split at the last slash, so `foo/bar/baz` renders `foo/bar/` muted and `baz` primary. | Event-name hierarchy | User may expect only first segment muted. |
 | A3 | Event-name prefix should apply to both `method` and `actionType` primary labels. | Event-name hierarchy | User may intend action names only. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact density target**
+1. **Exact density target — RESOLVED**
    - What we know: current rows are 28px high. [VERIFIED: codebase]
-   - Unclear: whether user wants 24px, 26px, or a density toggle. [ASSUMED]
-   - Recommendation: implement 24px in one small visual pass and validate with screenshots. [ASSUMED]
+   - Resolution: implement a fixed 24px timeline row target, not a density toggle, and validate with fixture-only screenshots. [RESOLVED]
+   - Rationale: 24px is a modest 4px-grid reduction that moves toward DevTools density while preserving readability. [ASSUMED]
 
-2. **Slash hierarchy rule**
+2. **Slash hierarchy rule — RESOLVED**
    - What we know: user gave `foo/bar` and wants `foo/` subtly grayed. [VERIFIED: user request]
-   - Unclear: last-slash vs first-slash behavior for deeper names. [ASSUMED]
-   - Recommendation: split at last slash for strongest leaf emphasis. [ASSUMED]
+   - Resolution: split at the last slash, so `foo/bar/baz` renders prefix `foo/bar/` and leaf `baz`. [RESOLVED]
+   - Rationale: this keeps the final event/action leaf as the strongest scanning anchor. [ASSUMED]
 
-3. **Scope of "app tighter"**
+3. **Scope of "app tighter" — RESOLVED**
    - What we know: research focus is timeline/table/list density. [VERIFIED: user prompt]
-   - Unclear: whether filters/header/details should also shrink. [ASSUMED]
-   - Recommendation: start with timeline only to avoid accidental global UI regression. [ASSUMED]
+   - Resolution: tighten timeline rows and timeline headers only; do not shrink filter controls, picker rows, detail pane, or body text. [RESOLVED]
+   - Rationale: this addresses the data-dense table request without a broad app typography regression. [ASSUMED]
 
 ## Environment Availability
 

@@ -335,6 +335,37 @@ Cross-cutting constraints:
 - Each plan lands as its own atomic commit with the full suite green; no plan may regress the 1368-test baseline.
 - Security fixes must not break the documented same-origin CLI/extension flows; verify the loopback UI still loads and uploads work.
 
+### Phase 33: Tighten timeline density and event-name hierarchy styling
+
+**Goal:** Make the timeline feel a bit tighter and more data-dense, closer to the attached Chrome DevTools Network table reference, while preserving polish/readability. Reduce timeline row density in a virtualizer-safe way, keep typography changes timeline-local, and render hierarchical event names so prefixes such as `foo/` are subtly muted but still readable.
+**Requirements**: DENSITY-33-01 (24px timeline rows, timeline-local 12px/16px typography, and virtualizer alignment), EVENTNAME-33-02 (safe last-slash prefix/leaf event-name styling with preserved search/a11y), THEME-33-03 (`--color-event-name-prefix` token across dark/light/hacker with no raw component colors), PRIVACY-33-04 (fixture-only all-theme screenshots with path-leak guards)
+**Depends on:** Phase 32
+**Plans:** 4 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 33-01-PLAN.md — Add Phase 33 theme/density tokens and token coverage guards.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 33-02-PLAN.md — Tighten timeline row density to 24px with timeline-local 12px/16px typography while keeping virtualizer alignment.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 33-03-PLAN.md — Add safe hierarchical event-name rendering with prefix/leaf styling.
+
+**Wave 4** *(blocked on Waves 2 and 3 completion)*
+
+- [ ] 33-04-PLAN.md — Add synthetic-fixture Playwright screenshots and privacy guard.
+
+Cross-cutting constraints:
+
+- Preserve row click, keyboard selection, tail-follow, search navigation/highlighting, pair highlighting, grouping collapse, scroll-to-bottom behavior, accessible labels/titles, and large-log virtualization.
+- Keep density/typography changes timeline-local; do not shrink filters, picker rows, detail pane, body text, or global app typography.
+- Use tokenized theme colors only; event-name prefix rendering must use React text/spans/marks and never `dangerouslySetInnerHTML`.
+- Committed screenshots must use synthetic fixtures only and pass absolute-path leak checks.
+
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
 *v1.2 opened 2026-05-10; last updated 2026-06-11 (Phase 31 added: Improvements to the filter pickers)*
