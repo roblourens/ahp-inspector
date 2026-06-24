@@ -8,11 +8,13 @@ export function ParseErrorRow({
   row,
   isSelected,
   onClick,
+  isAlternate = false,
   style,
 }: {
   row: EventRowData;
   isSelected: boolean;
   onClick: () => void;
+  isAlternate?: boolean;
   style?: CSSProperties;
 }): JSX.Element {
   const cellStyle: CSSProperties = {
@@ -36,6 +38,7 @@ export function ParseErrorRow({
       }}
       tabIndex={isSelected ? 0 : -1}
       data-testid={`parse-error-${row.idx}`}
+      data-alternate={isAlternate ? "true" : undefined}
       style={{
         display: "grid",
         gridTemplateColumns: "2px 1fr",
@@ -46,7 +49,11 @@ export function ParseErrorRow({
         cursor: "pointer",
         fontSize: "var(--text-ui-muted-size)",
         lineHeight: "16px",
-        background: isSelected ? "var(--color-surface-raised)" : "transparent",
+        background: isSelected
+          ? "var(--color-surface-raised)"
+          : isAlternate
+            ? "color-mix(in srgb, var(--color-surface-raised) 18%, transparent)"
+            : "transparent",
         ...style,
       }}
     >

@@ -27,9 +27,10 @@ describe("KindTag — UI-SPEC §5.2", () => {
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      height: "16px",
+      width: "36px",
+      height: "15px",
       fontSize: "11px",
-      lineHeight: "16px",
+      lineHeight: "15px",
       verticalAlign: "middle",
     });
   });

@@ -191,6 +191,19 @@ describe("EventRow — UI-SPEC §04.1 columns", () => {
     });
   });
 
+  it("applies a subtle alternate-row background only when requested", () => {
+    const { rerender } = render(
+      <EventRow row={baseRow} isSelected={false} isAlternate onSelect={() => {}} />,
+    );
+    expect(screen.getByRole("row")).toHaveAttribute("data-alternate", "true");
+    expect(screen.getByRole("row").getAttribute("style")).toContain(
+      "color-mix(in srgb, var(--color-surface-raised) 18%, transparent)",
+    );
+
+    rerender(<EventRow row={baseRow} isSelected isAlternate onSelect={() => {}} />);
+    expect(screen.getByRole("row").getAttribute("style")).toContain("var(--row-selected-bg)");
+  });
+
   it("marks a row as a search match", () => {
     render(<EventRow row={baseRow} isSelected={false} isSearchMatch onSelect={() => {}} />);
     expect(screen.getByRole("row")).toHaveAttribute("data-search-match", "true");

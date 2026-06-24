@@ -134,10 +134,10 @@ describe("TimelineList — virtualization", () => {
     const rendered = await screen.findAllByRole("row");
     expect(rendered.length).toBeGreaterThanOrEqual(1);
     expect(rendered.length).toBeLessThan(100);
-    expect(grid.querySelector('div[style*="height: 1200000px"]')).toBeTruthy();
+    expect(grid.querySelector('div[style*="height: 1050000px"]')).toBeTruthy();
   });
 
-  it("renders compact 24px timeline row, parse-error row, and column header heights", async () => {
+  it("renders compact 21px timeline row, parse-error row, and 24px column header heights", async () => {
     const rows = [makeRow(0), parseErrorRow];
     render(
       <div style={{ height: 400 }}>
@@ -156,7 +156,8 @@ describe("TimelineList — virtualization", () => {
       lineHeight: "16px",
     });
     expect(await screen.findByTestId("row-0")).toHaveStyle({ height: "var(--row-height)" });
-    expect(await screen.findByTestId("parse-error-1")).toHaveStyle({ height: "24px" });
+    expect(await screen.findByTestId("parse-error-1")).toHaveStyle({ height: "21px" });
+    expect(screen.getByTestId("parse-error-1")).toHaveAttribute("data-alternate", "true");
   });
 
   it("renders a scroll-to-bottom control for the timeline", () => {

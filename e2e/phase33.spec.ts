@@ -100,10 +100,10 @@ async function capture(page: Page, filename: string): Promise<void> {
 async function assertCompactRows(page: Page): Promise<void> {
   const firstEventRow = page.locator('[role="row"][data-testid^="row-"]').first();
   await expect(firstEventRow).toBeVisible();
-  await expect(firstEventRow).toHaveCSS("height", "24px");
+  await expect(firstEventRow).toHaveCSS("height", "21px");
   const box = await firstEventRow.boundingBox();
   expect(box).not.toBeNull();
-  if (box) expect(Math.round(box.height)).toBe(24);
+  if (box) expect(Math.round(box.height)).toBe(21);
 }
 
 async function expectVisibleLabel(locator: Locator, text: string): Promise<void> {

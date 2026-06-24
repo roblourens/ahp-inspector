@@ -12,8 +12,8 @@ import { GroupHeaderRow } from "./GroupHeaderRow.js";
 import { ParseErrorRow } from "./ParseErrorRow.js";
 
 const ITEM_HEIGHT = {
-  row: 24,
-  "parse-error": 24,
+  row: 21,
+  "parse-error": 21,
   header: 24,
 } as const;
 
@@ -107,8 +107,8 @@ export function TimelineList({
     getScrollElement: () => parentRef.current,
     estimateSize: (i) => {
       const item = items[i];
-      if (!item) return 24;
-      return ITEM_HEIGHT[getItemKindKey(item, rows)] ?? 24;
+      if (!item) return 21;
+      return ITEM_HEIGHT[getItemKindKey(item, rows)] ?? 21;
     },
     overscan: 12,
   });
@@ -312,7 +312,8 @@ export function TimelineList({
               // kind === "row"
               const row = rows[item.rowIdx];
               if (!row) return null;
-              const itemHeight = ITEM_HEIGHT[getItemKindKey(item, rows)] ?? 24;
+              const itemHeight = ITEM_HEIGHT[getItemKindKey(item, rows)] ?? 21;
+              const isAlternate = vi.index % 2 === 1;
               const isSelected = row.idx === selectedIdx;
               const pairHighlight =
                 selectedPairIdx !== null && row.idx === selectedPairIdx && selectedPairVisible
@@ -336,6 +337,7 @@ export function TimelineList({
                   row={row}
                   isSelected={isSelected}
                   onClick={() => onSelect(row.idx)}
+                  isAlternate={isAlternate}
                   style={style}
                 />
               ) : (
@@ -349,6 +351,7 @@ export function TimelineList({
                   pairHighlight={pairHighlight}
                   pairHidden={pairHidden}
                   gridColumns={gridColumns}
+                  isAlternate={isAlternate}
                   top={vi.start}
                 />
               );

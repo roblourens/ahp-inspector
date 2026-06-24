@@ -58,6 +58,19 @@ describe("ParseErrorRow — UI-SPEC §7.3", () => {
     });
   });
 
+  it("applies subtle alternate-row background below selection state", () => {
+    const { rerender } = render(
+      <ParseErrorRow row={baseError} isSelected={false} isAlternate onClick={() => {}} />,
+    );
+    expect(screen.getByRole("row")).toHaveAttribute("data-alternate", "true");
+    expect(screen.getByRole("row").getAttribute("style")).toContain(
+      "color-mix(in srgb, var(--color-surface-raised) 18%, transparent)",
+    );
+
+    rerender(<ParseErrorRow row={baseError} isSelected isAlternate onClick={() => {}} />);
+    expect(screen.getByRole("row").getAttribute("style")).toContain("var(--color-surface-raised)");
+  });
+
   it("falls back to '?' / 'unknown' when fields are null", () => {
     render(
       <ParseErrorRow

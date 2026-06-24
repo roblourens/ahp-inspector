@@ -29,6 +29,7 @@ export interface EventRowProps {
   pairHidden?: "request" | "response" | null;
   /** Grid template for this row; must match the header and all sibling rows. */
   gridColumns?: string;
+  isAlternate?: boolean;
 }
 
 /** Default ID column width (px) used before any data-driven sizing applies. */
@@ -40,7 +41,7 @@ export const ID_COLUMN_DEFAULT_WIDTH = 96;
  * leave a large gap before the Time column.
  */
 export function buildTimelineGridColumns(idColumnWidth: number = ID_COLUMN_DEFAULT_WIDTH): string {
-  return `4px ${idColumnWidth}px 96px 16px 44px 220px 132px 72px 72px minmax(240px, 1fr)`;
+  return `4px ${idColumnWidth}px 96px 16px 36px 220px 132px 72px 72px minmax(240px, 1fr)`;
 }
 
 export const TIMELINE_GRID_COLUMNS = buildTimelineGridColumns();
@@ -114,6 +115,7 @@ export const EventRow = memo(function EventRow({
   pairHighlight = null,
   pairHidden = null,
   gridColumns = TIMELINE_GRID_COLUMNS,
+  isAlternate = false,
 }: EventRowProps): JSX.Element {
   const label = primaryLabel(row);
   const labelTitle = primaryLabelTitle(row);
@@ -148,6 +150,7 @@ export const EventRow = memo(function EventRow({
       data-search-match={isSearchMatch ? "true" : undefined}
       data-pair-highlight={pairHighlight ?? undefined}
       data-pair-hidden={pairHidden ?? undefined}
+      data-alternate={isAlternate ? "true" : undefined}
       style={{
         display: "grid",
         gridTemplateColumns: gridColumns,
@@ -165,7 +168,9 @@ export const EventRow = memo(function EventRow({
             ? "color-mix(in srgb, var(--color-info) 14%, transparent)"
             : isSearchMatch
               ? "color-mix(in srgb, var(--color-search-match-bg) 28%, transparent)"
-              : "transparent",
+              : isAlternate
+                ? "color-mix(in srgb, var(--color-surface-raised) 18%, transparent)"
+                : "transparent",
         ...(top !== undefined
           ? {
               position: "absolute",
