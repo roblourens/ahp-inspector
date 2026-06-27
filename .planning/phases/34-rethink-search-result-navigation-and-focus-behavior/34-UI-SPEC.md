@@ -99,8 +99,8 @@ Find navigation is **event-oriented** (D-06/D-07): one result = one request/resp
 | Counter — before navigating | `{m} results` (e.g. `24 results`); append `+` when truncated |
 | Counter — singular | `1 result` / `1 of 1 result` (singularize "result", drop the old "match/matches" wording) |
 | Searching | `Searching…` |
-| No matches (query present, 0 results) | `No results` |
-| Error | `Search failed` or `Search failed: {searchError}` (rendered in `--color-destructive`) |
+| No matches (query present, 0 results) | `No matching events` |
+| Error | `Search failed: {searchError}` (rendered in `--color-destructive`); when `{searchError}` is empty, use `Search failed — check the server connection and try again` |
 | Empty (no query typed) | no status text rendered (status row hidden) — unchanged |
 
 **Primary action of this phase:** there is no new CTA button; the primary interaction is keyboard navigation through results. The find prev/next buttons keep icon-only affordances with text alternatives via aria-label.
@@ -126,6 +126,8 @@ Find navigation is **event-oriented** (D-06/D-07): one result = one request/resp
 | Responsive dimensions | Popover keeps 344px fixed width down to `calc(100% - 24px)`; on `<768px` the filter bar is horizontally scrollable (existing), popover still right-anchored. No new breakpoints. |
 
 The find widget is **non-modal**: it never renders a backdrop, never traps focus, and never blocks the timeline behind it.
+
+**Focal point:** within the find widget the search `<input>` is the primary focal point — it sits at the top of the stack, takes full surface width, and holds focus by default. The result counter and the prev/next nav buttons are visually subordinate: muted 12px text and 16px icon-only glyphs in a 32×32px hit area, never competing with the input for emphasis.
 
 ---
 
