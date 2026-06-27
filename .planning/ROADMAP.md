@@ -366,6 +366,16 @@ Cross-cutting constraints:
 - Use tokenized theme colors only; event-name prefix rendering must use React text/spans/marks and never `dangerouslySetInnerHTML`.
 - Committed screenshots must use synthetic fixtures only and pass absolute-path leak checks.
 
+### Phase 34: Rethink search result navigation and focus behavior
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 33
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 34 to break down)
+
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*
 *v1.2 opened 2026-05-10; last updated 2026-06-11 (Phase 31 added: Improvements to the filter pickers)*
