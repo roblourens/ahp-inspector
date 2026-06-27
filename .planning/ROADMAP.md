@@ -368,13 +368,24 @@ Cross-cutting constraints:
 
 ### Phase 34: Rethink search result navigation and focus behavior
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Make in-app find navigation continuous and understandable — Cmd/Ctrl+F opens a pinned find widget, Enter/Shift+Enter moves between matching events without losing focus or obstructing navigation, details stay synchronized only when unobstructive, and matches are highlighted and revealed in both the timeline and detail views.
+**Requirements**: D-01..D-13 (locked decisions in 34-CONTEXT.md)
 **Depends on:** Phase 33
-**Plans:** 0 plans
-
+**Plans:** 5/5 plans complete
 Plans:
-- [ ] TBD (run /gsd-plan-phase 34 to break down)
+**Wave 1**
+
+- [x] 34-01-PLAN.md — Shared query highlighter util + Wave-0 test scaffolding (e2e + viewport helper)
+- [x] 34-02-PLAN.md — selectionSource discriminator, narrow-drawer suppression, search-driven nav + Escape row focus
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 34-03-PLAN.md — Find widget: results counter, pinned placement, focus retention, Cmd+F refocus
+- [x] 34-04-PLAN.md — Detail highlight (Raw/Summary/Pretty) + reveal first hidden match
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 34-05-PLAN.md — End-to-end Playwright coverage + fixture-only screenshot evidence
 
 ---
 *Roadmap reorganized after v1.1 milestone archive: 2026-05-10*

@@ -122,7 +122,7 @@ export function TimelineRegion({
             ? visibleSearchMatches.length - 1
             : current - 1;
       const next = visibleSearchMatches[nextPos];
-      if (next !== undefined) select(next);
+      if (next !== undefined) select(next, "search");
     },
     [select, visibleSearchMatches],
   );
@@ -154,11 +154,25 @@ export function TimelineRegion({
       }
       chordRef.current = null;
 
-      // Esc priority: find widget (handled in SearchPopover) → search → selection.
+      // Esc priority: find widget (now authoritative here) → search → selection.
       // Escape never clears a filter — clearing a filter requires an explicit action.
       if (e.key === "Escape") {
-        // Find widget open → SearchPopover.onClose dismisses it; do nothing else.
-        if (useAppStore.getState().searchPopoverOpen) return;
+        const st = useAppStore.getState();
+        // Find widget open → close it WITHOUT clearing query/results/selection,
+        // then move focus to the current matching row (D-13). The selection
+        // source is intentionally left unchanged so a preserved "search"
+        // selection does not pop the suppressed narrow drawer (D-03).
+        if (st.searchPopoverOpen) {
+          e.preventDefault();
+          st.setSearchPopoverOpen(false);
+          const idx = st.selectedIdx;
+          if (idx !== null) {
+            requestAnimationFrame(() => {
+              document.querySelector<HTMLElement>(`[data-testid="row-${idx}"]`)?.focus();
+            });
+          }
+          return;
+        }
         if (searchQuery) {
           setSearchQuery("");
           clearSearchResults();

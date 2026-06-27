@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
-status: planning
-last_updated: "2026-06-27T18:27:45.257Z"
+status: milestone_complete
+last_updated: 2026-06-27T23:16:02.985Z
 last_activity: 2026-06-27
 progress:
   total_phases: 10
   completed_phases: 5
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 66
+  completed_plans: 70
   percent: 50
+stopped_at: Milestone complete (Phase 34 was final phase)
 ---
 
 # State: AHP Inspector
@@ -18,13 +19,13 @@ progress:
 ## Project Reference
 
 **Core Value:** Make AHP traffic understandable at a glance while preserving fast access to exact raw event details.
-**Current Focus:** Phase 34: Rethink search result navigation and focus behavior
+**Current Focus:** Milestone complete
 
 ## Current Position
 
 Phase: 34
 Plan: Not started
-Status: Ready for planning
+Status: Milestone complete
 Last activity: 2026-06-27
 
 ## Performance Metrics
@@ -76,6 +77,10 @@ Last activity: 2026-06-27
 | Phase 30 P01 | 11min | 3 tasks | 6 files |
 | Phase 31 P01 | 8min | 2 tasks | 4 files |
 | Phase 31 P02 | 28min | 1 task | 16 files |
+| Phase 34 P01 | 10m | 2 tasks | 4 files |
+| Phase 34 P02 | 12min | 3 tasks | 7 files |
+| Phase 34 P04 | 10min | 3 tasks | 9 files |
+| Phase 34 P05 | 25min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -185,9 +190,9 @@ Last activity: 2026-06-27
 
 ## Session Continuity
 
-**Last session:** 2026-06-27T18:27:45.248Z
+**Last session:** 2026-06-27T22:24:30.880Z
 **Next action:** `/gsd-plan-phase 34`
-**Stopped at:** Phase 34 UI-SPEC approved
+**Stopped at:** Completed 34-04-PLAN.md
 
 ## Quick Tasks Completed
 
@@ -215,3 +220,13 @@ Items acknowledged and deferred at v1.1 milestone close on 2026-05-10:
 | uat_gap | 11-UAT.md | 7 manual scenarios pending | Phase 11 manual UAT was scripted but never marked off; automated equivalents in `extension.test.ts`, `activeLog.test.ts`, `viewerSession.test.ts`, `boundary.test.ts`, `security.test.ts` cover the same surface. |
 | uat_gap | 14-UAT.md | 4 manual scenarios pending | Phase 14 manual UAT was scripted but never marked off; automated equivalents in `FilterBar.test.tsx`, `TimelineList.virt.test.tsx`, `EventRow.columns.test.tsx`, `row-projection.test.ts`, and `e2e/phase14.spec.ts` cover the same behaviors. |
 | context_question | 13-CONTEXT.md | 3 open questions | All resolved during execution: npm name `ahp-inspector` confirmed available and published; `--no-open` flag not needed (CI publish uses `workflow_dispatch`, browser-open is interactive-only); CI publish trigger landed as `workflow_dispatch` with `dry_run` default true. The questions were never moved to the resolved section. |
+
+## Decisions
+
+- [Phase ?]: Phase 34-01 shared highlighter is sole mark producer (D-08)
+- [Phase ?]: Plan 34-02: single selectionSource discriminator (search|explicit) beside selectedIdx — no duplicate index; clearSelection preserves it (D-03).
+- [Phase ?]: Plan 34-02: AppShell narrow drawer gated on selectionSource===explicit; desktop rail syncs for both without focus theft (D-01/D-02/D-04/D-05).
+- [Phase ?]: Plan 34-02: TimelineRegion owns authoritative Escape — closes find non-destructively + rAF focuses current row, does not flip source (D-13).
+- [Phase 34]: 34-04: Pretty tree highlights via CSS Custom Highlight API (not <mark>) — react-json-view-lite has no per-node hook; Raw+Summary use <mark>
+- [Phase 34]: 34-04: detail query matching is literal/case-insensitive (no RegExp); subtree scan bounded at 512KB; reveal switches to Raw only when match is behind >256KB Pretty truncation
+- [Phase ?]: Phase 34 e2e (34-05): augmented the synthetic fixture with a telemetry/report method-named event so the timeline-row mark highlight is genuinely exercised (row highlight only marks the event name).

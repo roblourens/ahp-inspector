@@ -10,6 +10,7 @@ import { APP_DEFAULT_FILTERS, type FilterState } from "./filters.js";
 export type { FilterState } from "./filters.js";
 
 export type GroupingMode = "none" | "session" | "session+turn";
+export type SelectionSource = "search" | "explicit";
 export type SearchStatus = "idle" | "searching" | "ready" | "error";
 
 export interface DetailData {
@@ -68,6 +69,7 @@ export interface AppStoreState {
   rows: EventRow[];
   connection: Connection;
   selectedIdx: number | null;
+  selectionSource: SelectionSource;
   meta: MetaSummary | null;
   loadProgress: LoadProgress;
   streamBacklog: StreamBacklog;
@@ -79,7 +81,7 @@ export interface AppStoreState {
   setStreamBacklog(backlog: StreamBacklog): void;
   setConnection(c: Connection): void;
   setMeta(m: MetaSummary | null): void;
-  selectIdx(idx: number | null): void;
+  selectIdx(idx: number | null, source?: SelectionSource): void;
   clearSelection(): void;
   // Phase 3: search
   searchQuery: string;
@@ -162,6 +164,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
   rows: [],
   connection: "connecting",
   selectedIdx: null,
+  selectionSource: "explicit",
   meta: null,
   loadProgress: IDLE_LOAD_PROGRESS,
   streamBacklog: EMPTY_STREAM_BACKLOG,
@@ -230,7 +233,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
   setStreamBacklog: (streamBacklog) => set({ streamBacklog }),
   setConnection: (connection) => set({ connection }),
   setMeta: (meta) => set({ meta }),
-  selectIdx: (selectedIdx) => set({ selectedIdx }),
+  selectIdx: (selectedIdx, source = "explicit") => set({ selectedIdx, selectionSource: source }),
   clearSelection: () => set({ selectedIdx: null }),
   // Phase 3 initial state
   searchQuery: "",

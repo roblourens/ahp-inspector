@@ -44,7 +44,109 @@ describe("SearchPopover", () => {
     );
 
     const status = screen.getByTestId("search-status");
-    expect(status.textContent).toContain("3 of 5 matches");
+    expect(status.textContent).toContain("3 of 5 results");
+  });
+
+  it("uses singular 'result' wording for a single match", () => {
+    render(
+      <SearchPopover
+        value="initialize"
+        onChange={() => {}}
+        onClear={() => {}}
+        onClose={() => {}}
+        searchTotal={1}
+        searchStatus="ready"
+        searchTruncated={false}
+        searchMatchCount={1}
+        focusedSearchIndex={0}
+        onNavigate={() => {}}
+      />,
+    );
+
+    const status = screen.getByTestId("search-status");
+    expect(status.textContent).toContain("1 of 1 result");
+    expect(status.textContent).not.toContain("results");
+  });
+
+  it("shows the pre-navigation '{m} results' count before navigating", () => {
+    render(
+      <SearchPopover
+        value="initialize"
+        onChange={() => {}}
+        onClear={() => {}}
+        onClose={() => {}}
+        searchTotal={24}
+        searchStatus="ready"
+        searchTruncated={false}
+        searchMatchCount={24}
+        focusedSearchIndex={null}
+        onNavigate={() => {}}
+      />,
+    );
+
+    const status = screen.getByTestId("search-status");
+    expect(status.textContent).toContain("24 results");
+    expect(status.textContent).not.toContain(" of ");
+  });
+
+  it("renders 'No matching events' when a query has zero results", () => {
+    render(
+      <SearchPopover
+        value="zzzznotfound"
+        onChange={() => {}}
+        onClear={() => {}}
+        onClose={() => {}}
+        searchTotal={0}
+        searchStatus="ready"
+        searchTruncated={false}
+        searchMatchCount={0}
+        focusedSearchIndex={null}
+        onNavigate={() => {}}
+      />,
+    );
+
+    const status = screen.getByTestId("search-status");
+    expect(status.textContent).toContain("No matching events");
+  });
+
+  it("exposes the find region with the accessible name 'Find'", () => {
+    render(
+      <SearchPopover
+        value=""
+        onChange={() => {}}
+        onClear={() => {}}
+        onClose={() => {}}
+        searchTotal={0}
+        searchStatus="idle"
+        searchTruncated={false}
+        searchMatchCount={0}
+        focusedSearchIndex={null}
+        onNavigate={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole("region", { name: "Find" })).toBeTruthy();
+  });
+
+  it("marks the status counter as a polite live region", () => {
+    render(
+      <SearchPopover
+        value="initialize"
+        onChange={() => {}}
+        onClear={() => {}}
+        onClose={() => {}}
+        searchTotal={5}
+        searchStatus="ready"
+        searchTruncated={false}
+        searchMatchCount={5}
+        focusedSearchIndex={2}
+        onNavigate={() => {}}
+      />,
+    );
+
+    const liveRegion = screen.getByRole("status");
+    expect(liveRegion.getAttribute("aria-atomic")).toBe("true");
+    expect(liveRegion.textContent).toContain("3 of 5 results");
   });
 
   it("renders prev/next navigation buttons when matches exist", () => {
@@ -63,12 +165,33 @@ describe("SearchPopover", () => {
       />,
     );
 
-    const prevButton = screen.getByRole("button", { name: "Previous search match" });
-    const nextButton = screen.getByRole("button", { name: "Next search match" });
+    const prevButton = screen.getByRole("button", { name: "Previous result" });
+    const nextButton = screen.getByRole("button", { name: "Next result" });
     expect(prevButton).toBeTruthy();
     expect(nextButton).toBeTruthy();
     expect(prevButton).not.toHaveAttribute("disabled");
     expect(nextButton).not.toHaveAttribute("disabled");
+  });
+
+  it("keeps focus on the clicked navigation button (D-11)", () => {
+    render(
+      <SearchPopover
+        value="initialize"
+        onChange={() => {}}
+        onClear={() => {}}
+        onClose={() => {}}
+        searchTotal={5}
+        searchStatus="ready"
+        searchTruncated={false}
+        searchMatchCount={5}
+        focusedSearchIndex={1}
+        onNavigate={() => {}}
+      />,
+    );
+
+    const nextButton = screen.getByRole("button", { name: "Next result" });
+    fireEvent.click(nextButton);
+    expect(document.activeElement).toBe(nextButton);
   });
 
   it("disables prev/next buttons when no matches", () => {
@@ -87,8 +210,8 @@ describe("SearchPopover", () => {
       />,
     );
 
-    const prevButton = screen.getByRole("button", { name: "Previous search match" });
-    const nextButton = screen.getByRole("button", { name: "Next search match" });
+    const prevButton = screen.getByRole("button", { name: "Previous result" });
+    const nextButton = screen.getByRole("button", { name: "Next result" });
     expect(prevButton).toHaveAttribute("disabled");
     expect(nextButton).toHaveAttribute("disabled");
   });
@@ -116,7 +239,7 @@ describe("SearchPopover", () => {
       />,
     );
 
-    const nextButton = screen.getByRole("button", { name: "Next search match" });
+    const nextButton = screen.getByRole("button", { name: "Next result" });
     fireEvent.click(nextButton);
     // If we got here without error, click worked
     expect(true).toBe(true);
@@ -189,16 +312,10 @@ describe("SearchPopover", () => {
     expect(screen.queryByRole("button", { name: "Clear search" })).toBeFalsy();
   });
 
-  it("closes on Escape key", () => {
-    const onClose = (closing?: boolean): void => {
-      if (closing) {
-        // closed
-      }
-    };
+  it("does not self-handle Escape (TimelineRegion owns close + row focus)", () => {
     let wasClosed = false;
     const onCloseSpy = (): void => {
       wasClosed = true;
-      onClose(true);
     };
 
     render(
@@ -217,7 +334,8 @@ describe("SearchPopover", () => {
     );
 
     fireEvent.keyDown(document, { key: "Escape" });
-    expect(wasClosed).toBe(true);
+    // The popover no longer registers its own document Escape listener.
+    expect(wasClosed).toBe(false);
   });
 
   it("displays searching status", () => {
@@ -237,7 +355,7 @@ describe("SearchPopover", () => {
     );
 
     const status = screen.getByTestId("search-status");
-    expect(status.textContent).toContain("Searching...");
+    expect(status.textContent).toContain("Searching…");
   });
 
   it("displays error status", () => {
@@ -259,6 +377,32 @@ describe("SearchPopover", () => {
 
     const status = screen.getByTestId("search-status");
     expect(status.textContent).toContain("Search failed: Index too large");
+    // Error status renders in the destructive token, never the nonexistent --color-danger.
+    expect(status.getAttribute("style") ?? "").toContain("var(--color-destructive)");
+    expect(status.getAttribute("style") ?? "").not.toContain("--color-danger");
+  });
+
+  it("falls back to a recovery hint when the error has no message", () => {
+    render(
+      <SearchPopover
+        value="initialize"
+        onChange={() => {}}
+        onClear={() => {}}
+        onClose={() => {}}
+        searchTotal={0}
+        searchStatus="error"
+        searchError=""
+        searchTruncated={false}
+        searchMatchCount={0}
+        focusedSearchIndex={null}
+        onNavigate={() => {}}
+      />,
+    );
+
+    const status = screen.getByTestId("search-status");
+    expect(status.textContent).toContain(
+      "Search failed — check the server connection and try again",
+    );
   });
 
   it("displays truncation indicator when results are truncated", () => {
@@ -278,6 +422,6 @@ describe("SearchPopover", () => {
     );
 
     const status = screen.getByTestId("search-status");
-    expect(status.textContent).toContain("1 of 10 matches+");
+    expect(status.textContent).toContain("1 of 10 results+");
   });
 });

@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { findMatchRanges, renderHighlightedSegment } from "./highlight.js";
 
 export function splitHierarchicalEventName(label: string): { prefix: string; leaf: string } | null {
   const slash = label.lastIndexOf("/");
@@ -7,64 +8,6 @@ export function splitHierarchicalEventName(label: string): { prefix: string; lea
     prefix: label.slice(0, slash + 1),
     leaf: label.slice(slash + 1),
   };
-}
-
-interface MatchRange {
-  start: number;
-  end: number;
-}
-
-function findMatchRanges(text: string, query: string): MatchRange[] {
-  if (query.length < 2) return [];
-  const ranges: MatchRange[] = [];
-  const lower = text.toLowerCase();
-  const lowerQ = query.toLowerCase();
-  let last = 0;
-  let idx = lower.indexOf(lowerQ, last);
-  while (idx !== -1) {
-    ranges.push({ start: idx, end: idx + query.length });
-    last = idx + query.length;
-    idx = lower.indexOf(lowerQ, last);
-  }
-  return ranges;
-}
-
-function renderHighlightedSegment(
-  label: string,
-  segmentStart: number,
-  segmentEnd: number,
-  ranges: readonly MatchRange[],
-): JSX.Element {
-  const text = label.slice(segmentStart, segmentEnd);
-  if (ranges.length === 0) return <>{text}</>;
-
-  const parts: JSX.Element[] = [];
-  let cursor = segmentStart;
-  for (const range of ranges) {
-    const start = Math.max(range.start, segmentStart);
-    const end = Math.min(range.end, segmentEnd);
-    if (end <= segmentStart || start >= segmentEnd) continue;
-    if (start > cursor) {
-      parts.push(<span key={`t-${cursor}`}>{label.slice(cursor, start)}</span>);
-    }
-    parts.push(
-      <mark
-        key={`m-${start}-${end}`}
-        style={{
-          background: "var(--color-search-match-bg)",
-          color: "var(--color-search-match-fg)",
-        }}
-      >
-        {label.slice(start, end)}
-      </mark>,
-    );
-    cursor = end;
-  }
-  if (cursor < segmentEnd) {
-    parts.push(<span key={`t-${cursor}`}>{label.slice(cursor, segmentEnd)}</span>);
-  }
-
-  return <>{parts}</>;
 }
 
 export function EventNameLabel({

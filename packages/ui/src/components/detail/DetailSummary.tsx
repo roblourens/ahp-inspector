@@ -13,11 +13,13 @@
 import type { Status } from "@ahp-inspector/core";
 import type { AhpEvent } from "@ahp-inspector/shared";
 import type { JSX } from "react";
+import { HighlightedText } from "../timeline/cells/highlight.js";
 
 interface DetailSummaryProps {
   event: AhpEvent;
   latencyMs: number | null;
   status: Status;
+  query?: string;
 }
 
 function directionWord(dir: string): string {
@@ -67,7 +69,12 @@ function kindTagFor(kind: AhpEvent["kind"]): string {
   }
 }
 
-export function DetailSummary({ event, latencyMs, status }: DetailSummaryProps): JSX.Element {
+export function DetailSummary({
+  event,
+  latencyMs,
+  status,
+  query,
+}: DetailSummaryProps): JSX.Element {
   const tsFmt = fmtTs(event.ts);
   const dirWord = directionWord(event.dir);
   const kindTag = kindTagFor(event.kind);
@@ -86,7 +93,7 @@ export function DetailSummary({ event, latencyMs, status }: DetailSummaryProps):
           whiteSpace: "nowrap",
         }}
       >
-        {tsFmt} · {dirWord} · {kindTag} · {methodLabel}
+        {tsFmt} · {dirWord} · {kindTag} · <HighlightedText text={methodLabel} query={query ?? ""} />
       </div>
       <div
         style={{

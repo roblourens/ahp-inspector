@@ -30,7 +30,7 @@ import { DetailResizeHandle } from "./DetailResizeHandle.js";
 import { DetailSummary } from "./DetailSummary.js";
 import { DetailTabs } from "./DetailTabs.js";
 import { DETAIL_MAX_WIDTH, DETAIL_MIN_WIDTH } from "./detail-layout.js";
-import { PrettyJsonView } from "./PrettyJsonView.js";
+import { CLIENT_CAP_BYTES, PrettyJsonView } from "./PrettyJsonView.js";
 import { PrivacyCaption } from "./PrivacyCaption.js";
 import { RawJsonView } from "./RawJsonView.js";
 import { StateInspectorPanel } from "./StateInspectorPanel.js";
@@ -91,6 +91,7 @@ export function DetailPanel({
   const selectedIdx = useAppStore((s) => s.selectedIdx);
   const logKey = useAppStore((s) => s.logKey);
   const rows = useAppStore((s) => s.rows);
+  const searchQuery = useAppStore((s) => s.searchQuery);
   const detailWidth = useAppStore((s) => s.detailWidth);
   const setDetailWidth = useAppStore((s) => s.setDetailWidth);
   const panelSizing: CSSProperties = fill
@@ -151,6 +152,33 @@ export function DetailPanel({
     pinnedLogKeyRef.current = logKey;
     setPinnedPoints(clearPinnedStatePoints());
   }, [logKey]);
+
+  // D-09 reveal: when a query is active and the Pretty view would hide the
+  // first match behind the >256KB truncation banner, switch to Raw (which
+  // shows the full text + <mark>). `selectedIdx` is an intentional trigger so
+  // the tab recomputes per selection (and a manual tab pick within the same
+  // selection/query is preserved).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: selectedIdx is an intentional per-selection recompute trigger.
+  useEffect(() => {
+    if (loadState.status !== "ok" || !loadState.detail) return;
+    const q = searchQuery.trim();
+    if (q.length < 2) return;
+    const lowerQ = q.toLowerCase();
+    const ev = loadState.detail.event as AhpEvent;
+    const pr = loadState.detail.pair as AhpEvent | null;
+    const matchHiddenByTruncation = [ev?.raw, pr?.raw].some((d) => {
+      if (d === undefined) return false;
+      let s: string;
+      try {
+        s = JSON.stringify(d);
+      } catch {
+        return false;
+      }
+      if (s === undefined || s.length <= CLIENT_CAP_BYTES) return false; // Pretty renders it
+      return s.toLowerCase().includes(lowerQ); // match is in the elided content
+    });
+    if (matchHiddenByTruncation) setActiveTab("raw");
+  }, [selectedIdx, searchQuery, loadState.status, loadState.detail]);
 
   function handleRetry() {
     if (selectedIdx !== null) {
@@ -389,7 +417,12 @@ export function DetailPanel({
       )}
 
       {/* Summary */}
-      <DetailSummary event={event} latencyMs={liveLatencyMs} status={liveStatus} />
+      <DetailSummary
+        event={event}
+        latencyMs={liveLatencyMs}
+        status={liveStatus}
+        query={searchQuery}
+      />
 
       {/* Correlation metadata */}
       <DetailCorrelation
@@ -457,9 +490,14 @@ export function DetailPanel({
             const ordered = orderedPair(event, pairEvent);
             if (!ordered) {
               return activeTab === "pretty" ? (
-                <PrettyJsonView data={event.raw} onOpenRaw={() => setActiveTab("raw")} />
+                <PrettyJsonView
+                  key={`${selectedIdx}:${searchQuery}`}
+                  data={event.raw}
+                  query={searchQuery}
+                  onOpenRaw={() => setActiveTab("raw")}
+                />
               ) : (
-                <RawJsonView data={event.raw} />
+                <RawJsonView data={event.raw} query={searchQuery} />
               );
             }
             return (
@@ -468,12 +506,16 @@ export function DetailPanel({
                   label={KIND_LABEL[ordered.primary.kind]}
                   data={ordered.primary.raw}
                   activeTab={activeTab}
+                  query={searchQuery}
+                  selectedIdx={selectedIdx}
                   onOpenRaw={() => setActiveTab("raw")}
                 />
                 <DetailJsonSection
                   label={KIND_LABEL[ordered.secondary.kind]}
                   data={ordered.secondary.raw}
                   activeTab={activeTab}
+                  query={searchQuery}
+                  selectedIdx={selectedIdx}
                   onOpenRaw={() => setActiveTab("raw")}
                 />
               </>
@@ -497,6 +539,8 @@ interface DetailJsonSectionProps {
   label: string;
   data: unknown;
   activeTab: "pretty" | "raw";
+  query: string;
+  selectedIdx: number;
   onOpenRaw: () => void;
 }
 
@@ -504,6 +548,8 @@ function DetailJsonSection({
   label,
   data,
   activeTab,
+  query,
+  selectedIdx,
   onOpenRaw,
 }: DetailJsonSectionProps): JSX.Element {
   return (
@@ -528,9 +574,14 @@ function DetailJsonSection({
         {label}
       </h3>
       {activeTab === "pretty" ? (
-        <PrettyJsonView data={data} onOpenRaw={onOpenRaw} />
+        <PrettyJsonView
+          key={`${selectedIdx}:${query}:${label}`}
+          data={data}
+          query={query}
+          onOpenRaw={onOpenRaw}
+        />
       ) : (
-        <RawJsonView data={data} />
+        <RawJsonView data={data} query={query} />
       )}
     </section>
   );

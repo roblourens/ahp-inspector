@@ -98,6 +98,7 @@ afterEach(() => {
     logKey: null,
     selectedDetail: null,
     detailWidth: 420,
+    searchQuery: "",
   });
 });
 
@@ -352,5 +353,62 @@ describe("DetailPanel — WR-03: live status/latency from store row", () => {
     expect(screen.getByTestId("detail-summary")).not.toHaveTextContent("pending");
     // Should display the live latency from the row
     expect(screen.getByTestId("detail-summary")).toHaveTextContent("42ms");
+  });
+});
+
+describe("DetailPanel — query wiring + reveal tab (Plan 34-04, D-08/D-09)", () => {
+  it("passes the active query into the Raw view so matches are <mark>ed", async () => {
+    vi.mocked(fetchEvent).mockResolvedValue(
+      makeDetailResponse({
+        event: makeEvent({ raw: { jsonrpc: "2.0", method: "session/new" } }),
+      }),
+    );
+    useAppStore.setState({ selectedIdx: 0, rows: [makeRow()], searchQuery: "session" });
+    render(<DetailPanel />);
+    await waitFor(() => {
+      expect(screen.getByTestId("detail-summary")).toBeInTheDocument();
+    });
+    // Switch to the Raw tab and assert a <mark> appears in the raw text.
+    fireEvent.click(screen.getByRole("tab", { name: /raw/i }));
+    await waitFor(() => {
+      const raw = screen.getByTestId("raw-json-view");
+      expect(raw.querySelectorAll("mark").length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it("keeps the Pretty tab and keys the PrettyJsonView by selection+query for a normal event", async () => {
+    vi.mocked(fetchEvent).mockResolvedValue(
+      makeDetailResponse({
+        event: makeEvent({ raw: { jsonrpc: "2.0", method: "session/new" } }),
+      }),
+    );
+    useAppStore.setState({ selectedIdx: 0, rows: [makeRow()], searchQuery: "session" });
+    render(<DetailPanel />);
+    await waitFor(() => {
+      expect(screen.getByTestId("pretty-json-view")).toBeInTheDocument();
+    });
+    // Pretty tab stays active (no truncation), and the highlighted match is visible.
+    expect(screen.getByRole("tab", { name: /pretty/i })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("switches to Raw when the match is hidden behind the >256KB Pretty truncation", async () => {
+    // Build a payload that serializes well past CLIENT_CAP_BYTES and contains
+    // the query only in the elided content.
+    const big: Record<string, string> = {};
+    for (let i = 0; i < 20000; i++) {
+      big[`field_${i}`] = "xxxxxxxxxxxxxxxxxxxx";
+    }
+    big.buried = "the-needle-token";
+    vi.mocked(fetchEvent).mockResolvedValue(makeDetailResponse({ event: makeEvent({ raw: big }) }));
+    useAppStore.setState({ selectedIdx: 0, rows: [makeRow()], searchQuery: "needle" });
+    render(<DetailPanel />);
+    await waitFor(() => {
+      expect(screen.getByTestId("detail-summary")).toBeInTheDocument();
+    });
+    // Reveal logic should have switched the active tab to Raw.
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /raw/i })).toHaveAttribute("aria-selected", "true");
+    });
+    expect(screen.getByTestId("raw-json-view")).toBeInTheDocument();
   });
 });

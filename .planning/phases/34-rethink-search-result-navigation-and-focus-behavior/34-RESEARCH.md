@@ -362,17 +362,17 @@ Baseline: ~101 vitest files in `packages/`; milestone audit recorded 1095 passin
 | A2 | Desktop rail currently does not steal focus on selection (AppShell focus-transfer is guarded by `!isDetailDesktop`) so D-05 mostly needs a regression test, not new code | D-05 row, Pitfall 1 | If some other effect focuses the rail, D-05 needs real code. Low risk — code read shows focus transfer only in the narrow-drawer branch. |
 | A3 | "results" wording (D-07) is acceptable copy; exact string is the agent's-Discretion | Pitfall 3 / D-07 | Planner/UX may prefer different copy; non-blocking. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Reset semantics of `selectionSource` across the find lifecycle (D-03 vs D-04).**
    - What we know: closing find must keep the row selected and NOT open the drawer (D-03); an explicit click after navigation may open it (D-04).
    - What's unclear: when find closes via Escape, should `selectionSource` stay `"search"` (so a later resize to narrow doesn't pop the drawer) or flip to `"explicit"`?
-   - Recommendation: keep it `"search"` until the next explicit user action (click/arrow-key) — most consistent with D-03's "does not automatically open the suppressed drawer."
+   - **RESOLVED:** Keep `selectionSource` as `"search"` until the next explicit user action (click/arrow-key) — most consistent with D-03's "does not automatically open the suppressed drawer." Implemented by Plan 34-02 (store discriminator + Escape→row-focus that does not flip the source).
 
 2. **E2E narrow-viewport coverage approach.**
    - What we know: drawer/rail switch at 1400px; Playwright can set viewport size.
    - What's unclear: whether to assert focus/drawer behavior in jsdom unit tests (matchMedia stub) only, or also in Playwright at `<1400px`.
-   - Recommendation: cover focus/drawer logic in fast RTL unit tests with a matchMedia stub; use one Playwright scenario for the holistic happy-path at narrow and wide widths.
+   - **RESOLVED:** Cover focus/drawer logic in fast RTL unit tests with a `window.matchMedia` stub (the shared `test-fixtures/viewport.ts` helper), and use one Playwright scenario for the holistic happy-path at both narrow and wide widths. Implemented by Plans 34-02 (unit) and 34-05 (e2e).
 
 ## Sources
 

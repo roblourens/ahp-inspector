@@ -184,6 +184,37 @@ describe("useAppStore", () => {
     expect(useAppStore.getState().selectedIdx).toBeNull();
   });
 
+  it("defaults selectionSource to explicit", () => {
+    expect(useAppStore.getState().selectionSource).toBe("explicit");
+  });
+
+  it("selectIdx without source sets selectionSource explicit", () => {
+    useAppStore.getState().selectIdx(5);
+    expect(useAppStore.getState().selectedIdx).toBe(5);
+    expect(useAppStore.getState().selectionSource).toBe("explicit");
+  });
+
+  it("selectIdx with search source sets selectionSource search", () => {
+    useAppStore.getState().selectIdx(7, "search");
+    expect(useAppStore.getState().selectedIdx).toBe(7);
+    expect(useAppStore.getState().selectionSource).toBe("search");
+  });
+
+  it("explicit selection after search flips selectionSource back to explicit (D-04)", () => {
+    useAppStore.getState().selectIdx(7, "search");
+    expect(useAppStore.getState().selectionSource).toBe("search");
+    useAppStore.getState().selectIdx(9, "explicit");
+    expect(useAppStore.getState().selectedIdx).toBe(9);
+    expect(useAppStore.getState().selectionSource).toBe("explicit");
+  });
+
+  it("clearSelection preserves selectionSource (D-03 / Open Question 1)", () => {
+    useAppStore.getState().selectIdx(7, "search");
+    useAppStore.getState().clearSelection();
+    expect(useAppStore.getState().selectedIdx).toBeNull();
+    expect(useAppStore.getState().selectionSource).toBe("search");
+  });
+
   it("setConnection updates connection", () => {
     useAppStore.getState().setConnection("connected");
     expect(useAppStore.getState().connection).toBe("connected");

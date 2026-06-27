@@ -8,6 +8,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_DEFAULT_FILTERS, EMPTY_FILTERS } from "../../state/filters.js";
 import { useAppStore } from "../../state/store.js";
+import { Z } from "../../styles/zLayers.js";
 import { NoResultsState } from "../states/NoResultsState.js";
 import { SearchingIndicator } from "../states/SearchingIndicator.js";
 import { SearchTruncatedBanner } from "../states/SearchTruncatedBanner.js";
@@ -157,6 +158,37 @@ describe("FilterBar", () => {
     expect(screen.getByTestId("search-popover")).toBeTruthy();
   });
 
+  it("refocuses and selects the query when cmd+f is pressed while find is already open", () => {
+    useAppStore.setState({ searchQuery: "initialize", searchPopoverOpen: true });
+    render(<FilterBar />);
+
+    const input = screen.getByPlaceholderText(
+      "all JSON payloads, methods, ids, sessions...",
+    ) as HTMLInputElement;
+    // Drop focus first so we can observe the shortcut re-acquiring it.
+    input.blur();
+
+    const result = fireEvent.keyDown(document, { key: "f", metaKey: true });
+
+    // preventDefault keeps the OS find dialog suppressed.
+    expect(result).toBe(false);
+    // The popover stays open (the shortcut must not toggle find closed).
+    expect(screen.getByTestId("search-popover")).toBeTruthy();
+    // Focus returns to the input and input.select() selects the full query for replace-typing (D-12).
+    expect(document.activeElement).toBe(input);
+    expect(input.selectionStart).toBe(0);
+    expect(input.selectionEnd).toBe("initialize".length);
+  });
+
+  it("pins the find popover at the popover z-layer above the non-modal rail", () => {
+    useAppStore.setState({ searchPopoverOpen: true });
+    render(<FilterBar />);
+
+    const popover = screen.getByTestId("search-popover");
+    // D-10: the find widget is pinned at Z.popover so the desktop detail rail never covers it.
+    expect(popover.style.zIndex).toBe(String(Z.popover));
+  });
+
   it("renders Filter rows as a separate local timeline input", () => {
     render(<FilterBar />);
     const input = screen.getByLabelText("Filter rows") as HTMLInputElement;
@@ -215,9 +247,9 @@ describe("FilterBar", () => {
     const trigger = screen.getByRole("button", { name: "Open search" });
     fireEvent.click(trigger);
 
-    expect(screen.getByTestId("search-status").textContent).toContain("2 of 2 matches");
-    expect(screen.getByRole("button", { name: "Previous search match" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Next search match" })).toBeTruthy();
+    expect(screen.getByTestId("search-status").textContent).toContain("2 of 2 results");
+    expect(screen.getByRole("button", { name: "Previous result" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Next result" })).toBeTruthy();
   });
 
   it("opens FacetPopover when Dir chip is clicked", () => {

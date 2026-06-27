@@ -7,6 +7,7 @@ import type { AhpEvent } from "@ahp-inspector/shared";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { AhpFieldStrip } from "./AhpFieldStrip.js";
+import { DetailSummary } from "./DetailSummary.js";
 
 function makeRow(overrides: Partial<EventRow> = {}): EventRow {
   return {
@@ -218,5 +219,33 @@ describe("AhpFieldStrip — empty strip", () => {
     // The strip itself should exist but have no field rows inside it
     expect(strip).toBeInTheDocument();
     expect(strip.children).toHaveLength(0);
+  });
+});
+
+describe("DetailSummary — query highlighting (D-08)", () => {
+  it("wraps the matching part of the method label in a <mark>", () => {
+    const event = makeEvent({ method: "session/new" });
+    render(<DetailSummary event={event} latencyMs={12} status="ok" query="session" />);
+    const summary = screen.getByTestId("detail-summary");
+    const marks = summary.querySelectorAll("mark");
+    expect(marks.length).toBeGreaterThanOrEqual(1);
+    expect(marks[0]?.textContent).toBe("session");
+  });
+
+  it("does not highlight the method label without a query", () => {
+    const event = makeEvent({ method: "session/new" });
+    render(<DetailSummary event={event} latencyMs={12} status="ok" />);
+    const summary = screen.getByTestId("detail-summary");
+    expect(summary.querySelectorAll("mark")).toHaveLength(0);
+    // The method label is still rendered as plain text.
+    expect(summary).toHaveTextContent("session/new");
+  });
+
+  it("does not inject markup for a method label containing <script>", () => {
+    const event = makeEvent({ method: "</span><script>x</script>session" });
+    render(<DetailSummary event={event} latencyMs={null} status="ok" query="session" />);
+    const summary = screen.getByTestId("detail-summary");
+    expect(summary.querySelector("script")).toBeNull();
+    expect(summary).toHaveTextContent("<script>");
   });
 });

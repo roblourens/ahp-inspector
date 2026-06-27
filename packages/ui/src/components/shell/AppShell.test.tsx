@@ -51,6 +51,7 @@ vi.mock("../../transport/sse-client.js", () => ({
 }));
 
 import { useAppStore } from "../../state/store.js";
+import { DESKTOP_WIDTH, NARROW_WIDTH, setViewportWidth } from "../../test-fixtures/viewport.js";
 import { fetchCandidates, openSessionByCandidate } from "../../transport/sessions-client.js";
 import { connectLogStream } from "../../transport/sse-client.js";
 import { AppShell } from "./AppShell.js";
@@ -61,6 +62,7 @@ beforeEach(() => {
     rows: [],
     connection: "connected",
     selectedIdx: null,
+    selectionSource: "explicit",
     meta: { filename: "x.jsonl", eventCount: 0, sessionCount: 0 },
     lastWatchError: null,
     rotationNotice: false,
@@ -172,13 +174,8 @@ describe("AppShell — Plan 04-05 wiring", () => {
 });
 
 describe("AppShell — responsive detail layout", () => {
-  function setViewportWidth(width: number): void {
-    Object.defineProperty(window, "innerWidth", { configurable: true, value: width });
-    window.dispatchEvent(new Event("resize"));
-  }
-
   it("renders desktop detail side rail at 1400px and above", () => {
-    setViewportWidth(1440);
+    setViewportWidth(DESKTOP_WIDTH);
     useAppStore.setState({ selectedIdx: 0 });
     render(<AppShell />);
     expect(screen.getByTestId("detail-panel-wrapper")).toBeInTheDocument();
@@ -186,7 +183,7 @@ describe("AppShell — responsive detail layout", () => {
   });
 
   it("renders selected details in an overlay drawer below 1400px", () => {
-    setViewportWidth(1366);
+    setViewportWidth(NARROW_WIDTH);
     useAppStore.setState({ selectedIdx: 0 });
     render(<AppShell />);
     expect(screen.queryByTestId("detail-panel-wrapper")).toBeNull();
@@ -195,11 +192,40 @@ describe("AppShell — responsive detail layout", () => {
   });
 
   it("closes the drawer with Escape", () => {
-    setViewportWidth(1366);
+    setViewportWidth(NARROW_WIDTH);
     useAppStore.setState({ selectedIdx: 0 });
     render(<AppShell />);
     fireEvent.keyDown(window, { key: "Escape" });
     expect(useAppStore.getState().selectedIdx).toBeNull();
+  });
+
+  it("does not open the narrow drawer for search-driven selection (D-02)", () => {
+    setViewportWidth(NARROW_WIDTH);
+    render(<AppShell />);
+    act(() => useAppStore.getState().selectIdx(0, "search"));
+    expect(screen.queryByTestId("detail-drawer")).toBeNull();
+  });
+
+  it("opens the narrow drawer for explicit selection (D-04)", () => {
+    setViewportWidth(NARROW_WIDTH);
+    render(<AppShell />);
+    act(() => useAppStore.getState().selectIdx(0, "explicit"));
+    expect(screen.getByTestId("detail-drawer")).toBeInTheDocument();
+  });
+
+  it("keeps the drawer closed after search-select then clearSelection (D-03)", () => {
+    setViewportWidth(NARROW_WIDTH);
+    render(<AppShell />);
+    act(() => useAppStore.getState().selectIdx(0, "search"));
+    act(() => useAppStore.getState().clearSelection());
+    expect(screen.queryByTestId("detail-drawer")).toBeNull();
+  });
+
+  it("syncs the desktop rail for search-driven selection (D-01)", () => {
+    setViewportWidth(DESKTOP_WIDTH);
+    render(<AppShell />);
+    act(() => useAppStore.getState().selectIdx(0, "search"));
+    expect(screen.getByTestId("detail-panel-wrapper")).toBeInTheDocument();
   });
 });
 

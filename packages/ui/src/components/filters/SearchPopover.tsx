@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { JSX, RefObject } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import type { SearchStatus } from "../../state/store.js";
 import { Z } from "../../styles/zLayers.js";
 import { SearchInputCore } from "./SearchInputCore.js";
@@ -24,7 +24,6 @@ export function SearchPopover({
   value,
   onChange,
   onClear,
-  onClose,
   searchTotal,
   searchStatus,
   searchError,
@@ -34,35 +33,32 @@ export function SearchPopover({
   onNavigate,
   inputRef,
 }: SearchPopoverProps): JSX.Element {
+  // `onClose` stays in the props API for the trigger/X close path. Closing via
+  // the keyboard (and the subsequent row focus) is owned by TimelineRegion
+  // (Plan 02, D-13) — this component registers no document key listener.
   const popoverRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
 
   const hasSearch = value.trim() !== "";
   const hasSearchMatches = hasSearch && searchTotal > 0;
   const searchStatusText = !hasSearch
     ? null
     : searchStatus === "searching"
-      ? "Searching..."
+      ? "Searching…"
       : searchStatus === "error"
-        ? `Search failed${searchError ? `: ${searchError}` : ""}`
-        : focusedSearchIndex !== null && focusedSearchIndex >= 0
-          ? `${(focusedSearchIndex + 1).toLocaleString()} of ${searchMatchCount.toLocaleString()} ${searchMatchCount === 1 ? "match" : "matches"}${searchTruncated ? "+" : ""}`
-          : `${searchMatchCount.toLocaleString()} ${searchMatchCount === 1 ? "match" : "matches"}${searchTruncated ? "+" : ""}`;
+        ? searchError
+          ? `Search failed: ${searchError}`
+          : "Search failed — check the server connection and try again"
+        : searchMatchCount === 0
+          ? "No matching events"
+          : focusedSearchIndex !== null && focusedSearchIndex >= 0
+            ? `${(focusedSearchIndex + 1).toLocaleString()} of ${searchMatchCount.toLocaleString()} ${searchMatchCount === 1 ? "result" : "results"}${searchTruncated ? "+" : ""}`
+            : `${searchMatchCount.toLocaleString()} ${searchMatchCount === 1 ? "result" : "results"}${searchTruncated ? "+" : ""}`;
 
   return (
     <div
       ref={popoverRef}
       role="region"
-      aria-label="Search popover"
+      aria-label="Find"
       data-testid="search-popover"
       style={{
         position: "absolute",
@@ -84,12 +80,7 @@ export function SearchPopover({
       }}
     >
       {/* Search input core — no flex wrapper */}
-      <SearchInputCore
-        value={value}
-        onChange={onChange}
-        onClear={onClear}
-        ref={inputRef}
-      />
+      <SearchInputCore value={value} onChange={onChange} onClear={onClear} ref={inputRef} />
 
       {/* Status and navigation */}
       {searchStatusText !== null && (
@@ -101,19 +92,26 @@ export function SearchPopover({
             justifyContent: "space-between",
             gap: "var(--space-1)",
             color:
-              searchStatus === "error" ? "var(--color-danger)" : "var(--color-text-muted)",
+              searchStatus === "error" ? "var(--color-destructive)" : "var(--color-text-muted)",
             fontFamily: "var(--font-sans)",
             fontSize: "var(--text-ui-muted-size)",
             whiteSpace: "nowrap",
           }}
         >
-          <span>{searchStatusText}</span>
+          <span role="status" aria-atomic="true">
+            {searchStatusText}
+          </span>
           <div style={{ display: "flex", gap: "var(--space-1)" }}>
             <button
               type="button"
-              aria-label="Previous search match"
+              aria-label="Previous result"
               disabled={!hasSearchMatches}
-              onClick={() => onNavigate("previous")}
+              onClick={(e) => {
+                onNavigate("previous");
+                // Keep focus on the clicked button so a selection re-render
+                // cannot bounce focus back to the input (D-11).
+                (e.currentTarget as HTMLButtonElement).focus();
+              }}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -121,9 +119,7 @@ export function SearchPopover({
                 background: "none",
                 border: "none",
                 cursor: !hasSearchMatches ? "not-allowed" : "pointer",
-                color: !hasSearchMatches
-                  ? "var(--color-text-disabled)"
-                  : "var(--color-text-muted)",
+                color: !hasSearchMatches ? "var(--color-text-disabled)" : "var(--color-text-muted)",
                 padding: 0,
                 borderRadius: 3,
               }}
@@ -140,9 +136,14 @@ export function SearchPopover({
             </button>
             <button
               type="button"
-              aria-label="Next search match"
+              aria-label="Next result"
               disabled={!hasSearchMatches}
-              onClick={() => onNavigate("next")}
+              onClick={(e) => {
+                onNavigate("next");
+                // Keep focus on the clicked button so a selection re-render
+                // cannot bounce focus back to the input (D-11).
+                (e.currentTarget as HTMLButtonElement).focus();
+              }}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -150,9 +151,7 @@ export function SearchPopover({
                 background: "none",
                 border: "none",
                 cursor: !hasSearchMatches ? "not-allowed" : "pointer",
-                color: !hasSearchMatches
-                  ? "var(--color-text-disabled)"
-                  : "var(--color-text-muted)",
+                color: !hasSearchMatches ? "var(--color-text-disabled)" : "var(--color-text-muted)",
                 padding: 0,
                 borderRadius: 3,
               }}

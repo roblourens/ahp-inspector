@@ -3,7 +3,7 @@
 // RotationBanner mount + auto-dismiss, NewEventsPill mount when paused.
 
 import type { EventRow } from "@ahp-inspector/core";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EMPTY_FILTERS } from "../../state/filters.js";
 import { useAppStore } from "../../state/store.js";
@@ -352,5 +352,72 @@ describe("TimelineRegion — Escape never clears a filter (Phase 29)", () => {
     fireEvent.keyDown(window, { key: "Escape" });
     expect(useAppStore.getState().searchQuery).toBe("");
     expect(useAppStore.getState().searchStatus).toBe("idle");
+  });
+});
+
+describe("TimelineRegion — Phase 34 search source + Escape row focus", () => {
+  it("routes search navigation through selectionSource=search (D-01/D-06)", () => {
+    useAppStore.setState({
+      searchQuery: "ping",
+      searchMatches: new Set([0, 2]),
+      searchTotal: 2,
+      selectionSource: "explicit",
+    });
+    render(<TimelineRegion />);
+    window.dispatchEvent(new CustomEvent("ahp-search-nav", { detail: "next" }));
+    expect(useAppStore.getState().selectedIdx).toBe(0);
+    expect(useAppStore.getState().selectionSource).toBe("search");
+  });
+
+  it("Escape with find open closes the widget, preserves results, and focuses the current row (D-13)", async () => {
+    const originalOffsetHeight = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      "offsetHeight",
+    );
+    const originalOffsetWidth = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      "offsetWidth",
+    );
+    Object.defineProperty(window.HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      get: () => 400,
+    });
+    Object.defineProperty(window.HTMLElement.prototype, "offsetWidth", {
+      configurable: true,
+      get: () => 800,
+    });
+
+    useAppStore.setState({
+      searchQuery: "ping",
+      searchMatches: new Set([0, 1]),
+      searchTotal: 2,
+      searchPopoverOpen: true,
+      selectedIdx: 1,
+      selectionSource: "search",
+    });
+    render(<TimelineRegion />);
+    await screen.findByTestId("row-1");
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    // Widget closed but results + selection preserved.
+    expect(useAppStore.getState().searchPopoverOpen).toBe(false);
+    expect(useAppStore.getState().searchQuery).toBe("ping");
+    expect(useAppStore.getState().searchMatches).not.toBeNull();
+    expect(useAppStore.getState().selectedIdx).toBe(1);
+    // Source not flipped to "explicit" (D-03 / Open Question 1).
+    expect(useAppStore.getState().selectionSource).toBe("search");
+
+    // Focus moves to the current matching row (D-13).
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByTestId("row-1"));
+    });
+
+    if (originalOffsetHeight) {
+      Object.defineProperty(window.HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
+    }
+    if (originalOffsetWidth) {
+      Object.defineProperty(window.HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    }
   });
 });

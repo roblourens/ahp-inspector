@@ -127,6 +127,15 @@ body {
   content: "...";
 }
 
+/* D-08 (Plan 34-04): CSS Custom Highlight API styling for literal search
+   matches inside the Pretty JSON tree. Range objects are registered under the
+   "ahp-search-match" highlight name in PrettyJsonView; this rule colors them
+   with the same tokens as the <mark> highlighter, no markup injection. */
+::highlight(ahp-search-match) {
+  background-color: var(--color-search-match-bg);
+  color: var(--color-search-match-fg);
+}
+
 .state-inspector {
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);

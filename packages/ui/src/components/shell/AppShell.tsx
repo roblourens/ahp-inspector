@@ -79,6 +79,7 @@ export function AppShell(): JSX.Element {
   const grouping = useAppStore((s) => s.grouping);
   const detailWidth = useAppStore((s) => s.detailWidth);
   const selectedIdx = useAppStore((s) => s.selectedIdx);
+  const selectionSource = useAppStore((s) => s.selectionSource);
   const clearSelection = useAppStore((s) => s.clearSelection);
   const lastWatchError = useAppStore((s) => s.lastWatchError);
   const lastOpenRef = useAppStore((s) => s.lastOpenRef);
@@ -193,7 +194,7 @@ export function AppShell(): JSX.Element {
   const groupCount = groupedItems.filter((i) => i.kind === "header").length;
 
   useEffect(() => {
-    const drawerOpen = !isDetailDesktop && selectedIdx !== null;
+    const drawerOpen = !isDetailDesktop && selectedIdx !== null && selectionSource === "explicit";
     // Move focus to the close control only when the drawer first opens; the
     // drawer is non-modal, so selecting other rows while it stays open must
     // not keep stealing focus away from timeline navigation.
@@ -201,7 +202,7 @@ export function AppShell(): JSX.Element {
       drawerCloseRef.current?.focus();
     }
     drawerWasOpenRef.current = drawerOpen;
-  }, [isDetailDesktop, selectedIdx]);
+  }, [isDetailDesktop, selectedIdx, selectionSource]);
 
   useEffect(() => {
     if (isDetailDesktop || selectedIdx === null) return;
@@ -269,7 +270,7 @@ export function AppShell(): JSX.Element {
               </div>
             )}
           </div>
-          {!isDetailDesktop && selectedIdx !== null && (
+          {!isDetailDesktop && selectedIdx !== null && selectionSource === "explicit" && (
             <div className="detail-drawer-backdrop" data-testid="detail-drawer-backdrop">
               <div
                 className="detail-drawer"

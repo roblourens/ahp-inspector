@@ -1,19 +1,21 @@
 /**
  * RawJsonView — renders JSON as plain text in a <pre> element.
  *
- * T-03-04-01: React auto-escapes text children — NO dangerouslySetInnerHTML.
- * This is the safe rendering guarantee for arbitrary event payloads.
+ * T-03-04-01 / T-34-01: React auto-escapes text children and the shared
+ * highlighter only emits escaped React nodes plus <mark> — raw HTML is never
+ * injected. This is the safe rendering guarantee for arbitrary event payloads.
  *
  * No raw #hex literals.
  */
 import type { JSX } from "react";
+import { HighlightedText } from "../timeline/cells/highlight.js";
 
 interface RawJsonViewProps {
   data: unknown;
   query?: string;
 }
 
-export function RawJsonView({ data }: RawJsonViewProps): JSX.Element {
+export function RawJsonView({ data, query }: RawJsonViewProps): JSX.Element {
   const text = (() => {
     try {
       return JSON.stringify(data, null, 2);
@@ -37,7 +39,7 @@ export function RawJsonView({ data }: RawJsonViewProps): JSX.Element {
         wordBreak: "break-all",
       }}
     >
-      {text}
+      <HighlightedText text={text} query={query ?? ""} />
     </pre>
   );
 }

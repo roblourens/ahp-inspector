@@ -114,10 +114,19 @@ export function FilterBar({
   // Handle "/" and cmd+f / ctrl+f keyboard shortcuts to open the search popover.
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      const isFindShortcut = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "f";
       if (isSearchPopoverOpen) {
+        if (isFindShortcut) {
+          // Keep suppressing native find; refocus the input and select its
+          // current query so the next keystroke replaces it (D-12).
+          e.preventDefault();
+          const input = searchPopoverInputRef.current;
+          input?.focus();
+          input?.select();
+        }
+        // "/" while find is already open does nothing special.
         return;
       }
-      const isFindShortcut = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "f";
       if (e.key === "/" || isFindShortcut) {
         // Suppress the browser's native find dialog and drive in-app search instead.
         e.preventDefault();

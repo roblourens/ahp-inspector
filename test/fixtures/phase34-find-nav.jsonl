@@ -1,0 +1,9 @@
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"sessionId":"sess-find-001","clientInfo":{"name":"phase34-fixture"},"capabilities":{"telemetry":true}}}
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"tools":true},"sessionId":"sess-find-001"}}
+{"jsonrpc":"2.0","method":"action","params":{"actionType":"telemetry.flush","sessionId":"sess-find-001","turnId":"turn-001","summary":"telemetry batch flushed"}}
+{"jsonrpc":"2.0","id":2,"method":"workspace/executeCommand","params":{"sessionId":"sess-find-001","turnId":"turn-002","command":"diagnostics.run","config":{"options":{"flags":{"telemetryMode":"verbose","retries":3},"timeoutMs":5000}}}}
+{"jsonrpc":"2.0","id":2,"result":{"status":"ok","sessionId":"sess-find-001"}}
+{"jsonrpc":"2.0","method":"notification","params":{"type":"telemetry.report","sessionId":"sess-find-001","message":"synthetic telemetry report emitted"}}
+{"jsonrpc":"2.0","id":3,"method":"telemetry/report","params":{"sessionId":"sess-find-001","turnId":"turn-003","summary":"telemetry upload summary"}}
+{"jsonrpc":"2.0","id":3,"result":{"status":"accepted","sessionId":"sess-find-001"}}
+{"jsonrpc":"2.0","method":"action","params":{"actionType":"tool_call.completed","sessionId":"sess-find-001","turnId":"turn-002","toolCallId":"tool-xyz","summary":"diagnostic completed safely"}}
