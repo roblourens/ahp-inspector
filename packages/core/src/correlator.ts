@@ -132,8 +132,8 @@ export class Correlator {
       return;
     }
     // Otherwise park as pending. If there was already a pending request with
-    // the same key (rare — same dir, same id, same session before any reply),
-    // mark the displaced request orphaned before overwriting the map entry.
+    // the same key (rare — same direction and id before any reply), mark the
+    // displaced request orphaned before overwriting the map entry.
     const displaced = this.#pendingRequests.get(key);
     if (displaced !== undefined) {
       this.status[displaced] = "orphan";

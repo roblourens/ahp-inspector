@@ -370,6 +370,30 @@ describe("createAppState", () => {
     expect(rows[1]?.summary).toBe("doThing result ok=true");
   });
 
+  it("projects pair metadata when only the request carries a session", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({
+      host,
+      file: "/tmp/x.log",
+      flushIntervalMs: 0,
+      directionInference: ahpDirection,
+    });
+
+    host.push(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: 7,
+        method: "ping",
+        params: { sessionId: "session-a" },
+      })}\n`,
+    );
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", id: 7, result: {} })}\n`);
+
+    const rows = state.snapshot().rows;
+    expect(rows[0]?.pairIdx).toBe(1);
+    expect(rows[1]?.pairIdx).toBe(0);
+  });
+
   it("patches only the displaced prior request during duplicate request churn", async () => {
     const host = makeFakeHost("/tmp/x.log");
     state = await createAppState({ host, file: "/tmp/x.log", flushIntervalMs: 0 });

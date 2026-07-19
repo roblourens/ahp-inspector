@@ -63,6 +63,16 @@ describe("Correlator", () => {
     expect(c.statusOf(r)).toBe("ok");
   });
 
+  it("pairs a session-scoped request with a response that has no session params", () => {
+    const s = new EventStore();
+    const c = new Correlator(s);
+    const r = s.append(req(0, 100, { sessionId: "session-a" }));
+    const p = s.append(res(1, 130, { sessionId: null }));
+
+    expect(c.pairOf(r)).toBe(p);
+    expect(c.pairOf(p)).toBe(r);
+  });
+
   it("response with error → status error", () => {
     const s = new EventStore();
     const c = new Correlator(s);

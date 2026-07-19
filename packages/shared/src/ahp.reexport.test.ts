@@ -142,8 +142,21 @@ describe("correlation (Pattern 4)", () => {
     });
     const reqKey: CorrelationKey = correlationKeyForRequest(req);
     const resKey: CorrelationKey = correlationKeyForResponse(res);
-    expect(reqKey).toBe("s1::c2s::number::1");
+    expect(reqKey).toBe("∅::c2s::number::1");
     expect(resKey).toBe(reqKey);
+  });
+
+  it("pairs a session-scoped request with a response that cannot carry the session", () => {
+    const req = makeEvent({ dir: "c2s", sessionId: "s1", id: 1, idType: "number" });
+    const res = makeEvent({
+      dir: "s2c",
+      sessionId: null,
+      id: 1,
+      idType: "number",
+      kind: "response",
+    });
+
+    expect(correlationKeyForResponse(res)).toBe(correlationKeyForRequest(req));
   });
 
   it("number id 1 and string id '1' produce DIFFERENT keys (Pitfall 2)", () => {
