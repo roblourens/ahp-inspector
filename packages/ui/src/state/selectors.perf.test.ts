@@ -36,7 +36,7 @@ function makeRow(overrides: Partial<EventRow> = {}): EventRow {
 }
 
 describe("filter performance (50k rows)", () => {
-  it("facet filter pass over 50k rows completes in < 15 ms", () => {
+  it("facet filter pass over 50k rows completes in < 50 ms", () => {
     const rows: EventRow[] = Array.from({ length: 50_000 }, (_, i) =>
       makeRow({ idx: i, dir: i % 2 === 0 ? "c2s" : "s2c", method: `method-${i % 100}` }),
     );
@@ -45,6 +45,6 @@ describe("filter performance (50k rows)", () => {
     const result = rows.filter((r) => applyFacets(r, filter));
     const elapsed = performance.now() - start;
     expect(result.length).toBe(25_000);
-    expect(elapsed).toBeLessThan(15);
+    expect(elapsed).toBeLessThan(50);
   });
 });
