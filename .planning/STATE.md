@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: TBD (lean open)
 status: milestone_complete
-last_updated: 2026-06-27T23:16:02.985Z
-last_activity: 2026-06-27
+last_updated: 2026-07-29T18:18:49.648Z
+last_activity: 2026-07-29
 progress:
   total_phases: 10
   completed_phases: 5
@@ -26,7 +26,7 @@ stopped_at: Milestone complete (Phase 34 was final phase)
 Phase: 34
 Plan: Not started
 Status: Milestone complete
-Last activity: 2026-06-27
+Last activity: 2026-07-29 - Completed quick task 260729: preserve JSON tree expansion across live updates
 
 ## Performance Metrics
 
@@ -198,6 +198,7 @@ Last activity: 2026-06-27
 
 | Date | Slug | Summary |
 |------|------|---------|
+| 2026-07-29 | json-tree-expansion-stays-open | Preserved manually toggled JSON tree expansion across unrelated live-list rerenders. |
 | 2026-05-22 | fix-sticky-auto-scrolling-regression-if- | Kept tail-follow active across row appends even when an older selected row is above the viewport. |
 | 2026-05-22 | when-a-method-is-disabled-in-the-method- | Hid responses paired with Method facet-excluded requests, including default-hidden `ping` responses. |
 | 2026-05-22 | the-method-dropdown-should-have-all-the- | Made the Method facet a checked visibility list, with `ping` hidden by default and other unchecked methods filtered out. |
