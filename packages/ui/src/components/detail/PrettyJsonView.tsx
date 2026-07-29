@@ -17,7 +17,7 @@
  * No raw #hex literals — token colors come from CSS variables.
  * react-json-view-lite uses text-only rendering, no eval (verified 03-RESEARCH).
  */
-import { type JSX, useEffect, useRef } from "react";
+import { type JSX, useCallback, useEffect, useRef } from "react";
 import { defaultStyles, JsonView } from "react-json-view-lite";
 import "react-json-view-lite/dist/index.css";
 import { TruncationBanner } from "./TruncationBanner.js";
@@ -115,6 +115,21 @@ export function PrettyJsonView({
     };
   }, [data, query]);
 
+  const hasQuery = query.trim().length >= 2;
+
+  // Stable identity across rerenders unless `hasQuery`/`query` (the actual
+  // determinants of expansion policy) change. react-json-view-lite's
+  // ExpandableObject re-invokes `shouldExpandNode` and overwrites any
+  // manually-toggled expansion state whenever this function's identity
+  // changes — an inline arrow here would reset user-expanded nodes on every
+  // unrelated parent rerender (e.g. live `rows` updates from SSE). Computed
+  // before the truncation early-return below to satisfy rules-of-hooks.
+  const shouldExpandNode = useCallback(
+    (level: number, value: unknown) =>
+      hasQuery ? level < 1 || subtreeContainsQuery(value, query) : level < 5,
+    [hasQuery, query],
+  );
+
   let serialized: string;
   try {
     serialized = JSON.stringify(data);
@@ -131,8 +146,6 @@ export function PrettyJsonView({
       />
     );
   }
-
-  const hasQuery = query.trim().length >= 2;
 
   return (
     <div
@@ -151,9 +164,7 @@ export function PrettyJsonView({
     >
       <JsonView
         data={data as object}
-        shouldExpandNode={(level: number, value: unknown) =>
-          hasQuery ? level < 1 || subtreeContainsQuery(value, query) : level < 5
-        }
+        shouldExpandNode={shouldExpandNode}
         clickToExpandNode
         style={JSON_STYLES}
       />

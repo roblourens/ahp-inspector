@@ -52,6 +52,68 @@ describe("PrettyJsonView", () => {
   });
 });
 
+describe("PrettyJsonView — stable expansion across unrelated rerenders", () => {
+  it("preserves a manually-collapsed node across a rerender with unchanged data/query", () => {
+    const data = { params: { resource: "ahp:/sessions" } };
+    const { container, rerender } = render(<PrettyJsonView data={data} />);
+    expect(screen.getByText('"ahp:/sessions"')).toBeInTheDocument();
+
+    const paramsLabel = Array.from(container.querySelectorAll(".ahp-json-clickable-label")).find(
+      (node) => node.textContent?.includes("params"),
+    );
+    expect(paramsLabel).toBeTruthy();
+
+    // Manually collapse the node the user opened by default.
+    fireEvent.click(paramsLabel as Element);
+    expect(screen.queryByText('"ahp:/sessions"')).toBeNull();
+
+    // Simulate an unrelated parent rerender (e.g. a live `rows` store update)
+    // with the exact same `data`/`query` props — a fresh object reference is
+    // used to mirror how a parent's re-render typically produces new props,
+    // while representing the same logical content.
+    rerender(<PrettyJsonView data={{ params: { resource: "ahp:/sessions" } }} />);
+
+    // The user's manual collapse must be preserved, not reset back to the
+    // shouldExpandNode default (which would re-expand this level-1 node).
+    expect(screen.queryByText('"ahp:/sessions"')).toBeNull();
+  });
+
+  it("preserves a manually-expanded deep node across a rerender with unchanged data/query", () => {
+    const data = { a: { b: { c: { d: { e: { f: "deep-value" } } } } } };
+    const { container, rerender } = render(<PrettyJsonView data={data} />);
+    // Level-6 value is beyond the level<5 default, so it starts collapsed.
+    expect(screen.queryByText('"deep-value"')).toBeNull();
+
+    // Manually expand collapsed ancestors, deepest-first, until the target
+    // value is revealed.
+    let guard = 0;
+    while (screen.queryByText('"deep-value"') === null && guard++ < 10) {
+      const collapsedLabels = Array.from(container.querySelectorAll(".ahp-json-clickable-label"));
+      const deepest = collapsedLabels[collapsedLabels.length - 1];
+      expect(deepest).toBeTruthy();
+      fireEvent.click(deepest as Element);
+    }
+    expect(screen.getByText('"deep-value"')).toBeInTheDocument();
+
+    // Unrelated rerender with the same data/query — expansion must persist.
+    rerender(<PrettyJsonView data={{ a: { b: { c: { d: { e: { f: "deep-value" } } } } } }} />);
+    expect(screen.getByText('"deep-value"')).toBeInTheDocument();
+  });
+
+  it("still recomputes expansion when query changes on rerender", () => {
+    const data = { a: { b: { c: { d: { e: { needle: "the-secret-needle" } } } } } };
+    const { rerender } = render(<PrettyJsonView data={data} query="nomatch" />);
+    // Non-matching query: default cutoff for hasQuery is level<1, so the deep
+    // node stays collapsed.
+    expect(screen.queryByText('"the-secret-needle"')).toBeNull();
+
+    // Intentional query change must still recompute expansion (not be
+    // "frozen" by the stability fix).
+    rerender(<PrettyJsonView data={data} query="needle" />);
+    expect(screen.getByText('"the-secret-needle"')).toBeInTheDocument();
+  });
+});
+
 describe("PrettyJsonView — match-aware expansion (D-09)", () => {
   it("expands a deep node whose serialized value contains the query", () => {
     render(
