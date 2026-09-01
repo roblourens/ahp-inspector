@@ -43,7 +43,26 @@ interface SseClient {
   next(timeoutMs?: number): Promise<Frame>;
 }
 
-function openSse(opts: { port: number; path: string }): Promise<SseClient> {
+function apiUrl(port: number, path: string, apiToken: string): string {
+  const url = new URL(path, `http://127.0.0.1:${port}`);
+  url.searchParams.set("_ahpToken", apiToken);
+  return url.toString();
+}
+
+function apiPath(port: number, path: string, apiToken: string): string {
+  const url = new URL(apiUrl(port, path, apiToken));
+  return `${url.pathname}${url.search}`;
+}
+
+async function readStandaloneApiToken(port: number): Promise<string> {
+  const response = await fetch(`http://127.0.0.1:${port}/`);
+  const html = await response.text();
+  const token = html.match(/<meta name="ahp-api-token" content="([^"]+)" \/>/)?.[1];
+  if (!token) throw new Error("standalone UI did not provide an API capability");
+  return token;
+}
+
+function openSse(opts: { port: number; path: string; apiToken: string }): Promise<SseClient> {
   return new Promise((resolveOuter, reject) => {
     const buf: Frame[] = [];
     const waiters: Array<(f: Frame) => void> = [];
@@ -52,7 +71,7 @@ function openSse(opts: { port: number; path: string }): Promise<SseClient> {
       {
         host: "127.0.0.1",
         port: opts.port,
-        path: opts.path,
+        path: apiPath(opts.port, opts.path, opts.apiToken),
         method: "GET",
         headers: { Host: `127.0.0.1:${opts.port}`, Accept: "text/event-stream" },
       },
@@ -176,10 +195,12 @@ async function killCli(r: CliProc): Promise<void> {
 describe("Phase 3 vertical slice — CLI → search → event detail", () => {
   let cli: CliProc | undefined;
   let port = 0;
+  let apiToken = "";
 
   beforeAll(async () => {
     cli = spawnCli([FIXTURE, "--port", "0", "--no-open"]);
     port = await waitForPort(cli);
+    apiToken = await readStandaloneApiToken(port);
     // Allow TailReader initial read to settle (phase3-mini.jsonl is 6 lines).
     await new Promise((res) => setTimeout(res, 200));
   }, 30_000);
@@ -191,14 +212,14 @@ describe("Phase 3 vertical slice — CLI → search → event detail", () => {
   // ── Phase 2 regression ──────────────────────────────────────────────────────
 
   it("Phase 2 regression: /api/log/meta returns 200", async () => {
-    const r = await fetch(`http://127.0.0.1:${port}/api/log/meta`);
+    const r = await fetch(apiUrl(port, "/api/log/meta", apiToken));
     expect(r.status).toBe(200);
   });
 
   // ── Meta endpoint ──────────────────────────────────────────────────────────
 
   it("GET /api/log/meta returns basename filename without absolute path", async () => {
-    const r = await fetch(`http://127.0.0.1:${port}/api/log/meta`);
+    const r = await fetch(apiUrl(port, "/api/log/meta", apiToken));
     expect(r.status).toBe(200);
     const body = (await r.json()) as { filename: string; eventCount?: number };
     expect(body.filename).toBe("phase3-mini.jsonl");
@@ -210,7 +231,7 @@ describe("Phase 3 vertical slice — CLI → search → event detail", () => {
   // ── SSE snapshot ──────────────────────────────────────────────────────────
 
   it("SSE snapshot delivers ≥6 rows; at least one has isAuthFailure=true", async () => {
-    const c = await openSse({ port, path: "/api/log/stream" });
+    const c = await openSse({ port, path: "/api/log/stream", apiToken });
     try {
       // snapshot-begin
       const begin = await c.next(5000);
@@ -241,7 +262,7 @@ describe("Phase 3 vertical slice — CLI → search → event detail", () => {
   // ── Search endpoint ────────────────────────────────────────────────────────
 
   it("GET /api/log/search?q=authRequired returns at least 1 match", async () => {
-    const r = await fetch(`http://127.0.0.1:${port}/api/log/search?q=authRequired`);
+    const r = await fetch(apiUrl(port, "/api/log/search?q=authRequired", apiToken));
     expect(r.status).toBe(200);
     const body = (await r.json()) as { matches: number[]; total: number; truncated: boolean };
     expect(body.matches.length).toBeGreaterThanOrEqual(1);
@@ -251,14 +272,14 @@ describe("Phase 3 vertical slice — CLI → search → event detail", () => {
 
   it("GET /api/log/search with 256+ char query is accepted (server caps silently)", async () => {
     const longQ = "x".repeat(300);
-    const r = await fetch(`http://127.0.0.1:${port}/api/log/search?q=${encodeURIComponent(longQ)}`);
+    const r = await fetch(apiUrl(port, `/api/log/search?q=${encodeURIComponent(longQ)}`, apiToken));
     expect(r.ok).toBe(true);
   });
 
   it("GET /api/log/search?limit=1 returns truncated=true when 2+ matches exist", async () => {
     // "test-session-0001" appears in multiple haystack strings
     const q = encodeURIComponent("test-session-0001");
-    const r = await fetch(`http://127.0.0.1:${port}/api/log/search?q=${q}&limit=1`);
+    const r = await fetch(apiUrl(port, `/api/log/search?q=${q}&limit=1`, apiToken));
     expect(r.status).toBe(200);
     const body = (await r.json()) as { matches: number[]; total: number; truncated: boolean };
     // The fixture has multiple events with the same sessionId, so at least 2 should match
@@ -275,7 +296,7 @@ describe("Phase 3 vertical slice — CLI → search → event detail", () => {
   // ── Event-detail endpoint ──────────────────────────────────────────────────
 
   it("GET /api/log/event/0 returns full event with raw payload", async () => {
-    const r = await fetch(`http://127.0.0.1:${port}/api/log/event/0`);
+    const r = await fetch(apiUrl(port, "/api/log/event/0", apiToken));
     expect(r.status).toBe(200);
     const body = (await r.json()) as {
       event: { raw?: unknown };
@@ -296,7 +317,7 @@ describe("Phase 3 vertical slice — CLI → search → event detail", () => {
   });
 
   it("GET /api/log/event/999 returns 404", async () => {
-    const r = await fetch(`http://127.0.0.1:${port}/api/log/event/999`);
+    const r = await fetch(apiUrl(port, "/api/log/event/999", apiToken));
     expect(r.status).toBe(404);
   });
 });

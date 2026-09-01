@@ -1,21 +1,53 @@
 import type {
-  ActionEnvelope,
+  ActionOrigin,
+  AnnotationsAction,
+  AnnotationsState,
+  AutomationAction,
+  AutomationCatalogState,
+  AutomationRunAction,
+  AutomationRunState,
+  ChangesetAction,
+  ChangesetState,
+  ChatAction,
+  ChatState,
+  ResourceWatchAction,
+  ResourceWatchState,
   RootAction,
   RootState,
   SessionAction,
   SessionState,
-  Snapshot,
   StateAction,
   TerminalAction,
   TerminalState,
 } from "@ahp-inspector/protocol";
-import { rootReducer, sessionReducer, terminalReducer } from "@ahp-inspector/protocol";
+import {
+  ACTION_INTRODUCED_IN,
+  annotationsReducer,
+  automationReducer,
+  automationRunReducer,
+  changesetReducer,
+  chatReducer,
+  resourceWatchReducer,
+  rootReducer,
+  sessionReducer,
+  terminalReducer,
+} from "@ahp-inspector/protocol";
 import type { AhpEvent, CorrelationKey } from "@ahp-inspector/shared";
 import { correlationKeyForRequest, correlationKeyForResponse } from "@ahp-inspector/shared";
 
 const ROOT_RESOURCE = "agenthost:/root";
 
-export type ReplayResourceKind = "root" | "session" | "terminal" | "unknown";
+export type ReplayResourceKind =
+  | "root"
+  | "session"
+  | "chat"
+  | "terminal"
+  | "changeset"
+  | "annotations"
+  | "resource-watch"
+  | "automation"
+  | "automation-run"
+  | "unknown";
 export type ReplayConfidence = "complete" | "partial" | "unknown";
 
 export type ReplayDiagnosticCode =
@@ -98,7 +130,31 @@ interface ReplayContext {
   diagnostics: ReplayDiagnostic[];
 }
 
-type KnownReplayResourceKind = "root" | "session" | "terminal";
+interface DecodedSnapshot {
+  readonly resource: string;
+  readonly state: Record<string, unknown>;
+  readonly fromSeq: number;
+}
+
+interface DecodedActionEnvelope {
+  readonly channel: string;
+  readonly action: Record<string, unknown>;
+  readonly serverSeq: number;
+  readonly origin: ActionOrigin | undefined;
+  readonly rejectionReason?: string;
+}
+
+interface LegacySessionSummary extends Record<string, unknown> {
+  readonly title: string;
+  readonly status: number;
+  readonly modifiedAt: string | number;
+}
+
+interface LegacySessionState extends Record<string, unknown> {
+  readonly summary: LegacySessionSummary;
+  readonly lifecycle: string;
+  readonly turns: readonly unknown[];
+}
 
 export function replayToIndex(events: readonly AhpEvent[], targetIndex: number): ReplayResult {
   const ctx: ReplayContext = {
@@ -281,18 +337,29 @@ function installSnapshot(ctx: ReplayContext, value: unknown, eventIdx: number): 
   }
 
   const kind = inferSnapshotKind(snapshot);
+  const key: ReplayResourceKey = { kind, uri: snapshot.resource };
   if (kind === "unknown") {
-    addDiagnostic(ctx, {
+    const diagnostic: ReplayDiagnostic = {
       code: "unknown-snapshot",
       severity: "warning",
       eventIdx,
       message: `Snapshot resource ${snapshot.resource} has unknown state shape`,
       details: { resource: snapshot.resource },
+    };
+    addDiagnostic(ctx, diagnostic);
+    ctx.resources.set(resourceMapKey(key), {
+      key,
+      state: snapshot.state,
+      baselineEventIdx: eventIdx,
+      lastAppliedEventIdx: eventIdx,
+      baselineFromSeq: snapshot.fromSeq,
+      lastServerSeq: snapshot.fromSeq,
+      confidence: "unknown",
+      diagnostics: [diagnostic],
     });
     return;
   }
 
-  const key: ReplayResourceKey = { kind, uri: snapshot.resource };
   ctx.resources.set(resourceMapKey(key), {
     key,
     state: snapshot.state,
@@ -307,30 +374,24 @@ function installSnapshot(ctx: ReplayContext, value: unknown, eventIdx: number): 
 
 function applyEnvelope(
   ctx: ReplayContext,
-  envelope: ActionEnvelope,
+  envelope: DecodedActionEnvelope,
   eventIdx: number,
   eventTs: number,
 ): void {
-  const target = inferActionTarget(envelope.action, envelope.channel);
-  if (!target) {
-    addDiagnostic(ctx, {
-      code: "unknown-action",
-      severity: "warning",
-      eventIdx,
-      message: `Unknown action target for ${actionTypeOf(envelope.action) ?? "unknown action"}`,
-      details: envelope.action,
-    });
-    return;
-  }
-
-  const resource = ctx.resources.get(resourceMapKey(target));
+  const action = readKnownAction(envelope.action);
+  const inferredTarget = action
+    ? inferKnownActionTarget(action, envelope.channel)
+    : { kind: "unknown" as const, uri: envelope.channel };
+  const resource =
+    ctx.resources.get(resourceMapKey(inferredTarget)) ??
+    [...ctx.resources.values()].find((candidate) => candidate.key.uri === envelope.channel);
   if (!resource) {
     addDiagnostic(ctx, {
       code: "missing-baseline",
       severity: "warning",
       eventIdx,
-      message: `No ${target.kind} baseline for ${target.uri}`,
-      details: { target, actionType: actionTypeOf(envelope.action) },
+      message: `No ${inferredTarget.kind} baseline for ${inferredTarget.uri}`,
+      details: { target: inferredTarget, actionType: actionTypeOf(envelope.action) },
     });
     return;
   }
@@ -348,6 +409,34 @@ function applyEnvelope(
     return;
   }
 
+  linkAcceptedIntent(ctx, envelope);
+
+  if (!action || inferredTarget.kind === "unknown") {
+    addResourceDiagnostic(ctx, resource, {
+      code: "unknown-action",
+      severity: "warning",
+      eventIdx,
+      message: `Cannot apply unsupported action ${actionTypeOf(envelope.action) ?? "(missing type)"}`,
+      details: envelope.action,
+    });
+    resource.lastServerSeq = envelope.serverSeq;
+    resource.confidence = "unknown";
+    return;
+  }
+
+  if (resource.key.kind !== inferredTarget.kind) {
+    addResourceDiagnostic(ctx, resource, {
+      code: "scope-creep-blocked",
+      severity: "warning",
+      eventIdx,
+      message: `Refusing to apply ${action.type} to ${resource.key.kind} state`,
+      details: { expected: inferredTarget.kind, actual: resource.key.kind },
+    });
+    resource.lastServerSeq = envelope.serverSeq;
+    resource.confidence = "unknown";
+    return;
+  }
+
   const reducerDiagnostics: ReplayDiagnostic[] = [];
   const log = (message: string) => {
     reducerDiagnostics.push({
@@ -355,30 +444,67 @@ function applyEnvelope(
       severity: "warning",
       eventIdx,
       message,
-      details: { actionType: actionTypeOf(envelope.action) },
+      details: { actionType: action.type },
     });
   };
 
   resource.state = (() => {
-    if (target.kind === "root") {
-      return rootReducer(resource.state as RootState, envelope.action as RootAction, log);
+    if (resource.key.kind === "root") {
+      return rootReducer(resource.state as RootState, action as RootAction, log);
     }
-    if (target.kind === "session") {
-      // Inject the event timestamp as the clock so replayed `modifiedAt`
-      // values are deterministic (event-time, not wall-clock).
-      return sessionReducer(
-        resource.state as SessionState,
-        envelope.action as SessionAction,
+    if (resource.key.kind === "session") {
+      if (isLegacySessionState(resource.state)) {
+        const legacyState = applyLegacySessionAction(resource.state, envelope.action, eventTs);
+        if (legacyState) {
+          return legacyState;
+        }
+        log(`Unsupported historical session action: ${action.type}`);
+        return resource.state;
+      }
+      return sessionReducer(resource.state as SessionState, action as SessionAction, log);
+    }
+    if (resource.key.kind === "chat") {
+      return chatReducer(resource.state as ChatState, action as ChatAction, log);
+    }
+    if (resource.key.kind === "terminal") {
+      return terminalReducer(resource.state as TerminalState, action as TerminalAction, log);
+    }
+    if (resource.key.kind === "changeset") {
+      return changesetReducer(resource.state as ChangesetState, action as ChangesetAction, log);
+    }
+    if (resource.key.kind === "annotations") {
+      return annotationsReducer(
+        resource.state as AnnotationsState,
+        action as AnnotationsAction,
         log,
-        () => eventTs,
       );
     }
-    return terminalReducer(resource.state as TerminalState, envelope.action as TerminalAction, log);
+    if (resource.key.kind === "resource-watch") {
+      return resourceWatchReducer(
+        resource.state as ResourceWatchState,
+        action as ResourceWatchAction,
+        log,
+      );
+    }
+    if (resource.key.kind === "automation") {
+      return automationReducer(
+        resource.state as AutomationCatalogState,
+        action as AutomationAction,
+        log,
+      );
+    }
+    if (resource.key.kind === "automation-run") {
+      return automationRunReducer(
+        resource.state as AutomationRunState,
+        action as AutomationRunAction,
+        log,
+      );
+    }
+    return resource.state;
   })();
   resource.lastAppliedEventIdx = eventIdx;
   resource.lastServerSeq = envelope.serverSeq;
 
-  linkAcceptedIntent(ctx, envelope);
   for (const diagnostic of reducerDiagnostics) {
     addResourceDiagnostic(ctx, resource, diagnostic);
   }
@@ -425,13 +551,19 @@ function shouldApplyServerSeq(
 
 function recordClientIntent(ctx: ReplayContext, event: AhpEvent, eventIdx: number): void {
   const params = isRecord(event.raw) ? event.raw.params : undefined;
-  const action =
-    isRecord(params) && isRecord(params.action) ? (params.action as unknown as StateAction) : null;
+  const action = isRecord(params) && isRecord(params.action) ? params.action : null;
   const clientSeq =
     isRecord(params) && typeof params.clientSeq === "number" ? params.clientSeq : null;
   const actionType = actionTypeOf(action);
-  const channel = isRecord(params) && typeof params.channel === "string" ? params.channel : undefined;
-  const resource = action ? inferActionTarget(action, channel) : null;
+  const channel =
+    isRecord(params) && typeof params.channel === "string" ? params.channel : undefined;
+  const knownAction = action ? readKnownAction(action) : null;
+  const resource =
+    action && channel
+      ? knownAction
+        ? inferKnownActionTarget(knownAction, channel)
+        : { kind: "unknown" as const, uri: channel }
+      : null;
 
   const intent: ReplayClientIntent = {
     eventIdx,
@@ -451,7 +583,7 @@ function recordClientIntent(ctx: ReplayContext, event: AhpEvent, eventIdx: numbe
   });
 }
 
-function linkAcceptedIntent(ctx: ReplayContext, envelope: ActionEnvelope): void {
+function linkAcceptedIntent(ctx: ReplayContext, envelope: DecodedActionEnvelope): void {
   const clientSeq = envelope.origin?.clientSeq;
   if (typeof clientSeq !== "number") {
     return;
@@ -469,7 +601,7 @@ function linkAcceptedIntent(ctx: ReplayContext, envelope: ActionEnvelope): void 
   ctx.intents[idx] = { ...intent, acceptedByServerSeq: envelope.serverSeq };
 }
 
-function readSnapshot(value: unknown): Snapshot | null {
+function readSnapshot(value: unknown): DecodedSnapshot | null {
   if (!isRecord(value) || typeof value.resource !== "string" || typeof value.fromSeq !== "number") {
     return null;
   }
@@ -478,12 +610,12 @@ function readSnapshot(value: unknown): Snapshot | null {
   }
   return {
     resource: value.resource,
-    state: value.state as unknown as Snapshot["state"],
+    state: value.state,
     fromSeq: value.fromSeq,
   };
 }
 
-function readActionEnvelope(value: unknown): ActionEnvelope | null {
+function readActionEnvelope(value: unknown): DecodedActionEnvelope | null {
   if (
     !isRecord(value) ||
     typeof value.channel !== "string" ||
@@ -503,7 +635,7 @@ function readActionEnvelope(value: unknown): ActionEnvelope | null {
       : undefined;
   return {
     channel: value.channel,
-    action: value.action as unknown as StateAction,
+    action: value.action,
     serverSeq: value.serverSeq,
     origin,
     ...(typeof value.rejectionReason === "string"
@@ -512,44 +644,82 @@ function readActionEnvelope(value: unknown): ActionEnvelope | null {
   };
 }
 
-function inferSnapshotKind(snapshot: Snapshot): KnownReplayResourceKind | "unknown" {
+function inferSnapshotKind(snapshot: DecodedSnapshot): ReplayResourceKind {
   if (snapshot.resource === ROOT_RESOURCE) {
     return "root";
   }
   if (isRootState(snapshot.state)) {
     return "root";
   }
-  if (isSessionState(snapshot.state)) {
+  if (isSessionState(snapshot.state) || isLegacySessionState(snapshot.state)) {
     return "session";
+  }
+  if (isChatState(snapshot.state)) {
+    return "chat";
   }
   if (isTerminalState(snapshot.state)) {
     return "terminal";
   }
+  if (isChangesetState(snapshot.state)) {
+    return "changeset";
+  }
+  if (isAnnotationsState(snapshot.state)) {
+    return "annotations";
+  }
+  if (isResourceWatchState(snapshot.state)) {
+    return "resource-watch";
+  }
+  if (isAutomationCatalogState(snapshot.state)) {
+    return "automation";
+  }
+  if (isAutomationRunState(snapshot.state)) {
+    return "automation-run";
+  }
   return "unknown";
 }
 
-function inferActionTarget(action: StateAction, channel?: string): ReplayResourceKey | null {
-  const type = actionTypeOf(action);
-  if (!type) {
-    return null;
-  }
+function inferKnownActionTarget(action: StateAction, channel: string): ReplayResourceKey {
+  const type = action.type;
   if (type.startsWith("root/")) {
-    return { kind: "root", uri: channel ?? ROOT_RESOURCE };
+    return { kind: "root", uri: channel };
   }
   if (type.startsWith("session/")) {
-    const session = channel ?? (isRecord(action) && typeof action.session === "string" ? action.session : null);
-    return session ? { kind: "session", uri: session } : null;
+    return { kind: "session", uri: channel };
+  }
+  if (type.startsWith("chat/")) {
+    return { kind: "chat", uri: channel };
   }
   if (type.startsWith("terminal/")) {
-    const terminal =
-      channel ?? (isRecord(action) && typeof action.terminal === "string" ? action.terminal : null);
-    return terminal ? { kind: "terminal", uri: terminal } : null;
+    return { kind: "terminal", uri: channel };
   }
-  return null;
+  if (type.startsWith("changeset/")) {
+    return { kind: "changeset", uri: channel };
+  }
+  if (type.startsWith("annotations/")) {
+    return { kind: "annotations", uri: channel };
+  }
+  if (type.startsWith("resourceWatch/")) {
+    return { kind: "resource-watch", uri: channel };
+  }
+  if (type.startsWith("automationRun/")) {
+    return { kind: "automation-run", uri: channel };
+  }
+  if (type.startsWith("automation/")) {
+    return { kind: "automation", uri: channel };
+  }
+  return { kind: "unknown", uri: channel };
 }
 
 function actionTypeOf(action: unknown): string | null {
   return isRecord(action) && typeof action.type === "string" ? action.type : null;
+}
+
+function readKnownAction(action: Record<string, unknown>): StateAction | null {
+  const type = actionTypeOf(action);
+  if (!type || !Object.hasOwn(ACTION_INTRODUCED_IN, type)) {
+    return null;
+  }
+  return action as unknown as StateAction;
 }
 
 function isRootState(value: unknown): value is RootState {
@@ -559,8 +729,111 @@ function isRootState(value: unknown): value is RootState {
 function isSessionState(value: unknown): value is SessionState {
   return (
     isRecord(value) &&
-    isRecord(value.summary) &&
     typeof value.lifecycle === "string" &&
+    Array.isArray(value.activeClients) &&
+    Array.isArray(value.chats)
+  );
+}
+
+function isLegacySessionState(value: unknown): value is LegacySessionState {
+  if (!isRecord(value) || !isRecord(value.summary)) {
+    return false;
+  }
+  return (
+    typeof value.summary.title === "string" &&
+    typeof value.summary.status === "number" &&
+    (typeof value.summary.modifiedAt === "string" ||
+      typeof value.summary.modifiedAt === "number") &&
+    typeof value.lifecycle === "string" &&
+    Array.isArray(value.turns)
+  );
+}
+
+function applyLegacySessionAction(
+  state: LegacySessionState,
+  action: Record<string, unknown>,
+  eventTs: number,
+): LegacySessionState | null {
+  switch (action.type) {
+    case "session/ready":
+      return {
+        ...state,
+        lifecycle: "ready",
+        summary: { ...state.summary, status: 1 },
+      };
+    case "session/creationFailed":
+      return {
+        ...state,
+        lifecycle: "creationFailed",
+        creationError: action.error,
+      };
+    case "session/titleChanged":
+      return typeof action.title === "string"
+        ? {
+            ...state,
+            summary: { ...state.summary, title: action.title, modifiedAt: eventTs },
+          }
+        : null;
+    case "session/isReadChanged":
+      return typeof action.isRead === "boolean"
+        ? {
+            ...state,
+            summary: {
+              ...state.summary,
+              status: withLegacyStatusFlag(state.summary.status, 1 << 5, action.isRead),
+            },
+          }
+        : null;
+    case "session/isArchivedChanged":
+      return typeof action.isArchived === "boolean"
+        ? {
+            ...state,
+            summary: {
+              ...state.summary,
+              status: withLegacyStatusFlag(state.summary.status, 1 << 6, action.isArchived),
+            },
+          }
+        : null;
+    case "session/activityChanged":
+      return action.activity === undefined || typeof action.activity === "string"
+        ? {
+            ...state,
+            summary: { ...state.summary, activity: action.activity },
+          }
+        : null;
+    case "session/serverToolsChanged":
+      return Array.isArray(action.tools) ? { ...state, serverTools: action.tools } : null;
+    case "session/customizationsChanged":
+      return Array.isArray(action.customizations)
+        ? { ...state, customizations: action.customizations }
+        : null;
+    case "session/changesetsChanged":
+      return action.changesets === undefined || Array.isArray(action.changesets)
+        ? {
+            ...state,
+            summary: { ...state.summary, changesets: action.changesets },
+          }
+        : null;
+    case "session/metaChanged":
+      return action._meta === undefined || isRecord(action._meta)
+        ? { ...state, _meta: action._meta }
+        : null;
+    default:
+      return null;
+  }
+}
+
+function withLegacyStatusFlag(status: number, flag: number, set: boolean): number {
+  return set ? status | flag : status & ~flag;
+}
+
+function isChatState(value: unknown): value is ChatState {
+  return (
+    isRecord(value) &&
+    typeof value.resource === "string" &&
+    typeof value.title === "string" &&
+    typeof value.status === "number" &&
+    typeof value.modifiedAt === "string" &&
     Array.isArray(value.turns)
   );
 }
@@ -570,7 +843,35 @@ function isTerminalState(value: unknown): value is TerminalState {
     isRecord(value) &&
     typeof value.title === "string" &&
     Array.isArray(value.content) &&
-    isRecord(value.claim)
+    isRecord(value.claim) &&
+    isRecord(value.lifecycle)
+  );
+}
+
+function isChangesetState(value: unknown): value is ChangesetState {
+  return isRecord(value) && typeof value.status === "string" && Array.isArray(value.files);
+}
+
+function isAnnotationsState(value: unknown): value is AnnotationsState {
+  return isRecord(value) && Array.isArray(value.annotations);
+}
+
+function isResourceWatchState(value: unknown): value is ResourceWatchState {
+  return isRecord(value) && typeof value.root === "string" && typeof value.recursive === "boolean";
+}
+
+function isAutomationCatalogState(value: unknown): value is AutomationCatalogState {
+  return isRecord(value) && Array.isArray(value.automations);
+}
+
+function isAutomationRunState(value: unknown): value is AutomationRunState {
+  return (
+    isRecord(value) &&
+    typeof value.resource === "string" &&
+    typeof value.automation === "string" &&
+    isRecord(value.origin) &&
+    isRecord(value.lifecycle) &&
+    Array.isArray(value.sessions)
   );
 }
 

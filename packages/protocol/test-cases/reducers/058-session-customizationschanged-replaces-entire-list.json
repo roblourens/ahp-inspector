@@ -2,66 +2,54 @@
   "description": "session/customizationsChanged replaces entire list",
   "reducer": "session",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
+    "provider": "copilot",
+    "title": "Test Session",
+    "status": 1,
     "lifecycle": "creating",
-    "turns": []
+    "activeClients": [],
+    "chats": []
   },
   "actions": [
     {
       "type": "session/customizationsChanged",
       "customizations": [
         {
-          "customization": {
-            "uri": "https://plugins.example/a",
-            "displayName": "Plugin A"
-          },
-          "enabled": true
+          "type": "plugin",
+          "id": "plugin-a",
+          "uri": "https://plugins.example/a",
+          "name": "Plugin A"
         },
         {
-          "customization": {
-            "uri": "https://plugins.example/b",
-            "displayName": "Plugin B"
-          },
-          "enabled": false,
+          "type": "plugin",
+          "id": "plugin-b",
+          "uri": "https://plugins.example/b",
+          "name": "Plugin B",
           "clientId": "client-1"
         }
       ]
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
+    "provider": "copilot",
+    "title": "Test Session",
+    "status": 1,
     "lifecycle": "creating",
-    "turns": [],
     "customizations": [
       {
-        "customization": {
-          "uri": "https://plugins.example/a",
-          "displayName": "Plugin A"
-        },
-        "enabled": true
+        "type": "plugin",
+        "id": "plugin-a",
+        "uri": "https://plugins.example/a",
+        "name": "Plugin A"
       },
       {
-        "customization": {
-          "uri": "https://plugins.example/b",
-          "displayName": "Plugin B"
-        },
-        "enabled": false,
+        "type": "plugin",
+        "id": "plugin-b",
+        "uri": "https://plugins.example/b",
+        "name": "Plugin B",
         "clientId": "client-1"
       }
-    ]
+    ],
+    "activeClients": [],
+    "chats": []
   }
 }

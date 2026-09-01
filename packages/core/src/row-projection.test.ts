@@ -288,7 +288,7 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
         kind: "action",
         dir: "s2c",
         method: "action",
-        actionType: ActionType.SessionToolCallDelta,
+        actionType: ActionType.ChatToolCallDelta,
         raw: {
           jsonrpc: "2.0",
           method: "action",
@@ -296,7 +296,7 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
             channel: "copilot:/session/current-shape",
             serverSeq: 17,
             action: {
-              type: ActionType.SessionToolCallDelta,
+              type: ActionType.ChatToolCallDelta,
               turnId: "turn-current",
               toolCallId: "tool-delta",
             },
@@ -314,7 +314,7 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
         kind: "action",
         dir: "s2c",
         method: "action",
-        actionType: ActionType.SessionToolCallContentChanged,
+        actionType: ActionType.ChatToolCallContentChanged,
         raw: {
           jsonrpc: "2.0",
           method: "action",
@@ -322,7 +322,7 @@ describe("projectRow() — Phase 04.1 summaries and pair metadata", () => {
             channel: "copilot:/session/current-shape",
             serverSeq: 18,
             action: {
-              type: ActionType.SessionToolCallContentChanged,
+              type: ActionType.ChatToolCallContentChanged,
               turnId: "turn-current",
               toolCallId: "tool-content",
             },
@@ -446,6 +446,36 @@ describe("projectRow() — tabular field formatting", () => {
 });
 
 describe("projectRow() — notification summaries", () => {
+  it("summarizes canonical method-based protocol notifications", () => {
+    const removed = mkEvent({
+      kind: "server-notification",
+      dir: "s2c",
+      method: "root/sessionRemoved",
+      raw: {
+        jsonrpc: "2.0",
+        method: "root/sessionRemoved",
+        params: { channel: "agenthost:/root", session: "s1" },
+      },
+    });
+    const auth = mkEvent({
+      kind: "server-notification",
+      dir: "s2c",
+      method: "auth/required",
+      raw: {
+        jsonrpc: "2.0",
+        method: "auth/required",
+        params: {
+          channel: "agenthost:/root",
+          resource: { resource: "https://example.invalid/api" },
+          reason: "expired",
+        },
+      },
+    });
+
+    expect(projectRow(removed, 0, "n/a", null).summary).toBe("s1");
+    expect(projectRow(auth, 0, "n/a", null).summary).toBe("https://example.invalid/api (expired)");
+  });
+
   it("protocol-notification with state extracts state into summary", () => {
     const e = mkEvent({
       kind: "protocol-notification",
@@ -508,8 +538,29 @@ describe("projectRow() — notification summaries", () => {
         },
       },
     });
+
     const row = projectRow(e, 0, "pending", null);
     expect(row.summary?.startsWith("session/turnStarted")).toBe(true);
+  });
+
+  it("summarizes future actions on known prefixes without treating them as canonical", () => {
+    const e = mkEvent({
+      kind: "action",
+      dir: "s2c",
+      method: "action",
+      actionType: "chat/futureAction",
+      raw: {
+        jsonrpc: "2.0",
+        method: "action",
+        params: {
+          channel: "ahp-chat:/1",
+          serverSeq: 1,
+          action: { type: "chat/futureAction", value: true },
+        },
+      },
+    });
+
+    expect(projectRow(e, 0, "n/a", null).summary).toBe("value=true");
   });
 
   it("dispatchAction client-notification surfaces action.type", () => {

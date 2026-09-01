@@ -1,43 +1,42 @@
 {
   "description": "toolCallReady transitions running tool back to pending-confirmation",
-  "reducer": "session",
+  "reducer": "chat",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 8,
-      "createdAt": 1000,
-      "modifiedAt": 2000
-    },
-    "lifecycle": "ready",
     "turns": [],
     "activeTurn": {
       "id": "turn-1",
-      "userMessage": {
-        "text": "Hello"
+      "startedAt": "1970-01-01T00:00:01.000Z",
+      "message": {
+        "text": "Hello",
+        "origin": {
+          "kind": "user"
+        }
       },
       "responseParts": [],
       "usage": null
-    }
+    },
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 8,
+    "modifiedAt": "1970-01-01T00:00:02.000Z"
   },
   "actions": [
     {
-      "type": "session/toolCallStart",
+      "type": "chat/toolCallStart",
       "turnId": "turn-1",
       "toolCallId": "tc-1",
       "toolName": "bash",
       "displayName": "Run Command"
     },
     {
-      "type": "session/toolCallReady",
+      "type": "chat/toolCallReady",
       "turnId": "turn-1",
       "toolCallId": "tc-1",
       "invocationMessage": "Run",
       "confirmed": "not-needed"
     },
     {
-      "type": "session/toolCallReady",
+      "type": "chat/toolCallReady",
       "turnId": "turn-1",
       "toolCallId": "tc-1",
       "invocationMessage": "Run: rm -rf /tmp/test",
@@ -48,20 +47,15 @@
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 24,
-      "createdAt": 1000,
-      "modifiedAt": 2000
-    },
-    "lifecycle": "ready",
     "turns": [],
     "activeTurn": {
       "id": "turn-1",
-      "userMessage": {
-        "text": "Hello"
+      "startedAt": "1970-01-01T00:00:01.000Z",
+      "message": {
+        "text": "Hello",
+        "origin": {
+          "kind": "user"
+        }
       },
       "responseParts": [
         {
@@ -71,17 +65,26 @@
             "toolCallId": "tc-1",
             "toolName": "bash",
             "displayName": "Run Command",
-            "toolClientId": null,
-            "_meta": null,
+            "intention": null,
+            "contributor": null,
+            "_meta": {
+              "permissionKind": "shell",
+              "fullCommandText": "rm -rf /tmp/test"
+            },
             "invocationMessage": "Run: rm -rf /tmp/test",
             "toolInput": null,
             "confirmationTitle": null,
+            "riskAssessment": null,
             "edits": null,
             "editable": null
           }
         }
       ],
       "usage": null
-    }
+    },
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 24,
+    "modifiedAt": "1970-01-01T00:00:02.000Z"
   }
 }

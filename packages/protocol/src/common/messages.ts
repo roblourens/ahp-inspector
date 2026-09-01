@@ -31,6 +31,10 @@ import type {
   ResourceDeleteResult,
   ResourceMoveParams,
   ResourceMoveResult,
+  ResourceResolveParams,
+  ResourceResolveResult,
+  ResourceMkdirParams,
+  ResourceMkdirResult,
   ResourceRequestParams,
   ResourceRequestResult,
   UnsubscribeParams,
@@ -41,6 +45,8 @@ import type {
 import type {
   ListSessionsParams,
   ListSessionsResult,
+  ResolveSessionConfigParams,
+  ResolveSessionConfigResult,
   SessionConfigCompletionsParams,
   SessionConfigCompletionsResult,
 } from "../channels-root/commands.js";
@@ -51,22 +57,39 @@ import type {
   FetchTurnsResult,
   CompletionsParams,
   CompletionsResult,
-  StartTurnParams,
-  StartTurnResult,
 } from "../channels-session/commands.js";
+import type { CreateChatParams, DisposeChatParams } from "../channels-chat/commands.js";
 import type { CreateTerminalParams, DisposeTerminalParams } from "../channels-terminal/commands.js";
+import type {
+  CreateResourceWatchParams,
+  CreateResourceWatchResult,
+} from "../channels-resource-watch/commands.js";
 import type {
   InvokeChangesetOperationParams,
   InvokeChangesetOperationResult,
 } from "../channels-changeset/commands.js";
+import type {
+  ListAutomationTriggerDefinitionsParams,
+  ListAutomationTriggerDefinitionsResult,
+  RunAutomationParams,
+  RunAutomationResult,
+  FetchAutomationRunsParams,
+  FetchAutomationRunsResult,
+} from "../channels-automation/commands.js";
 
 import type { ActionEnvelope } from "./actions.js";
 import type {
   SessionAddedParams,
   SessionRemovedParams,
   SessionSummaryChangedParams,
+  ProgressParams,
 } from "../channels-root/notifications.js";
 import type { AuthRequiredParams } from "./notifications.js";
+import type {
+  OtlpExportLogsParams,
+  OtlpExportTracesParams,
+  OtlpExportMetricsParams,
+} from "../channels-otlp/notifications.js";
 import type { AhpError } from "./errors.js";
 
 // ─── JSON-RPC Base Types ─────────────────────────────────────────────────────
@@ -136,8 +159,11 @@ export interface CommandMap {
   subscribe: { params: SubscribeParams; result: SubscribeResult };
   createSession: { params: CreateSessionParams; result: null };
   disposeSession: { params: DisposeSessionParams; result: null };
+  createChat: { params: CreateChatParams; result: null };
+  disposeChat: { params: DisposeChatParams; result: null };
   createTerminal: { params: CreateTerminalParams; result: null };
   disposeTerminal: { params: DisposeTerminalParams; result: null };
+  createResourceWatch: { params: CreateResourceWatchParams; result: CreateResourceWatchResult };
   listSessions: { params: ListSessionsParams; result: ListSessionsResult };
   resourceRead: { params: ResourceReadParams; result: ResourceReadResult };
   resourceWrite: { params: ResourceWriteParams; result: ResourceWriteResult };
@@ -145,34 +171,54 @@ export interface CommandMap {
   resourceCopy: { params: ResourceCopyParams; result: ResourceCopyResult };
   resourceDelete: { params: ResourceDeleteParams; result: ResourceDeleteResult };
   resourceMove: { params: ResourceMoveParams; result: ResourceMoveResult };
+  resourceResolve: { params: ResourceResolveParams; result: ResourceResolveResult };
+  resourceMkdir: { params: ResourceMkdirParams; result: ResourceMkdirResult };
   resourceRequest: { params: ResourceRequestParams; result: ResourceRequestResult };
   fetchTurns: { params: FetchTurnsParams; result: FetchTurnsResult };
   authenticate: { params: AuthenticateParams; result: AuthenticateResult };
+  resolveSessionConfig: { params: ResolveSessionConfigParams; result: ResolveSessionConfigResult };
   sessionConfigCompletions: {
     params: SessionConfigCompletionsParams;
     result: SessionConfigCompletionsResult;
   };
   completions: { params: CompletionsParams; result: CompletionsResult };
-  startTurn: { params: StartTurnParams; result: StartTurnResult };
   invokeChangesetOperation: {
     params: InvokeChangesetOperationParams;
     result: InvokeChangesetOperationResult;
   };
+  listAutomationTriggerDefinitions: {
+    params: ListAutomationTriggerDefinitionsParams;
+    result: ListAutomationTriggerDefinitionsResult;
+  };
+  runAutomation: { params: RunAutomationParams; result: RunAutomationResult };
+  fetchAutomationRuns: { params: FetchAutomationRunsParams; result: FetchAutomationRunsResult };
 }
 
 /**
  * Registry mapping each server → client request method to its params and
  * result types.
  *
- * Bidirectional commands (currently only `resourceRequest`) appear in both
- * {@link CommandMap} and `ServerCommandMap` with identical params/result
- * shapes. The receiver decides whether to allow, deny, or prompt for the
- * requested operation regardless of which peer initiated it.
+ * The `resource*` family is symmetrical: every method that appears in
+ * {@link CommandMap} also appears here with the identical params/result
+ * shape, and the receiver decides whether to allow, deny, or prompt for
+ * the requested operation regardless of which peer initiated. Hosts use
+ * the reverse direction to read from client-published URIs (e.g.
+ * `virtual://my-client/...` plugins) and to drive per-session filesystem
+ * providers without the client having to re-implement the wire schema.
  *
  * @category Commands
  */
 export interface ServerCommandMap {
+  resourceRead: { params: ResourceReadParams; result: ResourceReadResult };
+  resourceWrite: { params: ResourceWriteParams; result: ResourceWriteResult };
+  resourceList: { params: ResourceListParams; result: ResourceListResult };
+  resourceCopy: { params: ResourceCopyParams; result: ResourceCopyResult };
+  resourceDelete: { params: ResourceDeleteParams; result: ResourceDeleteResult };
+  resourceMove: { params: ResourceMoveParams; result: ResourceMoveResult };
+  resourceResolve: { params: ResourceResolveParams; result: ResourceResolveResult };
+  resourceMkdir: { params: ResourceMkdirParams; result: ResourceMkdirResult };
   resourceRequest: { params: ResourceRequestParams; result: ResourceRequestResult };
+  createResourceWatch: { params: CreateResourceWatchParams; result: CreateResourceWatchResult };
 }
 
 // ─── Notification Maps ───────────────────────────────────────────────────────
@@ -204,7 +250,11 @@ export interface ServerNotificationMap {
   "root/sessionAdded": { params: SessionAddedParams };
   "root/sessionRemoved": { params: SessionRemovedParams };
   "root/sessionSummaryChanged": { params: SessionSummaryChangedParams };
+  "root/progress": { params: ProgressParams };
   "auth/required": { params: AuthRequiredParams };
+  "otlp/exportLogs": { params: OtlpExportLogsParams };
+  "otlp/exportTraces": { params: OtlpExportTracesParams };
+  "otlp/exportMetrics": { params: OtlpExportMetricsParams };
 }
 
 // ─── Typed Requests ──────────────────────────────────────────────────────────
@@ -257,8 +307,8 @@ export type AhpServerRequest<M extends keyof ServerCommandMap = keyof ServerComm
  * generic parameter when you know the method from the associated request:
  *
  * ```ts
- * const result: AhpSuccessResponse<'fetchTurns'> = ...;
- * result.result.turns; // typed as Turn[]
+ * const result: AhpSuccessResponse<'listSessions'> = ...;
+ * result.result.items; // typed as SessionSummary[]
  * ```
  */
 export type AhpSuccessResponse<M extends keyof CommandMap = keyof CommandMap> = M extends unknown

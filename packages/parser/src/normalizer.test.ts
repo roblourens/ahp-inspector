@@ -73,6 +73,22 @@ describe("normalize (EVENT-02 classification)", () => {
     expect(ev.actionType).toBe("Y");
   });
 
+  it("structurally rejects malformed legacy notification payloads", () => {
+    const missingInner = normalize(
+      { jsonrpc: "2.0", method: "notification", params: { type: "Y" } },
+      meta(6, "s2c"),
+    );
+    const arrayInner = normalize(
+      { jsonrpc: "2.0", method: "notification", params: { notification: ["Y"] } },
+      meta(7, "s2c"),
+    );
+
+    expect(missingInner.kind).toBe("protocol-notification");
+    expect(missingInner.actionType).toBeNull();
+    expect(arrayInner.kind).toBe("protocol-notification");
+    expect(arrayInner.actionType).toBeNull();
+  });
+
   it("string id preserves idType:'string'", () => {
     const ev = normalize(
       { jsonrpc: "2.0", id: "abc", method: "authenticate", params: {} },

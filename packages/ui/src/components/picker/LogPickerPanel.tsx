@@ -16,7 +16,7 @@ export function LogPickerPanel({
   open: boolean;
   candidates: readonly SafeCandidate[];
   isLoading: boolean;
-  onSelect(id: string): void;
+  onSelect(id: string): Promise<void>;
   onOpenPath(path: string): Promise<void>;
   onRefresh(): void;
   onClose(): void;

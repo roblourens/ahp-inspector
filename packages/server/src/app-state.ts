@@ -17,7 +17,14 @@ import {
   projectRow,
   type Status,
 } from "@ahp-inspector/core";
-import { extractWireMeta, LineSplitter, MAX_BUF_BYTES, normalize, parseLine } from "@ahp-inspector/parser";
+import {
+  extractWireMeta,
+  LineSplitter,
+  MAX_BUF_BYTES,
+  normalize,
+  parseLine,
+  type SplitLine,
+} from "@ahp-inspector/parser";
 import {
   type Direction,
   type HostAdapter,
@@ -74,10 +81,20 @@ export type SsePayload =
   | { kind: "rotation"; newSize: number; reason: "shrink" | "rename" }
   | {
       kind: "watch-error";
-      code: "read-error" | "watch-fatal" | "oversized-line";
+      code: WatchErrorCode;
       message: string;
     }
   | { kind: "log-reset" };
+
+export type WatchErrorCode =
+  | "oversized-line"
+  | "read-error"
+  | "read-stat-failed"
+  | "read-stream-failed"
+  | "reader-callback-failed"
+  | "watch-close-failed"
+  | "watch-failed"
+  | "watch-fatal";
 
 type PatchUpdate = Extract<SsePayload, { kind: "patch" }>["updates"][number];
 type LoadProgressPayload = Extract<SsePayload, { kind: "load-progress" }>;
@@ -150,12 +167,50 @@ function formatBytes(n: number): string {
   return `${(n / (1024 * 1024 * 1024)).toFixed(2)} GiB`;
 }
 
+const WATCH_ERROR_MESSAGES: Partial<Record<WatchErrorCode, string>> = {
+  "read-stat-failed": "Unable to read log metadata.",
+  "read-stream-failed": "Unable to read log data.",
+  "reader-callback-failed": "The log reader callback failed.",
+  "watch-close-failed": "Unable to stop watching the log.",
+  "watch-failed": "Unable to watch the log for changes.",
+};
+
+function tailReaderErrorCode(err: Error): WatchErrorCode | null {
+  if (!("code" in err) || typeof err.code !== "string") return null;
+  switch (err.code) {
+    case "read-stat-failed":
+    case "read-stream-failed":
+    case "reader-callback-failed":
+    case "watch-close-failed":
+    case "watch-failed":
+      return err.code;
+    default:
+      return null;
+  }
+}
+
+function watchErrorPayload(err: Error, fatal: boolean): WatchErrorPayload {
+  const code = tailReaderErrorCode(err) ?? (fatal ? "watch-fatal" : "read-error");
+  const systemCode =
+    "systemCode" in err && typeof err.systemCode === "string" && /^[A-Z0-9_]+$/.test(err.systemCode)
+      ? err.systemCode
+      : null;
+  const baseMessage =
+    WATCH_ERROR_MESSAGES[code] ??
+    (fatal ? "Unable to watch the log for changes." : "Unable to read log data.");
+  return {
+    kind: "watch-error",
+    code,
+    message: systemCode ? `${baseMessage.slice(0, -1)} (${systemCode}).` : baseMessage,
+  };
+}
+
 export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   const handle = (await opts.host.openLog(opts.file)) as MaybeNodeLogHandle;
   const store = new EventStore();
   const stateReplay = new StateReplayIndex(store, 25);
   const correlator = new Correlator(store);
-  const decoder = new TextDecoder("utf-8");
+  let decoder = new TextDecoder("utf-8", { ignoreBOM: true });
   const inferDir: (raw: unknown) => Direction = opts.directionInference ?? (() => "c2s");
 
   const handlePath = handle.path ?? handle.id;
@@ -203,12 +258,11 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   // a single oversized line (e.g. a multi-megabyte base64 tool result)
   // bricks ingest for the rest of the file. Surface the skip as a
   // watch-error so the existing UI banner explains what happened.
-  const splitter = new LineSplitter({
-    onOversizedLineSkipped: (bytesDropped, terminatorBytes) => {
-      // Advance the file byteOffset past the dropped line + its terminator
-      // (0/1/2 bytes; 0 means EOF flush) so subsequent events' byteOffset
-      // metadata stays roughly file-relative.
-      byteOffset += bytesDropped + terminatorBytes;
+  let oversizedWarningActive = false;
+  function onOversizedBytes(bytesDropped: number, terminatorBytes: number): void {
+    byteOffset += bytesDropped + terminatorBytes;
+    if (!oversizedWarningActive) {
+      oversizedWarningActive = true;
       emit({
         kind: "watch-error",
         code: "oversized-line",
@@ -218,6 +272,13 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
           `(typically a tool result with embedded base64 payload). ` +
           `Subsequent events in this log will still load.`,
       });
+    }
+    if (terminatorBytes > 0) oversizedWarningActive = false;
+  }
+
+  const splitter = new LineSplitter({
+    onOversizedLineSkipped: (bytesDropped, terminatorBytes) => {
+      onOversizedBytes(bytesDropped, terminatorBytes);
     },
   });
 
@@ -326,13 +387,35 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     }
     // 2. Retroactive patches are limited to pre-existing rows. New append rows
     //    were already built from the correlator's latest metadata above.
-    const changedIndexes = correlator
-      .drainChangedIndexes()
-      .filter((idx) => idx < range.from);
+    const changedIndexes = correlator.drainChangedIndexes().filter((idx) => idx < range.from);
     const updates = buildPatchUpdates(changedIndexes);
     if (newRows.length > 0) emit({ kind: "append", rows: newRows, from: range.from });
     if (updates.length > 0) emit({ kind: "patch", updates });
   });
+
+  function ingestLine(line: SplitLine): void {
+    const parsed = parseLine(line.text, byteOffset, line.byteLength);
+    const wire = parsed.error ? null : extractWireMeta(parsed.raw);
+    const ingestNow = Date.now();
+    const ts = wire?.ts ?? ingestNow;
+    const tsRaw = wire?.tsRaw ?? String(ingestNow);
+    const dir: Direction = parsed.error ? "c2s" : (wire?.dir ?? inferDir(parsed.raw));
+    const m = { seq, ts, tsRaw, dir, byteOffset, byteLength: line.byteLength };
+    const ev = parsed.error
+      ? makeParseErrorEvent(m, parsed.error.reason, parsed.text)
+      : normalize(parsed.raw, m);
+    store.append(ev);
+    seq += 1;
+    byteOffset += line.byteLength + line.terminatorBytes;
+  }
+
+  function finalizeValidTail(): void {
+    const lines = splitter.finalizeIf((text) => {
+      const byteLength = Buffer.byteLength(text, "utf8");
+      return parseLine(text, byteOffset, byteLength).error === undefined;
+    });
+    for (const line of lines) ingestLine(line);
+  }
 
   // Ingest loop.
   const watcher = opts.host.watchLog(handle, {
@@ -349,20 +432,19 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     onInitialReadComplete(info) {
       initialReadLoadedBytes = info.loadedBytes;
       initialReadTotalBytes = info.totalBytes;
-      // If the file ended mid-skip (oversized line that never had a
-      // terminating newline — e.g. an 80MB single-line dump), flush so the
-      // onOversizedLineSkipped callback fires the read-error banner.
-      splitter.endOfInput();
+      // A complete JSON value at a stable snapshot boundary is a valid JSONL
+      // record even without a trailing newline. Invalid tails remain buffered
+      // because a live writer may still be in the middle of that record.
+      const oversizedBytes = splitter.checkpoint();
+      if (oversizedBytes > 0) onOversizedBytes(oversizedBytes, 0);
+      finalizeValidTail();
       emitLoadProgress("complete");
     },
     onChunk(chunk: Uint8Array, _byteOffset: number) {
       const text = decoder.decode(chunk, { stream: true });
-      // Detect CRLF vs LF so byteOffset stays byte-accurate for Windows logs.
-      // The LineSplitter strips the '\r', so we add the extra byte here if needed.
-      const newlineSize = text.includes("\r\n") ? 2 : 1;
-      let lines: string[];
+      let result: ReturnType<LineSplitter["pushDetailed"]>;
       try {
-        lines = splitter.push(text);
+        result = splitter.pushDetailed(text);
       } catch (err) {
         // Defense in depth: tolerant mode is enabled, so the splitter should
         // not throw. If it ever does (e.g. unrelated bug), surface as a
@@ -371,37 +453,21 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
         emit({
           kind: "watch-error",
           code: "read-error",
-          message: `Failed to parse log chunk: ${(err as Error).message}`,
+          message: `Failed to parse log chunk: ${err instanceof Error ? err.message : String(err)}`,
         });
         return;
       }
-      for (const line of lines) {
-        const byteLength = Buffer.byteLength(line, "utf8");
-        const parsed = parseLine(line, byteOffset, byteLength);
-        const wire = parsed.error ? null : extractWireMeta(parsed.raw);
-        const ingestNow = Date.now();
-        const ts = wire?.ts ?? ingestNow;
-        const tsRaw = wire?.tsRaw ?? String(ingestNow);
-        const dir: Direction = parsed.error ? "c2s" : (wire?.dir ?? inferDir(parsed.raw));
-        const m = { seq, ts, tsRaw, dir, byteOffset, byteLength };
-        const ev = parsed.error
-          ? makeParseErrorEvent(m, parsed.error.reason, parsed.text)
-          : normalize(parsed.raw, m);
-        store.append(ev);
-        seq += 1;
-        byteOffset += byteLength + newlineSize; // +1 LF or +2 CRLF
-      }
+      byteOffset += result.leadingBytes;
+      for (const line of result.lines) ingestLine(line);
     },
     onReset(info) {
       // Rotation is a full logical log reset: clear all server-side row/detail/
       // search/correlation indexes before TailReader reads the replacement file.
       // This guarantees post-rotation append frames start at from: 0, while seq
       // is intentionally NOT reset (T-04-02-04 accepted).
-      try {
-        splitter.reset();
-      } catch {
-        /* defensive */
-      }
+      splitter.reset();
+      decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+      oversizedWarningActive = false;
       byteOffset = 0;
       store.reset();
       stateReplay.reset();
@@ -417,11 +483,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
       emit({ kind: "rotation", newSize: info.newSize, reason: info.reason });
     },
     onError(err, fatal) {
-      emit({
-        kind: "watch-error",
-        code: fatal ? "watch-fatal" : "read-error",
-        message: err.message,
-      });
+      emit(watchErrorPayload(err, fatal));
     },
   });
 
@@ -436,7 +498,7 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
   const flushTimer: NodeJS.Timeout | null =
     flushIntervalMs > 0 ? setInterval(() => runFlush(), flushIntervalMs) : null;
 
-  let disposed = false;
+  let disposePromise: Promise<void> | null = null;
   return {
     meta,
     searchIndex: searchIdx,
@@ -475,32 +537,24 @@ export async function createAppState(opts: AppStateOptions): Promise<AppState> {
     stateAtIndex(targetIndex: number) {
       return { ...stateReplay.stateAtIndex(targetIndex), totalEvents: store.size() };
     },
-    async dispose() {
-      if (disposed) return;
-      disposed = true;
+    dispose() {
+      if (disposePromise) return disposePromise;
       stateReplay.reset();
       if (flushTimer) clearInterval(flushTimer);
-      try {
-        watcher.dispose();
-      } catch {
-        /* ignore */
-      }
-      try {
-        offStore();
-      } catch {
-        /* ignore */
-      }
-      try {
-        correlator.dispose();
-      } catch {
-        /* ignore */
-      }
-      try {
-        await opts.host.close(handle);
-      } catch {
-        /* ignore */
-      }
-      listeners.clear();
+      disposePromise = (async () => {
+        try {
+          watcher.dispose();
+        } finally {
+          try {
+            await opts.host.close(handle);
+          } finally {
+            offStore();
+            correlator.dispose();
+            listeners.clear();
+          }
+        }
+      })();
+      return disposePromise;
     },
   };
 }

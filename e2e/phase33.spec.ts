@@ -1,12 +1,10 @@
-import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { PHASE5_BASE_JSONL } from "../packages/ui/src/test-fixtures/phase5-log";
+import { type CliServer, startCli, stopCli } from "./helpers/cli";
 
-const CLI_ENTRY = resolve("packages/cli/src/index.ts");
-const TSX_BIN = resolve("node_modules/.bin/tsx");
 const SCREENSHOT_DIR = resolve("screenshots/phase33");
 const PHASE33_ROWS = [
   '{"jsonrpc":"2.0","method":"action","params":{"sessionId":"phase33-session","turnId":"phase33-turn","action":{"type":"foo/bar","summary":"phase33 foo bar synthetic row"}}}',
@@ -18,66 +16,6 @@ const PHASE33_ROWS = [
 
 type ThemeLabel = "Dark" | "Light" | "Hacker";
 type ThemeValue = "dark" | "light" | "hacker";
-
-interface CliProc {
-  child: ChildProcessWithoutNullStreams;
-  stdout: string;
-  stderr: string;
-  exited: Promise<number | null>;
-}
-
-function spawnCli(args: string[]): CliProc {
-  const child = spawn(TSX_BIN, [CLI_ENTRY, ...args], {
-    cwd: process.cwd(),
-    env: { ...process.env, BROWSER: "none" },
-  }) as ChildProcessWithoutNullStreams;
-  const proc: CliProc = {
-    child,
-    stdout: "",
-    stderr: "",
-    exited: new Promise((resolveExit) => child.once("exit", (code) => resolveExit(code))),
-  };
-  child.stdout.setEncoding("utf8");
-  child.stderr.setEncoding("utf8");
-  child.stdout.on("data", (data: string) => {
-    proc.stdout += data;
-  });
-  child.stderr.on("data", (data: string) => {
-    proc.stderr += data;
-  });
-  return proc;
-}
-
-function waitForPort(proc: CliProc, timeoutMs = 15_000): Promise<number> {
-  return new Promise((resolvePort, reject) => {
-    const start = Date.now();
-    const tick = setInterval(() => {
-      const match = proc.stdout.match(/AHP Inspector running at http:\/\/127\.0\.0\.1:(\d+)/);
-      if (match?.[1]) {
-        clearInterval(tick);
-        resolvePort(Number(match[1]));
-        return;
-      }
-      if (Date.now() - start > timeoutMs) {
-        clearInterval(tick);
-        reject(new Error(`timeout waiting for CLI port\n${proc.stdout}\n${proc.stderr}`));
-      }
-    }, 25);
-  });
-}
-
-async function killCli(proc: CliProc | undefined): Promise<void> {
-  if (!proc || proc.child.exitCode !== null) return;
-  proc.child.kill("SIGTERM");
-  const exited = await Promise.race([
-    proc.exited.then(() => true),
-    new Promise<boolean>((resolveExit) => setTimeout(() => resolveExit(false), 3000)),
-  ]);
-  if (!exited && proc.child.exitCode === null) {
-    proc.child.kill("SIGKILL");
-    await proc.exited;
-  }
-}
 
 async function assertNoPathLeak(page: Page): Promise<void> {
   const body = await page.locator("body").innerText();
@@ -113,7 +51,7 @@ async function expectVisibleLabel(locator: Locator, text: string): Promise<void>
 test.describe("Phase 33 timeline density and event-name hierarchy", () => {
   let dir = "";
   let file = "";
-  let proc: CliProc;
+  let proc: CliServer | undefined;
   let url = "";
 
   test.beforeAll(async () => {
@@ -121,13 +59,12 @@ test.describe("Phase 33 timeline density and event-name hierarchy", () => {
     dir = await mkdtemp(join(tmpdir(), "ahp-phase33-e2e-"));
     file = join(dir, "phase33-browser-safe.jsonl");
     await writeFile(file, `${PHASE5_BASE_JSONL}${PHASE33_ROWS}\n`);
-    proc = spawnCli([file, "--port", "0", "--no-open"]);
-    const port = await waitForPort(proc);
-    url = `http://127.0.0.1:${port}`;
+    proc = await startCli([file]);
+    url = proc.url;
   });
 
   test.afterAll(async () => {
-    await killCli(proc);
+    await stopCli(proc);
     if (dir) await rm(dir, { recursive: true, force: true });
   });
 

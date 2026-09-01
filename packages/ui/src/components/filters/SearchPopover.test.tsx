@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { SearchPopover } from "./SearchPopover.js";
 
 afterEach(cleanup);
@@ -217,14 +217,9 @@ describe("SearchPopover", () => {
   });
 
   it("calls onNavigate when prev/next buttons are clicked", () => {
-    const onNavigate = (direction: "previous" | "next"): void => {
-      // Mock handler
-    };
-    const onNavigateSpy = (direction: "previous" | "next"): void => {
-      onNavigate(direction);
-    };
+    const directions: Array<"previous" | "next"> = [];
 
-    const { rerender } = render(
+    render(
       <SearchPopover
         value="initialize"
         onChange={() => {}}
@@ -235,30 +230,25 @@ describe("SearchPopover", () => {
         searchTruncated={false}
         searchMatchCount={5}
         focusedSearchIndex={1}
-        onNavigate={onNavigateSpy}
+        onNavigate={(direction) => directions.push(direction)}
       />,
     );
 
+    fireEvent.click(screen.getByRole("button", { name: "Previous result" }));
     const nextButton = screen.getByRole("button", { name: "Next result" });
     fireEvent.click(nextButton);
-    // If we got here without error, click worked
-    expect(true).toBe(true);
+    expect(directions).toEqual(["previous", "next"]);
   });
 
   it("calls onChange when input value changes", () => {
-    const onChange = (value: string): void => {
-      // Mock handler
-    };
     let capturedValue = "";
-    const onChangeSpy = (value: string): void => {
-      capturedValue = value;
-      onChange(value);
-    };
 
     render(
       <SearchPopover
         value=""
-        onChange={onChangeSpy}
+        onChange={(value) => {
+          capturedValue = value;
+        }}
         onClear={() => {}}
         onClose={() => {}}
         searchTotal={0}

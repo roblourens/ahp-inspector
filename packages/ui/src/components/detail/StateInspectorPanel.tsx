@@ -40,6 +40,12 @@ type LoadState =
 
 type StateTab = "summary" | "pretty" | "raw";
 
+interface ToastState {
+  readonly id: number;
+  readonly message: string;
+  readonly kind: "success" | "error";
+}
+
 type SelectedLoadState =
   | { readonly status: "idle"; readonly data: null; readonly error: null }
   | { readonly status: "loading"; readonly data: null; readonly error: null }
@@ -70,12 +76,22 @@ export function StateInspectorPanel({
   const pinnedPoints = controlledPinnedPoints ?? localPinnedPoints;
   const setPinnedPoints = onPinnedPointsChange ?? setLocalPinnedPoints;
   const [stateTab, setStateTab] = useState<StateTab>("summary");
-  const [toast, setToast] = useState<{ message: string; kind: "success" | "error" } | null>(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
+  const nextToastId = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   const selectedAbortRef = useRef<AbortController | null>(null);
   const requestKey = `${idx}\u0000${logKey ?? ""}`;
   const lastRequestKeyRef = useRef(requestKey);
   const lastLogKeyRef = useRef(logKey);
+
+  const showToast = useCallback((message: string, ok: boolean): void => {
+    nextToastId.current += 1;
+    setToast({
+      id: nextToastId.current,
+      message,
+      kind: ok ? "success" : "error",
+    });
+  }, []);
 
   const loadSelectedResource = useCallback(
     async (resource: SelectableStateResource) => {
@@ -261,7 +277,7 @@ export function StateInspectorPanel({
                 loadState={selectedLoadState}
                 activeTab={stateTab}
                 onTabChange={setStateTab}
-                onCopy={(message, ok) => setToast({ message, kind: ok ? "success" : "error" })}
+                onCopy={showToast}
                 onPin={handlePinStatePoint}
               />
               <StateDiagnosticsPanel
@@ -281,9 +297,7 @@ export function StateInspectorPanel({
           )}
         </div>
       )}
-      {toast && (
-        <CopyToast key={toast.message + Date.now()} message={toast.message} kind={toast.kind} />
-      )}
+      {toast && <CopyToast key={toast.id} message={toast.message} kind={toast.kind} />}
     </section>
   );
 }

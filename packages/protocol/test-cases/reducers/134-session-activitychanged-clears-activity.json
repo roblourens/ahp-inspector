@@ -2,17 +2,13 @@
   "description": "session/activityChanged clears activity with null",
   "reducer": "session",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "activity": "Thinking",
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
+    "provider": "copilot",
+    "title": "Test Session",
+    "status": 1,
+    "activity": "Thinking",
     "lifecycle": "ready",
-    "turns": []
+    "activeClients": [],
+    "chats": []
   },
   "actions": [
     {
@@ -21,16 +17,12 @@
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "activity": null,
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
+    "provider": "copilot",
+    "title": "Test Session",
+    "status": 1,
+    "activity": null,
     "lifecycle": "ready",
-    "turns": []
+    "activeClients": [],
+    "chats": []
   }
 }

@@ -1,10 +1,11 @@
 import { formatSessionShort, type Status } from "@ahp-inspector/core";
 import type { EventKind } from "@ahp-inspector/shared";
-import type { JSX, RefObject } from "react";
+import type { JSX } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFacetCounts, useFilteredRows, useVisibleSearchMatches } from "../../state/selectors.js";
 import { useAppStore } from "../../state/store.js";
 import { Z } from "../../styles/zLayers.js";
+import { isEditableTarget } from "../keyboard.js";
 import { FacetChip } from "./FacetChip.js";
 import { FacetPopover } from "./FacetPopover.js";
 import { GroupToggleChip } from "./GroupToggleChip.js";
@@ -68,11 +69,7 @@ function hiddenValuesFromSelection(
   ];
 }
 
-export function FilterBar({
-  searchInputRef,
-}: {
-  searchInputRef?: RefObject<HTMLInputElement | null>;
-}): JSX.Element {
+export function FilterBar(): JSX.Element {
   const searchQuery = useAppStore((s) => s.searchQuery);
   const setSearchQuery = useAppStore((s) => s.setSearchQuery);
   const searchTotal = useAppStore((s) => s.searchTotal);
@@ -127,7 +124,7 @@ export function FilterBar({
         // "/" while find is already open does nothing special.
         return;
       }
-      if (e.key === "/" || isFindShortcut) {
+      if (isFindShortcut || (e.key === "/" && !isEditableTarget(e.target))) {
         // Suppress the browser's native find dialog and drive in-app search instead.
         e.preventDefault();
         openSearch();
@@ -158,7 +155,6 @@ export function FilterBar({
   }
 
   const hasSearch = searchQuery.trim() !== "";
-  const hasSearchMatches = hasSearch && searchTotal > 0;
   const searchMatchCount =
     visibleSearchMatches.length > 0
       ? visibleSearchMatches.length

@@ -123,8 +123,8 @@ describe("persistPerLogPrefs / loadPerLogPrefs", () => {
     expect(result).toMatchObject({
       v: 2,
       filters: {
-        direction: ["sent", "received"],
-        kind: ["action", "notification"],
+        direction: [],
+        kind: ["action"],
         method: ["ping", "trace", "invoke"],
         actionType: ["tool_call"],
         session: [],
@@ -182,12 +182,15 @@ describe("persistPerLogPrefs / loadPerLogPrefs", () => {
     expect(Object.keys(JSON.parse(raw))).toEqual(["opaque-log-key"]);
   });
 
-  it("silently no-ops if localStorage.setItem throws (quota)", () => {
+  it("returns an explicit failure if localStorage.setItem throws", () => {
     const orig = Storage.prototype.setItem;
     Storage.prototype.setItem = () => {
       throw new Error("QuotaExceeded");
     };
-    expect(() => persistPerLogPrefs("k1", sample)).not.toThrow();
+    expect(persistPerLogPrefs("k1", sample)).toEqual({
+      ok: false,
+      reason: "storage-unavailable",
+    });
     Storage.prototype.setItem = orig;
   });
 });

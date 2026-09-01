@@ -158,6 +158,31 @@ describe("FilterBar", () => {
     expect(screen.getByTestId("search-popover")).toBeTruthy();
   });
 
+  it("leaves slash typing alone in editable controls", () => {
+    render(
+      <>
+        <FilterBar />
+        <input aria-label="external input" />
+        <textarea aria-label="external textarea" />
+        <select aria-label="external select" />
+        {/* biome-ignore lint/a11y/noNoninteractiveTabindex: contenteditable test target must accept keyboard focus. */}
+        <div data-testid="editable-region" contentEditable tabIndex={0} />
+      </>,
+    );
+
+    const targets = [
+      screen.getByLabelText("external input"),
+      screen.getByLabelText("external textarea"),
+      screen.getByLabelText("external select"),
+      screen.getByTestId("editable-region"),
+    ];
+    for (const target of targets) {
+      const allowed = fireEvent.keyDown(target, { key: "/" });
+      expect(allowed).toBe(true);
+      expect(screen.queryByTestId("search-popover")).toBeNull();
+    }
+  });
+
   it("refocuses and selects the query when cmd+f is pressed while find is already open", () => {
     useAppStore.setState({ searchQuery: "initialize", searchPopoverOpen: true });
     render(<FilterBar />);

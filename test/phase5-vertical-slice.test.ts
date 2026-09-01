@@ -59,26 +59,49 @@ function waitForPort(proc: CliProc, timeoutMs = 10_000): Promise<number> {
   });
 }
 
-function requestJson<T>(port: number, path: string): Promise<T> {
+function apiUrl(port: number, path: string, apiToken: string): string {
+  const url = new URL(path, `http://127.0.0.1:${port}`);
+  url.searchParams.set("_ahpToken", apiToken);
+  return url.toString();
+}
+
+async function readStandaloneApiToken(port: number): Promise<string> {
+  const response = await fetch(`http://127.0.0.1:${port}/`);
+  const html = await response.text();
+  const token = html.match(/<meta name="ahp-api-token" content="([^"]+)" \/>/)?.[1];
+  if (!token) throw new Error("standalone UI did not provide an API capability");
+  return token;
+}
+
+function requestJson<T>(port: number, path: string, apiToken: string): Promise<T> {
   return new Promise((resolveJson, reject) => {
+    const url = new URL(apiUrl(port, path, apiToken));
     http
-      .get({ host: "127.0.0.1", port, path, headers: { Host: `127.0.0.1:${port}` } }, (res) => {
-        let body = "";
-        res.setEncoding("utf8");
-        res.on("data", (chunk: string) => {
-          body += chunk;
-        });
-        res.on("end", () => {
-          if ((res.statusCode ?? 500) >= 400) {
-            reject(new Error(`HTTP ${res.statusCode}: ${body}`));
-            return;
-          }
-          expect(body).not.toMatch(/\/Users\//);
-          expect(body).not.toMatch(/\/home\//);
-          expect(body).not.toMatch(/[A-Za-z]:\\\\/);
-          resolveJson(JSON.parse(body) as T);
-        });
-      })
+      .get(
+        {
+          host: "127.0.0.1",
+          port,
+          path: `${url.pathname}${url.search}`,
+          headers: { Host: `127.0.0.1:${port}` },
+        },
+        (res) => {
+          let body = "";
+          res.setEncoding("utf8");
+          res.on("data", (chunk: string) => {
+            body += chunk;
+          });
+          res.on("end", () => {
+            if ((res.statusCode ?? 500) >= 400) {
+              reject(new Error(`HTTP ${res.statusCode}: ${body}`));
+              return;
+            }
+            expect(body).not.toMatch(/\/Users\//);
+            expect(body).not.toMatch(/\/home\//);
+            expect(body).not.toMatch(/[A-Za-z]:\\\\/);
+            resolveJson(JSON.parse(body) as T);
+          });
+        },
+      )
       .on("error", reject);
   });
 }
@@ -94,6 +117,7 @@ describe("Phase 5 vertical slice", () => {
   let file = "";
   let proc: CliProc;
   let port = 0;
+  let apiToken = "";
 
   beforeAll(async () => {
     dir = await mkdtemp(join(tmpdir(), "ahp-phase5-"));
@@ -101,6 +125,7 @@ describe("Phase 5 vertical slice", () => {
     await writeFile(file, PHASE5_BASE_JSONL);
     proc = spawnCli(file);
     port = await waitForPort(proc);
+    apiToken = await readStandaloneApiToken(port);
   }, 15_000);
 
   afterAll(async () => {
@@ -109,16 +134,21 @@ describe("Phase 5 vertical slice", () => {
   });
 
   it("opens fixture, searches, retrieves detail, and follows appended events", async () => {
-    const meta = await requestJson<{ filename: string }>(port, "/api/log/meta");
+    const meta = await requestJson<{ filename: string }>(port, "/api/log/meta", apiToken);
     expect(meta.filename).toBe("phase5-safe.jsonl");
 
     const search = await requestJson<{ matches: number[] }>(
       port,
       "/api/log/search?q=retrowave&limit=20",
+      apiToken,
     );
     expect(search.matches.length).toBeGreaterThan(0);
 
-    const detail = await requestJson<{ event: { raw: unknown } }>(port, "/api/log/event/0");
+    const detail = await requestJson<{ event: { raw: unknown } }>(
+      port,
+      "/api/log/event/0",
+      apiToken,
+    );
     expect(JSON.stringify(detail.event.raw)).toContain("initialize");
 
     await appendFile(file, `${PHASE5_APPENDED_EVENT}\n`);
@@ -126,6 +156,7 @@ describe("Phase 5 vertical slice", () => {
     const appended = await requestJson<{ matches: number[]; total: number }>(
       port,
       "/api/log/search?q=append%20sentinel&limit=20",
+      apiToken,
     );
     expect(appended.total).toBeGreaterThan(0);
   }, 15_000);

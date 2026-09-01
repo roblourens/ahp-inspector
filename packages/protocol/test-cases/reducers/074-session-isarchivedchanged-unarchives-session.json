@@ -2,16 +2,12 @@
   "description": "session/isArchivedChanged unarchives an archived session",
   "reducer": "session",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 65,
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
+    "provider": "copilot",
+    "title": "Test Session",
+    "status": 65,
     "lifecycle": "ready",
-    "turns": []
+    "activeClients": [],
+    "chats": []
   },
   "actions": [
     {
@@ -20,15 +16,11 @@
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
+    "provider": "copilot",
+    "title": "Test Session",
+    "status": 1,
     "lifecycle": "ready",
-    "turns": []
+    "activeClients": [],
+    "chats": []
   }
 }

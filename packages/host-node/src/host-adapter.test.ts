@@ -54,6 +54,7 @@ describe("NodeHostAdapter", () => {
         resolve();
       }, 250);
     });
+    await adapter.close(handle);
     const total = chunks.reduce((n, c) => n + c.byteLength, 0);
     expect(total).toBe(handle.size);
   });
@@ -85,6 +86,10 @@ describe("NodeHostAdapter", () => {
       }, 50);
     });
     w.dispose();
+    const firstClose = adapter.close(handle);
+    const secondClose = adapter.close(handle);
+    expect(secondClose).toBe(firstClose);
+    await firstClose;
     expect(appearedWithin).toBe(true);
     const total = chunks.reduce((n, c) => n + c.byteLength, 0);
     const decoded = Buffer.concat(
@@ -92,6 +97,38 @@ describe("NodeHostAdapter", () => {
     ).toString("utf8");
     expect(decoded).toContain("line2-appended");
     expect(total).toBeGreaterThan(initialBytes);
+  }, 3000);
+
+  it("installs the watcher before the baseline read and reconciles an immediate append", async () => {
+    const file = join(tmpDir, "baseline-race.jsonl");
+    writeFileSync(file, "before\n");
+    const handle = await adapter.openLog(file);
+    const chunks: Uint8Array[] = [];
+    const w = adapter.watchLog(handle, (chunk) => {
+      chunks.push(chunk);
+    });
+    appendFileSync(file, "during\n");
+
+    const completed = await new Promise<boolean>((resolve) => {
+      const started = Date.now();
+      const timer = setInterval(() => {
+        const text = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk))).toString("utf8");
+        if (text === "before\nduring\n") {
+          clearInterval(timer);
+          resolve(true);
+        } else if (Date.now() - started > 1500) {
+          clearInterval(timer);
+          resolve(false);
+        }
+      }, 20);
+    });
+
+    w.dispose();
+    await adapter.close(handle);
+    expect(completed).toBe(true);
+    expect(Buffer.concat(chunks.map((chunk) => Buffer.from(chunk))).toString("utf8")).toBe(
+      "before\nduring\n",
+    );
   }, 3000);
 
   it("discoverVsCodeLogs returns a DiscoveryResult shape", async () => {

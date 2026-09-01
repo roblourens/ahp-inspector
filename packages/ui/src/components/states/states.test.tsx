@@ -21,14 +21,25 @@ describe("LoadingState", () => {
     render(
       <LoadingState
         filename="my-log.jsonl"
-        progress={{ phase: "loading", loadedRows: 20, loadedBytes: 50, totalBytes: 100, percent: 50 }}
+        progress={{
+          phase: "loading",
+          loadedRows: 20,
+          loadedBytes: 50,
+          totalBytes: 100,
+          percent: 50,
+        }}
       />,
     );
     expect(screen.getByText("50% loaded")).toBeTruthy();
   });
 
   it("renders non-percent row progress when percent is absent", () => {
-    render(<LoadingState filename="my-log.jsonl" progress={{ phase: "loading", loadedRows: 20, loadedBytes: 50 }} />);
+    render(
+      <LoadingState
+        filename="my-log.jsonl"
+        progress={{ phase: "loading", loadedRows: 20, loadedBytes: 50 }}
+      />,
+    );
     expect(screen.getByText("20 rows loaded")).toBeTruthy();
     expect(screen.queryByText(/% loaded/)).toBeNull();
   });

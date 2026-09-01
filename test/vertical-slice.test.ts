@@ -48,7 +48,26 @@ interface SseClient {
   collect(durationMs: number): Promise<Frame[]>;
 }
 
-function openSse(opts: { port: number; path: string }): Promise<SseClient> {
+function apiUrl(port: number, path: string, apiToken: string): string {
+  const url = new URL(path, `http://127.0.0.1:${port}`);
+  url.searchParams.set("_ahpToken", apiToken);
+  return url.toString();
+}
+
+function apiPath(port: number, path: string, apiToken: string): string {
+  const url = new URL(apiUrl(port, path, apiToken));
+  return `${url.pathname}${url.search}`;
+}
+
+async function readStandaloneApiToken(port: number): Promise<string> {
+  const response = await fetch(`http://127.0.0.1:${port}/`);
+  const html = await response.text();
+  const token = html.match(/<meta name="ahp-api-token" content="([^"]+)" \/>/)?.[1];
+  if (!token) throw new Error("standalone UI did not provide an API capability");
+  return token;
+}
+
+function openSse(opts: { port: number; path: string; apiToken: string }): Promise<SseClient> {
   return new Promise((resolveOuter, reject) => {
     const buf: Frame[] = [];
     const waiters: Array<(f: Frame) => void> = [];
@@ -57,7 +76,7 @@ function openSse(opts: { port: number; path: string }): Promise<SseClient> {
       {
         host: "127.0.0.1",
         port: opts.port,
-        path: opts.path,
+        path: apiPath(opts.port, opts.path, opts.apiToken),
         method: "GET",
         headers: { Host: `127.0.0.1:${opts.port}`, Accept: "text/event-stream" },
       },
@@ -230,11 +249,13 @@ function ensureUiBuilt(): void {
 describe("vertical-slice — CLI → server → SSE → UI bundle", () => {
   let cli: CliProc | undefined;
   let port = 0;
+  let apiToken = "";
 
   beforeAll(async () => {
     ensureUiBuilt();
     cli = spawnCli([FIXTURE, "--port", "0", "--no-open"]);
     port = await waitForPort(cli);
+    apiToken = await readStandaloneApiToken(port);
     // Allow TailReader's initial read to settle so the snapshot contains
     // every fixture line. phase2-mini.jsonl is 5 lines — milliseconds.
     await new Promise((res) => setTimeout(res, 150));
@@ -245,7 +266,7 @@ describe("vertical-slice — CLI → server → SSE → UI bundle", () => {
   });
 
   it("SC1: serves /api/log/meta with basename-only filename", async () => {
-    const meta = await fetch(`http://127.0.0.1:${port}/api/log/meta`);
+    const meta = await fetch(apiUrl(port, "/api/log/meta", apiToken));
     expect(meta.status).toBe(200);
     const body = (await meta.json()) as { filename: string; sizeBytes: number };
     expect(body.filename).toBe("phase2-mini.jsonl");
@@ -265,7 +286,7 @@ describe("vertical-slice — CLI → server → SSE → UI bundle", () => {
   });
 
   it("SC1+SC2+SC3+SC4: SSE handshake + row contract + parse-error + correlation", async () => {
-    const c = await openSse({ port, path: "/api/log/stream" });
+    const c = await openSse({ port, path: "/api/log/stream", apiToken });
     try {
       // 1. snapshot-begin
       const begin = await c.next(3000);
@@ -340,6 +361,6 @@ describe("vertical-slice — CLI → server → SSE → UI bundle", () => {
     if (!cli) throw new Error("cli not started");
     await killCli(cli);
     cli = undefined;
-    await expect(fetch(`http://127.0.0.1:${port}/api/log/meta`)).rejects.toThrow();
+    await expect(fetch(apiUrl(port, "/api/log/meta", apiToken))).rejects.toThrow();
   }, 10_000);
 });

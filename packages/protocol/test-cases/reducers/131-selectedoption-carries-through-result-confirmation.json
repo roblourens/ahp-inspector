@@ -1,36 +1,35 @@
 {
   "description": "selectedOption carries through pending-result-confirmation approved to completed",
-  "reducer": "session",
+  "reducer": "chat",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 8,
-      "createdAt": 1000,
-      "modifiedAt": 2000
-    },
-    "lifecycle": "ready",
     "turns": [],
     "activeTurn": {
       "id": "turn-1",
-      "userMessage": {
-        "text": "Hello"
+      "startedAt": "1970-01-01T00:00:01.000Z",
+      "message": {
+        "text": "Hello",
+        "origin": {
+          "kind": "user"
+        }
       },
       "responseParts": [],
       "usage": null
-    }
+    },
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 8,
+    "modifiedAt": "1970-01-01T00:00:02.000Z"
   },
   "actions": [
     {
-      "type": "session/toolCallStart",
+      "type": "chat/toolCallStart",
       "turnId": "turn-1",
       "toolCallId": "tc-1",
       "toolName": "bash",
       "displayName": "Run Command"
     },
     {
-      "type": "session/toolCallReady",
+      "type": "chat/toolCallReady",
       "turnId": "turn-1",
       "toolCallId": "tc-1",
       "invocationMessage": "Run: echo hello",
@@ -44,7 +43,7 @@
       ]
     },
     {
-      "type": "session/toolCallConfirmed",
+      "type": "chat/toolCallConfirmed",
       "turnId": "turn-1",
       "toolCallId": "tc-1",
       "approved": true,
@@ -52,7 +51,7 @@
       "selectedOptionId": "approve-session"
     },
     {
-      "type": "session/toolCallComplete",
+      "type": "chat/toolCallComplete",
       "turnId": "turn-1",
       "toolCallId": "tc-1",
       "result": {
@@ -62,27 +61,22 @@
       "requiresResultConfirmation": true
     },
     {
-      "type": "session/toolCallResultConfirmed",
+      "type": "chat/toolCallResultConfirmed",
       "turnId": "turn-1",
       "toolCallId": "tc-1",
       "approved": true
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 8,
-      "createdAt": 1000,
-      "modifiedAt": 2000
-    },
-    "lifecycle": "ready",
     "turns": [],
     "activeTurn": {
       "id": "turn-1",
-      "userMessage": {
-        "text": "Hello"
+      "startedAt": "1970-01-01T00:00:01.000Z",
+      "message": {
+        "text": "Hello",
+        "origin": {
+          "kind": "user"
+        }
       },
       "responseParts": [
         {
@@ -92,7 +86,8 @@
             "toolCallId": "tc-1",
             "toolName": "bash",
             "displayName": "Run Command",
-            "toolClientId": null,
+            "intention": null,
+            "contributor": null,
             "_meta": null,
             "invocationMessage": "Run: echo hello",
             "toolInput": null,
@@ -112,6 +107,10 @@
         }
       ],
       "usage": null
-    }
+    },
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 8,
+    "modifiedAt": "1970-01-01T00:00:02.000Z"
   }
 }

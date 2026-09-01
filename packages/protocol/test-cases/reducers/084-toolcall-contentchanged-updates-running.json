@@ -1,21 +1,16 @@
 {
   "description": "toolCallContentChanged sets content on a running tool call",
-  "reducer": "session",
+  "reducer": "chat",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 8,
-      "createdAt": 1000,
-      "modifiedAt": 2000
-    },
-    "lifecycle": "ready",
     "turns": [],
     "activeTurn": {
       "id": "turn-1",
-      "userMessage": {
-        "text": "Hello"
+      "startedAt": "1970-01-01T00:00:01.000Z",
+      "message": {
+        "text": "Hello",
+        "origin": {
+          "kind": "user"
+        }
       },
       "responseParts": [
         {
@@ -25,18 +20,25 @@
             "toolCallId": "tc-1",
             "toolName": "bash",
             "displayName": "Run Command",
+            "intention": null,
             "invocationMessage": "Running command",
-            "toolInput": "ls -la",
+            "toolInput": {
+              "uri": "file:///tool-inputs/tool-input.json"
+            },
             "confirmed": "user-action"
           }
         }
       ],
       "usage": null
-    }
+    },
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 8,
+    "modifiedAt": "1970-01-01T00:00:02.000Z"
   },
   "actions": [
     {
-      "type": "session/toolCallContentChanged",
+      "type": "chat/toolCallContentChanged",
       "turnId": "turn-1",
       "toolCallId": "tc-1",
       "content": [
@@ -49,20 +51,15 @@
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 8,
-      "createdAt": 1000,
-      "modifiedAt": 2000
-    },
-    "lifecycle": "ready",
     "turns": [],
     "activeTurn": {
       "id": "turn-1",
-      "userMessage": {
-        "text": "Hello"
+      "startedAt": "1970-01-01T00:00:01.000Z",
+      "message": {
+        "text": "Hello",
+        "origin": {
+          "kind": "user"
+        }
       },
       "responseParts": [
         {
@@ -72,8 +69,11 @@
             "toolCallId": "tc-1",
             "toolName": "bash",
             "displayName": "Run Command",
+            "intention": null,
             "invocationMessage": "Running command",
-            "toolInput": "ls -la",
+            "toolInput": {
+              "uri": "file:///tool-inputs/tool-input.json"
+            },
             "confirmed": "user-action",
             "content": [
               {
@@ -86,6 +86,10 @@
         }
       ],
       "usage": null
-    }
+    },
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 8,
+    "modifiedAt": "1970-01-01T00:00:02.000Z"
   }
 }

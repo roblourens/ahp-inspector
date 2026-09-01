@@ -8,9 +8,12 @@
 //   - registerLogRoutes    → /api/log/meta + /api/log/stream
 //   - registerSessionRoutes → /api/sessions/{discover,open,close,active}
 
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { type ServerType, serve } from "@hono/node-server";
 import { Hono } from "hono";
-import { corsMiddleware } from "./cors.js";
+import { createApiAuthMiddleware, createApiToken } from "./api-auth.js";
+import { createCorsMiddleware } from "./cors.js";
 import { cspMiddleware } from "./csp.js";
 import { registerDetailRoutes } from "./detail-routes.js";
 import { hostGuardMiddleware } from "./host-guard.js";
@@ -41,26 +44,46 @@ export interface LogServerOptions {
 export interface LogServerHandle {
   readonly url: string;
   readonly port: number;
+  readonly apiToken: string;
   readonly server: ServerType;
   close(): Promise<void>;
 }
 
 export function startLogServer(opts: LogServerOptions): Promise<LogServerHandle> {
   const { sessions } = opts;
+  const apiToken = createApiToken();
   const app = new Hono();
   app.use("*", hostGuardMiddleware);
-  app.use("*", corsMiddleware);
   app.use("*", cspMiddleware);
+  app.use("/api/*", createApiAuthMiddleware(apiToken));
+  app.use("*", createCorsMiddleware(apiToken));
   app.get("/health", (c) => c.json({ status: "ok", version: opts.version }));
   registerLogRoutes(app, sessions);
   registerDetailRoutes(app, sessions);
   registerSearchRoutes(app, sessions);
   registerStateRoutes(app, sessions);
   registerSessionRoutes(app, sessions);
-  registerUploadRoutes(app, sessions);
-  if (opts.uiDistDir) registerStaticUi(app, opts.uiDistDir);
+  const uploadRoutes = registerUploadRoutes(app, sessions);
+  if (opts.uiDistDir) {
+    const indexPath = join(opts.uiDistDir, "index.html");
+    app.get("/", async (c) => {
+      let html: string;
+      try {
+        html = await readFile(indexPath, "utf8");
+      } catch {
+        return c.text("Not found", 404);
+      }
+      const headEnd = html.indexOf("</head>");
+      if (headEnd < 0) return c.text("Invalid UI bundle", 500);
+      const tokenMeta = `<meta name="ahp-api-token" content="${apiToken}" />`;
+      c.header("Cache-Control", "no-store");
+      return c.html(`${html.slice(0, headEnd)}${tokenMeta}${html.slice(headEnd)}`);
+    });
+    registerStaticUi(app, opts.uiDistDir);
+  }
 
   return new Promise<LogServerHandle>((resolve, reject) => {
+    let listening = false;
     const server = serve(
       {
         fetch: app.fetch,
@@ -69,16 +92,55 @@ export function startLogServer(opts: LogServerOptions): Promise<LogServerHandle>
         port: opts.port,
       },
       (info) => {
+        listening = true;
         const port = info.port;
+        let closePromise: Promise<void> | null = null;
         resolve({
           url: `http://${HOSTNAME}:${port}`,
           port,
+          apiToken,
           server,
-          close: () =>
-            new Promise<void>((res, rej) => server.close((err) => (err ? rej(err) : res()))),
+          close: () => {
+            closePromise ??= (async () => {
+              const errors: unknown[] = [];
+              try {
+                await new Promise<void>((res, rej) => {
+                  server.close((err) => (err ? rej(err) : res()));
+                  if (
+                    "closeAllConnections" in server &&
+                    typeof server.closeAllConnections === "function"
+                  ) {
+                    server.closeAllConnections();
+                  }
+                });
+              } catch (error) {
+                errors.push(error);
+              }
+              try {
+                await uploadRoutes.dispose();
+              } catch (error) {
+                errors.push(error);
+              }
+              server.removeListener("error", onError);
+              if (errors.length === 1) throw errors[0];
+              if (errors.length > 1) {
+                throw new AggregateError(errors, "Failed to close log server");
+              }
+            })();
+            return closePromise;
+          },
         });
       },
     );
-    server.on("error", reject);
+    const onError = (error: Error): void => {
+      if (listening) return;
+      server.removeListener("error", onError);
+      void uploadRoutes.dispose().then(
+        () => reject(error),
+        (cleanupError: unknown) =>
+          reject(new AggregateError([error, cleanupError], "Failed to start log server")),
+      );
+    };
+    server.on("error", onError);
   });
 }

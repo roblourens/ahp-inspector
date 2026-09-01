@@ -1,7 +1,7 @@
 import { EventStore } from "@ahp-inspector/core";
 import type { AhpEvent } from "@ahp-inspector/shared";
 import { describe, expect, it } from "vitest";
-import { StateReplayIndex } from "./state-replay-index.js";
+import { estimateReplayResultBytes, StateReplayIndex } from "./state-replay-index.js";
 
 function ev(partial: Partial<AhpEvent> & Pick<AhpEvent, "kind" | "dir" | "seq">): AhpEvent {
   return {
@@ -38,7 +38,7 @@ function request(seq: number, id = seq + 1): AhpEvent {
   });
 }
 
-function response(seq: number, id = seq): AhpEvent {
+function response(seq: number, id = seq, state: unknown = { agents: [] }): AhpEvent {
   return ev({
     seq,
     dir: "s2c",
@@ -51,7 +51,7 @@ function response(seq: number, id = seq): AhpEvent {
       result: {
         protocolVersion: "0.1.0",
         serverSeq: 0,
-        snapshots: [{ resource: "agenthost:/root", fromSeq: 0, state: { agents: [] } }],
+        snapshots: [{ resource: "agenthost:/root", fromSeq: 0, state }],
       },
     },
   });
@@ -88,6 +88,33 @@ describe("StateReplayIndex", () => {
     expect(index.stateAtIndex(0).cache).toEqual({ hit: false, size: 2, maxEntries: 2 });
   });
 
+  it("evicts least-recently-used results when their combined graph cost exceeds the bound", () => {
+    const store = storeWith(2);
+    const probe = new StateReplayIndex(store, 25, Number.MAX_SAFE_INTEGER);
+    const cost0 = estimateReplayResultBytes(probe.stateAtIndex(0).result, Number.MAX_SAFE_INTEGER);
+    const cost1 = estimateReplayResultBytes(probe.stateAtIndex(1).result, Number.MAX_SAFE_INTEGER);
+    const index = new StateReplayIndex(store, 25, Math.max(cost0, cost1));
+
+    expect(index.stateAtIndex(0).cache).toEqual({ hit: false, size: 1, maxEntries: 25 });
+    expect(index.stateAtIndex(1).cache).toEqual({ hit: false, size: 1, maxEntries: 25 });
+    expect(index.stateAtIndex(1).cache).toEqual({ hit: true, size: 1, maxEntries: 25 });
+    expect(index.stateAtIndex(0).cache).toEqual({ hit: false, size: 1, maxEntries: 25 });
+  });
+
+  it("does not retain a single replay graph larger than the cost bound", () => {
+    const store = new EventStore();
+    store.append(request(0, 1));
+    store.append(response(1, 1, { agents: [], large: "x".repeat(10_000) }));
+    const index = new StateReplayIndex(store, 25, 1024);
+
+    const first = index.stateAtIndex(1);
+    const second = index.stateAtIndex(1);
+
+    expect(first.cache).toEqual({ hit: false, size: 0, maxEntries: 25 });
+    expect(second.cache).toEqual({ hit: false, size: 0, maxEntries: 25 });
+    expect(second.result).toEqual(first.result);
+  });
+
   it("keeps cached historical indexes stable across append", () => {
     const store = storeWith(2);
     const index = new StateReplayIndex(store);
@@ -110,6 +137,23 @@ describe("StateReplayIndex", () => {
     index.reset();
 
     expect(index.stateAtIndex(1).cache).toEqual({ hit: false, size: 1, maxEntries: 25 });
+  });
+
+  it("detects an EventStore reset even if the caller does not reset the index", () => {
+    const store = storeWith(2);
+    const index = new StateReplayIndex(store);
+
+    expect(index.stateAtIndex(1).cache.hit).toBe(false);
+    expect(index.stateAtIndex(1).cache.hit).toBe(true);
+    store.reset();
+    store.append(request(0, 1));
+    store.append(response(1, 1, { agents: [{ id: "replacement" }] }));
+
+    const replacement = index.stateAtIndex(1);
+    expect(replacement.cache).toEqual({ hit: false, size: 1, maxEntries: 25 });
+    expect(replacement.result.resources[0]?.state).toEqual({
+      agents: [{ id: "replacement" }],
+    });
   });
 
   it("does not cache invalid or out-of-range indexes", () => {

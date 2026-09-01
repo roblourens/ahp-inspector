@@ -1,62 +1,64 @@
 {
   "description": "ignores unknown IDs in reorder",
-  "reducer": "session",
+  "reducer": "chat",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
-    "lifecycle": "creating",
     "turns": [],
     "queuedMessages": [
       {
         "id": "a",
-        "userMessage": {
-          "text": "A"
+        "message": {
+          "text": "A",
+          "origin": {
+            "kind": "user"
+          }
         }
       },
       {
         "id": "b",
-        "userMessage": {
-          "text": "B"
+        "message": {
+          "text": "B",
+          "origin": {
+            "kind": "user"
+          }
         }
       }
-    ]
+    ],
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 1,
+    "modifiedAt": "1970-01-01T00:00:01.000Z"
   },
   "actions": [
     {
-      "type": "session/queuedMessagesReordered",
+      "type": "chat/queuedMessagesReordered",
       "order": ["unknown", "b", "a", "also-unknown"]
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
-    "lifecycle": "creating",
     "turns": [],
     "queuedMessages": [
       {
         "id": "b",
-        "userMessage": {
-          "text": "B"
+        "message": {
+          "text": "B",
+          "origin": {
+            "kind": "user"
+          }
         }
       },
       {
         "id": "a",
-        "userMessage": {
-          "text": "A"
+        "message": {
+          "text": "A",
+          "origin": {
+            "kind": "user"
+          }
         }
       }
-    ]
+    ],
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 1,
+    "modifiedAt": "1970-01-01T00:00:01.000Z"
   }
 }

@@ -6,7 +6,14 @@
 // from `@ahp-inspector/protocol` so callers get autocomplete and exhaustive
 // switching.
 
-import type { ActionEnvelope, ProtocolNotification, StateAction } from "@ahp-inspector/protocol";
+import {
+  ACTION_INTRODUCED_IN,
+  type ActionOrigin,
+  NOTIFICATION_INTRODUCED_IN,
+  type ProtocolNotificationMethod,
+  type ServerNotificationMap,
+  type StateAction,
+} from "@ahp-inspector/protocol";
 import type { AhpEvent } from "@ahp-inspector/shared";
 
 // ── Public types ─────────────────────────────────────────────────────────────
@@ -20,7 +27,7 @@ export interface ErrorPayload {
 
 /**
  * Anything wearing `{ type: "...", ... }` that may or may not match a known
- * `StateAction` / `ProtocolNotification` shape. Used for legacy log fixtures
+ * `StateAction` shape. Used for legacy log fixtures, removed protocol shapes,
  * and provider-specific extensions.
  */
 export interface UnknownTypedPayload {
@@ -82,13 +89,30 @@ export interface NarrowedServerNotification {
   readonly event: AhpEvent;
   readonly method: string | null;
   readonly params: unknown;
+  /** Canonical method/params pair when the method is in the current protocol. */
+  readonly notification: KnownProtocolNotification | null;
+}
+
+export type KnownProtocolNotification = {
+  readonly [M in ProtocolNotificationMethod]: {
+    readonly method: M;
+    readonly params: ServerNotificationMap[M]["params"];
+  };
+}[ProtocolNotificationMethod];
+
+export interface NarrowedActionEnvelope {
+  readonly channel: string;
+  readonly action: StateAction | UnknownTypedPayload;
+  readonly serverSeq: number;
+  readonly origin: ActionOrigin | undefined;
+  readonly rejectionReason?: string;
 }
 
 export interface NarrowedAction {
   readonly kind: "action";
   readonly event: AhpEvent;
   /** Full envelope when shape is recognized; null for malformed actions. */
-  readonly envelope: ActionEnvelope | null;
+  readonly envelope: NarrowedActionEnvelope | null;
   /**
    * Inner action — typed `StateAction` when the `type` is a known
    * `ActionType`, otherwise `UnknownTypedPayload` for legacy / unknown shapes.
@@ -99,8 +123,8 @@ export interface NarrowedAction {
 export interface NarrowedProtocolNotification {
   readonly kind: "protocol-notification";
   readonly event: AhpEvent;
-  /** Typed when known, otherwise UnknownTypedPayload. */
-  readonly notification: ProtocolNotification | UnknownTypedPayload;
+  /** Legacy `method:"notification"` payload; never cast to current protocol types. */
+  readonly notification: UnknownTypedPayload;
 }
 
 export interface NarrowedLog {
@@ -146,22 +170,25 @@ export function narrowEvent(event: AhpEvent, pairMethod: string | null = null): 
         innerAction: event.method === "dispatchAction" ? readInnerAction(params) : null,
       };
     }
-    case "server-notification":
+    case "server-notification": {
+      const params = paramsOf(event.raw);
       return {
         kind: "server-notification",
         event,
         method: event.method,
-        params: paramsOf(event.raw),
+        params,
+        notification: readKnownNotification(event.method, params),
       };
+    }
     case "action": {
       const params = paramsOf(event.raw);
       const envelope = readActionEnvelope(params);
-      const rawAction = envelope
-        ? (envelope.action as unknown as Record<string, unknown>)
-        : asRecord(isRecord(params) ? params.action : null);
-      const action = rawAction
-        ? (readKnownAction(rawAction) ?? unknownPayload(rawAction))
-        : unknownPayload(null);
+      const rawAction = asRecord(isRecord(params) ? params.action : null);
+      const action =
+        envelope?.action ??
+        (rawAction
+          ? (readKnownAction(rawAction) ?? unknownPayload(rawAction))
+          : unknownPayload(null));
       return { kind: "action", event, envelope, action };
     }
     case "protocol-notification": {
@@ -170,7 +197,7 @@ export function narrowEvent(event: AhpEvent, pairMethod: string | null = null): 
       return {
         kind: "protocol-notification",
         event,
-        notification: readProtocolNotification(notif) ?? unknownPayload(notif),
+        notification: unknownPayload(notif),
       };
     }
     case "log": {
@@ -187,30 +214,22 @@ export function narrowEvent(event: AhpEvent, pairMethod: string | null = null): 
 
 // ── Type guards ──────────────────────────────────────────────────────────────
 //
-// `ActionType` / `NotificationType` are `const enum`s so we can't enumerate
-// them at runtime. All canonical AHP action types use `root/`, `session/` or
-// `terminal/` prefixes (see `packages/protocol/src/actions.ts`), and all
-// canonical notifications use `notify/`. That's enough to distinguish the
-// typed protocol shapes from legacy / provider-specific envelopes.
+// The generated version registries are exhaustive runtime maps. Checking
+// exact keys avoids treating unknown future actions that happen to reuse a
+// current channel prefix as fully typed current-protocol actions.
 
-function isKnownActionType(type: string): boolean {
-  return type.startsWith("root/") || type.startsWith("session/") || type.startsWith("terminal/");
+function isKnownActionType(type: string): type is StateAction["type"] {
+  return Object.hasOwn(ACTION_INTRODUCED_IN, type);
 }
 
-function isKnownNotificationType(type: string): boolean {
-  return type.startsWith("notify/");
+function isKnownNotificationMethod(method: string): method is ProtocolNotificationMethod {
+  return Object.hasOwn(NOTIFICATION_INTRODUCED_IN, method);
 }
 
 export function isKnownAction(
   action: { type: string | null } | StateAction,
 ): action is StateAction {
   return typeof action.type === "string" && isKnownActionType(action.type);
-}
-
-export function isKnownNotification(
-  notif: { type: string | null } | ProtocolNotification,
-): notif is ProtocolNotification {
-  return typeof notif.type === "string" && isKnownNotificationType(notif.type);
 }
 
 // ── Internal readers ─────────────────────────────────────────────────────────
@@ -250,7 +269,7 @@ function readKnownAction(value: Record<string, unknown>): StateAction | null {
   return value as unknown as StateAction;
 }
 
-function readActionEnvelope(value: unknown): ActionEnvelope | null {
+function readActionEnvelope(value: unknown): NarrowedActionEnvelope | null {
   if (!isRecord(value)) return null;
   if (typeof value.channel !== "string") return null;
   if (typeof value.serverSeq !== "number") return null;
@@ -262,10 +281,10 @@ function readActionEnvelope(value: unknown): ActionEnvelope | null {
     typeof value.origin.clientSeq === "number"
       ? { clientId: value.origin.clientId, clientSeq: value.origin.clientSeq }
       : undefined;
-  const known = readKnownAction(action);
+  const narrowedAction = readKnownAction(action) ?? unknownPayload(action);
   return {
     channel: value.channel,
-    action: known ?? (action as unknown as StateAction),
+    action: narrowedAction,
     serverSeq: value.serverSeq,
     origin,
     ...(typeof value.rejectionReason === "string"
@@ -274,12 +293,60 @@ function readActionEnvelope(value: unknown): ActionEnvelope | null {
   };
 }
 
-function readProtocolNotification(
-  value: Record<string, unknown> | null,
-): ProtocolNotification | null {
-  if (!value || typeof value.type !== "string") return null;
-  if (!isKnownNotificationType(value.type)) return null;
-  return value as unknown as ProtocolNotification;
+function readKnownNotification(
+  method: string | null,
+  params: unknown,
+): KnownProtocolNotification | null {
+  if (!method || !isKnownNotificationMethod(method)) {
+    return null;
+  }
+  const value = asRecord(params);
+  if (!value || typeof value.channel !== "string") {
+    return null;
+  }
+  switch (method) {
+    case "root/sessionAdded": {
+      const summary = asRecord(value.summary);
+      if (!summary || typeof summary.title !== "string") {
+        return null;
+      }
+      break;
+    }
+    case "root/sessionRemoved":
+      if (typeof value.session !== "string") {
+        return null;
+      }
+      break;
+    case "root/sessionSummaryChanged":
+      if (typeof value.session !== "string" || !isRecord(value.changes)) {
+        return null;
+      }
+      break;
+    case "root/progress":
+      if (
+        typeof value.progressToken !== "string" ||
+        typeof value.progress !== "number" ||
+        (value.total !== undefined && typeof value.total !== "number")
+      ) {
+        return null;
+      }
+      break;
+    case "auth/required": {
+      const resource = asRecord(value.resource);
+      if (!resource || typeof resource.resource !== "string") {
+        return null;
+      }
+      break;
+    }
+    case "otlp/exportLogs":
+    case "otlp/exportTraces":
+    case "otlp/exportMetrics":
+      if (!isRecord(value.payload)) {
+        return null;
+      }
+      break;
+  }
+  return { method, params } as KnownProtocolNotification;
 }
 
 function readError(raw: Record<string, unknown> | null): ErrorPayload | null {

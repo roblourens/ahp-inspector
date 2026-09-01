@@ -1,9 +1,9 @@
 /**
  * DetailPanel — root orchestrator for the event detail view.
  *
- * Reads selectedIdx from the Zustand store. On selectedIdx change,
- * fetches via fetchEvent (with AbortController for T-03-04-04), and
- * updates selectedDetail with loading/error/data transitions.
+ * Reads selectedIdx from the Zustand store. On selectedIdx change, fetches
+ * via fetchEvent (with AbortController for T-03-04-04) and keeps request
+ * lifecycle state local to this panel.
  *
  * States:
  *   - selectedIdx === null → empty state (§7.2 copy)
@@ -14,7 +14,6 @@
  * No raw #hex literals. No dangerouslySetInnerHTML.
  */
 
-import type { Status } from "@ahp-inspector/core";
 import type { AhpEvent, EventKind } from "@ahp-inspector/shared";
 import { Loader2 } from "lucide-react";
 import { type CSSProperties, type JSX, useCallback, useEffect, useRef, useState } from "react";
@@ -42,6 +41,12 @@ interface LoadState {
   error: string | null;
 }
 
+interface ToastState {
+  readonly id: number;
+  readonly message: string;
+  readonly kind: "success" | "error";
+}
+
 const KIND_LABEL: Record<EventKind, string> = {
   request: "Request",
   response: "Response",
@@ -67,11 +72,23 @@ function orderedPair(
   if (selected.kind === "response" && pair.kind === "request") {
     return { primary: pair, secondary: selected };
   }
+
   if (selected.kind === "request" && pair.kind === "response") {
     return { primary: selected, secondary: pair };
   }
+
   // Any other paired combinations (rare): keep selected first.
   return { primary: selected, secondary: pair };
+}
+
+function eventJsonData(event: AhpEvent): unknown {
+  if (event.kind !== "parse-error" && event.parse !== "error") return event.raw;
+  return {
+    parseError: {
+      reason: event.parseError?.reason ?? "Unknown parse error",
+      rawText: event.parseError?.rawText ?? "",
+    },
+  };
 }
 
 interface DetailPanelProps {
@@ -105,7 +122,8 @@ export function DetailPanel({
   });
   const [activeTab, setActiveTab] = useState<"pretty" | "raw">("pretty");
   const [pinnedPoints, setPinnedPoints] = useState<readonly PinnedStatePoint[]>([]);
-  const [toast, setToast] = useState<{ message: string; kind: "success" | "error" } | null>(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
+  const nextToastId = useRef(0);
   const retryKey = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   const pinnedLogKeyRef = useRef(logKey);
@@ -164,19 +182,21 @@ export function DetailPanel({
     const q = searchQuery.trim();
     if (q.length < 2) return;
     const lowerQ = q.toLowerCase();
-    const ev = loadState.detail.event as AhpEvent;
-    const pr = loadState.detail.pair as AhpEvent | null;
-    const matchHiddenByTruncation = [ev?.raw, pr?.raw].some((d) => {
-      if (d === undefined) return false;
-      let s: string;
-      try {
-        s = JSON.stringify(d);
-      } catch {
-        return false;
-      }
-      if (s === undefined || s.length <= CLIENT_CAP_BYTES) return false; // Pretty renders it
-      return s.toLowerCase().includes(lowerQ); // match is in the elided content
-    });
+    const ev = loadState.detail.event;
+    const pr = loadState.detail.pair;
+    const matchHiddenByTruncation = [eventJsonData(ev), ...(pr ? [eventJsonData(pr)] : [])].some(
+      (d) => {
+        if (d === undefined) return false;
+        let s: string;
+        try {
+          s = JSON.stringify(d);
+        } catch {
+          return false;
+        }
+        if (s === undefined || s.length <= CLIENT_CAP_BYTES) return false; // Pretty renders it
+        return s.toLowerCase().includes(lowerQ); // match is in the elided content
+      },
+    );
     if (matchHiddenByTruncation) setActiveTab("raw");
   }, [selectedIdx, searchQuery, loadState.status, loadState.detail]);
 
@@ -185,6 +205,15 @@ export function DetailPanel({
       retryKey.current += 1;
       void load(selectedIdx, logKey);
     }
+  }
+
+  function showToast(message: string, ok: boolean): void {
+    nextToastId.current += 1;
+    setToast({
+      id: nextToastId.current,
+      message,
+      kind: ok ? "success" : "error",
+    });
   }
 
   // ── Empty state ─────────────────────────────────────────────────────────────
@@ -372,14 +401,14 @@ export function DetailPanel({
   const detail = loadState.detail;
   if (!detail) return null;
 
-  const event = detail.event as AhpEvent;
-  const pairEvent = detail.pair as AhpEvent | null;
+  const event = detail.event;
+  const pairEvent = detail.pair;
   const row = selectedIdx !== null ? (rows[selectedIdx] ?? null) : null;
   const isAuthFailure = row?.isAuthFailure ?? false;
 
   // WR-03: Prefer live row values for status/latencyMs so that SSE patch updates
   // (pending → ok) are reflected immediately, even on a cache hit.
-  const liveStatus = (row?.status ?? detail.status) as Status;
+  const liveStatus = row?.status ?? detail.status;
   const liveLatencyMs = row?.latencyMs ?? detail.latencyMs;
 
   return (
@@ -478,7 +507,7 @@ export function DetailPanel({
             pairIdx={detail.pairIdx}
             latencyMs={liveLatencyMs}
             status={liveStatus}
-            onCopy={(msg, ok) => setToast({ message: msg, kind: ok ? "success" : "error" })}
+            onCopy={showToast}
           />
         </div>
 
@@ -492,19 +521,19 @@ export function DetailPanel({
               return activeTab === "pretty" ? (
                 <PrettyJsonView
                   key={`${selectedIdx}:${searchQuery}`}
-                  data={event.raw}
+                  data={eventJsonData(event)}
                   query={searchQuery}
                   onOpenRaw={() => setActiveTab("raw")}
                 />
               ) : (
-                <RawJsonView data={event.raw} query={searchQuery} />
+                <RawJsonView data={eventJsonData(event)} query={searchQuery} />
               );
             }
             return (
               <>
                 <DetailJsonSection
                   label={KIND_LABEL[ordered.primary.kind]}
-                  data={ordered.primary.raw}
+                  data={eventJsonData(ordered.primary)}
                   activeTab={activeTab}
                   query={searchQuery}
                   selectedIdx={selectedIdx}
@@ -512,7 +541,7 @@ export function DetailPanel({
                 />
                 <DetailJsonSection
                   label={KIND_LABEL[ordered.secondary.kind]}
-                  data={ordered.secondary.raw}
+                  data={eventJsonData(ordered.secondary)}
                   activeTab={activeTab}
                   query={searchQuery}
                   selectedIdx={selectedIdx}
@@ -528,9 +557,7 @@ export function DetailPanel({
       </div>
 
       {/* Copy toast */}
-      {toast && (
-        <CopyToast key={toast.message + Date.now()} message={toast.message} kind={toast.kind} />
-      )}
+      {toast && <CopyToast key={toast.id} message={toast.message} kind={toast.kind} />}
     </aside>
   );
 }

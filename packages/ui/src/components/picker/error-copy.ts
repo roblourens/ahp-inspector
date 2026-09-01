@@ -7,3 +7,9 @@ export const ERROR_COPY: Record<string, string> = {
 };
 
 export const FALLBACK_ERROR = "Could not open that file. Check that it exists and is readable.";
+
+export function getOpenErrorMessage(error: unknown): string {
+  if (typeof error !== "object" || error === null) return FALLBACK_ERROR;
+  const code = Reflect.get(error, "code");
+  return typeof code === "string" ? (ERROR_COPY[code] ?? FALLBACK_ERROR) : FALLBACK_ERROR;
+}

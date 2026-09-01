@@ -83,7 +83,11 @@ describe("findLatestAhpLog", () => {
     const valid = join(logsRoot, "agenthost.valid.jsonl");
     await writeWithMtime(valid, VALID_AHP_LINE, 1_700_000_000);
     for (let index = 0; index < 12; index++) {
-      await writeWithMtime(join(logsRoot, `agenthost.invalid-${index}.jsonl`), NON_AHP_LINE, 1_800_000_000 + index);
+      await writeWithMtime(
+        join(logsRoot, `agenthost.invalid-${index}.jsonl`),
+        NON_AHP_LINE,
+        1_800_000_000 + index,
+      );
     }
 
     const result = await findLatestAhpLog({

@@ -1,6 +1,7 @@
 import { Check, ChevronDown, Palette } from "lucide-react";
 import type { JSX, KeyboardEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import { Z } from "../../styles/zLayers.js";
 import {
   applyTheme,
   labelForTheme,
@@ -9,7 +10,6 @@ import {
   type ThemeId,
 } from "../../theme/theme.js";
 import { __APP_VERSION__ } from "../../version.js";
-import { Z } from "../../styles/zLayers.js";
 import { LivePauseButton } from "./LivePauseButton.js";
 
 interface HeaderBarProps {

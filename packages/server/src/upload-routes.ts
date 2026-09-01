@@ -8,7 +8,7 @@
 //
 // Privacy: error responses never echo the uploaded filename or temp path.
 
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { extname, join, basename as pathBasename } from "node:path";
 import type { Hono } from "hono";
@@ -89,31 +89,31 @@ function createUploadStore(): UploadStore {
   const dirs = new Map<string, string>(); // tempFilePath -> tempDir
 
   async function write(filename: string, bytes: Uint8Array): Promise<string> {
-    const dir = join(
-      tmpdir(),
-      `${UPLOAD_DIR_PREFIX}${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
-    );
-    await mkdir(dir, { recursive: true });
+    const dir = await mkdtemp(join(tmpdir(), UPLOAD_DIR_PREFIX));
     const filePath = join(dir, filename);
-    await writeFile(filePath, bytes);
+    try {
+      await writeFile(filePath, bytes);
+    } catch (error) {
+      await rm(dir, { recursive: true, force: true });
+      throw error;
+    }
     dirs.set(filePath, dir);
     return filePath;
   }
 
   async function removeDir(dir: string): Promise<void> {
-    try {
-      await rm(dir, { recursive: true, force: true });
-    } catch {
-      /* best-effort */
-    }
+    await rm(dir, { recursive: true, force: true });
   }
 
   async function cleanupAllExcept(keepPath: string | null): Promise<void> {
     const tasks: Array<Promise<void>> = [];
     for (const [path, dir] of dirs) {
       if (path === keepPath) continue;
-      dirs.delete(path);
-      tasks.push(removeDir(dir));
+      tasks.push(
+        removeDir(dir).then(() => {
+          dirs.delete(path);
+        }),
+      );
     }
     await Promise.all(tasks);
   }
@@ -141,6 +141,23 @@ export function registerUploadRoutes(
 ): UploadRoutesHandle {
   const store = createUploadStore();
   const maxBytes = opts?.maxUploadBytes ?? MAX_UPLOAD_BYTES;
+  const backgroundCleanups = new Set<Promise<void>>();
+  const cleanupErrors: unknown[] = [];
+  let disposePromise: Promise<void> | null = null;
+  let activeRequests = 0;
+  let resolveRequestDrain: (() => void) | null = null;
+
+  const scheduleCleanup = (keepPath: string | null): void => {
+    const cleanup = store.cleanupAllExcept(keepPath);
+    backgroundCleanups.add(cleanup);
+    void cleanup
+      .catch((error: unknown) => {
+        cleanupErrors.push(error);
+      })
+      .finally(() => {
+        backgroundCleanups.delete(cleanup);
+      });
+  };
 
   // When the active session changes, drop any temp uploads that aren't the
   // current source. We don't know which path the manager opened from inside
@@ -148,70 +165,97 @@ export function registerUploadRoutes(
   // clean up on close. (The next upload also implicitly supersedes the prev.)
   const unsubscribe = sessions.onChange((active) => {
     if (active === null) {
-      void store.disposeAll();
+      scheduleCleanup(null);
     }
   });
 
-  const exitCleanup = (): void => {
-    void store.disposeAll();
-  };
-  process.once("exit", exitCleanup);
-
   app.post("/api/sessions/upload", async (c) => {
-    const filenameHeader = c.req.header("x-filename");
-    if (typeof filenameHeader !== "string" || filenameHeader.length === 0) {
-      return c.json({ code: "bad-request", message: "missing X-Filename" }, 400);
+    if (disposePromise) {
+      return c.json({ code: "unavailable", message: "unavailable" }, 503);
     }
-    const safeName = sanitizeFilename(filenameHeader);
-    if (safeName === null) {
-      return c.json({ code: "not-jsonl", message: "not-jsonl" }, 400);
-    }
-
-    const lengthHeader = c.req.header("content-length");
-    const declaredLength = lengthHeader ? Number.parseInt(lengthHeader, 10) : Number.NaN;
-    if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
-      return c.json({ code: "too-large", message: "too-large" }, 413);
-    }
-
-    let bytes: Uint8Array;
+    activeRequests++;
     try {
-      bytes = await readBodyCapped(c.req.raw.body, maxBytes);
-    } catch (err) {
-      if (err instanceof BodyTooLargeError) {
+      const filenameHeader = c.req.header("x-filename");
+      if (typeof filenameHeader !== "string" || filenameHeader.length === 0) {
+        return c.json({ code: "bad-request", message: "missing X-Filename" }, 400);
+      }
+      const safeName = sanitizeFilename(filenameHeader);
+      if (safeName === null) {
+        return c.json({ code: "not-jsonl", message: "not-jsonl" }, 400);
+      }
+
+      const lengthHeader = c.req.header("content-length");
+      const declaredLength = lengthHeader ? Number.parseInt(lengthHeader, 10) : Number.NaN;
+      if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
         return c.json({ code: "too-large", message: "too-large" }, 413);
       }
-      return c.json({ code: "bad-request", message: "could not read body" }, 400);
-    }
-    if (bytes.byteLength === 0) {
-      return c.json({ code: "bad-request", message: "empty body" }, 400);
-    }
 
-    let tempPath: string;
-    try {
-      tempPath = await store.write(safeName, bytes);
-    } catch {
-      return c.json({ code: "io-error", message: "io-error" }, 500);
-    }
+      let bytes: Uint8Array;
+      try {
+        bytes = await readBodyCapped(c.req.raw.body, maxBytes);
+      } catch (err) {
+        if (err instanceof BodyTooLargeError) {
+          return c.json({ code: "too-large", message: "too-large" }, 413);
+        }
+        return c.json({ code: "bad-request", message: "could not read body" }, 400);
+      }
+      if (bytes.byteLength === 0) {
+        return c.json({ code: "bad-request", message: "empty body" }, 400);
+      }
 
-    try {
-      const active = await sessions.open({ path: tempPath });
-      // Drop any previous uploaded temp dirs now that we have a new active.
-      void store.cleanupAllExcept(tempPath);
-      return c.json({ active: { logKey: active.logKey, meta: active.appState.meta } });
-    } catch (err) {
-      // Open failed — remove the temp file we just wrote.
-      void store.cleanupAllExcept(null);
-      const e = err as { code?: string };
-      const code = typeof e.code === "string" ? e.code : "not-found";
-      return c.json({ code, message: code }, 400);
+      let tempPath: string;
+      try {
+        tempPath = await store.write(safeName, bytes);
+      } catch {
+        return c.json({ code: "io-error", message: "io-error" }, 500);
+      }
+
+      try {
+        const active = await sessions.open({ path: tempPath });
+        // Drop any previous uploaded temp dirs now that we have a new active.
+        scheduleCleanup(tempPath);
+        return c.json({ active: { logKey: active.logKey, meta: active.appState.meta } });
+      } catch (err) {
+        // Open failed — remove the temp file we just wrote.
+        try {
+          await store.cleanupAllExcept(null);
+        } catch {
+          return c.json({ code: "io-error", message: "io-error" }, 500);
+        }
+        const e = err as { code?: string };
+        const code = typeof e.code === "string" ? e.code : "not-found";
+        return c.json({ code, message: code }, 400);
+      }
+    } finally {
+      activeRequests--;
+      if (activeRequests === 0) {
+        resolveRequestDrain?.();
+        resolveRequestDrain = null;
+      }
     }
   });
 
   return {
-    async dispose() {
-      unsubscribe();
-      process.removeListener("exit", exitCleanup);
-      await store.disposeAll();
+    dispose() {
+      disposePromise ??= (async () => {
+        unsubscribe();
+        if (activeRequests > 0) {
+          await new Promise<void>((resolve) => {
+            resolveRequestDrain = resolve;
+          });
+        }
+        await Promise.allSettled(backgroundCleanups);
+        try {
+          await store.disposeAll();
+        } catch (error) {
+          cleanupErrors.push(error);
+        }
+        if (cleanupErrors.length === 1) throw cleanupErrors[0];
+        if (cleanupErrors.length > 1) {
+          throw new AggregateError(cleanupErrors, "Failed to clean up uploaded logs");
+        }
+      })();
+      return disposePromise;
     },
   };
 }

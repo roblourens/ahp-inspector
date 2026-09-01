@@ -1,21 +1,15 @@
 {
   "description": "session input completion and truncation remove outstanding requests",
-  "reducer": "session",
+  "reducer": "chat",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 24,
-      "createdAt": 1000,
-      "modifiedAt": 2000
-    },
-    "lifecycle": "ready",
     "turns": [
       {
         "id": "kept",
-        "userMessage": {
-          "text": "Kept"
+        "message": {
+          "text": "Kept",
+          "origin": {
+            "kind": "user"
+          }
         },
         "responseParts": [],
         "usage": null,
@@ -23,8 +17,11 @@
       },
       {
         "id": "dropped",
-        "userMessage": {
-          "text": "Dropped"
+        "message": {
+          "text": "Dropped",
+          "origin": {
+            "kind": "user"
+          }
         },
         "responseParts": [],
         "usage": null,
@@ -33,56 +30,67 @@
     ],
     "activeTurn": {
       "id": "active",
-      "userMessage": {
-        "text": "Active"
+      "startedAt": "1970-01-01T00:00:01.000Z",
+      "message": {
+        "text": "Active",
+        "origin": {
+          "kind": "user"
+        }
       },
-      "responseParts": [],
+      "responseParts": [
+        {
+          "kind": "inputRequest",
+          "request": {
+            "id": "complete-me",
+            "message": "Complete me"
+          }
+        },
+        {
+          "kind": "inputRequest",
+          "request": {
+            "id": "remaining-input",
+            "message": "Remaining request",
+            "url": "https://example.com/form"
+          }
+        }
+      ],
       "usage": null
     },
-    "inputRequests": [
-      {
-        "id": "complete-me",
-        "message": "Complete me"
-      },
-      {
-        "id": "remaining-input",
-        "message": "Remaining request",
-        "url": "https://example.com/form"
-      }
-    ]
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 24,
+    "modifiedAt": "1970-01-01T00:00:02.000Z"
   },
   "actions": [
     {
-      "type": "session/inputCompleted",
+      "type": "chat/inputCompleted",
       "requestId": "complete-me",
       "response": "decline"
     },
     {
-      "type": "session/truncated",
+      "type": "chat/truncated",
       "turnId": "kept"
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 9999
-    },
-    "lifecycle": "ready",
     "turns": [
       {
         "id": "kept",
-        "userMessage": {
-          "text": "Kept"
+        "message": {
+          "text": "Kept",
+          "origin": {
+            "kind": "user"
+          }
         },
         "responseParts": [],
         "usage": null,
         "state": "complete"
       }
     ],
-    "activeTurn": null
+    "activeTurn": null,
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 1,
+    "modifiedAt": "1970-01-01T00:00:02.000Z"
   }
 }

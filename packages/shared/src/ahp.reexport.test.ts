@@ -1,14 +1,15 @@
 // Subpath import — verifies the package "exports" map exposes ./ahp.
 import type {
-  ActionType,
-  IActionEnvelope,
-  IClientNotificationMap,
-  ICommandMap,
-  IProtocolMessage,
-  IProtocolNotification,
-  IServerNotificationMap,
-  NotificationType,
+  ActionEnvelope,
+  ChatAction,
+  ChatState,
+  ClientNotificationMap,
+  CommandMap,
+  ProtocolMessage,
+  ProtocolNotificationMethod,
+  ServerNotificationMap,
 } from "@ahp-inspector/shared/ahp";
+import { ActionType } from "@ahp-inspector/shared/ahp";
 import { describe, expect, it } from "vitest";
 import {
   type AhpEvent,
@@ -27,23 +28,23 @@ import {
 describe("AHP compatibility re-exports (SYNC-04)", () => {
   it("type-only symbols typecheck via the @ahp-inspector/shared/ahp subpath", () => {
     // Pure type-level assertions: if the imports above resolved, they pass.
-    type _M = IProtocolMessage;
-    type _A = IActionEnvelope;
-    type _N = IProtocolNotification;
-    type _CM = ICommandMap;
-    type _CN = IClientNotificationMap;
-    type _SN = IServerNotificationMap;
+    type _M = ProtocolMessage;
+    type _A = ActionEnvelope;
+    type _CM = CommandMap;
+    type _CN = ClientNotificationMap;
+    type _SN = ServerNotificationMap;
+    type _CS = ChatState;
+    type _CA = ChatAction;
+    type _PN = ProtocolNotificationMethod;
     // Force the type aliases to be referenced so the compiler doesn't drop
     // them under verbatimModuleSyntax.
-    const _x: _M | _A | _N | _CM | _CN | _SN | undefined = undefined;
+    const _x: _M | _A | _CM | _CN | _SN | _CS | _CA | _PN | undefined = undefined;
     expect(_x).toBeUndefined();
   });
 
-  it("ActionType / NotificationType are usable as string-literal types", () => {
-    // const enums are erased; assert via the type aliases that string literals
-    // narrow correctly. If the type re-export drifts, these casts fail tsc.
-    const at: ActionType = "rootState.onDidChange" as ActionType;
-    const nt: NotificationType = "notify/sessionAdded" as NotificationType;
+  it("canonical action and notification method types are exported", () => {
+    const at: ActionType = ActionType.ChatTurnStarted;
+    const nt: ProtocolNotificationMethod = "root/sessionAdded";
     expect(typeof at).toBe("string");
     expect(typeof nt).toBe("string");
   });

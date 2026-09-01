@@ -1,7 +1,16 @@
 import {
   type ActionEnvelope,
   ActionType,
+  type AnnotationsState,
+  type AutomationCatalogState,
+  AutomationRunOriginKind,
+  type AutomationRunState,
+  AutomationRunStatus,
+  type ChangesetState,
+  ChangesetStatus,
+  type ChatState,
   ReconnectResultType,
+  type ResourceWatchState,
   type RootState,
   SessionLifecycle,
   type SessionState,
@@ -9,6 +18,7 @@ import {
   type Snapshot,
   type StateAction,
   TerminalClaimKind,
+  TerminalLifecycleStatus,
   type TerminalState,
 } from "@ahp-inspector/protocol";
 import type { AhpEvent } from "@ahp-inspector/shared";
@@ -17,6 +27,7 @@ import { replayToIndex } from "./replay.js";
 
 const ROOT = "agenthost:/root";
 const SESSION = "copilot:/session/1";
+const CHAT = "ahp-chat:/chat/1";
 const TERMINAL = "terminal:/1";
 
 function ev(partial: Partial<AhpEvent> & Pick<AhpEvent, "kind" | "dir" | "seq">): AhpEvent {
@@ -48,15 +59,22 @@ function rootState(overrides: Partial<RootState> = {}): RootState {
 
 function sessionState(overrides: Partial<SessionState> = {}): SessionState {
   return {
-    summary: {
-      resource: SESSION,
-      provider: "copilot",
-      title: "Session",
-      status: SessionStatus.Idle,
-      createdAt: 1,
-      modifiedAt: 1,
-    },
+    provider: "copilot",
+    title: "Session",
+    status: SessionStatus.Idle,
     lifecycle: SessionLifecycle.Creating,
+    activeClients: [],
+    chats: [],
+    ...overrides,
+  };
+}
+
+function chatState(overrides: Partial<ChatState> = {}): ChatState {
+  return {
+    resource: CHAT,
+    title: "Chat",
+    status: SessionStatus.Idle,
+    modifiedAt: "1970-01-01T00:00:00.000Z",
     turns: [],
     ...overrides,
   };
@@ -66,10 +84,26 @@ function terminalState(overrides: Partial<TerminalState> = {}): TerminalState {
   return {
     title: "Terminal",
     content: [],
+    lifecycle: { status: TerminalLifecycleStatus.Running },
     claim: { kind: TerminalClaimKind.Client, clientId: "client-1" },
     ...overrides,
   };
 }
+
+const annotationsState: AnnotationsState = { annotations: [] };
+const automationState: AutomationCatalogState = { automations: [] };
+const automationRunState: AutomationRunState = {
+  resource: "ahp-automation-run:/1",
+  automation: "ahp-automation:/1",
+  origin: { kind: AutomationRunOriginKind.Manual },
+  lifecycle: {
+    status: AutomationRunStatus.Pending,
+    createdAt: "1970-01-01T00:00:00.000Z",
+  },
+  sessions: [],
+};
+const changesetState: ChangesetState = { status: ChangesetStatus.Ready, files: [] };
+const resourceWatchState: ResourceWatchState = { root: "file:///workspace", recursive: true };
 
 function request(seq: number, method: string, id = 1, sessionId: string | null = null): AhpEvent {
   return ev({
@@ -112,9 +146,11 @@ function actionEvent(seq: number, envelope: ActionEnvelope, ts = seq * 1000): Ah
 function dispatchIntent(seq: number, clientSeq: number, action: StateAction): AhpEvent {
   const channel = action.type.startsWith("root/")
     ? ROOT
-    : action.type.startsWith("terminal/")
-      ? TERMINAL
-      : SESSION;
+    : action.type.startsWith("chat/")
+      ? CHAT
+      : action.type.startsWith("terminal/")
+        ? TERMINAL
+        : SESSION;
   return ev({
     seq,
     dir: "c2s",
@@ -136,9 +172,11 @@ function envelope(
 ): ActionEnvelope {
   const channel = action.type.startsWith("root/")
     ? ROOT
-    : action.type.startsWith("terminal/")
-      ? TERMINAL
-      : SESSION;
+    : action.type.startsWith("chat/")
+      ? CHAT
+      : action.type.startsWith("terminal/")
+        ? TERMINAL
+        : SESSION;
   return { channel, action, serverSeq, origin };
 }
 
@@ -170,20 +208,96 @@ describe("replayToIndex", () => {
     expect(result.resources[0]?.confidence).toBe("complete");
   });
 
-  it("installs subscribe session and terminal snapshots", () => {
+  it("installs subscribe session, chat, and terminal snapshots", () => {
     const events = [
       request(0, "subscribe", 1, SESSION),
       response(1, { snapshot: snapshot(SESSION, sessionState(), 0) }, 1, SESSION),
-      request(2, "subscribe", 2),
-      response(3, { snapshot: snapshot(TERMINAL, terminalState(), 0) }, 2),
+      request(2, "subscribe", 2, CHAT),
+      response(3, { snapshot: snapshot(CHAT, chatState(), 0) }, 2, CHAT),
+      request(4, "subscribe", 3),
+      response(5, { snapshot: snapshot(TERMINAL, terminalState(), 0) }, 3),
     ];
 
-    const result = replayToIndex(events, 3);
+    const result = replayToIndex(events, 5);
 
     expect(result.resources.map((resource) => resource.key)).toEqual([
       { kind: "session", uri: SESSION },
+      { kind: "chat", uri: CHAT },
       { kind: "terminal", uri: TERMINAL },
     ]);
+  });
+
+  it("classifies every current reducer-backed channel snapshot", () => {
+    const snapshots = [
+      snapshot("copilot:/session/1/annotations", annotationsState),
+      snapshot("ahp-automations://catalog", automationState),
+      snapshot("ahp-automation-run:/1", automationRunState),
+      snapshot("copilot:/session/1/changeset/all", changesetState),
+      snapshot("ahp-resource-watch:/1", resourceWatchState),
+    ];
+    const events = [
+      request(0, "initialize"),
+      response(1, { protocolVersion: "1.0.0", serverSeq: 0, snapshots }),
+    ];
+
+    expect(replayToIndex(events, 1).resources.map((resource) => resource.key.kind)).toEqual([
+      "annotations",
+      "automation",
+      "automation-run",
+      "changeset",
+      "resource-watch",
+    ]);
+  });
+
+  it("retains unrecognized snapshots with unknown confidence", () => {
+    const events = [
+      request(0, "subscribe"),
+      response(1, {
+        snapshot: { resource: "ahp-future:/1", state: { future: true }, fromSeq: 4 },
+      }),
+    ];
+
+    const result = replayToIndex(events, 1);
+    expect(result.resources[0]).toMatchObject({
+      key: { kind: "unknown", uri: "ahp-future:/1" },
+      state: { future: true },
+      confidence: "unknown",
+      lastServerSeq: 4,
+    });
+    expect(result.diagnostics[0]?.code).toBe("unknown-snapshot");
+  });
+
+  it("replays historical combined session snapshots without treating them as current state", () => {
+    const legacyState = {
+      summary: {
+        resource: SESSION,
+        provider: "copilot",
+        title: "Historical session",
+        status: SessionStatus.Idle,
+        createdAt: 1,
+        modifiedAt: 1,
+      },
+      lifecycle: "creating",
+      turns: [],
+    };
+    const events = [
+      request(0, "subscribe", 1, SESSION),
+      response(1, { snapshot: { resource: SESSION, state: legacyState, fromSeq: 0 } }, 1, SESSION),
+      actionEvent(
+        2,
+        envelope({ type: ActionType.SessionTitleChanged, title: "Historical rename" }, 1),
+        12_345,
+      ),
+    ];
+
+    const result = replayToIndex(events, 2);
+    expect(result.resources[0]).toMatchObject({
+      key: { kind: "session", uri: SESSION },
+      confidence: "complete",
+      state: {
+        summary: { title: "Historical rename", modifiedAt: 12_345 },
+      },
+    });
   });
 
   it("ignores unpaired responses and diagnoses malformed snapshots", () => {
@@ -201,7 +315,7 @@ describe("replayToIndex", () => {
     expect(malformed.diagnostics[0]?.code).toBe("malformed-envelope");
   });
 
-  it("applies root, session, and terminal server envelopes to existing baselines", () => {
+  it("applies root, session, chat, and terminal server envelopes to existing baselines", () => {
     const events = [
       request(0, "initialize"),
       response(1, {
@@ -210,6 +324,7 @@ describe("replayToIndex", () => {
         snapshots: [
           snapshot(ROOT, rootState(), 0),
           snapshot(SESSION, sessionState(), 0),
+          snapshot(CHAT, chatState(), 0),
           snapshot(TERMINAL, terminalState(), 0),
         ],
       }),
@@ -226,17 +341,16 @@ describe("replayToIndex", () => {
         ),
       ),
       actionEvent(3, envelope({ type: ActionType.SessionReady }, 1)),
-      actionEvent(
-        4,
-        envelope({ type: ActionType.TerminalData, data: "hello" }, 1),
-      ),
+      actionEvent(4, envelope({ type: ActionType.ChatActivityChanged, activity: "Thinking" }, 1)),
+      actionEvent(5, envelope({ type: ActionType.TerminalData, data: "hello" }, 1)),
     ];
 
-    const result = replayToIndex(events, 4);
+    const result = replayToIndex(events, 5);
 
     expect((result.resources[0]?.state as RootState).agents).toHaveLength(1);
     expect((result.resources[1]?.state as SessionState).lifecycle).toBe(SessionLifecycle.Ready);
-    expect((result.resources[2]?.state as TerminalState).content).toEqual([
+    expect((result.resources[2]?.state as ChatState).activity).toBe("Thinking");
+    expect((result.resources[3]?.state as TerminalState).content).toEqual([
       { type: "unclassified", value: "hello" },
     ]);
   });
@@ -263,9 +377,7 @@ describe("replayToIndex", () => {
     expect(malformed.diagnostics[0]?.code).toBe("malformed-envelope");
   });
 
-  it("uses event timestamps for reducer modifiedAt instead of wall-clock", () => {
-    // Set a sentinel global clock that replay must NOT pick up: the reducer
-    // receives an injected () => eventTs, so modifiedAt should be the event ts.
+  it("replays session metadata without consulting wall-clock time", () => {
     const original = Date.now;
     Date.now = () => 999_999;
     try {
@@ -275,26 +387,20 @@ describe("replayToIndex", () => {
           response(1, { snapshot: snapshot(SESSION, sessionState(), 0) }, 1, SESSION),
           actionEvent(
             2,
-            envelope(
-              { type: ActionType.SessionTitleChanged, title: "Renamed" },
-              1,
-            ),
+            envelope({ type: ActionType.SessionTitleChanged, title: "Renamed" }, 1),
             12_345,
           ),
         ],
         2,
       );
 
-      expect((result.resources[0]?.state as SessionState).summary).toMatchObject({
-        title: "Renamed",
-        modifiedAt: 12_345,
-      });
+      expect((result.resources[0]?.state as SessionState).title).toBe("Renamed");
     } finally {
       Date.now = original;
     }
   });
 
-  it("captures reducer logs as unknown-action diagnostics and keeps replay stable", () => {
+  it("does not cast future prefixed actions and marks replay confidence unknown", () => {
     const events = [
       request(0, "subscribe", 1, SESSION),
       response(1, { snapshot: snapshot(SESSION, sessionState(), 0) }, 1, SESSION),
@@ -309,8 +415,8 @@ describe("replayToIndex", () => {
 
     expect(first).toEqual(second);
     expect(first.diagnostics.some((diagnostic) => diagnostic.code === "unknown-action")).toBe(true);
-    expect(first.resources[0]?.confidence).toBe("partial");
-    expect((first.resources[0]?.state as SessionState).summary.title).toBe("Session");
+    expect(first.resources[0]?.confidence).toBe("unknown");
+    expect((first.resources[0]?.state as SessionState).title).toBe("Session");
   });
 
   it("diagnoses serverSeq gaps while still applying later canonical envelopes", () => {
@@ -340,14 +446,8 @@ describe("replayToIndex", () => {
       [
         request(0, "subscribe", 1),
         response(1, { snapshot: snapshot(TERMINAL, terminalState(), 0) }, 1),
-        actionEvent(
-          2,
-          envelope({ type: ActionType.TerminalData, data: "a" }, 1),
-        ),
-        actionEvent(
-          3,
-          envelope({ type: ActionType.TerminalData, data: "b" }, 1),
-        ),
+        actionEvent(2, envelope({ type: ActionType.TerminalData, data: "a" }, 1)),
+        actionEvent(3, envelope({ type: ActionType.TerminalData, data: "b" }, 1)),
       ],
       3,
     );
@@ -362,14 +462,8 @@ describe("replayToIndex", () => {
       [
         request(0, "subscribe", 1),
         response(1, { snapshot: snapshot(TERMINAL, terminalState(), 0) }, 1),
-        actionEvent(
-          2,
-          envelope({ type: ActionType.TerminalData, data: "a" }, 2),
-        ),
-        actionEvent(
-          3,
-          envelope({ type: ActionType.TerminalData, data: "b" }, 1),
-        ),
+        actionEvent(2, envelope({ type: ActionType.TerminalData, data: "a" }, 2)),
+        actionEvent(3, envelope({ type: ActionType.TerminalData, data: "b" }, 1)),
       ],
       3,
     );
@@ -392,10 +486,7 @@ describe("replayToIndex", () => {
           type: ReconnectResultType.Replay,
           actions: [
             envelope({ type: ActionType.SessionTitleChanged, title: "First" }, 1),
-            envelope(
-              { type: ActionType.SessionTitleChanged, title: "Second" },
-              2,
-            ),
+            envelope({ type: ActionType.SessionTitleChanged, title: "Second" }, 2),
           ],
           missing: ["copilot:/gone"],
         },
@@ -406,10 +497,7 @@ describe("replayToIndex", () => {
 
     const result = replayToIndex(events, 3);
 
-    expect((result.resources[0]?.state as SessionState).summary).toMatchObject({
-      title: "Second",
-      modifiedAt: 3000,
-    });
+    expect((result.resources[0]?.state as SessionState).title).toBe("Second");
     expect(
       result.diagnostics.some((diagnostic) => diagnostic.code === "reconnect-missing-resource"),
     ).toBe(true);
@@ -499,7 +587,7 @@ describe("replayToIndex", () => {
     expect(
       beforeServer.diagnostics.some((diagnostic) => diagnostic.code === "ignored-client-intent"),
     ).toBe(true);
-    expect((beforeServer.resources[0]?.state as SessionState).summary.title).toBe("Session");
+    expect((beforeServer.resources[0]?.state as SessionState).title).toBe("Session");
 
     const afterServer = replayToIndex(
       [
@@ -508,7 +596,7 @@ describe("replayToIndex", () => {
       ],
       3,
     );
-    expect((afterServer.resources[0]?.state as SessionState).summary.title).toBe("Client title");
+    expect((afterServer.resources[0]?.state as SessionState).title).toBe("Client title");
     expect(afterServer.intents[0]?.acceptedByServerSeq).toBe(1);
   });
 

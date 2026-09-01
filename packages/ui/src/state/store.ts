@@ -13,18 +13,8 @@ export type GroupingMode = "none" | "session" | "session+turn";
 export type SelectionSource = "search" | "explicit";
 export type SearchStatus = "idle" | "searching" | "ready" | "error";
 
-export interface DetailData {
-  idx: number;
-  loading: boolean;
-  error: string | null;
-  event: unknown | null;
-  pairEvent: unknown | null;
-  latencyMs: number | null;
-  status: Status | null;
-  pairIdx: number | null;
-}
-
 export type Connection = "connecting" | "connected" | "disconnected" | "no-server" | "no-log";
+export type LastOpenRef = { kind: "candidate"; id: string } | { kind: "path"; path: string } | null;
 
 export interface MetaSummary {
   filename: string;
@@ -109,22 +99,20 @@ export interface AppStoreState {
   setGrouping(mode: GroupingMode): void;
   toggleGroupCollapsed(key: string): void;
   // Phase 3: detail panel
-  selectedDetail: DetailData | null;
   detailWidth: number;
-  setSelectedDetail(d: DetailData | null): void;
   setDetailWidth(px: number): void;
   // Phase 4: live tail
   livePaused: boolean;
   pendingBuffer: EventRow[];
   pendingNewCount: number;
-  followLatest: boolean;
   lastWatchError: {
     code: "read-error" | "watch-fatal" | "oversized-line";
     message: string;
   } | null;
   logKey: string | null;
   rotationNotice: boolean;
-  lastOpenRef: { kind: "candidate"; id: string } | { kind: "path"; path: string } | null;
+  lastOpenRef: LastOpenRef;
+  persistenceError: string | null;
   setLivePaused(p: boolean): void;
   clearPendingNewCount(): void;
   flushPendingBuffer(): void;
@@ -136,9 +124,9 @@ export interface AppStoreState {
   ): void;
   setLogKey(k: string | null): void;
   setRotationNotice(v: boolean): void;
-  setLastOpenRef(
-    ref: { kind: "candidate"; id: string } | { kind: "path"; path: string } | null,
-  ): void;
+  setLastOpenRef(ref: LastOpenRef): void;
+  setPersistenceError(message: string | null): void;
+  switchToLog(logKey: string, lastOpenRef: LastOpenRef): void;
   resetForRotation(): void;
   resetForLogSwitch(): void;
 }
@@ -158,6 +146,34 @@ function deriveSessionCount(rows: EventRow[]): number {
   const s = new Set<string>();
   for (const r of rows) if (r.sessionId) s.add(r.sessionId);
   return s.size;
+}
+
+function logSwitchState() {
+  return {
+    rows: [],
+    connection: "connecting" as const,
+    selectedIdx: null,
+    selectionSource: "explicit" as const,
+    meta: null,
+    loadProgress: IDLE_LOAD_PROGRESS,
+    streamBacklog: EMPTY_STREAM_BACKLOG,
+    searchQuery: "",
+    searchMatches: null,
+    searchTotal: 0,
+    searchTruncated: false,
+    searchStatus: "idle" as const,
+    searchError: null,
+    searchPopoverOpen: false,
+    filters: APP_DEFAULT_FILTERS,
+    grouping: "none" as const,
+    groupCollapsed: new Set<string>(),
+    detailWidth: DETAIL_DEFAULT_WIDTH,
+    livePaused: false,
+    pendingBuffer: [],
+    pendingNewCount: 0,
+    lastWatchError: null,
+    rotationNotice: false,
+  };
 }
 
 export const useAppStore = create<AppStoreState>((set) => ({
@@ -246,7 +262,6 @@ export const useAppStore = create<AppStoreState>((set) => ({
   filters: APP_DEFAULT_FILTERS,
   grouping: "none",
   groupCollapsed: new Set<string>(),
-  selectedDetail: null,
   detailWidth: DETAIL_DEFAULT_WIDTH,
   // Phase 3 actions
   setSearchQuery: (q) => set({ searchQuery: q }),
@@ -288,18 +303,17 @@ export const useAppStore = create<AppStoreState>((set) => ({
       else next.add(key);
       return { groupCollapsed: next };
     }),
-  setSelectedDetail: (d) => set({ selectedDetail: d }),
   setDetailWidth: (px) =>
     set({ detailWidth: Math.max(DETAIL_MIN_WIDTH, Math.min(DETAIL_MAX_WIDTH, px)) }),
   // Phase 4 initial state
   livePaused: false,
   pendingBuffer: [],
   pendingNewCount: 0,
-  followLatest: true,
   lastWatchError: null,
   logKey: null,
   rotationNotice: false,
   lastOpenRef: null,
+  persistenceError: null,
   // Phase 4 actions
   setLivePaused: (p) => set({ livePaused: p }),
   clearPendingNewCount: () => set({ pendingNewCount: 0 }),
@@ -322,11 +336,17 @@ export const useAppStore = create<AppStoreState>((set) => ({
   setLogKey: (k) => set({ logKey: k }),
   setRotationNotice: (v) => set({ rotationNotice: v }),
   setLastOpenRef: (ref) => set({ lastOpenRef: ref }),
+  setPersistenceError: (persistenceError) => set({ persistenceError }),
+  switchToLog: (logKey, lastOpenRef) =>
+    set({
+      ...logSwitchState(),
+      logKey,
+      lastOpenRef,
+    }),
   resetForRotation: () =>
     set({
       rows: [],
       selectedIdx: null,
-      selectedDetail: null,
       searchMatches: null,
       searchTotal: 0,
       searchTruncated: false,
@@ -339,21 +359,7 @@ export const useAppStore = create<AppStoreState>((set) => ({
     }),
   resetForLogSwitch: () =>
     set({
-      rows: [],
-      selectedIdx: null,
-      selectedDetail: null,
-      searchMatches: null,
-      searchTotal: 0,
-      searchTruncated: false,
-      searchStatus: "idle",
-      searchError: null,
-      pendingBuffer: [],
-      pendingNewCount: 0,
-      loadProgress: IDLE_LOAD_PROGRESS,
-      streamBacklog: EMPTY_STREAM_BACKLOG,
-      meta: null,
+      ...logSwitchState(),
       logKey: null,
-      lastWatchError: null,
-      rotationNotice: false,
     }),
 }));

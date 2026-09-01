@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { renderWebviewHtml } from "../webviewHtml.js";
+import { generateNonce, renderWebviewHtml } from "../webviewHtml.js";
 
 const baseOpts = {
   scriptUri: "vscode-webview://abc/main.js",
@@ -69,9 +69,13 @@ describe("renderWebviewHtml", () => {
   });
 
   it("apiBaseUrl injects window.__AHP_API_BASE__ inline script with nonce, before bundle", () => {
-    const html = renderWebviewHtml({ ...baseOpts, apiBaseUrl: "http://localhost:51234" });
+    const html = renderWebviewHtml({
+      ...baseOpts,
+      apiBaseUrl: "http://localhost:51234",
+      apiToken: "test-capability",
+    });
     expect(html).toContain(
-      `<script nonce="deadbeefcafef00d">window.__AHP_API_BASE__ = "http://localhost:51234";</script>`,
+      `<script nonce="deadbeefcafef00d">window.__AHP_API_BASE__ = "http://localhost:51234"; window.__AHP_API_TOKEN__ = "test-capability";</script>`,
     );
     const inlineIdx = html.indexOf("__AHP_API_BASE__");
     const bundleIdx = html.indexOf(baseOpts.scriptUri);
@@ -82,11 +86,32 @@ describe("renderWebviewHtml", () => {
 
   it("apiBaseUrl XSS payload is escaped: no </script> breakout", () => {
     const payload = "http://localhost:51234</script><script>alert(1)//";
-    const html = renderWebviewHtml({ ...baseOpts, apiBaseUrl: payload });
+    const html = renderWebviewHtml({
+      ...baseOpts,
+      apiBaseUrl: payload,
+      apiToken: "test-capability",
+    });
     // The escaped form must appear, raw </script> from attacker payload must NOT.
     expect(html).toContain("\\u003c/script>");
     // Two real closing tags in the document: inline apiBase script + bundle script.
     // Attacker's payload is escaped to \u003c/script> so it does NOT add a third.
     expect(html.match(/<\/script>/g)?.length).toBe(2);
+  });
+
+  it("generates a cryptographically-sized base64url nonce", () => {
+    const first = generateNonce();
+    const second = generateNonce();
+    expect(first).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(second).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(second).not.toBe(first);
+  });
+
+  it("rejects incomplete API capability configuration", () => {
+    expect(() => renderWebviewHtml({ ...baseOpts, apiBaseUrl: "http://localhost:51234" })).toThrow(
+      "apiBaseUrl and apiToken must be provided together",
+    );
+    expect(() => renderWebviewHtml({ ...baseOpts, apiToken: "orphaned" })).toThrow(
+      "apiBaseUrl and apiToken must be provided together",
+    );
   });
 });

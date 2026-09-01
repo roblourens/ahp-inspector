@@ -26,6 +26,31 @@ describe("LineSplitter", () => {
     expect(s.push("a\r\nb\r\n")).toEqual(["a", "b"]);
   });
 
+  it("reports exact mixed LF and CRLF terminator byte counts", () => {
+    const s = new LineSplitter();
+    expect(s.pushDetailed("a\nbb\r\nccc\n").lines).toEqual([
+      { text: "a", byteLength: 1, terminatorBytes: 1 },
+      { text: "bb", byteLength: 2, terminatorBytes: 2 },
+      { text: "ccc", byteLength: 3, terminatorBytes: 1 },
+    ]);
+  });
+
+  it("reports CRLF split across chunks as a two-byte terminator", () => {
+    const s = new LineSplitter();
+    expect(s.pushDetailed("first\r").lines).toEqual([]);
+    expect(s.pushDetailed("\nsecond\n").lines).toEqual([
+      { text: "first", byteLength: 5, terminatorBytes: 2 },
+      { text: "second", byteLength: 6, terminatorBytes: 1 },
+    ]);
+  });
+
+  it("reports exact UTF-8 byte lengths for multibyte lines", () => {
+    const s = new LineSplitter();
+    expect(s.pushDetailed("a😀é\r\n").lines).toEqual([
+      { text: "a😀é", byteLength: 7, terminatorBytes: 2 },
+    ]);
+  });
+
   it("buffers a partial line until the next chunk completes it", () => {
     const s = new LineSplitter();
     expect(s.push('{"a":')).toEqual([]);
@@ -36,6 +61,50 @@ describe("LineSplitter", () => {
     const s = new LineSplitter();
     expect(s.flush()).toEqual([]);
     expect(s.flush()).toEqual([]);
+  });
+
+  it("finalizes only a validity-approved EOF record without a newline", () => {
+    const s = new LineSplitter();
+    s.push('{"a":1}');
+    expect(s.finalizeIf((text) => parseLine(text, 0, text.length).error === undefined)).toEqual([
+      { text: '{"a":1}', byteLength: 7, terminatorBytes: 0 },
+    ]);
+    expect(s.pushDetailed("\n")).toEqual({ lines: [], leadingBytes: 1 });
+    expect(s.pushDetailed('{"b":2}\n').lines).toEqual([
+      { text: '{"b":2}', byteLength: 7, terminatorBytes: 1 },
+    ]);
+  });
+
+  it("consumes a delayed split CRLF after EOF finalization exactly once", () => {
+    const s = new LineSplitter();
+    s.push('{"a":1}');
+    s.finalizeIf((text) => parseLine(text, 0, text.length).error === undefined);
+    expect(s.pushDetailed("\r")).toEqual({ lines: [], leadingBytes: 0 });
+    expect(s.pushDetailed("\n")).toEqual({ lines: [], leadingBytes: 2 });
+  });
+
+  it("keeps an invalid live tail buffered until a later chunk completes it", () => {
+    const s = new LineSplitter();
+    s.push('{"a":');
+    expect(s.finalizeIf((text) => parseLine(text, 0, text.length).error === undefined)).toEqual([]);
+    expect(s.pushDetailed("1}\r").lines).toEqual([]);
+    expect(s.pushDetailed("\n").lines).toEqual([
+      { text: '{"a":1}', byteLength: 7, terminatorBytes: 2 },
+    ]);
+  });
+
+  it("checkpoints discarded oversized bytes without ending the live line", () => {
+    const skips: Array<{ bytes: number; term: number }> = [];
+    const s = new LineSplitter({
+      onOversizedLineSkipped: (bytes, term) => skips.push({ bytes, term }),
+    });
+    s.push("x".repeat(MAX_BUF_BYTES + 1));
+
+    expect(s.checkpoint()).toBe(MAX_BUF_BYTES + 1);
+    expect(s.checkpoint()).toBe(0);
+    expect(skips).toEqual([]);
+    expect(s.push("more\nnext\n")).toEqual(["next"]);
+    expect(skips).toEqual([{ bytes: 4, term: 1 }]);
   });
 
   it("throws ParseOverflowError when an unterminated line exceeds MAX_BUF_BYTES", () => {
@@ -114,6 +183,18 @@ describe("LineSplitter", () => {
       expect(s.push("\r\nnext\n")).toEqual(["next"]);
       expect(skips).toHaveLength(1);
       expect(skips[0]?.term).toBe(2);
+    });
+
+    it("handles a skipped-line CRLF terminator split across chunks", () => {
+      const skips: Array<{ bytes: number; term: number }> = [];
+      const s = new LineSplitter({
+        onOversizedLineSkipped: (bytes, term) => skips.push({ bytes, term }),
+      });
+      s.push(`${"x".repeat(MAX_BUF_BYTES + 1)}\r`);
+      expect(s.push("\nnext\n")).toEqual(["next"]);
+      expect(skips).toHaveLength(1);
+      expect(skips[0]?.term).toBe(2);
+      expect(skips[0]?.bytes).toBe(MAX_BUF_BYTES + 1);
     });
 
     it("reports terminator = 1 for LF terminator", () => {
@@ -223,13 +304,13 @@ const FIX = (name: string) => resolve("test/fixtures", name);
 function streamFixture(path: string): AhpEvent[] {
   const text = readFileSync(path, "utf8");
   const splitter = new LineSplitter();
-  const lines = [...splitter.push(text), ...splitter.flush()];
+  const result = splitter.pushDetailed(text);
+  const lines = result.lines;
   const events: AhpEvent[] = [];
-  let offset = 0;
+  let offset = result.leadingBytes;
   let seq = 0;
   for (const line of lines) {
-    const byteLength = Buffer.byteLength(line, "utf8");
-    const parsed = parseLine(line, offset, byteLength);
+    const parsed = parseLine(line.text, offset, line.byteLength);
     // Direction is fixture-specific; tiny.jsonl encodes it positionally to
     // match the canonical generator: 1=c2s req, 2=s2c resp, 3=c2s notif,
     // 4=s2c action, 5=s2c notif, 6=s2c resp, 7=c2s req, 8=c2s req.
@@ -249,7 +330,7 @@ function streamFixture(path: string): AhpEvent[] {
       tsRaw: "",
       dir: dirByIdx[seq] ?? "c2s",
       byteOffset: offset,
-      byteLength,
+      byteLength: line.byteLength,
     };
     if (parsed.error) {
       events.push({
@@ -267,15 +348,15 @@ function streamFixture(path: string): AhpEvent[] {
         toolCallId: null,
         serverSeq: null,
         byteOffset: offset,
-        byteLength,
+        byteLength: line.byteLength,
         raw: undefined,
         parse: "error",
-        parseError: { reason: parsed.error.reason, rawText: line },
+        parseError: { reason: parsed.error.reason, rawText: line.text },
       });
     } else {
       events.push(normalize(parsed.raw, meta));
     }
-    offset += byteLength + 1; // +1 for the consumed newline
+    offset += line.byteLength + line.terminatorBytes;
     seq += 1;
   }
   return events;

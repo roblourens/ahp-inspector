@@ -14,7 +14,9 @@ describe("StreamBacklogPill", () => {
 
   it("renders plural backlog status", () => {
     render(<StreamBacklogPill count={42} />);
-    expect(screen.getByTestId("stream-backlog-pill").textContent).toContain("42 stream events queued");
+    expect(screen.getByTestId("stream-backlog-pill").textContent).toContain(
+      "42 stream events queued",
+    );
   });
 
   it("caps large backlog counts compactly", () => {

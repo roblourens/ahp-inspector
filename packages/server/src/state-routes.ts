@@ -9,7 +9,7 @@ import type { Hono } from "hono";
 import type { LogSessionManager } from "./session-manager.js";
 import type { StateReplayCacheInfo } from "./state-replay-index.js";
 
-export type StateResourceKind = "root" | "session" | "terminal" | "unknown";
+export type StateResourceKind = ReplayResourceKind;
 
 export type StateAtErrorResponse =
   | { code: "no-active-log"; message: string }
@@ -48,7 +48,18 @@ export type StateAtSuccessResponse = {
 export type StateAtResponse = StateAtSuccessResponse | StateAtErrorResponse;
 
 const IDX_RE = /^(0|[1-9]\d*)$/;
-const SELECTABLE_RESOURCE_KINDS = new Set<ReplayResourceKind>(["root", "session", "terminal"]);
+type SelectableReplayResourceKind = Exclude<ReplayResourceKind, "unknown">;
+const SELECTABLE_RESOURCE_KINDS: ReadonlySet<string> = new Set<SelectableReplayResourceKind>([
+  "root",
+  "session",
+  "chat",
+  "terminal",
+  "changeset",
+  "annotations",
+  "resource-watch",
+  "automation",
+  "automation-run",
+]);
 
 export function registerStateRoutes(app: Hono, sessions: LogSessionManager): void {
   app.get("/api/state-at", (c) => {
@@ -118,8 +129,8 @@ export function registerStateRoutes(app: Hono, sessions: LogSessionManager): voi
   });
 }
 
-function isSelectableResourceKind(value: string): value is "root" | "session" | "terminal" {
-  return SELECTABLE_RESOURCE_KINDS.has(value as ReplayResourceKind);
+function isSelectableResourceKind(value: string): value is SelectableReplayResourceKind {
+  return SELECTABLE_RESOURCE_KINDS.has(value);
 }
 
 function projectStateAtResponse(
@@ -130,7 +141,7 @@ function projectStateAtResponse(
   diagnostics: readonly ReplayDiagnostic[],
   intents: readonly ReplayClientIntent[],
   cache: StateReplayCacheInfo,
-  selectedKind: "root" | "session" | "terminal" | undefined,
+  selectedKind: SelectableReplayResourceKind | undefined,
   selectedUri: string | undefined,
 ): StateAtSuccessResponse {
   const selected =

@@ -52,7 +52,9 @@ describe("ahp-inspector CLI launch (Plan 02-05)", () => {
       new Promise<number | null>((res) => setTimeout(() => res(-1 as number), 5000)),
     ]);
     // Accept 0 (clean exit) or null (signal-only termination).
-    expect(code === 0 || code === null).toBe(true);
+    expect(code === 0 || code === null, `exit code ${String(code)}; stderr: ${r.stderr}`).toBe(
+      true,
+    );
   }, 15_000);
 
   it("respects --no-open (no browser line beyond the §10 copy)", async () => {

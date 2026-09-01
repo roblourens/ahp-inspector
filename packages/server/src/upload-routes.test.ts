@@ -2,7 +2,7 @@
 
 import { NodeHostAdapter } from "@ahp-inspector/host-node";
 import { Hono } from "hono";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createLogSessionManager } from "./session-manager.js";
 import { registerUploadRoutes } from "./upload-routes.js";
 
@@ -143,6 +143,37 @@ describe("upload routes", () => {
     expect(pushedChunks).toBeLessThanOrEqual(3);
     expect(sessions.current()).toBeNull();
     await handle.dispose();
+    await sessions.dispose();
+  });
+
+  it("waits for an in-flight upload before disposing its temporary file", async () => {
+    const { app, handle, sessions } = makeApp();
+    let bodyController: ReadableStreamDefaultController<Uint8Array> | undefined;
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        bodyController = controller;
+      },
+    });
+    const upload = app.request("/api/sessions/upload", {
+      method: "POST",
+      headers: { "x-filename": "pending.jsonl" },
+      body,
+      duplex: "half",
+    } as RequestInit & { duplex: "half" });
+    await vi.waitFor(() => expect(bodyController).toBeDefined());
+
+    let disposed = false;
+    const disposal = handle.dispose().then(() => {
+      disposed = true;
+    });
+    await Promise.resolve();
+    expect(disposed).toBe(false);
+
+    bodyController?.enqueue(new TextEncoder().encode('{"a":1}\n'));
+    bodyController?.close();
+    expect((await upload).status).toBe(200);
+    await disposal;
+    expect(disposed).toBe(true);
     await sessions.dispose();
   });
 });

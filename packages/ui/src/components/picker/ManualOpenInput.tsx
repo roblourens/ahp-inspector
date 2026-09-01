@@ -1,5 +1,5 @@
 import { type FormEvent, type JSX, useId, useState } from "react";
-import { ERROR_COPY, FALLBACK_ERROR } from "./error-copy.js";
+import { ERROR_COPY, FALLBACK_ERROR, getOpenErrorMessage } from "./error-copy.js";
 
 const MAX_PATH_LEN = 4096;
 
@@ -28,9 +28,7 @@ export function ManualOpenInput({
     try {
       await onOpen(path);
     } catch (err) {
-      const code = (err as { code?: string }).code;
-      const copy = (code && ERROR_COPY[code]) || FALLBACK_ERROR;
-      setError(copy);
+      setError(getOpenErrorMessage(err));
     } finally {
       setBusy(false);
     }

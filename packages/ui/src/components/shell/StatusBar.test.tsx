@@ -31,4 +31,18 @@ describe("StatusBar — UI-SPEC §10 verbatim copy", () => {
     render(<StatusBar connection="no-server" eventCount={0} />);
     expect(screen.getByTestId("status-label").textContent).toBe("No server");
   });
+
+  it("surfaces a persistence notice without changing connection status", () => {
+    render(
+      <StatusBar
+        connection="connected"
+        eventCount={5}
+        notice="Preferences cannot be saved for the rest of this session."
+      />,
+    );
+    expect(screen.getByTestId("status-label")).toHaveTextContent("Connected · 5 events");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Preferences cannot be saved for the rest of this session.",
+    );
+  });
 });

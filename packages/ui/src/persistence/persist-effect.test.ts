@@ -32,7 +32,6 @@ function resetStore(): void {
   useAppStore.setState({
     rows: [],
     selectedIdx: null,
-    selectedDetail: null,
     meta: null,
     searchQuery: "",
     searchMatches: null,
@@ -53,6 +52,7 @@ function resetStore(): void {
     rotationNotice: false,
     lastWatchError: null,
     lastOpenRef: null,
+    persistenceError: null,
   });
 }
 
@@ -292,12 +292,7 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     useAppStore.getState().setSearchQuery("a-query");
     expect(spy).not.toHaveBeenCalled();
 
-    // Now switch to logKey B (resetForLogSwitch-style).
-    useAppStore.setState({
-      logKey: "lk-B",
-      rows: [],
-      loadProgress: { phase: "idle", loadedRows: 0, loadedBytes: 0 },
-    });
+    useAppStore.getState().switchToLog("lk-B", { kind: "candidate", id: "b" });
 
     // Old logKey A's pending save must have flushed synchronously.
     expect(spy).toHaveBeenCalled();
@@ -326,11 +321,7 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     useAppStore.setState({ groupCollapsed: new Set(["g1"]) });
 
     // Switch to lk-B which has no stored prefs.
-    useAppStore.setState({
-      logKey: "lk-B",
-      rows: [],
-      loadProgress: { phase: "idle", loadedRows: 0, loadedBytes: 0 },
-    });
+    useAppStore.getState().switchToLog("lk-B", { kind: "candidate", id: "b" });
 
     const s = useAppStore.getState();
     expect(s.filters).toEqual(APP_DEFAULT_FILTERS);
@@ -369,11 +360,7 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     useAppStore.getState().setGrouping("session");
 
     // Switch to lk-B (filters first reset, then hydrate on snapshot-end).
-    useAppStore.setState({
-      logKey: "lk-B",
-      rows: [],
-      loadProgress: { phase: "idle", loadedRows: 0, loadedBytes: 0 },
-    });
+    useAppStore.getState().switchToLog("lk-B", { kind: "candidate", id: "b" });
     expect(useAppStore.getState().searchQuery).toBe("");
 
     // Baseline complete on lk-B: stored prefs hydrate.
@@ -393,12 +380,10 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     expect(Array.from(s.groupCollapsed)).toEqual(["bg1"]);
   });
 
-  it("saveForLogKey throws QuotaExceededError → subsequent mutations no-op (disabled)", () => {
-    const spy = vi.spyOn(persistenceModule, "persistPerLogPrefs").mockImplementation(() => {
-      const e = new Error("quota");
-      e.name = "QuotaExceededError";
-      throw e;
-    });
+  it("records a write failure and disables subsequent save attempts", () => {
+    const spy = vi
+      .spyOn(persistenceModule, "persistPerLogPrefs")
+      .mockReturnValue({ ok: false, reason: "storage-unavailable" });
 
     renderHook(() => usePersistEffect());
     useAppStore.setState({ logKey: "lk-A", rows: [makeRow(0)] });
@@ -415,6 +400,9 @@ describe("usePersistEffect — Plan 04-06 Task 3", () => {
     useAppStore.getState().setSearchQuery("first");
     vi.advanceTimersByTime(300);
     expect(spy).toHaveBeenCalledTimes(1);
+    expect(useAppStore.getState().persistenceError).toBe(
+      "Preferences cannot be saved for the rest of this session.",
+    );
 
     // Subsequent mutation should not trigger another save (disabled).
     useAppStore.getState().setSearchQuery("second");

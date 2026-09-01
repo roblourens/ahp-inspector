@@ -8,6 +8,7 @@ interface StatusBarProps {
   visibleCount?: number;
   totalCount?: number;
   groupCount?: number;
+  notice?: string | null;
 }
 
 interface StatusVisual {
@@ -59,6 +60,7 @@ export function StatusBar({
   visibleCount,
   totalCount,
   groupCount,
+  notice,
 }: StatusBarProps): JSX.Element {
   const { glyph, dotColor, label } = visualFor(
     connection,
@@ -87,6 +89,11 @@ export function StatusBar({
         {glyph}
       </span>
       <span data-testid="status-label">{label}</span>
+      {notice && (
+        <span role="status" style={{ color: "var(--color-warning)" }}>
+          · {notice}
+        </span>
+      )}
     </div>
   );
 }

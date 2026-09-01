@@ -229,12 +229,10 @@ export function CopyMenu({
               {item.label}
             </button>
           ))}
-          {(
-            [
-              { label: "Open in new tab (JSON)", mime: "application/json" as const },
-              { label: "Open in new tab (text)", mime: "text/plain" as const },
-            ]
-          ).map((item) => (
+          {[
+            { label: "Open in new tab (JSON)", mime: "application/json" as const },
+            { label: "Open in new tab (text)", mime: "text/plain" as const },
+          ].map((item) => (
             <button
               key={item.label}
               role="menuitem"

@@ -1,14 +1,33 @@
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { expect, test } from "@playwright/test";
+import { PHASE10_STATE_JSONL } from "../packages/ui/src/test-fixtures/phase10-state-log";
+import { type CliServer, startCli, stopCli } from "./helpers/cli";
 
-// Connects to the already-running CLI on 5173 and verifies the detail-panel
-// scroll behavior with the State Inspector open.
 test.describe("phase14 detail panel scroll", () => {
-  test.use({ baseURL: "http://127.0.0.1:5173" });
+  let dir = "";
+  let server: CliServer | undefined;
+  let url = "";
+
+  test.beforeAll(async () => {
+    await mkdir("screenshots/phase14", { recursive: true });
+    dir = await mkdtemp(join(tmpdir(), "ahp-phase14-e2e-"));
+    const file = join(dir, "phase14-browser-safe.jsonl");
+    await writeFile(file, PHASE10_STATE_JSONL);
+    server = await startCli([file]);
+    url = server.url;
+  });
+
+  test.afterAll(async () => {
+    await stopCli(server);
+    if (dir) await rm(dir, { recursive: true, force: true });
+  });
 
   test("response JSON remains reachable by scrolling when state inspector is open", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto(url);
     await expect(page.getByTestId("filter-bar")).toBeVisible({ timeout: 10_000 });
 
     // Find a response row: kind cell text "RES".
@@ -42,7 +61,7 @@ test.describe("phase14 detail panel scroll", () => {
     });
 
     // After scrolling, the tab panel content (Pretty JSON) must be reachable.
-    const tabpanel = page.getByRole("tabpanel");
+    const tabpanel = page.getByTestId("detail-panel").getByRole("tabpanel").last();
     await expect(tabpanel).toBeVisible();
     const tabBox = await tabpanel.boundingBox();
     const regionBox = await scrollRegion.boundingBox();

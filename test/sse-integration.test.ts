@@ -113,6 +113,12 @@ interface Frame {
   data: string;
 }
 
+function apiPath(port: number, path: string, apiToken: string): string {
+  const url = new URL(path, `http://127.0.0.1:${port}`);
+  url.searchParams.set("_ahpToken", apiToken);
+  return `${url.pathname}${url.search}`;
+}
+
 /**
  * Minimal SSE client built on Node's http module. EventSource-globals exist
  * in Node 22 but their lifecycle is awkward inside Vitest — this works the
@@ -122,6 +128,7 @@ function openSseClient(opts: {
   port: number;
   path: string;
   hostHeader: string;
+  apiToken: string;
 }): Promise<{ close(): void; next(timeoutMs?: number): Promise<Frame>; readonly all: Frame[] }> {
   return new Promise((resolveOuter, reject) => {
     const buf: Frame[] = [];
@@ -132,7 +139,7 @@ function openSseClient(opts: {
       {
         host: "127.0.0.1",
         port: opts.port,
-        path: opts.path,
+        path: apiPath(opts.port, opts.path, opts.apiToken),
         method: "GET",
         headers: { Host: opts.hostHeader, Accept: "text/event-stream" },
       },
@@ -248,6 +255,7 @@ describe("SSE log stream", () => {
       port: handle.port,
       path: "/api/log/stream",
       hostHeader: `127.0.0.1:${handle.port}`,
+      apiToken: handle.apiToken,
     });
     client = c;
 
@@ -322,6 +330,7 @@ describe("SSE log stream", () => {
       port: handle.port,
       path: "/api/log/stream",
       hostHeader: `127.0.0.1:${handle.port}`,
+      apiToken: handle.apiToken,
     });
     client = c;
 
@@ -344,7 +353,7 @@ describe("SSE log stream", () => {
     const lateIndex = lines.length - 1;
     const started = performance.now();
     const stateAt = await fetch(
-      `http://127.0.0.1:${handle.port}/api/state-at?idx=${lateIndex}&logKey=${appState.meta.logKey}`,
+      `http://127.0.0.1:${handle.port}/api/state-at?idx=${lateIndex}&logKey=${appState.meta.logKey}&_ahpToken=${encodeURIComponent(handle.apiToken)}`,
       {
         headers: { Host: `127.0.0.1:${handle.port}` },
       },
@@ -381,6 +390,7 @@ describe("SSE log stream", () => {
       port: handle.port,
       path: "/api/log/stream",
       hostHeader: `127.0.0.1:${handle.port}`,
+      apiToken: handle.apiToken,
     });
     client = c;
 
@@ -423,6 +433,7 @@ describe("SSE log stream", () => {
       port: handle.port,
       path: "/api/log/stream",
       hostHeader: `127.0.0.1:${handle.port}`,
+      apiToken: handle.apiToken,
     });
     client = c;
 

@@ -4,12 +4,26 @@
   "initial": {
     "status": "ready",
     "files": [],
-    "operations": [{ "id": "stage", "label": "Stage", "scopes": ["resource"] }]
+    "operations": [
+      {
+        "id": "stage",
+        "label": "Stage",
+        "scopes": ["resource"],
+        "status": "idle"
+      }
+    ]
   },
   "actions": [
     {
       "type": "changeset/operationsChanged",
-      "operations": [{ "id": "make-pr", "label": "Create Pull Request", "scopes": ["changeset"] }]
+      "operations": [
+        {
+          "id": "make-pr",
+          "label": "Create Pull Request",
+          "scopes": ["changeset"],
+          "status": "idle"
+        }
+      ]
     },
     {
       "type": "changeset/operationsChanged",

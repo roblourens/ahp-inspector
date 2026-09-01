@@ -2,14 +2,9 @@
   "description": "session/configChanged merges new values into config.values",
   "reducer": "session",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test",
-      "provider": "copilot",
-      "title": "Test",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 2000
-    },
+    "provider": "copilot",
+    "title": "Test",
+    "status": 1,
     "config": {
       "schema": {
         "type": "object",
@@ -32,7 +27,8 @@
       }
     },
     "lifecycle": "ready",
-    "turns": []
+    "activeClients": [],
+    "chats": []
   },
   "actions": [
     {
@@ -43,14 +39,9 @@
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test",
-      "provider": "copilot",
-      "title": "Test",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 9999
-    },
+    "provider": "copilot",
+    "title": "Test",
+    "status": 1,
     "config": {
       "schema": {
         "type": "object",
@@ -73,6 +64,7 @@
       }
     },
     "lifecycle": "ready",
-    "turns": []
+    "activeClients": [],
+    "chats": []
   }
 }

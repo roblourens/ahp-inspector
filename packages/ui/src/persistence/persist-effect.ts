@@ -8,19 +8,19 @@
 // `loadForLogKey` / `saveForLogKey` so call sites match UI-SPEC vocabulary.
 
 import { useEffect, useRef } from "react";
-import { APP_DEFAULT_FILTERS } from "../state/filters.js";
 import {
   loadPerLogPrefs as loadForLogKey,
   type PerLogPrefs,
   persistPerLogPrefs as saveForLogKey,
 } from "../state/persistence.js";
-import { useAppStore } from "../state/store.js";
+import { type AppStoreState, useAppStore } from "../state/store.js";
 
 const DEBOUNCE_MS = 250;
 const MAX_GROUP_COLLAPSED = 1000;
 
-function buildPrefs(): PerLogPrefs {
-  const s = useAppStore.getState();
+const PERSISTENCE_ERROR = "Preferences cannot be saved for the rest of this session.";
+
+function buildPrefs(s: AppStoreState = useAppStore.getState()): PerLogPrefs {
   // FIFO trim: keep the most recent 1000 entries (insertion order in Set).
   const groupArr = Array.from(s.groupCollapsed);
   const trimmed =
@@ -59,12 +59,19 @@ export function usePersistEffect(): void {
   useEffect(() => {
     const ref = stateRef.current;
 
-    function flushSave(logKey: string): void {
+    function disablePersistence(): void {
+      if (ref.disabled) return;
+      ref.disabled = true;
+      useAppStore.getState().setPersistenceError(PERSISTENCE_ERROR);
+    }
+
+    function flushSave(logKey: string, prefs = buildPrefs()): void {
       if (ref.disabled) return;
       try {
-        saveForLogKey(logKey, buildPrefs());
+        const result = saveForLogKey(logKey, prefs);
+        if (!result.ok) disablePersistence();
       } catch {
-        ref.disabled = true;
+        disablePersistence();
       } finally {
         if (ref.debounceTimer) {
           clearTimeout(ref.debounceTimer);
@@ -124,24 +131,17 @@ export function usePersistEffect(): void {
       const prevKey = ref.lastLogKey;
       const currKey = curr.logKey;
 
-      // logKey switch — flush previous log's pending save synchronously
-      // before tracking the new one, then reset per-log view state so the
-      // new file starts fresh (the new file's stored prefs, if any, are
-      // applied later by hydrate() on snapshot-end).
+      // The store switches logs atomically. Flush from the previous state
+      // snapshot so the reset values for the new log never overwrite the old
+      // log's pending preferences. Hydration still waits for snapshot-end.
       if (prevKey && prevKey !== currKey) {
         if (ref.debounceTimer && ref.pendingSaveLogKey === prevKey) {
-          flushSave(prevKey);
+          flushSave(prevKey, buildPrefs(prev));
         }
         ref.hydratedFor = null;
         // Update lastLogKey BEFORE the reset writes so re-entrant subscribe
         // callbacks see prevKey === currKey and skip this branch.
         ref.lastLogKey = currKey;
-        const s = useAppStore.getState();
-        s.setFilters(APP_DEFAULT_FILTERS);
-        s.setSearchQuery("");
-        s.clearSearchResults();
-        s.setGrouping("none");
-        useAppStore.setState({ groupCollapsed: new Set<string>() });
       }
       ref.lastLogKey = currKey;
 

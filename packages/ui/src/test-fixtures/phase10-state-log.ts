@@ -1,5 +1,6 @@
 const ROOT = "agenthost:/root";
 const SESSION = "copilot:/session/1";
+const CHAT = "ahp-chat:/chat/1";
 const TERMINAL = "terminal:/1";
 
 function jsonl(raw: unknown): string {
@@ -12,15 +13,29 @@ function rootSnapshotState(activeSessions = 1): Record<string, unknown> {
 
 function sessionSnapshotState(title = "Phase 10 baseline"): Record<string, unknown> {
   return {
-    summary: {
-      resource: SESSION,
-      provider: "copilot",
-      title,
-      status: "idle",
-      createdAt: 1,
-      modifiedAt: 1,
-    },
+    provider: "copilot",
+    title,
+    status: 1,
     lifecycle: "creating",
+    activeClients: [],
+    chats: [
+      {
+        resource: CHAT,
+        title: "Phase 10 chat",
+        status: 1,
+        modifiedAt: "1970-01-01T00:00:00.001Z",
+      },
+    ],
+    defaultChat: CHAT,
+  };
+}
+
+function chatSnapshotState(): Record<string, unknown> {
+  return {
+    resource: CHAT,
+    title: "Phase 10 chat",
+    status: 1,
+    modifiedAt: "1970-01-01T00:00:00.001Z",
     turns: [],
   };
 }
@@ -50,6 +65,7 @@ export function phase10StateLogLines(extraPingCount = 0): string[] {
         snapshots: [
           { resource: ROOT, fromSeq: 0, state: rootSnapshotState() },
           { resource: SESSION, fromSeq: 0, state: sessionSnapshotState() },
+          { resource: CHAT, fromSeq: 0, state: chatSnapshotState() },
           { resource: TERMINAL, fromSeq: 0, state: terminalSnapshotState() },
         ],
       },
@@ -58,18 +74,19 @@ export function phase10StateLogLines(extraPingCount = 0): string[] {
       jsonrpc: "2.0",
       method: "action",
       params: {
+        channel: CHAT,
         serverSeq: 1,
-        action: { type: "mystery.action", session: SESSION, detail: "diagnostic sentinel" },
+        action: { type: "mystery.action", detail: "diagnostic sentinel" },
       },
     }),
     jsonl({
       jsonrpc: "2.0",
       method: "action",
       params: {
+        channel: SESSION,
         serverSeq: 2,
         action: {
           type: "session/titleChanged",
-          session: SESSION,
           title: "Phase 10 title after action",
         },
       },
@@ -78,6 +95,7 @@ export function phase10StateLogLines(extraPingCount = 0): string[] {
       jsonrpc: "2.0",
       method: "action",
       params: {
+        channel: ROOT,
         serverSeq: 3,
         action: { type: "root/activeSessionsChanged", activeSessions: 2 },
       },

@@ -54,6 +54,7 @@ describe("useAppStore", () => {
       searchStatus: "idle",
       searchError: null,
       searchPopoverOpen: false,
+      persistenceError: null,
     });
   });
 
@@ -182,6 +183,59 @@ describe("useAppStore", () => {
     expect(useAppStore.getState().selectedIdx).toBe(3);
     s.clearSelection();
     expect(useAppStore.getState().selectedIdx).toBeNull();
+  });
+
+  it("switchToLog transactionally clears log-local state and installs the replacement key", () => {
+    useAppStore.setState({
+      rows: [row(0)],
+      selectedIdx: 0,
+      selectionSource: "search",
+      meta: { filename: "old.jsonl", eventCount: 1, sessionCount: 0 },
+      searchQuery: "old query",
+      searchMatches: new Set([0]),
+      searchTotal: 1,
+      searchTruncated: true,
+      searchStatus: "searching",
+      searchError: "old error",
+      searchPopoverOpen: true,
+      filters: { ...EMPTY_FILTERS, rowText: "old filter" },
+      grouping: "session",
+      groupCollapsed: new Set(["old"]),
+      livePaused: true,
+      pendingBuffer: [row(1)],
+      pendingNewCount: 1,
+      logKey: "old-key",
+      lastWatchError: { code: "read-error", message: "old" },
+      rotationNotice: true,
+    });
+
+    useAppStore.getState().switchToLog("new-key", { kind: "candidate", id: "candidate-new" });
+
+    const state = useAppStore.getState();
+    expect(state).toMatchObject({
+      rows: [],
+      connection: "connecting",
+      selectedIdx: null,
+      selectionSource: "explicit",
+      meta: null,
+      searchQuery: "",
+      searchMatches: null,
+      searchTotal: 0,
+      searchTruncated: false,
+      searchStatus: "idle",
+      searchError: null,
+      searchPopoverOpen: false,
+      filters: APP_DEFAULT_FILTERS,
+      grouping: "none",
+      livePaused: false,
+      pendingBuffer: [],
+      pendingNewCount: 0,
+      logKey: "new-key",
+      lastOpenRef: { kind: "candidate", id: "candidate-new" },
+      lastWatchError: null,
+      rotationNotice: false,
+    });
+    expect(state.groupCollapsed.size).toBe(0);
   });
 
   it("defaults selectionSource to explicit", () => {

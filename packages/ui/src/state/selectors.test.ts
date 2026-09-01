@@ -6,7 +6,7 @@
 import type { EventRow } from "@ahp-inspector/core";
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { applyFacets, APP_DEFAULT_FILTERS, EMPTY_FILTERS } from "./filters.js";
+import { APP_DEFAULT_FILTERS, applyFacets, EMPTY_FILTERS } from "./filters.js";
 import {
   useFacetCounts,
   useFilteredRows,
@@ -60,7 +60,6 @@ function resetStore(rows: EventRow[] = []) {
     searchQuery: "",
     grouping: "none",
     groupCollapsed: new Set(),
-    selectedDetail: null,
     detailWidth: 420,
   });
 }

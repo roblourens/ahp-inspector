@@ -183,13 +183,7 @@ describe("useDropZone", () => {
     const onOpenPath = vi.fn().mockResolvedValue(undefined);
     const onUploadFile = vi.fn().mockResolvedValue(undefined);
     const file = new File(["{}\n"], "finder-drag.jsonl", { type: "" });
-    render(
-      <Harness
-        hasActiveLog={false}
-        onOpenPath={onOpenPath}
-        onUploadFile={onUploadFile}
-      />,
-    );
+    render(<Harness hasActiveLog={false} onOpenPath={onOpenPath} onUploadFile={onUploadFile} />);
     fireDrag("drop", makeDt(null, [file]));
     await waitFor(() => {
       expect(onUploadFile).toHaveBeenCalledTimes(1);

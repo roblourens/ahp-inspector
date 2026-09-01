@@ -9,6 +9,7 @@
  */
 import type { JSX } from "react";
 import { HighlightedText } from "../timeline/cells/highlight.js";
+import { prepareJson } from "./json-display.js";
 
 interface RawJsonViewProps {
   data: unknown;
@@ -16,13 +17,7 @@ interface RawJsonViewProps {
 }
 
 export function RawJsonView({ data, query }: RawJsonViewProps): JSX.Element {
-  const text = (() => {
-    try {
-      return JSON.stringify(data, null, 2);
-    } catch {
-      return "[Circular or non-serializable value]";
-    }
-  })();
+  const text = prepareJson(data).prettyText;
 
   return (
     <pre

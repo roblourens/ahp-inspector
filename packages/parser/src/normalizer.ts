@@ -8,7 +8,6 @@
 //   - request / response            → kind:'request' / 'response'
 //   - anything else                 → kind:'parse-error' via makeParseErrorEvent
 
-import type { ActionEnvelope, ProtocolNotification } from "@ahp-inspector/protocol";
 import type { AhpEvent, EventKind, IdType, NormalizeMeta } from "@ahp-inspector/shared";
 import { makeParseErrorEvent } from "@ahp-inspector/shared";
 import { extractSessionId, extractToolCallId, extractTurnId } from "./extract.js";
@@ -25,6 +24,12 @@ function safeStringify(raw: unknown): string {
   } catch {
     return String(raw);
   }
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
 }
 
 /**
@@ -52,22 +57,16 @@ export function normalize(raw: unknown, meta: NormalizeMeta): AhpEvent {
     kind = "response";
   } else if (hasMethod) {
     if (m.method === "action" && meta.dir === "s2c") {
-      const env = (m.params ?? {}) as Partial<ActionEnvelope>;
       kind = "action";
-      const action = (env as { action?: { type?: unknown } }).action;
-      actionType =
-        action && typeof action === "object" && typeof action.type === "string"
-          ? action.type
-          : null;
-      serverSeq = typeof env.serverSeq === "number" ? env.serverSeq : null;
+      const params = asRecord(m.params);
+      const action = asRecord(params?.action);
+      actionType = typeof action?.type === "string" ? action.type : null;
+      serverSeq = typeof params?.serverSeq === "number" ? params.serverSeq : null;
     } else if (m.method === "notification" && meta.dir === "s2c") {
-      const params = (m.params ?? {}) as { notification?: ProtocolNotification };
       kind = "protocol-notification";
-      const notif = params.notification;
-      actionType =
-        notif && typeof notif === "object" && typeof (notif as { type?: unknown }).type === "string"
-          ? (notif as { type: string }).type
-          : null;
+      const params = asRecord(m.params);
+      const notification = asRecord(params?.notification);
+      actionType = typeof notification?.type === "string" ? notification.type : null;
     } else {
       kind = meta.dir === "c2s" ? "client-notification" : "server-notification";
     }

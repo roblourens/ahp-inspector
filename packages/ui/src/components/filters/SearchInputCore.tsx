@@ -12,7 +12,12 @@ interface SearchInputCoreProps {
  * SearchInputCore — the core search input element without flex wrapper.
  * Used by SearchPopover and optionally wrapped by SearchInput for toolbar use.
  */
-export function SearchInputCore({ value, onChange, onClear, ref }: SearchInputCoreProps): JSX.Element {
+export function SearchInputCore({
+  value,
+  onChange,
+  onClear,
+  ref,
+}: SearchInputCoreProps): JSX.Element {
   return (
     <div
       style={{

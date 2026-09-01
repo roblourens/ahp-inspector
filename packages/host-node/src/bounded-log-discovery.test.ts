@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { scanConfiguredRoots } from "./bounded-log-discovery.js";
 
-const matchesAhpJsonl = (name: string): boolean => name.startsWith("agenthost") && name.endsWith(".jsonl");
+const matchesAhpJsonl = (name: string): boolean =>
+  name.startsWith("agenthost") && name.endsWith(".jsonl");
 
 let tmpRoot: string;
 
@@ -38,8 +39,12 @@ describe("scanConfiguredRoots", () => {
 
     expect(result.roots[0]?.truncated).toBe(true);
     expect(result.roots[1]?.files.map((file) => file.absPath)).toContain(laterLog);
-    expect(result.roots.reduce((total, root) => total + root.immediateEntriesExamined, 0)).toBeLessThanOrEqual(2);
-    expect(result.roots.reduce((total, root) => total + root.statsAttempted, 0)).toBeLessThanOrEqual(20);
+    expect(
+      result.roots.reduce((total, root) => total + root.immediateEntriesExamined, 0),
+    ).toBeLessThanOrEqual(2);
+    expect(
+      result.roots.reduce((total, root) => total + root.statsAttempted, 0),
+    ).toBeLessThanOrEqual(20);
   });
 
   it("selects newest launch directories after examining the bounded root entries", async () => {
@@ -119,7 +124,10 @@ describe("scanConfiguredRoots", () => {
       const end = Math.min(start + 100, 805);
       await Promise.all(
         Array.from({ length: end - start }, (_, offset) =>
-          writeFile(join(logsRoot, `agenthost.${(start + offset).toString().padStart(3, "0")}.jsonl`), "{}\n"),
+          writeFile(
+            join(logsRoot, `agenthost.${(start + offset).toString().padStart(3, "0")}.jsonl`),
+            "{}\n",
+          ),
         ),
       );
     }

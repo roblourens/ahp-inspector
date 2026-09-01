@@ -68,7 +68,26 @@ interface SseClient {
   collect(timeoutMs?: number): Frame[];
 }
 
-function openSse(opts: { port: number; path: string }): Promise<SseClient> {
+function apiUrl(port: number, path: string, apiToken: string): string {
+  const url = new URL(path, `http://127.0.0.1:${port}`);
+  url.searchParams.set("_ahpToken", apiToken);
+  return url.toString();
+}
+
+function apiPath(port: number, path: string, apiToken: string): string {
+  const url = new URL(apiUrl(port, path, apiToken));
+  return `${url.pathname}${url.search}`;
+}
+
+async function readStandaloneApiToken(port: number): Promise<string> {
+  const response = await fetch(`http://127.0.0.1:${port}/`);
+  const html = await response.text();
+  const token = html.match(/<meta name="ahp-api-token" content="([^"]+)" \/>/)?.[1];
+  if (!token) throw new Error("standalone UI did not provide an API capability");
+  return token;
+}
+
+function openSse(opts: { port: number; path: string; apiToken: string }): Promise<SseClient> {
   return new Promise((resolveOuter, reject) => {
     const buf: Frame[] = [];
     const seen: Frame[] = [];
@@ -78,7 +97,7 @@ function openSse(opts: { port: number; path: string }): Promise<SseClient> {
       {
         host: "127.0.0.1",
         port: opts.port,
-        path: opts.path,
+        path: apiPath(opts.port, opts.path, opts.apiToken),
         method: "GET",
         headers: { Host: `127.0.0.1:${opts.port}`, Accept: "text/event-stream" },
       },
@@ -251,8 +270,9 @@ async function buildFixture(): Promise<FixtureLayout> {
 async function getJson<T>(
   port: number,
   path: string,
+  apiToken: string,
 ): Promise<{ status: number; body: T | null; text: string }> {
-  const r = await fetch(`http://127.0.0.1:${port}${path}`);
+  const r = await fetch(apiUrl(port, path, apiToken));
   const text = await r.text();
   let body: T | null = null;
   if (text.length > 0) {
@@ -269,8 +289,9 @@ async function postJson<T>(
   port: number,
   path: string,
   data: unknown,
+  apiToken: string,
 ): Promise<{ status: number; body: T | null; text: string }> {
-  const r = await fetch(`http://127.0.0.1:${port}${path}`, {
+  const r = await fetch(apiUrl(port, path, apiToken), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -302,6 +323,7 @@ interface SafeCandidate {
 describe("phase 4 vertical slice — discover → open → tail → switch → rotation", () => {
   let cli: CliProc | undefined;
   let port = 0;
+  let apiToken = "";
   let fx: FixtureLayout;
 
   beforeAll(async () => {
@@ -318,6 +340,7 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
     };
     cli = spawnCliNoFile(env);
     port = await waitForPort(cli);
+    apiToken = await readStandaloneApiToken(port);
     // Allow the server's session manager to settle.
     await new Promise((res) => setTimeout(res, 200));
   }, 30_000);
@@ -330,7 +353,7 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
   // ── 1. No active log → 204 ────────────────────────────────────────────────
 
   it("GET /api/log/meta returns 204 when no log is active", async () => {
-    const r = await fetch(`http://127.0.0.1:${port}/api/log/meta`);
+    const r = await fetch(apiUrl(port, "/api/log/meta", apiToken));
     expect(r.status).toBe(204);
     const text = await r.text();
     assertNoAbsPath(text);
@@ -342,7 +365,7 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
     const { status, body, text } = await getJson<{
       candidates: SafeCandidate[];
       truncated: boolean;
-    }>(port, "/api/sessions/discover");
+    }>(port, "/api/sessions/discover", apiToken);
     expect(status).toBe(200);
     assertNoAbsPath(text);
     expect(body).toBeTruthy();
@@ -368,7 +391,11 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
   let firstId = "";
   let secondId = "";
   it("POST /api/sessions/open {id} activates the chosen log", async () => {
-    const disc = await getJson<{ candidates: SafeCandidate[] }>(port, "/api/sessions/discover");
+    const disc = await getJson<{ candidates: SafeCandidate[] }>(
+      port,
+      "/api/sessions/discover",
+      apiToken,
+    );
     expect(disc.body).toBeTruthy();
     const cands = disc.body?.candidates ?? [];
     expect(cands.length).toBeGreaterThanOrEqual(2);
@@ -389,6 +416,7 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
       port,
       "/api/sessions/open",
       { id: firstId },
+      apiToken,
     );
     expect(open.status).toBe(200);
     assertNoAbsPath(open.text);
@@ -397,7 +425,7 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
     expect(open.body?.active.meta.filename).not.toContain("\\");
 
     // /api/log/meta is now 200 with basename only.
-    const meta = await getJson<{ filename: string }>(port, "/api/log/meta");
+    const meta = await getJson<{ filename: string }>(port, "/api/log/meta", apiToken);
     expect(meta.status).toBe(200);
     assertNoAbsPath(meta.text);
     expect(meta.body?.filename).toMatch(/\.jsonl$/);
@@ -407,7 +435,7 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
   // ── 4. Snapshot + tail append (×2 — D-15 pause is browser-side only) ─────
 
   it("SSE stream delivers snapshot and append frames after tail writes", async () => {
-    const c = await openSse({ port, path: "/api/log/stream" });
+    const c = await openSse({ port, path: "/api/log/stream", apiToken });
     try {
       // snapshot-begin
       const begin = await c.next(5000);
@@ -466,7 +494,7 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
   // ── 6. Switch log → log-reset on existing stream + new snapshot on next ──
 
   it("switching log emits log-reset SSE and new stream snapshots the new log; rotation banner is NOT triggered", async () => {
-    const c = await openSse({ port, path: "/api/log/stream" });
+    const c = await openSse({ port, path: "/api/log/stream", apiToken });
     try {
       // burn through initial snapshot
       let frame = await c.next(5000);
@@ -481,6 +509,7 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
         port,
         "/api/sessions/open",
         { id: secondId },
+        apiToken,
       );
       expect(switchRes.status).toBe(200);
       assertNoAbsPath(switchRes.text);
@@ -510,7 +539,7 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
     }
 
     // Open a new stream — the snapshot must reflect the *new* log.
-    const c2 = await openSse({ port, path: "/api/log/stream" });
+    const c2 = await openSse({ port, path: "/api/log/stream", apiToken });
     try {
       const begin = await c2.next(5000);
       expect(begin.event).toBe("snapshot-begin");
@@ -528,87 +557,98 @@ describe("phase 4 vertical slice — discover → open → tail → switch → r
   // Skipped on CI: chokidar awaitWriteFinish + writeFile-truncate is flaky on
   // Linux runners. AppState rotation wiring is covered by app-state.test.ts.
   const itRotation = process.env.CI ? it.skip : it;
-  itRotation("replacing the active file with non-empty content emits rotation then append from 0", async () => {
-    // Ensure we're back on a known active log; reopen the second log
-    // explicitly so we know which file to truncate.
-    const reopen = await postJson<{ active: { meta: { filename: string } } }>(
-      port,
-      "/api/sessions/open",
-      { id: secondId },
-    );
-    expect(reopen.status).toBe(200);
-    assertNoAbsPath(reopen.text);
+  itRotation(
+    "replacing the active file with non-empty content emits rotation then append from 0",
+    async () => {
+      // Ensure we're back on a known active log; reopen the second log
+      // explicitly so we know which file to truncate.
+      const reopen = await postJson<{ active: { meta: { filename: string } } }>(
+        port,
+        "/api/sessions/open",
+        { id: secondId },
+        apiToken,
+      );
+      expect(reopen.status).toBe(200);
+      assertNoAbsPath(reopen.text);
 
-    const c = await openSse({ port, path: "/api/log/stream" });
-    try {
-      // Drain snapshot.
-      let frame = await c.next(5000);
-      while (frame.event !== "snapshot-end") {
+      const c = await openSse({ port, path: "/api/log/stream", apiToken });
+      try {
+        // Drain snapshot.
+        let frame = await c.next(5000);
+        while (frame.event !== "snapshot-end") {
+          assertNoAbsPath(frame.data);
+          frame = await c.next(5000);
+        }
         assertNoAbsPath(frame.data);
-        frame = await c.next(5000);
+
+        // Replace the underlying file with smaller non-empty content → TailReader
+        // detects shrink → onReset, then reads the replacement range.
+        // (The CLI session manager mapped secondId to its absolute path; we
+        // know the path from the fixture builder.)
+        const freshLine = `${JSON.stringify({
+          jsonrpc: "2.0",
+          method: "notify/fresh-rotation",
+          params: { marker: "fresh-only" },
+        })}\n`;
+        await writeFile(fx.fileB, freshLine);
+
+        let sawRotation = false;
+        let appendFrom: number | null = null;
+        const deadline = Date.now() + 15000;
+        while (Date.now() < deadline) {
+          let next: Frame;
+          try {
+            next = await c.next(5000);
+          } catch {
+            break;
+          }
+          assertNoAbsPath(next.data);
+          if (next.event === "rotation") {
+            sawRotation = true;
+            continue;
+          }
+          if (sawRotation && next.event === "append") {
+            const payload = JSON.parse(next.data) as { from: number; rows: unknown[] };
+            appendFrom = payload.from;
+            expect(payload.rows).toHaveLength(1);
+            break;
+          }
+        }
+        expect(sawRotation, "expected rotation SSE frame after file replacement").toBe(true);
+        expect(appendFrom, "expected post-rotation append to start at 0").toBe(0);
+
+        const detail = await getJson<{ event: { raw?: unknown } }>(
+          port,
+          "/api/log/event/0",
+          apiToken,
+        );
+        expect(detail.status).toBe(200);
+        expect(JSON.stringify(detail.body?.event.raw)).toContain("fresh-only");
+        expect(detail.text).not.toContain("sess-20260108T100000");
+
+        const searchOld = await getJson<{ matches: number[]; total: number }>(
+          port,
+          "/api/log/search?q=initialize",
+          apiToken,
+        );
+        expect(searchOld.status).toBe(200);
+        expect(searchOld.body?.matches).toEqual([]);
+        expect(searchOld.body?.total).toBe(0);
+
+        const searchFresh = await getJson<{ matches: number[]; total: number }>(
+          port,
+          "/api/log/search?q=fresh-only",
+          apiToken,
+        );
+        expect(searchFresh.status).toBe(200);
+        expect(searchFresh.body?.matches).toEqual([0]);
+        expect(searchFresh.body?.total).toBe(1);
+      } finally {
+        c.close();
       }
-      assertNoAbsPath(frame.data);
-
-      // Replace the underlying file with smaller non-empty content → TailReader
-      // detects shrink → onReset, then reads the replacement range.
-      // (The CLI session manager mapped secondId to its absolute path; we
-      // know the path from the fixture builder.)
-      const freshLine = `${JSON.stringify({
-        jsonrpc: "2.0",
-        method: "notify/fresh-rotation",
-        params: { marker: "fresh-only" },
-      })}\n`;
-      await writeFile(fx.fileB, freshLine);
-
-      let sawRotation = false;
-      let appendFrom: number | null = null;
-      const deadline = Date.now() + 15000;
-      while (Date.now() < deadline) {
-        let next: Frame;
-        try {
-          next = await c.next(5000);
-        } catch {
-          break;
-        }
-        assertNoAbsPath(next.data);
-        if (next.event === "rotation") {
-          sawRotation = true;
-          continue;
-        }
-        if (sawRotation && next.event === "append") {
-          const payload = JSON.parse(next.data) as { from: number; rows: unknown[] };
-          appendFrom = payload.from;
-          expect(payload.rows).toHaveLength(1);
-          break;
-        }
-      }
-      expect(sawRotation, "expected rotation SSE frame after file replacement").toBe(true);
-      expect(appendFrom, "expected post-rotation append to start at 0").toBe(0);
-
-      const detail = await getJson<{ event: { raw?: unknown } }>(port, "/api/log/event/0");
-      expect(detail.status).toBe(200);
-      expect(JSON.stringify(detail.body?.event.raw)).toContain("fresh-only");
-      expect(detail.text).not.toContain("sess-20260108T100000");
-
-      const searchOld = await getJson<{ matches: number[]; total: number }>(
-        port,
-        "/api/log/search?q=initialize",
-      );
-      expect(searchOld.status).toBe(200);
-      expect(searchOld.body?.matches).toEqual([]);
-      expect(searchOld.body?.total).toBe(0);
-
-      const searchFresh = await getJson<{ matches: number[]; total: number }>(
-        port,
-        "/api/log/search?q=fresh-only",
-      );
-      expect(searchFresh.status).toBe(200);
-      expect(searchFresh.body?.matches).toEqual([0]);
-      expect(searchFresh.body?.total).toBe(1);
-    } finally {
-      c.close();
-    }
-  }, 20_000);
+    },
+    20_000,
+  );
 
   // ── 8. Persistence note ───────────────────────────────────────────────────
 

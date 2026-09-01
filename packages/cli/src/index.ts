@@ -140,7 +140,11 @@ const program = new Command()
           await sessions.open({ path: absPath });
         } catch (err) {
           const e = err as { code?: string; message?: string };
-          await sessions.dispose().catch(() => undefined);
+          try {
+            await sessions.dispose();
+          } catch {
+            process.stderr.write("Error: failed to clean up session resources.\n");
+          }
           fail(`Error: cannot open ${absPath}: ${e.message ?? "unknown"}\nCheck file permissions.`);
         }
       } else {
@@ -155,7 +159,11 @@ const program = new Command()
             await sessions.open({ path: absPath });
           } catch (err) {
             const e = err as { code?: string; message?: string };
-            await sessions.dispose().catch(() => undefined);
+            try {
+              await sessions.dispose();
+            } catch {
+              process.stderr.write("Error: failed to clean up session resources.\n");
+            }
             fail(
               `Error: cannot open ${absPath}: ${e.message ?? "unknown"}\nCheck file permissions.`,
             );
@@ -177,7 +185,11 @@ const program = new Command()
         serverHandle = await startLogServer(serverOpts);
       } catch (err) {
         const e = err as NodeJS.ErrnoException;
-        await sessions.dispose().catch(() => undefined);
+        try {
+          await sessions.dispose();
+        } catch {
+          process.stderr.write("Error: failed to clean up session resources.\n");
+        }
         if (e.code === "EADDRINUSE") {
           fail(
             `Error: port ${port} is in use. Try: ahp-inspector --port ${port + 1}${file ? ` ${file}` : ""}`,
@@ -190,6 +202,38 @@ const program = new Command()
       // in startLogServer) + the bound port. NEVER from user-supplied input.
       // T-02-05b: open() only ever receives this loopback URL.
       const url = `http://127.0.0.1:${serverHandle.port}`;
+      let shuttingDown = false;
+      const shutdown = async (): Promise<void> => {
+        if (shuttingDown) return;
+        shuttingDown = true;
+        process.exitCode = 0;
+        process.removeListener("SIGINT", requestShutdown);
+        process.removeListener("SIGTERM", requestShutdown);
+        const errors: unknown[] = [];
+        try {
+          await serverHandle.close();
+        } catch (error) {
+          errors.push(error);
+        }
+        try {
+          await sessions.dispose();
+        } catch (error) {
+          errors.push(error);
+        }
+        if (errors.length > 0) {
+          throw new AggregateError(errors, "Failed to shut down AHP Inspector cleanly");
+        }
+        process.exit(0);
+      };
+      const requestShutdown = (): void => {
+        void shutdown().catch((error: unknown) => {
+          process.stderr.write(`Error: ${(error as Error).message}\n`);
+          process.exit(1);
+        });
+      };
+      process.on("SIGINT", requestShutdown);
+      process.on("SIGTERM", requestShutdown);
+
       if (absPath) {
         process.stdout.write(
           `AHP Inspector running at ${url}\nOpening browser…\nWatching ${absPath}\n`,
@@ -205,29 +249,6 @@ const program = new Command()
           process.stdout.write(`(could not auto-open; visit ${url})\n`);
         }
       }
-
-      let shuttingDown = false;
-      const shutdown = async (): Promise<void> => {
-        if (shuttingDown) return;
-        shuttingDown = true;
-        try {
-          await sessions.dispose();
-        } catch {
-          // ignore — best-effort
-        }
-        try {
-          await serverHandle.close();
-        } catch {
-          // ignore — best-effort
-        }
-        process.exit(0);
-      };
-      process.on("SIGINT", () => {
-        void shutdown();
-      });
-      process.on("SIGTERM", () => {
-        void shutdown();
-      });
     },
   );
 

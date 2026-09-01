@@ -11,7 +11,6 @@ import { join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 const CLI_ENTRY = resolve(__dirname, "index.ts");
-const TSX_BIN = resolve(process.cwd(), "node_modules/.bin/tsx");
 
 const VALID_AHP_LINE = '{"jsonrpc":"2.0","method":"someRequest","params":{},"id":1}\n';
 
@@ -22,7 +21,7 @@ function spawnWithHome(args: string[]): {
   stdout: string;
   stderr: string;
 } {
-  const child = spawn(TSX_BIN, [CLI_ENTRY, ...args], {
+  const child = spawn(process.execPath, ["--import", "tsx", CLI_ENTRY, ...args], {
     cwd: process.cwd(),
     env: {
       ...process.env,

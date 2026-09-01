@@ -5,7 +5,6 @@ import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { resolve } from "node:path";
 
 export const CLI_ENTRY = resolve(__dirname, "index.ts");
-export const TSX_BIN = resolve(process.cwd(), "node_modules/.bin/tsx");
 export const CLI_MINI = resolve(process.cwd(), "test/fixtures/cli-mini.jsonl");
 
 export interface RunningCli {
@@ -16,7 +15,7 @@ export interface RunningCli {
 
 /** Spawn the CLI without waiting; caller drives the lifecycle. */
 export function spawnCliRaw(args: string[]): RunningCli {
-  const child = spawn(TSX_BIN, [CLI_ENTRY, ...args], {
+  const child = spawn(process.execPath, ["--import", "tsx", CLI_ENTRY, ...args], {
     cwd: process.cwd(),
     env: { ...process.env, BROWSER: "none" },
   }) as ChildProcessWithoutNullStreams;

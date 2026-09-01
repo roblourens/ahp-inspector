@@ -20,8 +20,8 @@ export function CopyToast({ message, kind }: CopyToastProps): JSX.Element | null
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    const id = setTimeout(() => setVisible(false), 1500);
-    return () => clearTimeout(id);
+    const timer = setTimeout(() => setVisible(false), 1500);
+    return () => clearTimeout(timer);
   }, []);
 
   if (!visible) return null;

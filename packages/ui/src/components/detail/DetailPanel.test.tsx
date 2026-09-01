@@ -96,7 +96,6 @@ afterEach(() => {
     selectedIdx: null,
     meta: null,
     logKey: null,
-    selectedDetail: null,
     detailWidth: 420,
     searchQuery: "",
   });
@@ -226,6 +225,40 @@ describe("DetailPanel — populated state", () => {
     });
     expect(screen.queryByTestId("detail-json-section-request")).not.toBeInTheDocument();
     expect(screen.queryByTestId("detail-json-section-response")).not.toBeInTheDocument();
+  });
+
+  it("shows parse-error reason and raw text in Pretty and Raw views", async () => {
+    vi.mocked(fetchEvent).mockResolvedValue(
+      makeDetailResponse({
+        event: makeEvent({
+          kind: "parse-error",
+          parse: "error",
+          raw: undefined,
+          parseError: { reason: "Unexpected token", rawText: "{not json" },
+        }),
+      }),
+    );
+    useAppStore.setState({
+      selectedIdx: 0,
+      rows: [
+        makeRow({
+          kind: "parse-error",
+          kindTag: "BAD",
+          parseErrorReason: "Unexpected token",
+          payloadPreview: "{not json",
+        }),
+      ],
+    });
+
+    expect(() => render(<DetailPanel />)).not.toThrow();
+    await waitFor(() => {
+      expect(screen.getByTestId("pretty-json-view")).toHaveTextContent("Unexpected token");
+    });
+    expect(screen.getByTestId("pretty-json-view")).toHaveTextContent("{not json");
+
+    fireEvent.click(screen.getByRole("tab", { name: /raw/i }));
+    expect(screen.getByTestId("raw-json-view")).toHaveTextContent("Unexpected token");
+    expect(screen.getByTestId("raw-json-view")).toHaveTextContent("{not json");
   });
 
   it("does not render correlation metadata for unpaired details", async () => {

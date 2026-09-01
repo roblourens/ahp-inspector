@@ -98,23 +98,98 @@ describe("SearchIndex", () => {
     expect(result.truncated).toBe(false);
   });
 
-  it("haystack includes raw JSON payload content, sessionId, and turnId", () => {
+  it("searches method, action, session, turn, id, and raw data case-insensitively", () => {
     const idx = new SearchIndex();
     idx.append(
       makeEvent({
         seq: 0,
-        method: "tools/call",
-        sessionId: "sess-abc",
-        turnId: "turn-xyz",
-        raw: { jsonrpc: "2.0", id: 42, method: "tools/call", params: { name: "uniqueToolName" } },
+        method: "MixedMethod",
+        actionType: "MixedAction",
+        sessionId: "MixedSession",
+        turnId: "MixedTurn",
+        id: "MixedId",
+        idType: "string",
+        raw: { params: { uniqueRawValue: "MixedRawData" } },
       }),
     );
-    // Should match on the raw JSON payload
-    expect(idx.scan("uniquetoolname", 10).matches).toContain(0);
-    // Should match on session ID
-    expect(idx.scan("sess-abc", 10).matches).toContain(0);
-    // Should match on turn ID
-    expect(idx.scan("turn-xyz", 10).matches).toContain(0);
+    for (const query of [
+      "mixedmethod",
+      "mixedaction",
+      "mixedsession",
+      "mixedturn",
+      "mixedid",
+      "mixedrawdata",
+      "uniquerawvalue",
+    ]) {
+      expect(idx.scan(query, 10).matches).toEqual([0]);
+    }
+  });
+
+  it("memoizes searchable text within a strict byte budget", () => {
+    const maxCachedTextBytes = 64_000;
+    const idx = new SearchIndex(maxCachedTextBytes);
+    const payloadSize = 10_000;
+    const count = 50;
+    for (let i = 0; i < count; i++) {
+      idx.append(
+        makeEvent({
+          seq: i,
+          method: "large",
+          raw: { params: { content: `${i}:${"x".repeat(payloadSize)}` } },
+        }),
+      );
+    }
+
+    expect(idx.estimatedRetainedBytes).toBe(count * 8);
+    expect(idx.scan("49:xxxx", 10).matches).toEqual([49]);
+    const retainedAfterFirstScan = idx.estimatedRetainedBytes;
+    expect(idx.cachedTextBytes).toBeGreaterThan(0);
+    expect(idx.cachedTextBytes).toBeLessThanOrEqual(maxCachedTextBytes);
+    expect(idx.scan("49:xxxx", 10).matches).toEqual([49]);
+    expect(idx.estimatedRetainedBytes).toBe(retainedAfterFirstScan);
+  });
+
+  it("keeps the 5000-result cap exact", () => {
+    const idx = new SearchIndex();
+    for (let i = 0; i < 5001; i++) {
+      idx.append(makeEvent({ seq: i, method: "match" }));
+    }
+
+    expect(idx.scan("match", 5000)).toEqual({
+      matches: Array.from({ length: 5000 }, (_, i) => i),
+      truncated: true,
+    });
+  });
+
+  it("provides an async yielding scan with the same exact results", async () => {
+    const idx = new SearchIndex();
+    for (let i = 0; i < 20; i++) {
+      idx.append(makeEvent({ seq: i, method: i % 2 === 0 ? "match" : "other" }));
+    }
+
+    await expect(idx.scanAsync("match", 5, 2)).resolves.toEqual({
+      matches: [0, 2, 4, 6, 8],
+      truncated: true,
+    });
+  });
+
+  it("restarts an async scan when the index resets during a yield", async () => {
+    const idx = new SearchIndex();
+    for (let i = 0; i < 1000; i++) {
+      idx.append(makeEvent({ seq: i, method: i === 800 ? "alpha" : "old" }));
+    }
+
+    setImmediate(() => {
+      idx.reset();
+      for (let i = 0; i < 1000; i++) {
+        idx.append(makeEvent({ seq: i, method: i === 200 ? "alpha" : "new" }));
+      }
+    });
+
+    await expect(idx.scanAsync("alpha", 10, 100)).resolves.toEqual({
+      matches: [200],
+      truncated: false,
+    });
   });
 });
 

@@ -117,7 +117,9 @@ describe("TimelineRegion — Plan 04-06 Task 2", () => {
     render(<TimelineRegion />);
     expect(screen.getByTestId("timeline-region")).toBeInTheDocument();
     expect(screen.getByTestId("timeline-load-progress").textContent).toContain("3 rows loaded");
-    expect(screen.getByTestId("stream-backlog-pill").textContent).toContain("8 stream events queued");
+    expect(screen.getByTestId("stream-backlog-pill").textContent).toContain(
+      "8 stream events queued",
+    );
     expect(screen.queryByTestId("new-events-pill")).toBeNull();
   });
 
@@ -257,6 +259,22 @@ describe("TimelineRegion — Plan 04-06 Task 2", () => {
     ce.focus();
     fireEvent.keyDown(ce, { key: " ", code: "Space" });
     expect(useAppStore.getState().livePaused).toBe(false);
+  });
+
+  it("does not navigate or change grouping for global shortcuts typed in an input", () => {
+    render(<TimelineRegion />);
+    const input = document.createElement("input");
+    document.body.appendChild(input);
+    input.focus();
+
+    for (const key of ["ArrowDown", "ArrowUp", "PageDown", "PageUp", "g", "s"]) {
+      const allowed = fireEvent.keyDown(input, { key });
+      expect(allowed).toBe(true);
+    }
+
+    expect(useAppStore.getState().selectedIdx).toBeNull();
+    expect(useAppStore.getState().grouping).toBe("none");
+    input.remove();
   });
 
   it("renders pair highlight from stable row pairIdx metadata", async () => {

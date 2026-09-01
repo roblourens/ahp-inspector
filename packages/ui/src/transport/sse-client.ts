@@ -133,11 +133,13 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
     }
   };
   const enqueue = (frame: QueuedFrame): void => {
+    if (closedByCaller) return;
     queuedFrames.push(frame);
     scheduleDrain();
   };
 
   const onSnapshotBegin = (ev: Event): void => {
+    if (closedByCaller) return;
     try {
       const data = JSON.parse((ev as MessageEvent).data) as SnapshotBeginPayload;
       clearQueuedFrames();
@@ -206,11 +208,13 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
     /* heartbeat — no store mutation */
   };
   const onRotation = (): void => {
+    if (closedByCaller) return;
     useAppStore.getState().setRotationNotice(true);
     useAppStore.getState().resetForRotation();
     clearQueuedFrames();
   };
   const onWatchError = (ev: Event): void => {
+    if (closedByCaller) return;
     try {
       const data = JSON.parse((ev as MessageEvent).data) as {
         code?: "read-error" | "watch-fatal" | "oversized-line";
@@ -231,6 +235,7 @@ export function connectLogStream(opts: ConnectOpts = {}): ConnectionHandle {
     }
   };
   const onLogReset = (): void => {
+    if (closedByCaller) return;
     useAppStore.getState().resetForLogSwitch();
     clearQueuedFrames();
   };

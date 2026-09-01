@@ -83,6 +83,7 @@ export function AppShell(): JSX.Element {
   const clearSelection = useAppStore((s) => s.clearSelection);
   const lastWatchError = useAppStore((s) => s.lastWatchError);
   const lastOpenRef = useAppStore((s) => s.lastOpenRef);
+  const persistenceError = useAppStore((s) => s.persistenceError);
   const isDetailDesktop = useIsDetailDesktop();
   const closeDetailDrawer = useCallback((): void => clearSelection(), [clearSelection]);
 
@@ -127,30 +128,23 @@ export function AppShell(): JSX.Element {
     });
   }, [refreshPickerCandidates]);
 
-  const onPickerSelect = useCallback((id: string): void => {
-    void (async () => {
-      try {
-        const result = await openSessionByCandidate(id);
-        useAppStore.getState().setLogKey(result.active.logKey);
-        useAppStore.getState().setLastOpenRef({ kind: "candidate", id });
-        replaceLogStream();
-      } finally {
-        setPickerOpen(false);
-      }
-    })();
+  const onPickerSelect = useCallback(async (id: string): Promise<void> => {
+    const result = await openSessionByCandidate(id);
+    useAppStore.getState().switchToLog(result.active.logKey, { kind: "candidate", id });
+    replaceLogStream();
+    setPickerOpen(false);
   }, []);
 
   const onPickerOpenPath = useCallback(async (path: string): Promise<void> => {
     const result = await openSessionByPath(path);
-    useAppStore.getState().setLogKey(result.active.logKey);
-    useAppStore.getState().setLastOpenRef({ kind: "path", path });
+    useAppStore.getState().switchToLog(result.active.logKey, { kind: "path", path });
     replaceLogStream();
     setPickerOpen(false);
   }, []);
 
   const onDropUploadFile = useCallback(async (file: File): Promise<void> => {
     const result = await uploadSessionFile(file);
-    useAppStore.getState().setLogKey(result.active.logKey);
+    useAppStore.getState().switchToLog(result.active.logKey, null);
     // No lastOpenRef — uploaded sessions live in a temp file and can't be
     // re-opened by path/id after the server cleans them up.
     replaceLogStream();
@@ -172,10 +166,10 @@ export function AppShell(): JSX.Element {
       try {
         if (lastOpenRef?.kind === "candidate") {
           const result = await openSessionByCandidate(lastOpenRef.id);
-          useAppStore.getState().setLogKey(result.active.logKey);
+          useAppStore.getState().switchToLog(result.active.logKey, lastOpenRef);
         } else if (lastOpenRef?.kind === "path") {
           const result = await openSessionByPath(lastOpenRef.path);
-          useAppStore.getState().setLogKey(result.active.logKey);
+          useAppStore.getState().switchToLog(result.active.logKey, lastOpenRef);
         }
         useAppStore.getState().setLastWatchError(null);
         replaceLogStream();
@@ -185,8 +179,6 @@ export function AppShell(): JSX.Element {
     })();
   }, [lastOpenRef]);
 
-  // Ref to SearchInput's <input> element for "/" keyboard shortcut
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const drawerCloseRef = useRef<HTMLButtonElement | null>(null);
   const drawerWasOpenRef = useRef(false);
 
@@ -238,7 +230,7 @@ export function AppShell(): JSX.Element {
             sessionCount={meta?.sessionCount ?? 0}
             onSwitchLog={onToggleSwitchLog}
           />
-          <FilterBar searchInputRef={searchInputRef} />
+          <FilterBar />
           {hasActiveFilters && <ActiveFilterChips />}
           <div className="app-main" style={{ display: "flex", flex: 1, minHeight: 0 }}>
             <div
@@ -252,7 +244,7 @@ export function AppShell(): JSX.Element {
               }}
             >
               {grouping !== "none" && stickyGroup && <StickyGroupBar topGroup={stickyGroup} />}
-              <TimelineRegion searchInputRef={searchInputRef} onTopGroupChange={setStickyGroup} />
+              <TimelineRegion onTopGroupChange={setStickyGroup} />
             </div>
             {isDetailDesktop && (
               <div
@@ -299,6 +291,7 @@ export function AppShell(): JSX.Element {
             visibleCount={filteredRowIdxs.length}
             totalCount={rows.length}
             groupCount={grouping !== "none" ? groupCount : 0}
+            notice={persistenceError}
           />
           <LogPickerPanel
             open={pickerOpen}

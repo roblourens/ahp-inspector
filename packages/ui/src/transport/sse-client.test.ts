@@ -240,6 +240,31 @@ describe("connectLogStream — connection lifecycle", () => {
     expect(useAppStore.getState().connection).toBe("connected");
     es.emit("bye", {});
     expect(useAppStore.getState().connection).toBe("connected");
+  });
+
+  it("ignores delayed state-changing frames from a closed stream", () => {
+    const handle = connectLogStream({ EventSourceCtor: Ctor });
+    const es = firstInstance();
+    useAppStore.setState({
+      rows: [row(0)],
+      logKey: "replacement-key",
+      rotationNotice: false,
+      lastWatchError: null,
+    });
+
+    handle.close();
+    es.emit("log-reset", {});
+    es.emit("snapshot-begin", {
+      meta: { filename: "old.jsonl", sizeBytes: 0, startedAt: 0, logKey: "old-key" },
+      total: 0,
+    });
+    es.emit("rotation", {});
+    es.emit("watch-error", { code: "read-error", message: "old stream" });
+
+    expect(useAppStore.getState().rows).toHaveLength(1);
+    expect(useAppStore.getState().logKey).toBe("replacement-key");
+    expect(useAppStore.getState().rotationNotice).toBe(false);
+    expect(useAppStore.getState().lastWatchError).toBeNull();
     expect(es.closed).toBe(true);
   });
 });

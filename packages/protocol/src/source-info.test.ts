@@ -24,6 +24,13 @@ describe("AHP source diagnostics", () => {
     expect(AHP_SOURCE_REPOSITORY).toBe("agent-host-protocol");
     expect(AHP_SOURCE_TYPES_PATH).toBe(expectedTypesPath);
     expect(AHP_GENERATED_FILES).toContain("reducers.ts");
+    expect(AHP_GENERATED_FILES).toContain("channels-chat/reducer.ts");
+    expect(AHP_GENERATED_FILES).toContain("channels-annotations/state.ts");
+    expect(AHP_GENERATED_FILES).toContain("channels-resource-watch/commands.ts");
+    expect(AHP_GENERATED_FILES).toContain("channels-otlp/notifications.ts");
+    expect(AHP_GENERATED_FILES).toContain("common/timestamps.ts");
+    expect(AHP_GENERATED_FILES).toContain("index.ts");
+    expect(AHP_GENERATED_FILES).toContain("version/message-checks.ts");
     expect(AHP_GENERATED_FILES).toContain("version/registry.ts");
   });
 

@@ -120,7 +120,7 @@ export function useDropZone(args: UseDropZoneArgs): UseDropZoneResult {
           let extraJsonl = 0;
           for (let i = 0; i < files.length; i++) {
             const f = files.item(i);
-            if (f !== null && f.name.toLowerCase().endsWith(".jsonl")) {
+            if (f?.name.toLowerCase().endsWith(".jsonl")) {
               if (chosen === null) chosen = f;
               else extraJsonl += 1;
             }

@@ -15,7 +15,7 @@ interface StateResourceSelectorProps {
 export function isSelectableResource(
   resource: StateAtResourceMetadata,
 ): resource is SelectableStateResource {
-  return resource.kind === "root" || resource.kind === "session" || resource.kind === "terminal";
+  return resource.kind !== "unknown";
 }
 
 export function stateResourceKey(resource: StateAtResourceMetadata): string {

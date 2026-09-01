@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 // CSP-safe webview HTML generator (Plan 11-01 Task 3).
 //
 // Mitigates T-11-01-02:
@@ -31,6 +33,8 @@ export interface WebviewHtmlOptions {
    * is emitted BEFORE the main bundle.
    */
   readonly apiBaseUrl?: string;
+  /** Capability required by every request to the loopback API. */
+  readonly apiToken?: string;
 }
 
 const HTML_ESCAPE_RE = /[&<>"']/g;
@@ -47,15 +51,13 @@ function escapeHtml(value: string): string {
 }
 
 export function generateNonce(): string {
-  // Lightweight nonce — 16 hex chars is enough for CSP per-load uniqueness.
-  let out = "";
-  for (let i = 0; i < 16; i++) {
-    out += Math.floor(Math.random() * 16).toString(16);
-  }
-  return out;
+  return randomBytes(32).toString("base64url");
 }
 
 export function renderWebviewHtml(opts: WebviewHtmlOptions): string {
+  if ((opts.apiBaseUrl === undefined) !== (opts.apiToken === undefined)) {
+    throw new Error("apiBaseUrl and apiToken must be provided together");
+  }
   const title = escapeHtml(opts.title ?? "AHP Inspector");
   const nonce = escapeHtml(opts.nonce);
   const scriptUri = escapeHtml(opts.scriptUri);
@@ -91,9 +93,10 @@ export function renderWebviewHtml(opts: WebviewHtmlOptions): string {
   // escape `<` so any inline `</script>` sequence in attacker-controlled input
   // cannot break out of the inline script. Prepended with a leading newline
   // only when set so backwards-compat (byte-identical output) holds when not.
-  const apiBaseScript = opts.apiBaseUrl
-    ? `\n<script nonce="${nonce}">window.__AHP_API_BASE__ = ${JSON.stringify(opts.apiBaseUrl).replace(/</g, "\\u003c")};</script>`
-    : "";
+  const apiConfigScript =
+    opts.apiBaseUrl && opts.apiToken
+      ? `\n<script nonce="${nonce}">window.__AHP_API_BASE__ = ${JSON.stringify(opts.apiBaseUrl).replace(/</g, "\\u003c")}; window.__AHP_API_TOKEN__ = ${JSON.stringify(opts.apiToken).replace(/</g, "\\u003c")};</script>`
+      : "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -102,7 +105,7 @@ export function renderWebviewHtml(opts: WebviewHtmlOptions): string {
 <meta http-equiv="Content-Security-Policy" content="${csp}" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${title}</title>
-${styleLink}${apiBaseScript}
+${styleLink}${apiConfigScript}
 </head>
 <body>
 <div id="root"></div>

@@ -70,6 +70,7 @@ beforeEach(() => {
     searchQuery: "",
     searchMatches: null,
     grouping: "none",
+    persistenceError: null,
   });
   vi.clearAllMocks();
   delete window.__ahpStream;
@@ -145,6 +146,82 @@ describe("AppShell — Plan 04-05 wiring", () => {
     expect(connectLogStream).toHaveBeenCalled();
     expect(window.__ahpStream).toBe(newHandle);
     expect(useAppStore.getState().logKey).toBe("opened-key");
+  });
+
+  it("clears stale log-local state before opening the replacement stream", async () => {
+    useAppStore.setState({
+      rows: [],
+      selectedIdx: 7,
+      searchQuery: "stale",
+      searchMatches: new Set([7]),
+      searchStatus: "searching",
+      pendingNewCount: 3,
+      pendingBuffer: [],
+      logKey: "old-key",
+    });
+    vi.mocked(fetchCandidates).mockResolvedValue([
+      {
+        id: "cand-next",
+        label: "next.jsonl",
+        origin: "vscode",
+        confidence: "high",
+        mtimeMs: Date.now(),
+        sizeBytes: 128,
+      },
+    ]);
+    let stateAtConnect: ReturnType<typeof useAppStore.getState> | undefined;
+    vi.mocked(connectLogStream).mockImplementation(() => {
+      stateAtConnect = useAppStore.getState();
+      return { close: vi.fn() };
+    });
+
+    render(<AppShell />);
+    fireEvent.click(screen.getByRole("button", { name: "Switch log" }));
+    fireEvent.click(await screen.findByText("next"));
+
+    await waitFor(() => expect(connectLogStream).toHaveBeenCalled());
+    expect(stateAtConnect).toMatchObject({
+      rows: [],
+      selectedIdx: null,
+      searchQuery: "",
+      searchMatches: null,
+      searchStatus: "idle",
+      pendingNewCount: 0,
+      pendingBuffer: [],
+      logKey: "opened-key",
+      lastOpenRef: { kind: "candidate", id: "cand-next" },
+    });
+  });
+
+  it("keeps the picker open with sanitized retry feedback when a candidate fails", async () => {
+    vi.mocked(fetchCandidates).mockResolvedValue([
+      {
+        id: "cand-retry",
+        label: "retry.jsonl",
+        origin: "vscode",
+        confidence: "high",
+        mtimeMs: Date.now(),
+        sizeBytes: 128,
+      },
+    ]);
+    vi.mocked(openSessionByCandidate).mockRejectedValueOnce(
+      Object.assign(new Error("sensitive host detail"), { code: "not-found" }),
+    );
+
+    render(<AppShell />);
+    fireEvent.click(screen.getByRole("button", { name: "Switch log" }));
+    const candidate = await screen.findByText("retry");
+    fireEvent.click(candidate);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "File not found. Check the path and try again.",
+    );
+    expect(screen.getByRole("alert")).not.toHaveTextContent("sensitive host detail");
+    expect(screen.getByRole("dialog", { name: /switch log/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("retry"));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: /switch log/i })).toBeNull());
+    expect(openSessionByCandidate).toHaveBeenCalledTimes(2);
   });
 
   it("clicking SwitchLogButton opens LogPickerPanel and triggers fetchCandidates", () => {

@@ -3,13 +3,14 @@
 // T-03-01-01: no regex from user input; T-03-01-02: result count hard-capped.
 
 import type { Hono } from "hono";
+import { SearchIndexChangedError } from "./search-index.js";
 import type { LogSessionManager } from "./session-manager.js";
 
 const MAX_QUERY_LEN = 256;
 const MAX_RESULTS = 5000;
 
 export function registerSearchRoutes(app: Hono, sessions: LogSessionManager): void {
-  app.get("/api/log/search", (c) => {
+  app.get("/api/log/search", async (c) => {
     const a = sessions.current();
     if (!a) {
       return c.json({ code: "no-active-log" }, 409);
@@ -23,7 +24,14 @@ export function registerSearchRoutes(app: Hono, sessions: LogSessionManager): vo
       Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : MAX_RESULTS,
       MAX_RESULTS,
     );
-    const { matches, truncated } = a.appState.searchIndex.scan(q, limit);
-    return c.json({ matches, total: matches.length, truncated });
+    try {
+      const { matches, truncated } = await a.appState.searchIndex.scanAsync(q, limit);
+      return c.json({ matches, total: matches.length, truncated });
+    } catch (error) {
+      if (error instanceof SearchIndexChangedError) {
+        return c.json({ code: "log-changed", message: "active log changed" }, 409);
+      }
+      throw error;
+    }
   });
 }

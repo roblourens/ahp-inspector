@@ -8,7 +8,7 @@
  * the path to subtrees that literally contain the query via a match-aware
  * `shouldExpandNode`, and (b) visibly highlight literal occurrences using the
  * CSS Custom Highlight API — Range objects over the already-rendered text
- * nodes plus `::highlight(ahp-search-match)`. This injects NO markup (react-
+ * nodes plus an instance-specific `::highlight(...)` rule. This injects NO markup (react-
  * json-view-lite exposes no per-node render hook), honoring "no markup
  * injection" and "literal, non-regex matching" (T-34-01/02). It is
  * feature-detected so it no-ops where unsupported (Firefox <117, Safari
@@ -17,13 +17,14 @@
  * No raw #hex literals — token colors come from CSS variables.
  * react-json-view-lite uses text-only rendering, no eval (verified 03-RESEARCH).
  */
-import { type JSX, useCallback, useEffect, useRef } from "react";
+import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { defaultStyles, JsonView } from "react-json-view-lite";
 import "react-json-view-lite/dist/index.css";
+import { prepareJson } from "./json-display.js";
 import { TruncationBanner } from "./TruncationBanner.js";
 
 export const CLIENT_CAP_BYTES = 256 * 1024; // 256KB
-const HIGHLIGHT_NAME = "ahp-search-match";
+let nextHighlightId = 0;
 
 const JSON_STYLES: typeof defaultStyles = {
   ...defaultStyles,
@@ -58,15 +59,41 @@ interface PrettyJsonViewProps {
  */
 function subtreeContainsQuery(value: unknown, q: string): boolean {
   if (q.length < 2) return false;
-  let s: string;
-  try {
-    s = JSON.stringify(value);
-  } catch {
-    return false;
-  }
-  if (s === undefined) return false;
+  const s = prepareJson(value).compactText;
   if (s.length > 512 * 1024) return false; // bound the scan
   return s.toLowerCase().includes(q.toLowerCase()); // literal substring match, no regular expression
+}
+
+interface HighlightRegistry {
+  set(name: string, highlight: unknown): void;
+  delete(name: string): boolean;
+}
+
+function isHighlightRegistry(value: unknown): value is HighlightRegistry {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof Reflect.get(value, "set") === "function" &&
+    typeof Reflect.get(value, "delete") === "function"
+  );
+}
+
+function getHighlightApi():
+  | {
+      readonly registry: HighlightRegistry;
+      create(ranges: readonly Range[]): unknown;
+    }
+  | undefined {
+  const css = globalThis.CSS;
+  const registry = css ? Reflect.get(css, "highlights") : undefined;
+  const HighlightConstructor = Reflect.get(globalThis, "Highlight");
+  if (!isHighlightRegistry(registry) || typeof HighlightConstructor !== "function") {
+    return undefined;
+  }
+  return {
+    registry,
+    create: (ranges) => Reflect.construct(HighlightConstructor, ranges),
+  };
 }
 
 export function PrettyJsonView({
@@ -76,6 +103,8 @@ export function PrettyJsonView({
   onOpenRaw,
 }: PrettyJsonViewProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [highlightName] = useState(() => `ahp-search-match-${nextHighlightId++}`);
+  const prepared = prepareJson(data);
 
   // Register a CSS Custom Highlight over literal query ranges in the rendered
   // text nodes, feature-detected. Literal substring matching only (no regular
@@ -85,14 +114,12 @@ export function PrettyJsonView({
   useEffect(() => {
     const root = containerRef.current;
     const q = query.trim();
-    // biome-ignore lint/suspicious/noExplicitAny: CSS Custom Highlight API is not in lib.dom yet.
-    const cssAny = globalThis as any;
-    const highlights = cssAny.CSS?.highlights;
+    const highlightApi = getHighlightApi();
     if (!root || q.length < 2) {
-      highlights?.delete(HIGHLIGHT_NAME);
+      highlightApi?.registry.delete(highlightName);
       return;
     }
-    if (typeof cssAny.Highlight === "undefined" || !highlights) return;
+    if (!highlightApi) return;
 
     const ranges: Range[] = [];
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -109,11 +136,15 @@ export function PrettyJsonView({
         i = lower.indexOf(lowerQ, i + q.length);
       }
     }
-    highlights.set(HIGHLIGHT_NAME, new cssAny.Highlight(...ranges));
+    try {
+      highlightApi.registry.set(highlightName, highlightApi.create(ranges));
+    } catch {
+      return;
+    }
     return () => {
-      cssAny.CSS?.highlights?.delete(HIGHLIGHT_NAME);
+      highlightApi.registry.delete(highlightName);
     };
-  }, [data, query]);
+  }, [data, highlightName, query]);
 
   const hasQuery = query.trim().length >= 2;
 
@@ -130,44 +161,43 @@ export function PrettyJsonView({
     [hasQuery, query],
   );
 
-  let serialized: string;
-  try {
-    serialized = JSON.stringify(data);
-  } catch {
-    serialized = "[Circular or non-serializable value]";
-  }
-
-  if (serialized.length > capBytes) {
+  if (prepared.compactText.length > capBytes) {
     return (
       <TruncationBanner
         kind="client-cap"
-        bytes={serialized.length}
+        bytes={prepared.compactText.length}
         {...(onOpenRaw !== undefined ? { onOpenRaw } : {})}
       />
     );
   }
 
   return (
-    <div
-      ref={containerRef}
-      data-testid="pretty-json-view"
-      className="ahp-json-view"
-      style={{
-        padding: "var(--space-2) var(--space-3)",
-        overflow: "auto",
-        fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-ui-muted-size)",
-        color: "var(--color-text)",
-        background: "var(--color-json-bg)",
-        flex: 1,
-      }}
-    >
-      <JsonView
-        data={data as object}
-        shouldExpandNode={shouldExpandNode}
-        clickToExpandNode
-        style={JSON_STYLES}
-      />
-    </div>
+    <>
+      <style>{`::highlight(${highlightName}) {
+        background-color: var(--color-search-match-bg);
+        color: var(--color-search-match-fg);
+      }`}</style>
+      <div
+        ref={containerRef}
+        data-testid="pretty-json-view"
+        className="ahp-json-view"
+        style={{
+          padding: "var(--space-2) var(--space-3)",
+          overflow: "auto",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-ui-muted-size)",
+          color: "var(--color-text)",
+          background: "var(--color-json-bg)",
+          flex: 1,
+        }}
+      >
+        <JsonView
+          data={prepared.treeData}
+          shouldExpandNode={shouldExpandNode}
+          clickToExpandNode
+          style={JSON_STYLES}
+        />
+      </div>
+    </>
   );
 }

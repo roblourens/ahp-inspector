@@ -70,6 +70,12 @@ function httpGet(opts: { port: number; path: string; hostHeader: string }): Prom
   });
 }
 
+function authenticatedPath(handle: LogServerHandle, path: string): string {
+  const url = new URL(path, handle.url);
+  url.searchParams.set("_ahpToken", handle.apiToken);
+  return `${url.pathname}${url.search}`;
+}
+
 describe("log-server CSP + Host guard", () => {
   let appState: AppState | undefined;
   let handle: LogServerHandle | undefined;
@@ -100,7 +106,7 @@ describe("log-server CSP + Host guard", () => {
     const h = await boot();
     const res = await httpGet({
       port: h.port,
-      path: "/api/log/meta",
+      path: authenticatedPath(h, "/api/log/meta"),
       hostHeader: `127.0.0.1:${h.port}`,
     });
     expect(res.status).toBe(200);
@@ -113,7 +119,7 @@ describe("log-server CSP + Host guard", () => {
     const h = await boot();
     const res = await httpGet({
       port: h.port,
-      path: "/api/log/meta",
+      path: authenticatedPath(h, "/api/log/meta"),
       hostHeader: `localhost:${h.port}`,
     });
     expect(res.status).toBe(200);

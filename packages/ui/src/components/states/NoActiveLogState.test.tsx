@@ -20,7 +20,7 @@ describe("NoActiveLogState", () => {
       <NoActiveLogState
         candidates={[c1]}
         isLoading={false}
-        onSelect={() => {}}
+        onSelect={async () => {}}
         onOpenPath={async () => {}}
         onRefresh={() => {}}
       />,
@@ -35,7 +35,7 @@ describe("NoActiveLogState", () => {
       <NoActiveLogState
         candidates={[]}
         isLoading={false}
-        onSelect={() => {}}
+        onSelect={async () => {}}
         onOpenPath={async () => {}}
         onRefresh={() => {}}
       />,
@@ -44,7 +44,7 @@ describe("NoActiveLogState", () => {
   });
 
   it("clicking a CandidateRow calls onSelect with that id", () => {
-    const onSelect = vi.fn();
+    const onSelect = vi.fn(async () => {});
     render(
       <NoActiveLogState
         candidates={[c1]}
@@ -64,7 +64,7 @@ describe("NoActiveLogState", () => {
       <NoActiveLogState
         candidates={[]}
         isLoading={false}
-        onSelect={() => {}}
+        onSelect={async () => {}}
         onOpenPath={async () => {}}
         onRefresh={onRefresh}
       />,
@@ -78,7 +78,7 @@ describe("NoActiveLogState", () => {
       <NoActiveLogState
         candidates={[]}
         isLoading={false}
-        onSelect={() => {}}
+        onSelect={async () => {}}
         onOpenPath={async () => {}}
         onRefresh={() => {}}
       />,

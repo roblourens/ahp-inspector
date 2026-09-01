@@ -13,6 +13,19 @@ import { RawJsonView } from "./RawJsonView.js";
 afterEach(() => cleanup());
 
 describe("RawJsonView — query highlighting", () => {
+  it("renders undefined and circular values without throwing", () => {
+    const circular: { self?: unknown } = {};
+    circular.self = circular;
+
+    const { rerender } = render(<RawJsonView data={undefined} />);
+    expect(screen.getByTestId("raw-json-view")).toHaveTextContent("[Undefined value]");
+
+    expect(() => rerender(<RawJsonView data={circular} />)).not.toThrow();
+    expect(screen.getByTestId("raw-json-view")).toHaveTextContent(
+      "[Circular or non-serializable value]",
+    );
+  });
+
   it("wraps each literal query occurrence in a <mark>", () => {
     render(<RawJsonView data={{ sessionId: "session-1", note: "new session" }} query="session" />);
     const pre = screen.getByTestId("raw-json-view");

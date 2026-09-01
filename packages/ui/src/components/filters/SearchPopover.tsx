@@ -55,9 +55,8 @@ export function SearchPopover({
             : `${searchMatchCount.toLocaleString()} ${searchMatchCount === 1 ? "result" : "results"}${searchTruncated ? "+" : ""}`;
 
   return (
-    <div
+    <section
       ref={popoverRef}
-      role="region"
       aria-label="Find"
       data-testid="search-popover"
       style={{
@@ -169,6 +168,6 @@ export function SearchPopover({
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

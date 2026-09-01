@@ -2,16 +2,12 @@
   "description": "session/creationFailed",
   "reducer": "session",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
+    "provider": "copilot",
+    "title": "Test Session",
+    "status": 1,
     "lifecycle": "creating",
-    "turns": []
+    "activeClients": [],
+    "chats": []
   },
   "actions": [
     {
@@ -23,19 +19,15 @@
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
-    "lifecycle": "creationFailed",
-    "turns": [],
+    "provider": "copilot",
+    "title": "Test Session",
+    "status": 1,
+    "lifecycle": "failed",
     "creationError": {
       "errorType": "init",
       "message": "Failed to start"
-    }
+    },
+    "activeClients": [],
+    "chats": []
   }
 }

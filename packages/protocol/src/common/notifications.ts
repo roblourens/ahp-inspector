@@ -9,12 +9,13 @@
  * @module common/notifications
  */
 
-import type { URI } from "./state.js";
+import type { ProtectedResourceMetadata, URI } from "./state.js";
 
 /**
  * Reason why authentication is required.
  *
  * @category Protocol Notifications
+ * @nonexhaustive
  */
 export const enum AuthRequiredReason {
   /** The client has not yet authenticated for the resource */
@@ -31,8 +32,8 @@ export const enum AuthRequiredReason {
  * This notification MAY be associated with any channel — for example, an
  * agent advertised on the root channel, or a per-session resource. The
  * `channel` field identifies the subscription the auth requirement belongs
- * to; the `resource` field carries the OAuth-protected resource identifier
- * (per RFC 9728).
+ * to; the `resource` field carries the complete OAuth protected resource
+ * metadata (per RFC 9728).
  *
  * Clients should obtain a fresh token and push it via the `authenticate`
  * command.
@@ -50,7 +51,11 @@ export const enum AuthRequiredReason {
  *   "method": "auth/required",
  *   "params": {
  *     "channel": "ahp-root://",
- *     "resource": "https://api.github.com",
+ *     "resource": {
+ *       "resource": "https://api.github.com",
+ *       "resource_name": "GitHub API",
+ *       "authorization_servers": ["https://github.com/login/oauth"]
+ *     },
  *     "reason": "expired"
  *   }
  * }
@@ -59,8 +64,8 @@ export const enum AuthRequiredReason {
 export interface AuthRequiredParams {
   /** Channel URI this notification belongs to */
   channel: URI;
-  /** The protected resource identifier that requires authentication */
-  resource: string;
+  /** Complete RFC 9728 metadata for the protected resource that requires authentication */
+  resource: ProtectedResourceMetadata;
   /** Why authentication is required */
   reason?: AuthRequiredReason;
 }

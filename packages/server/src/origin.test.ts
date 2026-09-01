@@ -5,15 +5,18 @@ describe("isAllowedOrigin", () => {
   it("allows a missing origin (same-origin / non-browser)", () => {
     expect(isAllowedOrigin(undefined)).toBe(true);
     expect(isAllowedOrigin(null)).toBe(true);
-    expect(isAllowedOrigin("")).toBe(true);
   });
 
-  it("allows the literal null origin (sandboxed webview)", () => {
-    expect(isAllowedOrigin("null")).toBe(true);
+  it("rejects empty and opaque null origins", () => {
+    expect(isAllowedOrigin("")).toBe(false);
+    expect(isAllowedOrigin("null")).toBe(false);
   });
 
-  it("allows vscode-webview origins", () => {
-    expect(isAllowedOrigin("vscode-webview://1a2b3c-guid")).toBe(true);
+  it("allows vscode-webview origins only after capability authentication", () => {
+    expect(isAllowedOrigin("vscode-webview://1a2b3c-guid")).toBe(false);
+    expect(isAllowedOrigin("vscode-webview://1a2b3c-guid", true)).toBe(true);
+    expect(isAllowedOrigin("vscode-webview://", true)).toBe(false);
+    expect(isAllowedOrigin("vscode-webview://trusted/path", true)).toBe(false);
   });
 
   it("allows loopback http/https on any port", () => {

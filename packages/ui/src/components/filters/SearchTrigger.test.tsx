@@ -42,7 +42,6 @@ describe("SearchTrigger", () => {
   it("applies active styling when isActive is true", () => {
     const { rerender } = render(<SearchTrigger isActive={false} onClick={() => {}} />);
     let button = screen.getByRole("button", { name: "Open search" });
-    const inactiveStyle = window.getComputedStyle(button);
 
     rerender(<SearchTrigger isActive={true} onClick={() => {}} />);
     button = screen.getByRole("button", { name: "Open search" });

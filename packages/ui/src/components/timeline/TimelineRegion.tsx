@@ -1,7 +1,7 @@
 // biome-ignore-all lint/a11y/noStaticElementInteractions: TimelineRegion is a focusable scroll viewport — Space-key toggles live-pause (UI-SPEC §Keyboard) with editable-target guards inside.
 // biome-ignore-all lint/a11y/noNoninteractiveTabindex: region must be focusable to receive the Space-key shortcut without stealing focus from inputs inside it.
 
-import type { JSX, KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
+import type { JSX, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
 import {
   useFilteredRows,
@@ -11,6 +11,7 @@ import {
 import { useAppStore } from "../../state/store.js";
 import { connectLogStream } from "../../transport/sse-client.js";
 import { RotationBanner } from "../banners/RotationBanner.js";
+import { isEditableTarget } from "../keyboard.js";
 import { NewEventsPill } from "../shell/NewEventsPill.js";
 import { StreamBacklogPill } from "../shell/StreamBacklogPill.js";
 import { DisconnectedBanner } from "../states/DisconnectedBanner.js";
@@ -21,7 +22,6 @@ import { TimelineList } from "./TimelineList.js";
 
 export interface TimelineRegionProps {
   onReconnect?: () => void;
-  searchInputRef?: RefObject<HTMLInputElement | null>;
   onTopGroupChange?: (group: { level: "session" | "turn"; label: string } | null) => void;
 }
 
@@ -46,7 +46,6 @@ interface ChordState {
 
 export function TimelineRegion({
   onReconnect,
-  searchInputRef,
   onTopGroupChange,
 }: TimelineRegionProps = {}): JSX.Element {
   const rows = useAppStore((s) => s.rows);
@@ -81,20 +80,6 @@ export function TimelineRegion({
     s.flushPendingBuffer();
     s.setLivePaused(false);
   }, []);
-
-  // UI-SPEC §Keyboard: Space toggles pause/resume when focus is inside the
-  // timeline region but NOT inside a form control / contenteditable.
-  function isEditableTarget(el: EventTarget | null): boolean {
-    if (!(el instanceof HTMLElement)) return false;
-    const tag = el.tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
-    if (el.isContentEditable) return true;
-    // jsdom doesn't always reflect isContentEditable from the attribute, so
-    // also check the attribute directly.
-    const ce = el.getAttribute("contenteditable");
-    if (ce !== null && ce !== "false") return true;
-    return false;
-  }
 
   function onRegionKeyDown(ev: ReactKeyboardEvent<HTMLElement>): void {
     if (ev.key !== " " && ev.code !== "Space") return;
@@ -131,12 +116,9 @@ export function TimelineRegion({
 
   useEffect(() => {
     function onKey(e: KeyboardEvent): void {
-      // "/" — focus search input
-      if (e.key === "/" && !(e.target instanceof HTMLInputElement)) {
-        e.preventDefault();
-        searchInputRef?.current?.focus();
-        return;
-      }
+      const state = useAppStore.getState();
+      const closesSearchPopover = e.key === "Escape" && state.searchPopoverOpen;
+      if (isEditableTarget(e.target) && !closesSearchPopover) return;
 
       // "g s" chord — cycle grouping
       const now = Date.now();
@@ -157,15 +139,14 @@ export function TimelineRegion({
       // Esc priority: find widget (now authoritative here) → search → selection.
       // Escape never clears a filter — clearing a filter requires an explicit action.
       if (e.key === "Escape") {
-        const st = useAppStore.getState();
         // Find widget open → close it WITHOUT clearing query/results/selection,
         // then move focus to the current matching row (D-13). The selection
         // source is intentionally left unchanged so a preserved "search"
         // selection does not pop the suppressed narrow drawer (D-03).
-        if (st.searchPopoverOpen) {
+        if (state.searchPopoverOpen) {
           e.preventDefault();
-          st.setSearchPopoverOpen(false);
-          const idx = st.selectedIdx;
+          state.setSearchPopoverOpen(false);
+          const idx = state.selectedIdx;
           if (idx !== null) {
             requestAnimationFrame(() => {
               document.querySelector<HTMLElement>(`[data-testid="row-${idx}"]`)?.focus();
@@ -239,7 +220,6 @@ export function TimelineRegion({
     clearSearchResults,
     grouping,
     setGrouping,
-    searchInputRef,
     selectSearchMatch,
   ]);
 

@@ -99,7 +99,7 @@ export function CrtCurvatureCanvas(): JSX.Element {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas === null) return;
-    const context = canvas.getContext("webgl", {
+    const gl = canvas.getContext("webgl", {
       alpha: true,
       antialias: false,
       depth: false,
@@ -107,38 +107,38 @@ export function CrtCurvatureCanvas(): JSX.Element {
       preserveDrawingBuffer: false,
       stencil: false,
     });
-    if (context === null) return;
+    if (gl === null) return;
 
-    const program = createProgram(context);
+    const program = createProgram(gl);
     if (program === null) return;
-    const vertexBuffer = context.createBuffer();
+    const vertexBuffer = gl.createBuffer();
     if (vertexBuffer === null) {
-      context.deleteProgram(program);
+      gl.deleteProgram(program);
       return;
     }
 
-    const positionLocation = context.getAttribLocation(program, "a_position");
-    const resolutionLocation = context.getUniformLocation(program, "u_resolution");
-    const timeLocation = context.getUniformLocation(program, "u_time");
-    context.bindBuffer(context.ARRAY_BUFFER, vertexBuffer);
-    context.bufferData(
-      context.ARRAY_BUFFER,
+    const positionLocation = gl.getAttribLocation(program, "a_position");
+    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+    const timeLocation = gl.getUniformLocation(program, "u_time");
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
       new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-      context.STATIC_DRAW,
+      gl.STATIC_DRAW,
     );
-    context.useProgram(program);
-    context.enableVertexAttribArray(positionLocation);
-    context.vertexAttribPointer(positionLocation, 2, context.FLOAT, false, 0, 0);
-    context.disable(context.DEPTH_TEST);
-    context.enable(context.BLEND);
-    context.blendFunc(context.ONE, context.ONE_MINUS_SRC_ALPHA);
+    // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API method, not a React hook.
+    gl.useProgram(program);
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+    gl.disable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let animationFrame = 0;
     let disposed = false;
 
-    const isHackerThemeActive = (): boolean =>
-      document.documentElement.dataset.theme === "hacker";
+    const isHackerThemeActive = (): boolean => document.documentElement.dataset.theme === "hacker";
 
     const resizeCanvas = (): void => {
       const rect = canvas.getBoundingClientRect();
@@ -149,7 +149,7 @@ export function CrtCurvatureCanvas(): JSX.Element {
         canvas.width = width;
         canvas.height = height;
       }
-      context.viewport(0, 0, width, height);
+      gl.viewport(0, 0, width, height);
     };
 
     const render = (timestamp: number): void => {
@@ -159,11 +159,11 @@ export function CrtCurvatureCanvas(): JSX.Element {
         return;
       }
       resizeCanvas();
-      context.clearColor(0, 0, 0, 0);
-      context.clear(context.COLOR_BUFFER_BIT);
-      context.uniform2f(resolutionLocation, canvas.width, canvas.height);
-      context.uniform1f(timeLocation, reducedMotion.matches ? 0 : timestamp / 1000);
-      context.drawArrays(context.TRIANGLES, 0, 6);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+      gl.uniform1f(timeLocation, reducedMotion.matches ? 0 : timestamp / 1000);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
       if (!reducedMotion.matches) animationFrame = window.requestAnimationFrame(render);
     };
 
@@ -189,10 +189,14 @@ export function CrtCurvatureCanvas(): JSX.Element {
       resizeObserver.disconnect();
       themeObserver.disconnect();
       reducedMotion.removeEventListener("change", rerender);
-      context.deleteBuffer(vertexBuffer);
-      context.deleteProgram(program);
+      gl.deleteBuffer(vertexBuffer);
+      gl.deleteProgram(program);
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="crt-curvature-canvas" aria-hidden="true" />;
+  return (
+    <span aria-hidden="true">
+      <canvas ref={canvasRef} className="crt-curvature-canvas" />
+    </span>
+  );
 }

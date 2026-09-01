@@ -3,24 +3,30 @@ name: Publish ahp-inspector to npm
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "Version to publish (e.g. 0.1.0). Leave blank to use packages/cli/package.json as-is."
-        required: false
-        type: string
       dry_run:
         description: "Dry run (skip npm publish, run everything else)"
         required: false
         type: boolean
         default: true
 
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-ahp-inspector
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -32,35 +38,118 @@ jobs:
       - run: pnpm test
       - run: pnpm -F @ahp-inspector/ui build
       - run: pnpm -F ahp-inspector build
-      - name: Bump version (if requested)
-        if: inputs.version != ''
-        run: pnpm --filter ahp-inspector version "${{ inputs.version }}" --no-git-tag-version
-      - name: Pack and smoke test
-        working-directory: packages/cli
+      - name: Validate committed release version
+        id: release
         run: |
-          pnpm pack
-          TARBALL="$PWD/$(ls ahp-inspector-*.tgz | head -1)"
+          VERSION=$(node -p "require('./packages/cli/package.json').version")
+          COMMITTED_VERSION=$(git show HEAD:packages/cli/package.json | node -e '
+            const { readFileSync } = require("node:fs");
+            process.stdout.write(JSON.parse(readFileSync(0, "utf8")).version);
+          ')
+          if [ "$VERSION" != "$COMMITTED_VERSION" ]; then
+            echo "Working package version $VERSION differs from committed version $COMMITTED_VERSION." >&2
+            exit 1
+          fi
+
+          node -e '
+            const version = process.argv[1];
+            const semver = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+            if (!semver.test(version)) {
+              console.error(`Invalid packages/cli version: ${version}`);
+              process.exit(1);
+            }
+          ' "$VERSION"
+
+          TAG="v$VERSION"
+          HEAD_SHA=$(git rev-parse HEAD)
+          TAG_EXISTS=false
+          if TAG_SHA=$(git rev-list -n 1 "$TAG" 2>/dev/null); then
+            if [ "$TAG_SHA" != "$HEAD_SHA" ]; then
+              echo "Tag $TAG points to $TAG_SHA, not release commit $HEAD_SHA." >&2
+              exit 1
+            fi
+            TAG_EXISTS=true
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "tag_exists=$TAG_EXISTS" >> "$GITHUB_OUTPUT"
+      - name: Pack and smoke test
+        id: pack
+        run: |
+          VERSION="${{ steps.release.outputs.version }}"
+          TARBALL="$RUNNER_TEMP/ahp-inspector-$VERSION.tgz"
+          pnpm --dir packages/cli pack --pack-destination "$RUNNER_TEMP"
+          test -f "$TARBALL"
+
+          UNPACKED=$(mktemp -d)
+          tar -xzf "$TARBALL" -C "$UNPACKED"
+          node -e '
+            const source = require("./packages/cli/package.json");
+            const packed = require(process.argv[1]);
+            const expectedVersion = process.argv[2];
+            if (source.name !== packed.name || source.version !== packed.version || packed.version !== expectedVersion) {
+              console.error(`Manifest mismatch: source=${source.name}@${source.version}, packed=${packed.name}@${packed.version}, expected=${expectedVersion}`);
+              process.exit(1);
+            }
+          ' "$UNPACKED/package/package.json" "$VERSION"
+
           TMP=$(mktemp -d)
-          ( cd "$TMP" && npm init -y > /dev/null && npm i "$TARBALL" )
+          (
+            cd "$TMP"
+            npm init -y > /dev/null
+            npm install --ignore-scripts "$TARBALL"
+            ./node_modules/.bin/ahp-inspector --help > /dev/null
+          )
+          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
           echo "Smoke test passed."
-      - name: Publish to npm
+      - name: Check npm release state
         if: inputs.dry_run == false
-        working-directory: packages/cli
+        id: npm
+        run: |
+          VERSION="${{ steps.release.outputs.version }}"
+          PACKAGE="ahp-inspector@$VERSION"
+          ERROR_LOG="$RUNNER_TEMP/npm-view-error.log"
+
+          if PUBLISHED_VERSION=$(npm view "$PACKAGE" version 2>"$ERROR_LOG"); then
+            if [ "$PUBLISHED_VERSION" != "$VERSION" ]; then
+              echo "Registry returned version $PUBLISHED_VERSION for $PACKAGE." >&2
+              exit 1
+            fi
+
+            REGISTRY_INTEGRITY=$(npm view "$PACKAGE" dist.integrity)
+            LOCAL_INTEGRITY=$(node -e '
+              const { createHash } = require("node:crypto");
+              const { readFileSync } = require("node:fs");
+              process.stdout.write(`sha512-${createHash("sha512").update(readFileSync(process.argv[1])).digest("base64")}`);
+            ' "${{ steps.pack.outputs.tarball }}")
+            if [ "$REGISTRY_INTEGRITY" != "$LOCAL_INTEGRITY" ]; then
+              echo "npm already contains $PACKAGE, but its tarball does not match this commit." >&2
+              exit 1
+            fi
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+          elif grep -Eq 'E404|404 Not Found' "$ERROR_LOG"; then
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          else
+            cat "$ERROR_LOG" >&2
+            exit 1
+          fi
+      - name: Publish to npm
+        if: inputs.dry_run == false && steps.npm.outputs.already_published != 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public --provenance
+        run: npm publish "${{ steps.pack.outputs.tarball }}" --access public --provenance
       - name: Tag release
         if: inputs.dry_run == false
         run: |
-          VERSION=$(node -p "require('./packages/cli/package.json').version")
-          TAG="v$VERSION"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists; skipping."
+          TAG="${{ steps.release.outputs.tag }}"
+          if [ "${{ steps.release.outputs.tag_exists }}" = "true" ]; then
+            echo "Tag $TAG already points to this commit; skipping."
           else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git tag "$TAG"
-            git push origin "$TAG"
+            git push origin "refs/tags/$TAG"
           fi
       - name: Dry-run notice
         if: inputs.dry_run == true

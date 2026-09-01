@@ -97,7 +97,14 @@ export async function scanConfiguredRoots(
     if (launchEntries.length > options.topLaunchDirs) state.truncated = true;
     for (const launch of launchEntries.slice(0, options.topLaunchDirs)) {
       if (rootScanOverBudget(state, options, now, false)) break;
-      await walkLaunchDirectory(launch.absPath, launch.absPath, maxDepthBelowLaunch, state, options, now);
+      await walkLaunchDirectory(
+        launch.absPath,
+        launch.absPath,
+        maxDepthBelowLaunch,
+        state,
+        options,
+        now,
+      );
     }
 
     rootResults.push({
@@ -177,7 +184,12 @@ function rootScanOverBudget(
   return overBudget;
 }
 
-function toScannedFile(absPath: string, launchDir: string, mtimeMs: number, sizeBytes: number): ScannedLogFile {
+function toScannedFile(
+  absPath: string,
+  launchDir: string,
+  mtimeMs: number,
+  sizeBytes: number,
+): ScannedLogFile {
   return {
     absPath,
     name: basename(absPath),

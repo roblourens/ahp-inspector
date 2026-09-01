@@ -3,16 +3,16 @@
 // biome-ignore-all lint: generated upstream protocol source
 // biome-ignore-all assist/source/organizeImports: generated upstream protocol source
 /**
- * Root Channel Commands — `listSessions` and `sessionConfigCompletions`.
- * These commands target `ahp-root://` even though they describe per-session
- * metadata.
+ * Root Channel Commands — `listSessions`, `resolveSessionConfig`, and
+ * `sessionConfigCompletions`. These commands target `ahp-root://` even
+ * though they describe per-session metadata.
  *
  * @module channels-root/commands
  */
 
 import type { URI } from "../common/state.js";
-import type { BaseParams } from "../common/commands.js";
-import type { SessionSummary } from "../channels-session/state.js";
+import type { BaseParams, PaginatedParams, PaginatedResult } from "../common/commands.js";
+import type { SessionSummary, SessionConfigSchema } from "../channels-session/state.js";
 
 // Re-export schema types so the legacy `commands.ts` aggregator continues to
 // expose them from the same import path.
@@ -31,22 +31,124 @@ export type {
  * large. Clients fetch it imperatively and maintain a local cache updated by
  * `root/sessionAdded` and `root/sessionRemoved` notifications.
  *
+ * A large catalogue can be fetched incrementally via the {@link PaginatedParams}
+ * `limit`/`cursor` inputs (see that type for the full pagination contract). The
+ * server SHOULD return most-recently-modified entries first, so the first page
+ * is the immediately useful one. The `root/session*` notifications keep an
+ * already-fetched page live; pagination governs only the initial and backfill
+ * fetches.
+ *
  * @category Commands
  * @method listSessions
  * @direction Client → Server
  * @messageType Request
  * @version 1
+ * @example
+ * ```jsonc
+ * // Client → Server (fetch the first page of up to 50 sessions)
+ * { "jsonrpc": "2.0", "id": 4, "method": "listSessions",
+ *   "params": { "channel": "ahp-root://", "limit": 50 } }
+ *
+ * // Server → Client (a cursor signals more entries exist)
+ * { "jsonrpc": "2.0", "id": 4, "result": {
+ *   "items": [ { "id": "s1", ... }, { "id": "s2", ... } ],
+ *   "nextCursor": "eyJvIjo1MH0="
+ * }}
+ *
+ * // Client → Server (fetch the next page)
+ * { "jsonrpc": "2.0", "id": 5, "method": "listSessions",
+ *   "params": { "channel": "ahp-root://", "limit": 50, "cursor": "eyJvIjo1MH0=" } }
+ * ```
  */
-export interface ListSessionsParams extends BaseParams {
+export interface ListSessionsParams extends BaseParams, PaginatedParams {
   channel: "ahp-root://";
-  /** Optional filter criteria */
-  filter?: object;
 }
 
 /** Result of the `listSessions` command. */
-export interface ListSessionsResult {
-  /** The list of session summaries. */
+export interface ListSessionsResult extends PaginatedResult {
+  /**
+   * The list of session summaries. The server SHOULD order them
+   * most-recently-modified first.
+   */
   items: SessionSummary[];
+}
+
+// ─── resolveSessionConfig ────────────────────────────────────────────────────
+
+/**
+ * Iteratively resolves the session configuration schema. The client sends the
+ * current partial session config and any user-filled metadata values. The server
+ * returns a property schema describing what additional metadata is needed,
+ * contextual to the current selections.
+ *
+ * The client calls this command whenever the user changes a significant input
+ * (e.g. picks a working directory, toggles a property). Each response returns
+ * the full current property set (not a delta). The returned `values` contain
+ * server-resolved defaults to pass to `createSession`.
+ *
+ * @category Commands
+ * @method resolveSessionConfig
+ * @direction Client → Server
+ * @messageType Request
+ * @version 1
+ * @example
+ * ```jsonc
+ * // Step 1: Client picks a working directory
+ * // Client → Server
+ * { "jsonrpc": "2.0", "id": 5, "method": "resolveSessionConfig",
+ *   "params": { "workingDirectory": "file:///home/user/my-project" } }
+ *
+ * // Server → Client (git repo detected, offers worktree option)
+ * { "jsonrpc": "2.0", "id": 5, "result": {
+ *   "schema": {
+ *     "type": "object",
+ *     "properties": {
+ *       "target": { "type": "string", "title": "Target", "enum": ["workspace", "worktree"] }
+ *     }
+ *   },
+ *   "values": {}
+ * }}
+ *
+ * // Step 2: User enables worktree
+ * // Client → Server
+ * { "jsonrpc": "2.0", "id": 6, "method": "resolveSessionConfig",
+ *   "params": { "workingDirectory": "file:///home/user/my-project",
+ *               "config": { "target": "worktree" } } }
+ *
+ * // Server → Client (now requires branch selection)
+ * { "jsonrpc": "2.0", "id": 6, "result": {
+ *   "schema": {
+ *     "type": "object",
+ *     "properties": {
+ *       "target": { "type": "string", "title": "Target", "enum": ["workspace", "worktree"] },
+ *       "baseBranch": { "type": "string", "title": "Base Branch",
+ *                       "enum": ["main", "develop"],
+ *                       "enumLabels": ["main", "develop"] }
+ *     },
+ *     "required": ["baseBranch"]
+ *   },
+ *   "values": { "target": "worktree" }
+ * }}
+ * ```
+ */
+export interface ResolveSessionConfigParams extends BaseParams {
+  channel: "ahp-root://";
+  /** Agent provider ID */
+  provider?: string;
+  /** Working directory for the session */
+  workingDirectory?: URI;
+  /** Current user-filled configuration values */
+  config?: Record<string, unknown>;
+}
+
+/**
+ * Result of the `resolveSessionConfig` command.
+ */
+export interface ResolveSessionConfigResult {
+  /** JSON Schema describing available configuration properties given the current context */
+  schema: SessionConfigSchema;
+  /** Current configuration values (echoed back with server-resolved defaults applied) */
+  values: Record<string, unknown>;
 }
 
 // ─── sessionConfigCompletions ────────────────────────────────────────────────
@@ -68,9 +170,9 @@ export interface SessionConfigValueItem {
 /**
  * Queries the server for allowed values of a dynamic session config property.
  *
- * Used when a property in the schema published by the server via
- * `session/configChanged` has `enumDynamic: true`. The client sends a search
- * query and receives matching values with display metadata.
+ * Used when a property in the schema returned by `resolveSessionConfig` has
+ * `enumDynamic: true`. The client sends a search query and receives matching
+ * values with display metadata.
  *
  * @category Commands
  * @method sessionConfigCompletions

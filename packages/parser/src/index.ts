@@ -2,7 +2,12 @@
 // re-exported here — consumers must import it via the dedicated path
 // (Pitfall 6) so it is provably isolated from core/UI.
 
-export type { LineSplitterOptions, ParsedLine } from "./jsonl.js";
+export type {
+  LineSplitResult,
+  LineSplitterOptions,
+  ParsedLine,
+  SplitLine,
+} from "./jsonl.js";
 export { LineSplitter, MAX_BUF_BYTES, ParseOverflowError, parseLine } from "./jsonl.js";
 export { normalize } from "./normalizer.js";
 export { extractWireMeta, type WireMeta } from "./wire-meta.js";

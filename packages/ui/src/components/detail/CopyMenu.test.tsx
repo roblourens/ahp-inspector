@@ -355,10 +355,7 @@ describe("CopyMenu — open raw payload in a new browser tab", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: /open in new tab \(json\)/i }));
 
     expect(openSpy).toHaveBeenCalled();
-    expect(onCopy).toHaveBeenCalledWith(
-      "Popup blocked — allow popups to open in a new tab",
-      false,
-    );
+    expect(onCopy).toHaveBeenCalledWith("Popup blocked — allow popups to open in a new tab", false);
     // Blocked popups revoke immediately to avoid leaking the URL.
     expect(revokeObjectURL).toHaveBeenCalledWith(objectUrl);
   });

@@ -21,9 +21,7 @@ export function SearchTrigger({ isActive, onClick }: SearchTriggerProps): JSX.El
         height: 28,
         padding: "var(--space-1)",
         background: isActive ? "var(--color-chip-bg-active)" : "var(--color-chip-bg)",
-        border: isActive
-          ? "1px solid var(--color-accent)"
-          : "1px solid var(--color-chip-border)",
+        border: isActive ? "1px solid var(--color-accent)" : "1px solid var(--color-chip-border)",
         borderRadius: 4,
         color: "var(--color-chip-fg)",
         fontFamily: "var(--font-sans)",

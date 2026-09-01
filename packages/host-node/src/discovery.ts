@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, sep } from "node:path";
 import type { DiscoveryResult, LogCandidate } from "@ahp-inspector/shared";
-import { scanConfiguredRoots, type ScannedLogFile } from "./bounded-log-discovery.js";
+import { type ScannedLogFile, scanConfiguredRoots } from "./bounded-log-discovery.js";
 
 const DEFAULT_TIME_BUDGET_MS = 1500;
 const DEFAULT_MAX_STATS = 5000;
@@ -88,7 +88,12 @@ function makeId(absPath: string): string {
 function makeContextLabel(absPath: string, launchDir: string): string {
   const relativeParent = relative(launchDir, dirname(absPath));
   if (relativeParent === "" || relativeParent === ".") return "";
-  if (isAbsolute(relativeParent) || relativeParent === ".." || relativeParent.startsWith(`..${sep}`)) return "";
+  if (
+    isAbsolute(relativeParent) ||
+    relativeParent === ".." ||
+    relativeParent.startsWith(`..${sep}`)
+  )
+    return "";
   return [basename(launchDir), ...relativeParent.split(sep).filter(Boolean)].join(" / ");
 }
 
@@ -133,7 +138,9 @@ export async function discoverVsCodeLogs(opts: DiscoverOptions = {}): Promise<Di
     .map((scannedRoot) => {
       const root = roots[scannedRoot.rootIndex];
       if (!root) return [];
-      return scannedRoot.files.map((file) => toPickerCandidate(file, root.origin)).sort(comparePickerCandidates);
+      return scannedRoot.files
+        .map((file) => toPickerCandidate(file, root.origin))
+        .sort(comparePickerCandidates);
     })
     .filter((candidates) => candidates.length > 0);
   const effectiveResultCap = Math.max(MAX_RESULTS, populatedRoots.length);
@@ -146,7 +153,8 @@ export async function discoverVsCodeLogs(opts: DiscoverOptions = {}): Promise<Di
     retainedPaths.add(candidate.absPath);
   }
   const remainingCapacity = effectiveResultCap - retained.length;
-  const extraQuota = populatedRoots.length > 0 ? Math.floor(remainingCapacity / populatedRoots.length) : 0;
+  const extraQuota =
+    populatedRoots.length > 0 ? Math.floor(remainingCapacity / populatedRoots.length) : 0;
 
   for (const candidates of populatedRoots) {
     for (const candidate of candidates.slice(1, 1 + extraQuota)) {
@@ -172,7 +180,8 @@ export async function discoverVsCodeLogs(opts: DiscoverOptions = {}): Promise<Di
     idToPath.clear();
     for (const candidate of retained) idToPath.set(candidate.safe.id, candidate.absPath);
   }
-  const totalCandidateCount = new Set(populatedRoots.flat().map((candidate) => candidate.absPath)).size;
+  const totalCandidateCount = new Set(populatedRoots.flat().map((candidate) => candidate.absPath))
+    .size;
   return {
     candidates: retained.map((candidate) => candidate.safe),
     truncated: scan.truncated || retained.length < totalCandidateCount,

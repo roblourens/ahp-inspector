@@ -10,8 +10,8 @@
  */
 
 import type { Status } from "@ahp-inspector/core";
-import { apiUrl } from "./api-base.js";
 import type { AhpEvent } from "@ahp-inspector/shared";
+import { apiUrl } from "./api-base.js";
 
 export type { AhpEvent };
 

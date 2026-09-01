@@ -37,6 +37,18 @@ export interface LineSplitterOptions {
   onOversizedLineSkipped?: (bytesDropped: number, terminatorBytes: number) => void;
 }
 
+export interface SplitLine {
+  readonly text: string;
+  readonly byteLength: number;
+  readonly terminatorBytes: 0 | 1 | 2;
+}
+
+export interface LineSplitResult {
+  readonly lines: SplitLine[];
+  /** Bytes consumed before the first returned line (BOM or a delayed terminator). */
+  readonly leadingBytes: number;
+}
+
 /**
  * Count UTF-8 bytes in a JS (UTF-16) string without allocating an
  * intermediate buffer. Matches `Buffer.byteLength(s, "utf8")` exactly.
@@ -71,6 +83,9 @@ export class LineSplitter {
   // until we find its terminating newline.
   private skipping = false;
   private skipBytesAccumulated = 0;
+  private skipPendingCr = false;
+  private finalizedAtEof = false;
+  private finalizedPendingCr = false;
 
   constructor(options?: LineSplitterOptions) {
     this.onOversized = options?.onOversizedLineSkipped;
@@ -85,18 +100,81 @@ export class LineSplitter {
    *   (`onOversizedLineSkipped`) is not configured.
    */
   push(chunk: string): string[] {
+    return this.pushDetailed(chunk).lines.map((line) => line.text);
+  }
+
+  /**
+   * Split a chunk while retaining the exact UTF-8 byte length and line
+   * terminator width needed for source-relative offsets.
+   */
+  pushDetailed(chunk: string): LineSplitResult {
     let s = chunk;
+    let leadingBytes = 0;
+
+    if (this.finalizedAtEof) {
+      if (s.length === 0) return { lines: [], leadingBytes };
+      if (this.finalizedPendingCr) {
+        this.finalizedPendingCr = false;
+        this.finalizedAtEof = false;
+        if (s.startsWith("\n")) {
+          leadingBytes += 2;
+          s = s.slice(1);
+        } else {
+          s = `\r${s}`;
+        }
+      } else if (s.startsWith("\r\n")) {
+        this.finalizedAtEof = false;
+        leadingBytes += 2;
+        s = s.slice(2);
+      } else if (s.startsWith("\n")) {
+        this.finalizedAtEof = false;
+        leadingBytes += 1;
+        s = s.slice(1);
+      } else if (s === "\r") {
+        this.finalizedPendingCr = true;
+        return { lines: [], leadingBytes };
+      } else if (s.length > 0) {
+        this.finalizedAtEof = false;
+      }
+    }
+
     if (!this.bomConsumed) {
-      if (s.charCodeAt(0) === 0xfeff) s = s.slice(1);
-      this.bomConsumed = true;
+      if (s.length > 0) {
+        if (s.charCodeAt(0) === 0xfeff) {
+          s = s.slice(1);
+          leadingBytes += 3;
+        }
+        this.bomConsumed = true;
+      }
+    }
+
+    if (this.skipping) {
+      if (s.length === 0) return { lines: [], leadingBytes };
+      if (this.skipPendingCr) {
+        this.skipPendingCr = false;
+        if (s.startsWith("\n")) {
+          this.onOversized?.(this.skipBytesAccumulated, 2);
+          this.skipBytesAccumulated = 0;
+          this.skipping = false;
+          s = s.slice(1);
+          if (s.length === 0) return { lines: [], leadingBytes };
+        } else {
+          this.skipBytesAccumulated += 1;
+        }
+      }
     }
 
     if (this.skipping) {
       const nlIdx = s.indexOf("\n");
       if (nlIdx === -1) {
         // Whole chunk is part of the oversized line — drop it.
-        this.skipBytesAccumulated += utf8ByteLength(s);
-        return [];
+        if (s.endsWith("\r")) {
+          this.skipBytesAccumulated += utf8ByteLength(s.slice(0, -1));
+          this.skipPendingCr = true;
+        } else {
+          this.skipBytesAccumulated += utf8ByteLength(s);
+        }
+        return { lines: [], leadingBytes };
       }
       // Found the terminating newline. Account for bytes up to (but not
       // including) any CRLF or LF, then resume normal splitting on the
@@ -109,20 +187,22 @@ export class LineSplitter {
       this.skipBytesAccumulated = 0;
       this.skipping = false;
       s = s.slice(nlIdx + 1);
-      if (s.length === 0) return [];
+      if (s.length === 0) return { lines: [], leadingBytes };
     }
 
     s = this.buf + s;
-    const out: string[] = [];
+    const out: SplitLine[] = [];
     let start = 0;
     for (let i = 0; i < s.length; i++) {
       const c = s.charCodeAt(i);
       if (c === 0x0a /* \n */) {
         let end = i;
-        if (end > start && s.charCodeAt(end - 1) === 0x0d /* \r */) end--;
+        const terminatorBytes = end > start && s.charCodeAt(end - 1) === 0x0d ? 2 : 1;
+        if (terminatorBytes === 2) end--;
         // Emit even when empty so parseLine can flag the empty line —
         // VERIFY-01 fixtures rely on 1:1 line-in / line-out.
-        out.push(s.slice(start, end));
+        const text = s.slice(start, end);
+        out.push({ text, byteLength: utf8ByteLength(text), terminatorBytes });
         start = i + 1;
       }
     }
@@ -135,15 +215,20 @@ export class LineSplitter {
         // Tolerant mode: enter skip-until-newline state, count the
         // already-buffered bytes, and return any pre-overflow lines.
         this.skipping = true;
-        this.skipBytesAccumulated = utf8ByteLength(tail);
-        return out;
+        if (tail.endsWith("\r")) {
+          this.skipBytesAccumulated = utf8ByteLength(tail.slice(0, -1));
+          this.skipPendingCr = true;
+        } else {
+          this.skipBytesAccumulated = utf8ByteLength(tail);
+        }
+        return { lines: out, leadingBytes };
       }
       throw new ParseOverflowError(
         `LineSplitter tail buffer exceeded ${MAX_BUF_BYTES} bytes without a newline`,
       );
     }
     this.buf = tail;
-    return out;
+    return { lines: out, leadingBytes };
   }
 
   /**
@@ -157,6 +242,9 @@ export class LineSplitter {
     this.bomConsumed = false;
     this.skipping = false;
     this.skipBytesAccumulated = 0;
+    this.skipPendingCr = false;
+    this.finalizedAtEof = false;
+    this.finalizedPendingCr = false;
   }
 
   /**
@@ -168,10 +256,35 @@ export class LineSplitter {
    */
   endOfInput(): void {
     if (!this.skipping) return;
-    const dropped = this.skipBytesAccumulated;
+    const dropped = this.skipBytesAccumulated + (this.skipPendingCr ? 1 : 0);
     this.skipping = false;
     this.skipBytesAccumulated = 0;
+    this.skipPendingCr = false;
     if (dropped > 0) this.onOversized?.(dropped, 0);
+  }
+
+  /**
+   * Account for oversized bytes discarded up to a stable snapshot boundary
+   * without ending the live line. A pending CR is retained until the next
+   * chunk determines whether it belongs to a CRLF terminator.
+   */
+  checkpoint(): number {
+    if (!this.skipping) return 0;
+    const dropped = this.skipBytesAccumulated;
+    this.skipBytesAccumulated = 0;
+    return dropped;
+  }
+
+  /**
+   * Emit a buffered EOF line only when the caller confirms it is complete.
+   * A following LF/CRLF is consumed without producing a duplicate empty line.
+   */
+  finalizeIf(predicate: (text: string) => boolean): SplitLine[] {
+    if (this.buf.length === 0 || !predicate(this.buf)) return [];
+    const text = this.buf;
+    this.buf = "";
+    this.finalizedAtEof = true;
+    return [{ text, byteLength: utf8ByteLength(text), terminatorBytes: 0 }];
   }
 
   /** Flush any remaining buffered bytes as a final line. Idempotent. */

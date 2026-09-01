@@ -75,8 +75,7 @@ export function App(): JSX.Element {
   const onSelect = useCallback(
     async (id: string): Promise<void> => {
       const result = await client.openSessionByCandidate(id);
-      useAppStore.getState().setLogKey(result.active.logKey);
-      useAppStore.getState().setLastOpenRef({ kind: "candidate", id });
+      useAppStore.getState().switchToLog(result.active.logKey, { kind: "candidate", id });
       replaceLogStream();
     },
     [client, replaceLogStream],
@@ -85,8 +84,7 @@ export function App(): JSX.Element {
   const onOpenPath = useCallback(
     async (path: string): Promise<void> => {
       const result = await client.openSessionByPath(path);
-      useAppStore.getState().setLogKey(result.active.logKey);
-      useAppStore.getState().setLastOpenRef({ kind: "path", path });
+      useAppStore.getState().switchToLog(result.active.logKey, { kind: "path", path });
       replaceLogStream();
     },
     [client, replaceLogStream],
@@ -98,7 +96,7 @@ export function App(): JSX.Element {
       <NoActiveLogState
         candidates={candidates}
         isLoading={loadingCandidates}
-        onSelect={(id) => void onSelect(id)}
+        onSelect={onSelect}
         onOpenPath={onOpenPath}
         onRefresh={() => void refreshCandidates()}
       />

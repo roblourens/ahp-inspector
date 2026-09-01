@@ -5,10 +5,11 @@
  * boundary.test.ts enforces this at CI time.
  */
 
+import type { ReplayResourceKind } from "@ahp-inspector/core";
 import { apiUrl } from "./api-base.js";
 
 export type ReplayConfidence = "complete" | "partial" | "unknown";
-export type StateResourceKind = "root" | "session" | "terminal" | "unknown";
+export type StateResourceKind = ReplayResourceKind;
 
 export interface ReplayDiagnostic {
   readonly code: string;

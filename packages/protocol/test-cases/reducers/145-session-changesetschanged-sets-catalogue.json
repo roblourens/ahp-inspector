@@ -1,17 +1,13 @@
 {
-  "description": "session/changesetsChanged replaces summary.changesets with the new catalogue",
+  "description": "session/changesetsChanged replaces state.changesets with the new catalogue",
   "reducer": "session",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
+    "provider": "copilot",
+    "title": "Test Session",
+    "status": 1,
     "lifecycle": "ready",
-    "turns": []
+    "activeClients": [],
+    "chats": []
   },
   "actions": [
     {
@@ -20,32 +16,24 @@
         {
           "label": "Session Changes",
           "uriTemplate": "copilot:/test-session/changeset/session",
-          "additions": 5,
-          "deletions": 2,
-          "files": 1
+          "changeKind": "session"
         }
       ]
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 1000,
-      "changesets": [
-        {
-          "label": "Session Changes",
-          "uriTemplate": "copilot:/test-session/changeset/session",
-          "additions": 5,
-          "deletions": 2,
-          "files": 1
-        }
-      ]
-    },
+    "provider": "copilot",
+    "title": "Test Session",
+    "status": 1,
     "lifecycle": "ready",
-    "turns": []
+    "changesets": [
+      {
+        "label": "Session Changes",
+        "uriTemplate": "copilot:/test-session/changeset/session",
+        "changeKind": "session"
+      }
+    ],
+    "activeClients": [],
+    "chats": []
   }
 }

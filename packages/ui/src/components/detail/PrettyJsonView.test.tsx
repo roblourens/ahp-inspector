@@ -5,6 +5,19 @@ import { PrettyJsonView } from "./PrettyJsonView.js";
 afterEach(() => cleanup());
 
 describe("PrettyJsonView", () => {
+  it("renders undefined and circular values without throwing", () => {
+    const circular: { self?: unknown } = {};
+    circular.self = circular;
+
+    const { rerender } = render(<PrettyJsonView data={undefined} />);
+    expect(screen.getByTestId("pretty-json-view")).toHaveTextContent("[Undefined value]");
+
+    expect(() => rerender(<PrettyJsonView data={circular} />)).not.toThrow();
+    expect(screen.getByTestId("pretty-json-view")).toHaveTextContent(
+      "[Circular or non-serializable value]",
+    );
+  });
+
   it("uses AHP themed JSON classes instead of library defaults", () => {
     const { container } = render(<PrettyJsonView data={{ method: "initialize", ok: true }} />);
 
@@ -164,7 +177,7 @@ describe("PrettyJsonView — CSS Custom Highlight registration (D-08)", () => {
     ).not.toThrow();
   });
 
-  it("registers and updates the highlight when the API is stubbed", () => {
+  it("keeps stacked view highlights isolated and cleans up only the unmounted instance", () => {
     const store = new Map<string, unknown>();
     class FakeHighlight {
       ranges: unknown[];
@@ -183,21 +196,22 @@ describe("PrettyJsonView — CSS Custom Highlight registration (D-08)", () => {
 
     try {
       const { rerender } = render(
-        <PrettyJsonView data={{ method: "session/new", note: "session info" }} query="session" />,
+        <>
+          <PrettyJsonView data={{ method: "session/new" }} query="session" />
+          <PrettyJsonView data={{ method: "session/result" }} query="session" />
+        </>,
       );
-      const first = store.get("ahp-search-match") as FakeHighlight | undefined;
-      expect(first).toBeInstanceOf(FakeHighlight);
-      expect(first?.ranges.length).toBeGreaterThanOrEqual(1);
+      expect(store.size).toBe(2);
+      const names = [...store.keys()];
+      expect(names[0]).not.toBe(names[1]);
+      for (const highlight of store.values()) {
+        expect(highlight).toBeInstanceOf(FakeHighlight);
+        expect((highlight as FakeHighlight).ranges.length).toBeGreaterThanOrEqual(1);
+      }
 
-      // Navigating to new data/query re-seeds the highlight.
-      rerender(<PrettyJsonView data={{ method: "tools/list", note: "list info" }} query="list" />);
-      const second = store.get("ahp-search-match") as FakeHighlight | undefined;
-      expect(second).toBeInstanceOf(FakeHighlight);
-      expect(second?.ranges.length).toBeGreaterThanOrEqual(1);
-
-      // Clearing the query removes the highlight entry.
-      rerender(<PrettyJsonView data={{ method: "tools/list" }} query="" />);
-      expect(store.has("ahp-search-match")).toBe(false);
+      rerender(<PrettyJsonView data={{ method: "session/result" }} query="session" />);
+      expect(store.size).toBe(1);
+      expect(names.some((name) => store.has(name))).toBe(true);
     } finally {
       cssAny.CSS = prevCSS;
       cssAny.Highlight = prevHighlight;

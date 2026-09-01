@@ -1,21 +1,15 @@
 {
   "description": "session/truncated clears all when turnId omitted",
-  "reducer": "session",
+  "reducer": "chat",
   "initial": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 1000
-    },
-    "lifecycle": "ready",
     "turns": [
       {
         "id": "t1",
-        "userMessage": {
-          "text": "First"
+        "message": {
+          "text": "First",
+          "origin": {
+            "kind": "user"
+          }
         },
         "responseParts": [],
         "usage": null,
@@ -23,8 +17,11 @@
       },
       {
         "id": "t2",
-        "userMessage": {
-          "text": "Second"
+        "message": {
+          "text": "Second",
+          "origin": {
+            "kind": "user"
+          }
         },
         "responseParts": [],
         "usage": null,
@@ -32,31 +29,33 @@
       },
       {
         "id": "t3",
-        "userMessage": {
-          "text": "Third"
+        "message": {
+          "text": "Third",
+          "origin": {
+            "kind": "user"
+          }
         },
         "responseParts": [],
         "usage": null,
         "state": "complete"
       }
-    ]
+    ],
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 1,
+    "modifiedAt": "1970-01-01T00:00:01.000Z"
   },
   "actions": [
     {
-      "type": "session/truncated"
+      "type": "chat/truncated"
     }
   ],
   "expected": {
-    "summary": {
-      "resource": "copilot:/test-session",
-      "provider": "copilot",
-      "title": "Test Session",
-      "status": 1,
-      "createdAt": 1000,
-      "modifiedAt": 9999
-    },
-    "lifecycle": "ready",
     "turns": [],
-    "activeTurn": null
+    "activeTurn": null,
+    "resource": "copilot:/test-session",
+    "title": "Test Session",
+    "status": 1,
+    "modifiedAt": "1970-01-01T00:00:01.000Z"
   }
 }

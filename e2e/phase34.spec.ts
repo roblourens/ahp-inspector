@@ -1,7 +1,7 @@
-import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { expect, type Page, test } from "@playwright/test";
+import { type CliServer, startCli, stopCli } from "./helpers/cli";
 
 // Phase 34 — "rethink search result navigation & focus behavior" end-to-end.
 //
@@ -20,8 +20,6 @@ import { expect, type Page, test } from "@playwright/test";
 //   result 4: notification         (type telemetry.report)
 //   result 5: telemetry/report     (method NAME contains telemetry → row <mark>)
 
-const CLI_ENTRY = resolve("packages/cli/src/index.ts");
-const TSX_BIN = resolve("node_modules/.bin/tsx");
 const FIXTURE = resolve("test/fixtures/phase34-find-nav.jsonl");
 const SCREENSHOT_DIR = resolve("screenshots/phase34");
 const QUERY = "telemetry";
@@ -30,59 +28,6 @@ const QUERY = "telemetry";
 const RESULT_EXECUTE_COMMAND = 3;
 // The telemetry/report request whose method name itself contains the token.
 const RESULT_METHOD_NAMED = 5;
-
-interface CliProc {
-  child: ChildProcessWithoutNullStreams;
-  stdout: string;
-  stderr: string;
-  exited: Promise<number | null>;
-}
-
-function spawnCli(args: string[]): CliProc {
-  const child = spawn(TSX_BIN, [CLI_ENTRY, ...args], {
-    cwd: process.cwd(),
-    env: { ...process.env, BROWSER: "none" },
-  }) as ChildProcessWithoutNullStreams;
-  const proc: CliProc = {
-    child,
-    stdout: "",
-    stderr: "",
-    exited: new Promise((resolveExit) => child.once("exit", (code) => resolveExit(code))),
-  };
-  child.stdout.setEncoding("utf8");
-  child.stderr.setEncoding("utf8");
-  child.stdout.on("data", (data: string) => {
-    proc.stdout += data;
-  });
-  child.stderr.on("data", (data: string) => {
-    proc.stderr += data;
-  });
-  return proc;
-}
-
-function waitForPort(proc: CliProc, timeoutMs = 15_000): Promise<number> {
-  return new Promise((resolvePort, reject) => {
-    const start = Date.now();
-    const tick = setInterval(() => {
-      const match = proc.stdout.match(/AHP Inspector running at http:\/\/127\.0\.0\.1:(\d+)/);
-      if (match?.[1]) {
-        clearInterval(tick);
-        resolvePort(Number(match[1]));
-        return;
-      }
-      if (Date.now() - start > timeoutMs) {
-        clearInterval(tick);
-        reject(new Error(`timeout waiting for CLI port\n${proc.stdout}\n${proc.stderr}`));
-      }
-    }, 25);
-  });
-}
-
-async function killCli(proc: CliProc | undefined): Promise<void> {
-  if (!proc || proc.child.exitCode !== null) return;
-  proc.child.kill("SIGTERM");
-  await Promise.race([proc.exited, new Promise((resolveExit) => setTimeout(resolveExit, 3000))]);
-}
 
 async function assertNoPathLeak(page: Page): Promise<void> {
   const body = await page.locator("body").innerText();
@@ -94,7 +39,7 @@ async function assertNoPathLeak(page: Page): Promise<void> {
 const DESKTOP = { width: 1440, height: 900 } as const;
 const NARROW = { width: 1366, height: 900 } as const;
 
-let proc: CliProc;
+let proc: CliServer | undefined;
 let url = "";
 
 async function gotoDesktop(page: Page): Promise<void> {
@@ -140,13 +85,12 @@ function selectedRowTestId(page: Page) {
 test.describe("phase34 find navigation", () => {
   test.beforeAll(async () => {
     await mkdir(SCREENSHOT_DIR, { recursive: true });
-    proc = spawnCli([FIXTURE, "--port", "0", "--no-open"]);
-    const port = await waitForPort(proc);
-    url = `http://127.0.0.1:${port}`;
+    proc = await startCli([FIXTURE]);
+    url = proc.url;
   });
 
   test.afterAll(async () => {
-    await killCli(proc);
+    await stopCli(proc);
   });
 
   test("navigation: desktop Enter/Shift+Enter advances results, syncs rail, keeps input focus", async ({
@@ -289,7 +233,7 @@ test.describe("phase34 find navigation", () => {
 
     // The detail content highlights the literal query via <mark> in the Raw view.
     await page.getByRole("tab", { name: "Raw" }).click();
-    await expect(page.getByTestId("raw-json-view")).toBeVisible();
+    await expect(page.getByTestId("raw-json-view").first()).toBeVisible();
     await expect(page.getByTestId("detail-panel").locator("mark")).not.toHaveCount(0);
 
     await page.screenshot({
@@ -308,14 +252,18 @@ test.describe("phase34 find navigation", () => {
     await navigateToResult(page, RESULT_EXECUTE_COMMAND);
 
     await page.getByRole("tab", { name: "Pretty" }).click();
-    await expect(page.getByTestId("pretty-json-view")).toBeVisible();
+    await expect(page.getByTestId("pretty-json-view").first()).toBeVisible();
 
-    // The real Chromium runtime registers the named highlight (no markup
-    // injection) — proving D-08 highlighting reaches the Pretty tree.
-    expect(await page.evaluate(() => CSS.highlights?.has("ahp-search-match"))).toBe(true);
+    // The real Chromium runtime registers instance-scoped highlights (no
+    // markup injection), proving D-08 reaches stacked request/response trees.
+    expect(
+      await page.evaluate(() =>
+        [...(CSS.highlights?.keys() ?? [])].some((name) => name.startsWith("ahp-search-match-")),
+      ),
+    ).toBe(true);
 
     // The collapsed branch is auto-revealed so the matched key is visible (D-09).
-    await expect(page.getByTestId("pretty-json-view").getByText("telemetryMode")).toBeVisible();
+    await expect(page.getByTestId("detail-panel").getByText("telemetryMode").first()).toBeVisible();
 
     await page.screenshot({
       path: join(SCREENSHOT_DIR, "05-pretty-highlight-reveal.png"),

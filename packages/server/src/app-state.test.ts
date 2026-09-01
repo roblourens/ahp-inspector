@@ -19,6 +19,7 @@ interface FakeLogHandle extends LogHandle {
 
 interface FakeHost extends HostAdapter {
   push(text: string): void;
+  pushBytes(bytes: Uint8Array): void;
   triggerInitialReadStart(info: { totalBytes: number }): void;
   triggerInitialReadProgress(info: { loadedBytes: number; totalBytes: number }): void;
   triggerInitialReadComplete(info: { loadedBytes: number; totalBytes: number }): void;
@@ -37,7 +38,7 @@ type WatchSinkObj = {
   onError(err: Error, fatal: boolean): void;
 };
 
-function makeFakeHost(path: string): FakeHost {
+function makeFakeHost(path: string, close: () => Promise<void> = async () => {}): FakeHost {
   let sink: WatchSinkObj | null = null;
   let offset = 0;
   const encoder = new TextEncoder();
@@ -62,10 +63,12 @@ function makeFakeHost(path: string): FakeHost {
         },
       };
     },
-    close: async (_h: LogHandle) => {},
+    close,
     push(text: string): void {
+      this.pushBytes(encoder.encode(text));
+    },
+    pushBytes(bytes: Uint8Array): void {
       if (!sink) throw new Error("watchLog not subscribed");
-      const bytes = encoder.encode(text);
       sink.onChunk(bytes, offset);
       offset += bytes.byteLength;
     },
@@ -243,6 +246,116 @@ describe("createAppState", () => {
     expect(firstRow.status).toBe("pending");
   });
 
+  it("ingests a valid final JSONL record without a trailing newline at snapshot EOF", async () => {
+    const host = makeFakeHost("/tmp/final.jsonl");
+    state = await createAppState({ host, file: "/tmp/final.jsonl", flushIntervalMs: 0 });
+    const finalRecord = JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "finalRecord",
+      params: {},
+    });
+
+    host.push(finalRecord);
+    expect(state.snapshot().rows).toEqual([]);
+    host.triggerInitialReadComplete({
+      loadedBytes: Buffer.byteLength(finalRecord),
+      totalBytes: Buffer.byteLength(finalRecord),
+    });
+
+    expect(state.snapshot().rows).toHaveLength(1);
+    expect(state.snapshot().rows[0]?.method).toBe("finalRecord");
+
+    // A writer may append the missing terminator later; it must not create an
+    // empty parse-error row or duplicate the already-finalized record.
+    const nextRecord = JSON.stringify({
+      jsonrpc: "2.0",
+      id: 2,
+      method: "nextRecord",
+      params: {},
+    });
+    host.push(`\n${nextRecord}\n`);
+    expect(state.snapshot().rows).toHaveLength(2);
+    expect(state.eventAt(1)).toMatchObject({
+      byteOffset: Buffer.byteLength(finalRecord) + 1,
+      byteLength: Buffer.byteLength(nextRecord),
+    });
+  });
+
+  it("does not finalize an incomplete live line at initial EOF", async () => {
+    const host = makeFakeHost("/tmp/live-partial.jsonl");
+    state = await createAppState({ host, file: "/tmp/live-partial.jsonl", flushIntervalMs: 0 });
+    const partial = '{"jsonrpc":"2.0","id":1,"method":"still-writing"';
+    host.push(partial);
+    host.triggerInitialReadComplete({
+      loadedBytes: Buffer.byteLength(partial),
+      totalBytes: Buffer.byteLength(partial),
+    });
+    expect(state.snapshot().rows).toEqual([]);
+
+    host.push(',"params":{}}\n');
+    expect(state.snapshot().rows).toHaveLength(1);
+    expect(state.snapshot().rows[0]?.method).toBe("still-writing");
+  });
+
+  it("tracks exact offsets across mixed endings, split CRLF, and split UTF-8", async () => {
+    const host = makeFakeHost("/tmp/mixed.jsonl");
+    state = await createAppState({ host, file: "/tmp/mixed.jsonl", flushIntervalMs: 0 });
+    const first = JSON.stringify({
+      jsonrpc: "2.0",
+      method: "notice",
+      params: { value: "😀é" },
+    });
+    const second = JSON.stringify({ jsonrpc: "2.0", method: "second", params: {} });
+    const third = JSON.stringify({ jsonrpc: "2.0", method: "third", params: {} });
+    const bytes = new TextEncoder().encode(`${first}\r\n${second}\n${third}`);
+    const emojiStart = bytes.indexOf(0xf0);
+    if (emojiStart < 0) throw new Error("expected encoded emoji");
+
+    host.pushBytes(bytes.slice(0, emojiStart + 2));
+    host.pushBytes(bytes.slice(emojiStart + 2, Buffer.byteLength(first) + 1));
+    host.pushBytes(bytes.slice(Buffer.byteLength(first) + 1, Buffer.byteLength(first) + 2));
+    host.pushBytes(bytes.slice(Buffer.byteLength(first) + 2));
+    host.triggerInitialReadComplete({
+      loadedBytes: bytes.byteLength,
+      totalBytes: bytes.byteLength,
+    });
+
+    expect(state.snapshot().rows).toHaveLength(3);
+    expect(state.eventAt(0)).toMatchObject({
+      byteOffset: 0,
+      byteLength: Buffer.byteLength(first),
+    });
+    expect(state.eventAt(1)).toMatchObject({
+      byteOffset: Buffer.byteLength(first) + 2,
+      byteLength: Buffer.byteLength(second),
+    });
+    expect(state.eventAt(2)).toMatchObject({
+      byteOffset: Buffer.byteLength(first) + 2 + Buffer.byteLength(second) + 1,
+      byteLength: Buffer.byteLength(third),
+    });
+  });
+
+  it("accounts for a UTF-8 BOM that is split across input chunks", async () => {
+    const host = makeFakeHost("/tmp/bom.jsonl");
+    state = await createAppState({ host, file: "/tmp/bom.jsonl", flushIntervalMs: 0 });
+    const first = JSON.stringify({ jsonrpc: "2.0", method: "first", params: {} });
+    const second = JSON.stringify({ jsonrpc: "2.0", method: "second", params: {} });
+    const bytes = new TextEncoder().encode(`\uFEFF${first}\n${second}\n`);
+
+    host.pushBytes(bytes.slice(0, 2));
+    host.pushBytes(bytes.slice(2));
+
+    expect(state.eventAt(0)).toMatchObject({
+      byteOffset: 3,
+      byteLength: Buffer.byteLength(first),
+    });
+    expect(state.eventAt(1)).toMatchObject({
+      byteOffset: 3 + Buffer.byteLength(first) + 1,
+      byteLength: Buffer.byteLength(second),
+    });
+  });
+
   it("appends reshaped tool actions without EventStore subscriber warnings", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const host = makeFakeHost("/tmp/channel-actions.log");
@@ -261,7 +374,7 @@ describe("createAppState", () => {
           channel: SESSION,
           serverSeq: 17,
           action: {
-            type: ActionType.SessionToolCallDelta,
+            type: "session/toolCallDelta",
             turnId: "turn-current",
             toolCallId: "tool-delta",
           },
@@ -276,7 +389,7 @@ describe("createAppState", () => {
           channel: SESSION,
           serverSeq: 18,
           action: {
-            type: ActionType.SessionToolCallContentChanged,
+            type: "session/toolCallContentChanged",
             turnId: "turn-current",
             toolCallId: "tool-content",
           },
@@ -305,9 +418,30 @@ describe("createAppState", () => {
 
     const progress = events.filter((event) => event.kind === "load-progress");
     expect(progress).toMatchObject([
-      { kind: "load-progress", phase: "loading", loadedRows: 0, loadedBytes: 0, totalBytes: 100, percent: 0 },
-      { kind: "load-progress", phase: "loading", loadedRows: 1, loadedBytes: 50, totalBytes: 100, percent: 50 },
-      { kind: "load-progress", phase: "complete", loadedRows: 1, loadedBytes: 100, totalBytes: 100, percent: 100 },
+      {
+        kind: "load-progress",
+        phase: "loading",
+        loadedRows: 0,
+        loadedBytes: 0,
+        totalBytes: 100,
+        percent: 0,
+      },
+      {
+        kind: "load-progress",
+        phase: "loading",
+        loadedRows: 1,
+        loadedBytes: 50,
+        totalBytes: 100,
+        percent: 50,
+      },
+      {
+        kind: "load-progress",
+        phase: "complete",
+        loadedRows: 1,
+        loadedBytes: 100,
+        totalBytes: 100,
+        percent: 100,
+      },
     ]);
     expect(state.snapshot().loadProgress).toMatchObject({ phase: "complete", percent: 100 });
     expect(JSON.stringify(progress)).not.toContain("/private/tmp");
@@ -474,6 +608,15 @@ describe("createAppState", () => {
     state = await createAppState({ host, file: "/tmp/x.log", flushIntervalMs: 0 });
     await state.dispose();
     await state.dispose();
+    state = undefined;
+  });
+
+  it("awaits and surfaces host shutdown failures", async () => {
+    const host = makeFakeHost("/tmp/x.log", async () => {
+      throw new Error("shutdown failed");
+    });
+    state = await createAppState({ host, file: "/tmp/x.log", flushIntervalMs: 0 });
+    await expect(state.dispose()).rejects.toThrow("shutdown failed");
     state = undefined;
   });
 
@@ -851,6 +994,45 @@ describe("AppState rotation/watch-error propagation (Phase 4 INGEST-04)", () => 
     expect(errors.find((p) => p.kind === "watch-error" && p.code === "read-error")).toBeTruthy();
   });
 
+  it("never exposes filesystem paths through watch-error payloads", async () => {
+    class TypedReadError extends Error {
+      readonly code = "read-stream-failed";
+      readonly systemCode = "EACCES";
+    }
+    const host = makeFakeHost("/private/tmp/secret/session/log.jsonl");
+    state = await createAppState({
+      host,
+      file: "/private/tmp/secret/session/log.jsonl",
+      flushIntervalMs: 0,
+    });
+    const captured: SsePayload[] = [];
+    state.subscribe((payload) => captured.push(payload));
+
+    host.triggerError(
+      new TypedReadError("EACCES: permission denied, open '/private/tmp/secret/session/log.jsonl'"),
+      false,
+    );
+    host.triggerError(
+      new Error("ENOENT: no such file, stat '/private/tmp/secret/session/log.jsonl'"),
+      true,
+    );
+
+    const errors = captured.filter((payload) => payload.kind === "watch-error");
+    expect(errors).toEqual([
+      {
+        kind: "watch-error",
+        code: "read-stream-failed",
+        message: "Unable to read log data (EACCES).",
+      },
+      {
+        kind: "watch-error",
+        code: "watch-fatal",
+        message: "Unable to watch the log for changes.",
+      },
+    ]);
+    expect(JSON.stringify(errors)).not.toContain("/private/tmp");
+  });
+
   it("skips an oversized JSONL line, emits a watch-error, and continues ingesting subsequent events", async () => {
     const host = makeFakeHost("/tmp/big.log");
     state = await createAppState({ host, file: "/tmp/big.log", flushIntervalMs: 0 });
@@ -867,6 +1049,7 @@ describe("AppState rotation/watch-error propagation (Phase 4 INGEST-04)", () => 
     const chunk = "x".repeat(MB);
     // 20 chunks * 1MB = 20MB > MAX_BUF_BYTES (16MB).
     for (let i = 0; i < 20; i++) host.push(chunk);
+    host.triggerInitialReadComplete({ loadedBytes: 20 * MB, totalBytes: 20 * MB });
     // Terminate the oversized line.
     host.push("\n");
 
@@ -878,6 +1061,10 @@ describe("AppState rotation/watch-error propagation (Phase 4 INGEST-04)", () => 
     expect(rows).toHaveLength(2);
     expect(rows[0]?.method).toBe("before");
     expect(rows[1]?.method).toBe("after");
+    const beforeBytes = Buffer.byteLength(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "before", params: {} })}\n`,
+    );
+    expect(state.eventAt(1)?.byteOffset).toBe(beforeBytes + 20 * MB + 1);
 
     // Exactly one watch-error reporting the skip.
     const errors = captured.filter((p) => p.kind === "watch-error");
@@ -955,5 +1142,27 @@ describe("AppState rotation/watch-error propagation (Phase 4 INGEST-04)", () => 
       latencyMs: null,
       status: "n/a",
     });
+  });
+
+  it("finalizes a valid unterminated replacement record after rotation read completes", async () => {
+    const host = makeFakeHost("/tmp/x.log");
+    state = await createAppState({ host, file: "/tmp/x.log", flushIntervalMs: 0 });
+    host.push(`${JSON.stringify({ jsonrpc: "2.0", method: "old", params: {} })}\n`);
+
+    host.triggerReset({ newSize: 64, reason: "rename" });
+    const replacement = JSON.stringify({
+      jsonrpc: "2.0",
+      method: "replacement-final",
+      params: {},
+    });
+    host.push(replacement);
+    host.triggerInitialReadComplete({
+      loadedBytes: Buffer.byteLength(replacement),
+      totalBytes: Buffer.byteLength(replacement),
+    });
+
+    expect(state.snapshot().rows).toHaveLength(1);
+    expect(state.snapshot().rows[0]?.method).toBe("replacement-final");
+    expect(state.eventAt(0)?.byteOffset).toBe(0);
   });
 });

@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readdir, rm, utimes, writeFile } from "node:fs/promises
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { discoverVsCodeLogs, defaultRoots, resolveCandidateId, type Root } from "./discovery.js";
+import { defaultRoots, discoverVsCodeLogs, type Root, resolveCandidateId } from "./discovery.js";
 
 let tmpRoot: string;
 let stableRoot: string;
@@ -56,7 +56,9 @@ describe("discoverVsCodeLogs", () => {
       expect(c.label).not.toContain("\\");
       // contextLabel is launch-relative — must NOT contain the tmpRoot path.
       expect(c.contextLabel ?? "").not.toContain(tmpRoot);
-      expect(c.contextLabel).toMatch(/^20260407T\d+ \/ window1 \/ exthost \/ GitHub\.copilot-chat$/);
+      expect(c.contextLabel).toMatch(
+        /^20260407T\d+ \/ window1 \/ exthost \/ GitHub\.copilot-chat$/,
+      );
     }
   });
 
@@ -65,7 +67,9 @@ describe("discoverVsCodeLogs", () => {
     await mkdir(directRoot, { recursive: true });
     await writeFile(join(directRoot, "agenthost.direct.jsonl"), "{}\n");
 
-    const { candidates } = await discoverVsCodeLogs({ roots: [{ origin: "vscode", dir: directRoot }] });
+    const { candidates } = await discoverVsCodeLogs({
+      roots: [{ origin: "vscode", dir: directRoot }],
+    });
 
     expect(candidates[0]?.contextLabel).toBe("");
   });
@@ -135,7 +139,9 @@ describe("discoverVsCodeLogs", () => {
     });
 
     expect(result.candidates).toHaveLength(200);
-    expect(result.candidates.some((candidate) => resolveCandidateId(candidate.id) === nestedLog)).toBe(true);
+    expect(
+      result.candidates.some((candidate) => resolveCandidateId(candidate.id) === nestedLog),
+    ).toBe(true);
   });
 
   it("flags truncated:true when maxStats is exceeded", async () => {
@@ -192,7 +198,9 @@ describe("discoverVsCodeLogs", () => {
     });
 
     expect(result.truncated).toBe(true);
-    expect(result.candidates.some((candidate) => resolveCandidateId(candidate.id) === laterLog)).toBe(true);
+    expect(
+      result.candidates.some((candidate) => resolveCandidateId(candidate.id) === laterLog),
+    ).toBe(true);
   });
 
   it("selects the newest launch after examining more than 50 root entries", async () => {
@@ -218,7 +226,9 @@ describe("discoverVsCodeLogs", () => {
       topLaunchDirs: 1,
     });
 
-    expect(result.candidates.map((candidate) => resolveCandidateId(candidate.id))).toEqual([targetLog]);
+    expect(result.candidates.map((candidate) => resolveCandidateId(candidate.id))).toEqual([
+      targetLog,
+    ]);
   });
 
   it("retains one ranked candidate from every populated root beyond the default result cap", async () => {
@@ -232,7 +242,9 @@ describe("discoverVsCodeLogs", () => {
 
     const result = await discoverVsCodeLogs({ roots, maxImmediateEntries: 2, maxStats: 2 });
     const resolvedRoots = new Set(
-      result.candidates.map((candidate) => resolveCandidateId(candidate.id)).map((absPath) => join(absPath ?? "", "..")),
+      result.candidates
+        .map((candidate) => resolveCandidateId(candidate.id))
+        .map((absPath) => join(absPath ?? "", "..")),
     );
 
     expect(result.candidates).toHaveLength(roots.length);
@@ -243,7 +255,10 @@ describe("discoverVsCodeLogs", () => {
     const logsRoot = join(tmpRoot, "many-candidates");
     await mkdir(logsRoot, { recursive: true });
     for (let index = 0; index < 220; index++) {
-      await writeFile(join(logsRoot, `agenthost.${index.toString().padStart(3, "0")}.jsonl`), "{}\n");
+      await writeFile(
+        join(logsRoot, `agenthost.${index.toString().padStart(3, "0")}.jsonl`),
+        "{}\n",
+      );
     }
     const actualOrder = await readdir(logsRoot);
     const lateName = actualOrder[actualOrder.length - 1];
@@ -271,7 +286,10 @@ describe("discoverVsCodeLogs", () => {
     for (let index = 0; index < 205; index++) {
       await writeFile(join(busyRoot, `agenthost.busy-${index}.jsonl`), "{}\n");
     }
-    const sparseLogs = [join(sparseRoot, "agenthost.sparse-a.jsonl"), join(sparseRoot, "agenthost.sparse-b.jsonl")];
+    const sparseLogs = [
+      join(sparseRoot, "agenthost.sparse-a.jsonl"),
+      join(sparseRoot, "agenthost.sparse-b.jsonl"),
+    ];
     for (const sparseLog of sparseLogs) await writeFile(sparseLog, "{}\n");
 
     const result = await discoverVsCodeLogs({
@@ -282,7 +300,9 @@ describe("discoverVsCodeLogs", () => {
       maxImmediateEntries: 300,
       maxStats: 300,
     });
-    const resolved = new Set(result.candidates.map((candidate) => resolveCandidateId(candidate.id)));
+    const resolved = new Set(
+      result.candidates.map((candidate) => resolveCandidateId(candidate.id)),
+    );
 
     expect(result.candidates).toHaveLength(200);
     expect(sparseLogs.every((log) => resolved.has(log))).toBe(true);

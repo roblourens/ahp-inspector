@@ -8,10 +8,9 @@
 // you can find — and tweak — the wording for one event shape without touching
 // the others.
 //
-// For `action` and `protocol-notification` kinds the inner discriminant
-// (`action.type`, `notification.type`) is a real protocol enum, so those
-// handlers `switch` over `ActionType` / `NotificationType` and access the
-// typed fields directly (e.g. `action.content`, `action.toolName`).
+// Current actions narrow by their exact `ActionType`. Current notifications
+// narrow by their JSON-RPC method; legacy `method:"notification"` wrappers
+// stay explicitly unknown instead of being cast to the current protocol.
 //
 // HOW TO TWEAK
 // ────────────
@@ -23,16 +22,11 @@
 // • Truncate / redact differently  → edit `clip`, `safePrimitive`, or
 //                                    `summarizeValue` at the bottom.
 
-import {
-  ActionType,
-  NotificationType,
-  type ProtocolNotification,
-  type StateAction,
-} from "@ahp-inspector/protocol";
+import { ActionType, type StateAction } from "@ahp-inspector/protocol";
 import type { AhpEvent } from "@ahp-inspector/shared";
 import {
   isKnownAction,
-  isKnownNotification,
+  type KnownProtocolNotification,
   type NarrowedAction,
   type NarrowedClientNotification,
   type NarrowedLog,
@@ -98,6 +92,9 @@ function summarizeClientNotification(view: NarrowedClientNotification): string {
 }
 
 function summarizeServerNotification(view: NarrowedServerNotification): string {
+  if (view.notification) {
+    return summarizeKnownNotification(view.notification);
+  }
   const params = asRecord(view.params);
   const message = firstString(params?.message, params?.text, params?.detail, params?.reason);
   if (message) return clip(message);
@@ -124,10 +121,7 @@ function summarizeAction(view: NarrowedAction): string {
 }
 
 function summarizeProtocolNotification(view: NarrowedProtocolNotification): string {
-  if (isKnownNotification(view.notification as ProtocolNotification)) {
-    return summarizeKnownNotification(view.notification as ProtocolNotification);
-  }
-  return summarizeUnknownNotification(view.notification as UnknownTypedPayload);
+  return summarizeUnknownNotification(view.notification);
 }
 
 function summarizeLog(view: NarrowedLog): string {
@@ -141,35 +135,35 @@ function summarizeLog(view: NarrowedLog): string {
 
 function summarizeKnownAction(action: StateAction, channel: string | null): string {
   switch (action.type) {
-    case ActionType.SessionDelta:
+    case ActionType.ChatDelta:
       return `delta "${clip(action.content)}"`;
-    case ActionType.SessionResponsePart:
+    case ActionType.ChatResponsePart:
       return `responsePart ${summarizeResponsePart(action.part)}`;
-    case ActionType.SessionToolCallStart:
+    case ActionType.ChatToolCallStart:
       return `tool start ${action.toolName}${action.displayName ? ` (${clip(action.displayName, 32)})` : ""}`;
-    case ActionType.SessionToolCallDelta:
+    case ActionType.ChatToolCallDelta:
       return summarizeToolCallDelta(action);
-    case ActionType.SessionToolCallReady:
+    case ActionType.ChatToolCallReady:
       return `tool ready ${action.toolCallId} ${stringOrMd(action.invocationMessage, 48)}`;
-    case ActionType.SessionToolCallComplete:
+    case ActionType.ChatToolCallComplete:
       return `tool result ${action.toolCallId} success=${action.result.success}`;
-    case ActionType.SessionToolCallContentChanged:
+    case ActionType.ChatToolCallContentChanged:
       return summarizeToolCallContentChanged(action);
-    case ActionType.SessionTurnStarted:
+    case ActionType.ChatTurnStarted:
       return `turn start ${shortId(action.turnId)}`;
-    case ActionType.SessionTurnComplete:
+    case ActionType.ChatTurnComplete:
       return `turn complete ${shortId(action.turnId)}`;
-    case ActionType.SessionTurnCancelled:
+    case ActionType.ChatTurnCancelled:
       return `turn cancelled ${shortId(action.turnId)}`;
-    case ActionType.SessionError:
-      return `error ${clip(action.error.message, 60)}`;
+    case ActionType.ChatError:
+      return `error ${clip(action.part.error.message, 60)}`;
     case ActionType.SessionTitleChanged:
       return `title "${clip(action.title, 48)}"`;
-    case ActionType.SessionUsage: {
+    case ActionType.ChatUsage: {
       const { inputTokens, outputTokens } = action.usage;
       return `usage in=${inputTokens ?? "?"} out=${outputTokens ?? "?"}`;
     }
-    case ActionType.SessionReasoning:
+    case ActionType.ChatReasoning:
       return `reasoning "${clip(action.content, 60)}"`;
     case ActionType.SessionReady:
       return channel ? `session ready ${shortId(channel)}` : "session ready";
@@ -186,7 +180,9 @@ function summarizeKnownAction(action: StateAction, channel: string | null): stri
   }
 }
 
-function summarizeToolCallDelta(action: StateAction & { type: ActionType.SessionToolCallDelta }): string {
+function summarizeToolCallDelta(
+  action: StateAction & { type: ActionType.ChatToolCallDelta },
+): string {
   const content = typeof action.content === "string" ? action.content : null;
   return content === null
     ? `tool delta ${action.toolCallId}`
@@ -194,7 +190,7 @@ function summarizeToolCallDelta(action: StateAction & { type: ActionType.Session
 }
 
 function summarizeToolCallContentChanged(
-  action: StateAction & { type: ActionType.SessionToolCallContentChanged },
+  action: StateAction & { type: ActionType.ChatToolCallContentChanged },
 ): string {
   const content = Array.isArray(action.content) ? action.content : null;
   return content === null
@@ -211,6 +207,17 @@ function summarizeUnknownAction(action: UnknownTypedPayload): string {
   // the protocol.
   const t = action.type;
   const f = action.fields;
+  if (t === "session/toolCallDelta") {
+    const toolCallId = firstString(f.toolCallId) ?? "unknown";
+    const content = firstString(f.content);
+    return content ? `tool delta ${toolCallId} +${content.length}b` : `tool delta ${toolCallId}`;
+  }
+  if (t === "session/toolCallContentChanged") {
+    const toolCallId = firstString(f.toolCallId) ?? "unknown";
+    return Array.isArray(f.content)
+      ? `tool content ${toolCallId} (${f.content.length} parts)`
+      : `tool content ${toolCallId}`;
+  }
   if (/delta/i.test(t)) {
     const text = firstString(f.delta, f.content, f.text, f.message);
     if (text) return `delta "${clip(text)}"`;
@@ -236,20 +243,24 @@ function summarizeUnknownAction(action: UnknownTypedPayload): string {
 
 // ── Known-notification handler ───────────────────────────────────────────────
 
-function summarizeKnownNotification(notif: ProtocolNotification): string {
-  switch (notif.type) {
-    case NotificationType.SessionAdded:
-      return `${notif.type} ${clip(notif.summary.title ?? notif.summary.resource, 48)}`;
-    case NotificationType.SessionRemoved:
-      return `${notif.type} ${shortId(notif.session)}`;
-    case NotificationType.SessionSummaryChanged: {
-      const fields = Object.keys(notif.changes).join(",") || "(none)";
-      return `${notif.type} ${shortId(notif.session)} [${fields}]`;
+function summarizeKnownNotification(notification: KnownProtocolNotification): string {
+  switch (notification.method) {
+    case "root/sessionAdded":
+      return `${notification.method} ${clip(notification.params.summary.title, 48)}`;
+    case "root/sessionRemoved":
+      return `${notification.method} ${shortId(notification.params.session)}`;
+    case "root/sessionSummaryChanged": {
+      const fields = Object.keys(notification.params.changes).join(",") || "(none)";
+      return `${notification.method} ${shortId(notification.params.session)} [${fields}]`;
     }
-    case NotificationType.AuthRequired:
-      return `${notif.type} ${notif.resource}${notif.reason ? ` (${notif.reason})` : ""}`;
-    default:
-      return innerActionTypeAndDetail(toUnknownPayload(notif));
+    case "root/progress":
+      return `${notification.method} ${notification.params.progress}/${notification.params.total ?? "?"}`;
+    case "auth/required":
+      return `${notification.method} ${notification.params.resource.resource}${notification.params.reason ? ` (${notification.params.reason})` : ""}`;
+    case "otlp/exportLogs":
+    case "otlp/exportTraces":
+    case "otlp/exportMetrics":
+      return `${notification.method} ${summarizeValue(notification.params)}`;
   }
 }
 

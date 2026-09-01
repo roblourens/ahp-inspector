@@ -12,7 +12,7 @@ export function NoActiveLogState({
 }: {
   candidates: readonly SafeCandidate[];
   isLoading: boolean;
-  onSelect(id: string): void;
+  onSelect(id: string): Promise<void>;
   onOpenPath(path: string): Promise<void>;
   onRefresh(): void;
 }): JSX.Element {

@@ -31,9 +31,11 @@ function stripJsonlExt(label: string): string {
 export function CandidateRow({
   candidate,
   onSelect,
+  disabled = false,
 }: {
   candidate: SafeCandidate;
   onSelect(): void;
+  disabled?: boolean;
 }): JSX.Element {
   const dotColor =
     candidate.confidence === "high"
@@ -46,6 +48,7 @@ export function CandidateRow({
       <button
         type="button"
         onClick={onSelect}
+        disabled={disabled}
         title={candidate.contextLabel ?? ""}
         style={{
           display: "flex",
