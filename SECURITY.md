@@ -24,30 +24,19 @@ owner explicitly asks for a scrubbed reproduction.
 
 ## VS Code extension (`packages/extension`)
 
-When the viewer runs inside VS Code, the loopback HTTP server is **not**
-started. Instead the extension host hosts a `ViewerSessionBridge` per
-webview panel and the React UI uses a typed `postMessage` transport.
+The extension owns a singleton loopback `LogServer` and exposes it to the
+webview through VS Code port mapping. The React UI uses the same HTTP and SSE
+transport as the standalone application.
 
-- The webview is created with `enableScripts: true` and
-  `localResourceRoots` pinned to the extension's `ui-dist/` folder, so
-  `webview.asWebviewUri` only resolves bundled local assets.
-- A strict CSP is injected into the webview HTML:
-  `default-src 'none'`, `script-src 'nonce-<random>'`,
-  `connect-src ${webview.cspSource}`. Inline scripts without a matching
-  nonce are blocked, and there is no allowlist for outbound network
-  origins.
-- Webview ↔ extension messages are typed `WebviewRequest` /
-  `ExtensionNotification` envelopes from `@ahp-inspector/shared`. Unknown
-  message kinds are ignored; invalid payloads return coded error
-  responses.
-- Absolute file paths only appear inside the extension host (for the
-  initial open hint and `path/openSession` requests). Paths are not put
-  into stream metadata frames, and discovery responses use opaque
-  candidate ids.
+- The server binds to `127.0.0.1`.
+- The webview allows scripts and limits local resources to the bundled
+  `ui-dist` directory.
+- Webview HTML uses a restrictive CSP with a per-load script nonce and an
+  explicit loopback `connect-src`.
+- Discovery responses and normal metadata use opaque identifiers and
+  basenames rather than absolute paths.
+- Extension deactivation must close the server and dispose the active session,
+  including file watchers, timers, streams, and temporary uploads.
 
-The boundary is enforced by automated tests:
-`test/boundary.test.ts` forbids `vscode` imports and
-`@ahp-inspector/extension` imports outside `packages/extension`, and
-`test/security.test.ts` asserts that the extension runtime never imports
-`startLogServer` and that `renderWebviewHtml` emits the strict CSP with
-no external URLs.
+The boundary is enforced by `test/boundary.test.ts`, `test/security.test.ts`,
+and the server CORS, origin, host-guard, and CSP tests.

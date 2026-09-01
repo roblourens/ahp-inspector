@@ -36,7 +36,6 @@
       "!**/.playwright-cli",
       "!test/fixtures",
       "!.github",
-      "!.planning",
       "!.claude",
       "!pnpm-lock.yaml"
     ]

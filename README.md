@@ -66,10 +66,9 @@ When invoked with no path argument, `ahp-inspector`:
 
 ## Status
 
-This is an active private project. Phases 1-3 are complete: core parsing and
-correlation, CLI/server/browser vertical slice, and detail/search/filtering.
-Phase 4 is planned next: live tail, VS Code log discovery, manual log selection,
-pause/resume, and per-log persistence.
+This is an active private project. The standalone CLI and VS Code extension
+support discovery, live tailing, search, filtering, event details, correlation,
+and reducer-backed state inspection.
 
 ## Prerequisites
 
@@ -139,7 +138,7 @@ Example:
 | `packages/ui` | React UI, Zustand store, timeline/detail/filter components |
 | `packages/cli` | `ahp-inspector` CLI entrypoint |
 | `test/fixtures` | Scrubbed JSONL fixtures, including long realistic traffic |
-| `.planning` | GSD project roadmap, phase plans, reviews, and state |
+| `.github/skills` | Repository-specific release, protocol-sync, and validation workflows |
 
 ## Development commands
 

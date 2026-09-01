@@ -1,7 +1,7 @@
 # Contributing
 
 This is a private development repository. Keep changes small, tested, and aligned
-with the current phase in `.planning/ROADMAP.md`.
+with the architecture and practices in `AGENTS.md`.
 
 ## Local setup
 
